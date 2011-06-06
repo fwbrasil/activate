@@ -5,7 +5,7 @@ Activate is a object persistence framework in Scala. The main features are:
 
  * Use of RadonSTM to control entities atributes, resulting in a durable STM with optimistc concurrency control
  * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is a initial implementation for key-value storages, like Apache Cassandra.
- * Lazy loading and transparent activation
+ * Entities are lazy loaded and initialized when used
  * Type-safe queries
  
 Getting Started
@@ -13,7 +13,7 @@ Getting Started
 
 Declare a ActivateContext instance:
 
- * Prevayler
+Prevayler
 
 	object prevaylerContext extends ActivateTestContext {
 		val storage = new PrevaylerMemoryStorage {
@@ -21,13 +21,13 @@ Declare a ActivateContext instance:
 		}
 	}
 
- * Transient memory
+Transient memory
 
 	object memoryContext extends ActivateTestContext {
 		val storage = new MemoryStorage {}
 	}
 
- * Oracle
+Oracle
 
 	object oracleContext extends ActivateTestContext {
 		val storage = new SimpleJdbcRelationalStorage {
@@ -40,7 +40,7 @@ Declare a ActivateContext instance:
 		}
 	}
 
- * Mysql
+Mysql
 
 	object mysqlContext extends ActivateTestContext {
 		val storage = new SimpleJdbcRelationalStorage {
@@ -61,7 +61,7 @@ Extend "Entity" trait and declare atributes as Vars:
 
 	class Person(val name: Var[String], val age: Var[Int]) extends Entity
 
-# IMPORTANT: 
+IMPORTANT: 
  * Make sure to use immutable values inside Vars
  * Actually, the framework supports only Vars declareds in entity constructor parameters.
 
@@ -139,13 +139,13 @@ Nested transactions are a type of propagation:
 	}
 
 The available propagations are based on EJB propagations:
-	*	required
-	*	requiresNew
-	*	mandatory
-	*	notSupported
-	*	supports
-	*	never
-	*	nested
+ * required
+ * requiresNew
+ * mandatory
+ * notSupported
+ * supports
+ * never
+ * nested
 
 
 License
