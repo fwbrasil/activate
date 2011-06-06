@@ -1,7 +1,7 @@
 Introduction
 ============
 
-Activate is a object persistence framework in Scala. The main features are:
+Activate is an object persistence framework in Scala. The main features are:
 
  * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities atributes, resulting in a durable STM with optimistc concurrency control
  * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is an initial implementation for key-value storages, like Apache Cassandra.
@@ -37,6 +37,7 @@ Declare an ActivateContext instance:
 Prevayler
 
 	object prevaylerContext extends ActivateTestContext {
+		def contextName = "prevaylerContext"
 		val storage = new PrevaylerMemoryStorage {
 			override lazy val name = "test/PrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
 		}
@@ -45,12 +46,14 @@ Prevayler
 Transient memory
 
 	object memoryContext extends ActivateTestContext {
+		def contextName = "memoryContext"
 		val storage = new MemoryStorage {}
 	}
 
 Oracle
 
 	object oracleContext extends ActivateTestContext {
+		def contextName = "oracleContext"
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
 			val user = "USER"
@@ -64,6 +67,7 @@ Oracle
 Mysql
 
 	object mysqlContext extends ActivateTestContext {
+		def contextName = "mysqlContext"
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "com.mysql.jdbc.Driver"
 			val user = "root"
@@ -98,7 +102,7 @@ Use entities always inside transaction:
 		person.name.put("Test3")
 	}
 
-There are implicit conversions from values to Vars. You can get atribute value by using get ou the unary ! and set attribute using := or put.
+There are implicit conversions from values to Vars. You can get atribute value by using get or the unary ! and set attribute using := or put.
 It's not necessary to call a method like store to add the entity, just create and the entity will be persisted.
 
 Create queries:
