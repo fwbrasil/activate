@@ -170,13 +170,13 @@ Nested transactions are a type of propagation:
 	}
 
 The available propagations are based on EJB propagations:
- * required
- * requiresNew
- * mandatory
- * notSupported
- * supports
- * never
- * nested
+* required
+* requiresNew
+* mandatory
+* notSupported
+* supports
+* never
+* nested
 
 Database types
 ==============
@@ -196,6 +196,10 @@ Date         | LONG        | TIMESTAMP
 Calendar     | LONG        | TIMESTAMP
 Array[Byte]  | BLOB        | BLOB
 Entity       | VARCHAR(36) | VARCHAR2(36)
+
+* Always add a column "ID" of type VARCHAR2(36) to your table entities.
+* The name of the table is the name of entity class
+
 
 License
 =======
