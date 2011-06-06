@@ -28,5 +28,7 @@ class ActivateProject(info: ProjectInfo) extends DefaultProject(info) {
 	
 	override def filterScalaJars = false
 	
+	override def managedStyle = ManagedStyle.Maven
+    lazy val publishTo = Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")
 
 }
