@@ -3,7 +3,7 @@ Introduction
 
 Activate is an object persistence framework in Scala. The main features are:
 
- * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities atributes, resulting in a durable STM with optimistc concurrency control
+ * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities attributes, resulting in a durable STM with optimistc concurrency control
  * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is an initial implementation for key-value storages, like Apache Cassandra.
  * Entities are lazy loaded and initialized when used
  * Type-safe queries
@@ -44,9 +44,7 @@ Prevayler
 
 	object prevaylerContext extends ActivateTestContext {
 		def contextName = "prevaylerContext"
-		val storage = new PrevaylerMemoryStorage {
-			override lazy val name = "test/PrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
-		}
+		val storage = new PrevaylerMemoryStorage {}
 	}
 
 Transient memory
@@ -88,7 +86,7 @@ Import from context:
 
 	import prevaylerContext._
 	
-Extend "Entity" trait and declare atributes as Vars:
+Extend "Entity" trait and declare attributes as Vars:
 
 	class Person(val name: Var[String], val age: Var[Int]) extends Entity
 
@@ -105,10 +103,10 @@ Use entities always inside transaction:
 		val personNameOption = person.name.get
 		val personName = !person.name
 		person.name := "Test2"
-		person.name.put("Test3")
+		person.name.put(Option("Test3"))
 	}
 
-There are implicit conversions from values to Vars. You can get atribute value by using get or the unary ! and set attribute using := or put.
+There are implicit conversions from values to Vars. You can get attribute value by using get or the unary ! and set attribute using := or put.
 It's not necessary to call a method like store to add the entity, just create and the entity will be persisted.
 
 Create queries:
