@@ -113,6 +113,7 @@ case class TicketBoothQueue(queueSize: Var[Int] = 40) extends Entity {
 		val ret = ticketBoothQueueCustomerOption.map(!_.customer)			
 		if(ticketBoothQueueCustomerOption != None)
 			ticketBoothQueueCustomerOption.get.delete
+		this.queueSize := 20
 		ret
 	}
 	def customers =
