@@ -41,12 +41,12 @@ Getting Started
 Declare an ActivateContext instance:
 
 Prevayler
-
+```scala
 	object prevaylerContext extends ActivateTestContext {
 		def contextName = "prevaylerContext"
 		val storage = new PrevaylerMemoryStorage {}
 	}
-
+```
 Transient memory
 
 	object memoryContext extends ActivateTestContext {
@@ -178,7 +178,15 @@ The available propagations are based on EJB propagations:
  * never
  * nested
 
+Database types
+==============
 
+This is the mapping from Activate attributes and database types:
+
+Attibute  | Mysql    | Oracle
+----------|----------|----------
+Int       | Integer  | Integer
+Boolean   | Boolean  | Number(1)
 License
 =======
 
