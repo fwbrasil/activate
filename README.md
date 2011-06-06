@@ -5,7 +5,8 @@ Activate is an object persistence framework in Scala. The main features are:
 
  * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities attributes, resulting in a durable STM with optimistc concurrency control and in-memory rollback
  * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is an initial implementation for key-value storages, like Apache Cassandra.
- * Entities are lazy loaded and initialized when used
+ * Entities are lazy loaded and initialized when used (transparent activation)
+ * Transaction propagation control with nested transactions
  * Type-safe queries
  
 Dependency
@@ -170,6 +171,7 @@ Nested transactions are a type of propagation:
 	}
 
 The available propagations are based on EJB propagations:
+
 * required
 * requiresNew
 * mandatory
@@ -198,7 +200,7 @@ Array[Byte]  | BLOB        | BLOB
 Entity       | VARCHAR(36) | VARCHAR2(36)
 
 * Always add a column "ID" of type VARCHAR2(36) to your table entities.
-* The name of the table is the name of entity class
+* The name of the table is the name of entity class.
 
 
 License
