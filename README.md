@@ -41,12 +41,12 @@ Getting Started
 Declare an ActivateContext instance:
 
 Prevayler
-```scala
+
 	object prevaylerContext extends ActivateTestContext {
 		def contextName = "prevaylerContext"
 		val storage = new PrevaylerMemoryStorage {}
 	}
-```
+
 Transient memory
 
 	object memoryContext extends ActivateTestContext {
@@ -183,10 +183,20 @@ Database types
 
 This is the mapping from Activate attributes and database types:
 
-Attibute  | Mysql    | Oracle
-----------|----------|----------
-Int       | Integer  | Integer
-Boolean   | Boolean  | Number(1)
+Attibute     | Mysql       | Oracle
+-------------|-------------|-------------
+Int          | INTEGER     | INTEGER
+Boolean      | BOOLEAN     | NUMBER(1)
+Char         | CHAR        | CHAR
+String       | VARCHAR     | VARCHAR2
+Float        | DOUBLE      | FLOAT
+Double       | DOUBLE      | DOUBLE PRECISION
+BigDecimal   | DECIMAL     | NUMBER
+Date         | LONG        | TIMESTAMP
+Calendar     | LONG        | TIMESTAMP
+Array[Byte]  | BLOB        | BLOB
+Entity       | VARCHAR(36) | VARCHAR2(36)
+
 License
 =======
 
