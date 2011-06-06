@@ -8,6 +8,27 @@ Activate is a object persistence framework in Scala. The main features are:
  * Entities are lazy loaded and initialized when used
  * Type-safe queries
  
+Dependency
+==========
+
+SBT
+
+	val radonStm = "net.fwbrasil" %% "activate" % "0.0.1"
+	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+
+Maven
+
+	<dependency>
+    	<groupId>net.fwbrasil</groupId>
+	    <artifactId>activate</artifactId>
+    	<version>0.0.1</version>
+	</dependency>
+	
+	<repository>
+		<id>fwbrasil</id>
+		<url>http://fwbrasil.net/maven/</url>
+    </repository>
+ 
 Getting Started
 ===============
 
@@ -67,7 +88,7 @@ IMPORTANT:
  * The framework supports only Vars declareds in entity constructor parameters.
 ********************************************************
 
-Use entities always inside transacion:
+Use entities always inside transaction:
 
 	transacional {
 		val person = new Person("Test", 20)
