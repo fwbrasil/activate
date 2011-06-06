@@ -15,6 +15,12 @@ SBT
 
 	val radonStm = "net.fwbrasil" %% "activate" % "0.0.1"
 	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	
+Add this line to sbt project:
+
+	override def filterScalaJars = false
+
+******************
 
 Maven
 
