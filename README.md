@@ -3,15 +3,15 @@ Introduction
 
 Activate is a object persistence framework in Scala. The main features are:
 
- * Use of RadonSTM to control entities atributes, resulting in a durable STM with optimistc concurrency control
- * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is a initial implementation for key-value storages, like Apache Cassandra.
+ * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities atributes, resulting in a durable STM with optimistc concurrency control
+ * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is an initial implementation for key-value storages, like Apache Cassandra.
  * Entities are lazy loaded and initialized when used
  * Type-safe queries
  
 Getting Started
 ===============
 
-Declare a ActivateContext instance:
+Declare an ActivateContext instance:
 
 Prevayler
 
@@ -61,9 +61,11 @@ Extend "Entity" trait and declare atributes as Vars:
 
 	class Person(val name: Var[String], val age: Var[Int]) extends Entity
 
-IMPORTANT: 
+********************************************************
+IMPORTANT:
  * Make sure to use immutable values inside Vars
- * Actually, the framework supports only Vars declareds in entity constructor parameters.
+ * The framework supports only Vars declareds in entity constructor parameters.
+********************************************************
 
 Use entities always inside transacion:
 
