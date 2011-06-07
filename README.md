@@ -1,13 +1,17 @@
 Introduction
 ============
 
-Activate is an object persistence framework in Scala. The main features are:
+It's difficult to categorize this framework to compare with others. Activate is an ORM (Object Relational Mapping), since it can be used with relational databases. 
+But it also can be used with Prevayler (Object Prevalence Mapping?) and will can be used with No-SQL databases (Object No-SQL Mapping?). 
+For now, the best denomination that I've found is "Pluggable Object Persistence". It persists objects, using pluggable storage systems.
 
- * Use of [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM") to control entities attributes, resulting in a durable STM with optimistc concurrency control and in-memory rollback
- * The storage backend is pluggable. For now there is support for transient memory, prevayler and jdbc (tested with mysql and oracle). There is an initial implementation for key-value storages, like Apache Cassandra.
- * Entities are lazy loaded and initialized when used (transparent activation)
- * Transaction propagation control with nested transactions
- * Type-safe queries
+Activate also is a durable STM (Software Transactional Memory). His core is a STM implementation created by me called RadonSTM.  STM gives to the framework:
+- A powerful mechanism to handle with transactions in memory, without needing to use transactional control from the storage (witch is absent in some No-SQL databases);
+- Atomic, isolated and consistent transactions with optimistic read and write collision detection in concurrent transactions, so you can use the entities without worrying about concurrency, commit and rollback problems;
+- In memory transaction propagation control, with nested transactions;
+
+The persistence of the objects is transparent, so just to use the entities inside transactions and the persistence will be achieved. Entities are lazy loaded and transparent activated (initialized) when it's necessary.
+Queries are type-safe and consistent with the running transaction, so entities created during the transaction are "queriable" to.
  
 Dependency
 ==========
@@ -93,6 +97,7 @@ Extend "Entity" trait and declare attributes as Vars:
 
 ********************************************************
 IMPORTANT:
+
  * Make sure to use immutable values inside Vars
  * The framework supports only Vars declareds in entity constructor parameters.
 ********************************************************
@@ -185,7 +190,7 @@ Database types
 
 This is the mapping from Activate attributes and database types:
 
-Attibute     | Mysql       | Oracle
+Attribute     | Mysql       | Oracle
 -------------|-------------|-------------
 Int          | INTEGER     | INTEGER
 Boolean      | BOOLEAN     | NUMBER(1)
@@ -206,4 +211,4 @@ Entity       | VARCHAR(36) | VARCHAR2(36)
 License
 =======
 
-All code in this repository is licensed under the GPL version 3, or any later version at your choice. See the LICENSE-GPL file for more details.
+All code in this repository is licensed under the LGPL. See the LICENSE-LGPL file for more details.
