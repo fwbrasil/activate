@@ -1,7 +1,7 @@
 Introduction
 ============
 
-It's difficult to categorize this framework to compare with others. Activate is an ORM (Object Relational Mapping), since it can be used with relational databases. 
+Activate is an ORM (Object Relational Mapping), since it can be used with relational databases. 
 But it also can be used with Prevayler (Object Prevalence Mapping?) and will can be used with No-SQL databases (Object No-SQL Mapping?). 
 For now, the best denomination that I've found is "Pluggable Object Persistence". It persists objects, using pluggable storage systems.
 
