@@ -5,7 +5,7 @@ It's difficult to categorize this framework to compare with others. Activate is 
 But it also can be used with Prevayler (Object Prevalence Mapping?) and will can be used with No-SQL databases (Object No-SQL Mapping?). 
 For now, the best denomination that I've found is "Pluggable Object Persistence". It persists objects, using pluggable storage systems.
 
-Activate also is a durable STM (Software Transactional Memory). His core is a STM implementation created by me called RadonSTM.  STM gives to the framework:
+Activate also is a durable [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory). His core is a STM implementation called [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM").  STM gives to the framework:
 - A powerful mechanism to handle with transactions in memory, without needing to use transactional control from the storage (witch is absent in some No-SQL databases);
 - Atomic, isolated and consistent transactions with optimistic read and write collision detection in concurrent transactions, so you can use the entities without worrying about concurrency, commit and rollback problems;
 - In memory transaction propagation control, with nested transactions;
