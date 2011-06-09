@@ -6,9 +6,10 @@ But it also can be used with Prevayler (Object Prevalence Mapping?) and will can
 For now, the best denomination that I've found is "Pluggable Object Persistence". It persists objects, using pluggable storage systems.
 
 Activate also is a durable [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory). His core is a STM implementation called [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM").  STM gives to the framework:
-- A powerful mechanism to handle with transactions in memory, without needing to use transactional control from the storage (witch is absent in some No-SQL databases);
-- Atomic, isolated and consistent transactions with optimistic read and write collision detection in concurrent transactions, so you can use the entities without worrying about concurrency, commit and rollback problems;
-- In memory transaction propagation control, with nested transactions;
+
+* A powerful mechanism to handle with transactions in memory, without needing to use transactional control from the storage (witch is absent in some No-SQL databases);
+* Atomic, isolated and consistent transactions with optimistic read and write collision detection in concurrent transactions, so you can use the entities without worrying about concurrency, commit and rollback problems;
+* In memory transaction propagation control, with nested transactions;
 
 The persistence of the objects is transparent, so just to use the entities inside transactions and the persistence will be achieved. Entities are lazy loaded and transparent activated (initialized) when it's necessary.
 Queries are type-safe and consistent with the running transaction, so entities created during the transaction are "queriable" to.
@@ -207,6 +208,11 @@ Entity       | VARCHAR(36) | VARCHAR2(36)
 * Always add a column "ID" of type VARCHAR2(36) to your table entities.
 * The name of the table is the name of entity class.
 
+Limitations
+===========
+
+The framework isn't prepared to be used with parallel VMs, since all transacional control is in memory.
+Break this limitation is the current focus of the development.
 
 License
 =======

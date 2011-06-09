@@ -8,7 +8,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
 
-trait Entity extends DelayedInit with Idable {
+trait Entity extends Idable {
   println("A ConstructionCode")
 
   def delayedInit(body: => Unit) = {
