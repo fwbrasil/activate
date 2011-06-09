@@ -1,20 +1,23 @@
 package net.fwbrasil.activate.entity
 
-import tools.scalap.scalax.rules.scalasig._
-import scala.runtime._
-import net.fwbrasil.activate.ActivateContext
+import java.lang.reflect.{Modifier, Field}
 import net.fwbrasil.activate.cache.live._
 import net.fwbrasil.activate.util.uuid.Idable
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 
-// TODO Id deveria ser uma Ref do tipo Val!
-trait Entity extends Idable {
+trait Entity extends DelayedInit with Idable {
+  println("A ConstructionCode")
 
-	def delete = {
+  def delayedInit(body: => Unit) = {
+    body
+    boundVarsToEntity
+    addToLiveCache
+  }
+  
+  def delete = {
 		initialize
 		for (ref <- vars)
 			ref.destroy
@@ -42,18 +45,18 @@ trait Entity extends Idable {
 	private[activate] def initialize =
 		this.synchronized {
 			if (!initialized)
-				context.initialize(this)
+				context.initialize(this.asInstanceOf[Entity])
 			initialized = true
 		}
 
 	private[activate] def isInLiveCache =
-		context.liveCache.contains(this)
+		context.liveCache.contains(this.asInstanceOf[Entity])
 
 	private[this] def varFields =
-		Entity.getEntityFields(this.getClass.asInstanceOf[Class[Entity]])._2
+		EntityHelper.getEntityFields(this.getClass.asInstanceOf[Class[Entity]])._2
 
 	private[activate] def idField =
-		Entity.getEntityFields(this.getClass.asInstanceOf[Class[Entity]])._1
+		EntityHelper.getEntityFields(this.getClass.asInstanceOf[Class[Entity]])._1
 
 	@transient
 	private[this] var varFieldsMapCache: Map[String, Var[_]] = _
@@ -84,7 +87,7 @@ trait Entity extends Idable {
 	private[activate] def varNamed(name: String) =
 		varFieldsMap.get(name)
 
-	boundVarsToEntity
+	
 	private[activate] def boundVarsToEntity = {
 		isVarsBound.asInstanceOf[AnyRef].synchronized {
 			if (!isVarsBound) {
@@ -92,7 +95,7 @@ trait Entity extends Idable {
 					val entityVar = field.get(this)
 					if (entityVar != null) {
 						val castVar = entityVar.asInstanceOf[Var[_]]
-						castVar.outerEntity = this
+						castVar.outerEntity = this.asInstanceOf[Entity]
 						castVar.name = field.getName.split('$').last
 					}
 				}
@@ -101,12 +104,11 @@ trait Entity extends Idable {
 		}
 	}
 
-	addToLiveCache
 	private[activate] def addToLiveCache =
-		context.liveCache.toCache(this)
+		context.liveCache.toCache(this.asInstanceOf[Entity])
 
 	private[activate] def cachedInstance =
-		context.liveCache.cachedInstance(this)
+		context.liveCache.cachedInstance(this.asInstanceOf[Entity])
 
 	override def equals(other: Any) =
 		other match {
@@ -124,7 +126,7 @@ trait Entity extends Idable {
 
 }
 
-object Entity {
+object EntityHelper {
 
 	private[this] val entityVarFields =
 		mutable.WeakHashMap[Class[Entity], (Field, List[(Field, Class[_])])]()

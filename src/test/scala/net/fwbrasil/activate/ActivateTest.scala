@@ -67,7 +67,7 @@ trait ActivateTest extends Specification {
 			reinitializeContext
 			ret
 		}
-	}
+	} 
 
 	def executors(ctx: ActivateTestContext) =
 		List(OneTransaction(ctx), MultipleTransactions(ctx), MultipleTransactionsWithReinitialize(ctx))
@@ -162,7 +162,9 @@ trait ActivateTest extends Specification {
 			dateValue: Var[java.util.Date],
 			calendarValue: Var[java.util.Calendar],
 			byteArrayValue: Var[Array[Byte]],
-			entityValue: Var[ActivateTestEntity]) extends Entity
+			entityValue: Var[ActivateTestEntity] ) extends Entity {
+//			val test: Var[Boolean] = true
+		}
 
 		def validateFullTestEntity(entity: ActivateTestEntity = null,
 			intValue: Option[Int] = fullIntValue,

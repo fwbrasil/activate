@@ -3,10 +3,10 @@ package net.fwbrasil.activate
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
- 
+
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
-  
+
 	"Activate perssitence framework" should {
 		"support CRUD" in {
 			"create and retreive" in {
@@ -36,9 +36,9 @@ class CRUDSpecs extends ActivateTest {
 						step {
 							val emptyEntity = byId[ActivateTestEntity](emptyId).get
 							setFullEntity(emptyEntity)
-							
+
 							val fullEntity = byId[ActivateTestEntity](fullId).get
-							setEmptyEntity(fullEntity) 
+							setEmptyEntity(fullEntity)
 						}
 						step {
 							val fullEntity = byId[ActivateTestEntity](fullId).get
@@ -49,7 +49,7 @@ class CRUDSpecs extends ActivateTest {
 					}
 				)
 			}
-		
+
 			"create, update, retreive and delete" in {
 				activateTest(
 					(step: StepExecutor) => {
@@ -60,9 +60,9 @@ class CRUDSpecs extends ActivateTest {
 						step {
 							val emptyEntity = byId[ActivateTestEntity](emptyId).get
 							setFullEntity(emptyEntity)
-							
+
 							val fullEntity = byId[ActivateTestEntity](fullId).get
-							setEmptyEntity(fullEntity) 
+							setEmptyEntity(fullEntity)
 						}
 						step {
 							val fullEntity = byId[ActivateTestEntity](fullId).get

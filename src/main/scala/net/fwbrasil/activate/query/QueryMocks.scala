@@ -42,7 +42,7 @@ object QueryMocks {
     
     def mockEntity[E <: Entity](clazz: Class[E], originVar: FakeVarToQuery[_]): E = {
         val entity = newInstance(clazz).asInstanceOf[E]
-        val (idField, fields) = Entity.getEntityFields(clazz.asInstanceOf[Class[Entity]])
+        val (idField, fields) = EntityHelper.getEntityFields(clazz.asInstanceOf[Class[Entity]])
         for ((field, typ) <- fields) {
             val ref = mockVar
             ref.fakeValueClass = typ

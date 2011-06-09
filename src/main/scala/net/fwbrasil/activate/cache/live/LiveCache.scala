@@ -104,7 +104,7 @@ class LiveCache(val context: ActivateContext) {
 
 	def createLazyEntity[E](entityClass: Class[E], entityId: String) = {
 		val entity = newInstance[Entity](entityClass)
-		val (idField, fields) = net.fwbrasil.activate.entity.Entity.getEntityFields(entityClass.asInstanceOf[Class[Entity]])
+		val (idField, fields) = net.fwbrasil.activate.entity.EntityHelper.getEntityFields(entityClass.asInstanceOf[Class[Entity]])
 		context.transactional(context.transient) {
 			for ((field, typ) <- fields) {
 				val ref = new Var[Any](null)(manifestClass(typ), tvalFunction(typ), context)
