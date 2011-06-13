@@ -9,13 +9,6 @@ import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
 
 trait Entity extends Idable {
-  println("A ConstructionCode")
-
-  def delayedInit(body: => Unit) = {
-    body
-    boundVarsToEntity
-    addToLiveCache
-  }
   
   def delete = {
 		initialize
