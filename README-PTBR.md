@@ -20,7 +20,7 @@ Os principais benefícios do framework são:
 * As entidades são carregadas de forma lazy e inicializadas transparentemente quando necessário.
 * As consultas são type-safe e consistentes, inclusive com os objetos criados na transação corrente. Portanto, uma entidade criada na mesma transação pode ser retornada em uma consulta.
 
-Dependencia
+Dependência
 ===========
 
 Adicione a dependência do Activate ao seu projeto:
