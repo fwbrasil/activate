@@ -15,6 +15,9 @@ class ActivateProject(info: ProjectInfo) extends DefaultProject(info) {
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.0.1"
 	val prevayler = "org.prevayler" % "prevayler" % "2.3"
+	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"
+	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.5"
+	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
 	override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)
@@ -24,7 +27,8 @@ class ActivateProject(info: ProjectInfo) extends DefaultProject(info) {
 	val maven = "Maven" at "http://repo1.maven.org/maven2/"
 	val mvnsearch = "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/"
 	
-	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	val fwbrasil = "fwbrasil.net" at "http://reflections.googlecode.com/svn/repo"
+	val reflections_repo = "reflections-repo" at "http://fwbrasil.net/maven/"
 	
 	override def filterScalaJars = false
 	

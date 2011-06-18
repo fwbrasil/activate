@@ -1,14 +1,15 @@
 package net.fwbrasil.activate.entity
 
+import scala.tools.nsc.util.ClassPath.DefaultJavaContext
 import java.lang.reflect.{Modifier, Field}
 import net.fwbrasil.activate.cache.live._
-import net.fwbrasil.activate.util.uuid.Idable
+import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
 
-trait Entity extends Idable {
+trait Entity {
   
   def delete = {
 		initialize
@@ -18,6 +19,8 @@ trait Entity extends Idable {
 
 	def isDeleted =
 		vars.first.isDestroyed
+		
+	val id = UUIDUtil.generateUUID.hashCode + "@" + EntityHelper.getEntityClassHashId(this.getClass)
 
 	private[this] var persistedflag = false
 	private[this] var isVarsBound = false
@@ -31,6 +34,9 @@ trait Entity extends Idable {
 
 	private[activate] def setNotInitialized =
 		initialized = false
+	
+	private[activate] def setInitialized =
+		initialized = true
 
 	private[activate] def isInitialized =
 		initialized
@@ -80,7 +86,7 @@ trait Entity extends Idable {
 	private[activate] def varNamed(name: String) =
 		varFieldsMap.get(name)
 
-	
+	boundVarsToEntity
 	private[activate] def boundVarsToEntity = {
 		isVarsBound.asInstanceOf[AnyRef].synchronized {
 			if (!isVarsBound) {
@@ -97,29 +103,41 @@ trait Entity extends Idable {
 		}
 	}
 
+	addToLiveCache
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this.asInstanceOf[Entity])
 
 	private[activate] def cachedInstance =
 		context.liveCache.cachedInstance(this.asInstanceOf[Entity])
 
-	override def equals(other: Any) =
-		other match {
-			case entity: Entity =>
-				this.id == entity.id
-			case other =>
-				false
-		}
-
-	override def hashCode =
-		this.id.hashCode
-
 	override def toString =
-		this.getClass.getSimpleName + "(" + id + ")"
+		this.getClass.getSimpleName + "(" + id + "@" + hashCode + ")"
 
 }
 
 object EntityHelper {
+	
+	private[this] lazy val entityClassesMap = {
+		val map = mutable.HashMap[String, Class[_]]()
+		for(entityClass <- Reflection.getAllImplementors[Entity]) {
+			val entityName = getEntityName(entityClass)
+			if(map.contains(entityName))
+				throw new IllegalStateException("Duplicate entity name.")
+			map += (entityName -> entityClass)
+		}
+		map
+	}
+	
+	def getEntityClassFromId(entityId: String) = {
+		val entityClassHash = entityId.split("@")(1)
+		entityClassesMap(entityClassesMap.keys.find(_.hashCode.toString == entityClassHash).get).asInstanceOf[Class[Entity]]
+	}
+	
+	def getEntityClassHashId(entityClass: Class[_]) =
+		getEntityName(entityClass).hashCode
+	
+	def getEntityName(entityClass: Class[_]) = 
+		entityClass.getSimpleName.split('$')(0)
 
 	private[this] val entityVarFields =
 		mutable.WeakHashMap[Class[Entity], (Field, List[(Field, Class[_])])]()

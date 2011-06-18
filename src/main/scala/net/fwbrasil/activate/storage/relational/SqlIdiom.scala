@@ -3,6 +3,7 @@ package net.fwbrasil.activate.storage.relational
 import java.util.regex._
 import net.fwbrasil.activate.query._
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
@@ -228,7 +229,7 @@ abstract class SqlIdiom {
 		}
 
 	def toTableName(entityClass: Class[_]): String =
-		entityClass.getSimpleName.split('$')(0)
+		EntityHelper.getEntityName(entityClass)
 
 }
 

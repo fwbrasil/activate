@@ -5,8 +5,8 @@ import org.junit.runner._
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
-class CRUDSpecs extends ActivateTest {
-
+class CRUDSpecs extends ActivateTest { 
+ 
 	"Activate perssitence framework" should {
 		"support CRUD" in {
 			"create and retreive" in {
@@ -23,7 +23,7 @@ class CRUDSpecs extends ActivateTest {
 							validateFullTestEntity(entity = fullEntity)
 						}
 					}
-				)
+				) 
 			}
 
 			"create, update and retreive" in {

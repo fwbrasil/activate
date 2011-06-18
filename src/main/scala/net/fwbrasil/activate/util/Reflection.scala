@@ -6,6 +6,7 @@ import org.objenesis._
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
+import org.reflections.Reflections
 
 class Reflection(val clazz: Class[_]) {
 	def publicMethods = clazz.getMethods
@@ -85,4 +86,8 @@ object Reflection {
 			}
 		} else jclazz
 	}
+	
+	def getAllImplementors[E: Manifest] = 
+		Set(new Reflections("").getSubTypesOf(manifest[E].erasure).toArray: _*).asInstanceOf[Set[Class[E]]]
+	
 }

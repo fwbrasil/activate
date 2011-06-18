@@ -17,8 +17,11 @@ import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.util.Logging
 
-class LiveCache(val context: ActivateContext) {
+class LiveCache(val context: ActivateContext) extends Logging {
+	
+	info("Initializing live cache for context " + context.contextName)
 
 	def storage = context.storage
 
@@ -27,35 +30,43 @@ class LiveCache(val context: ActivateContext) {
 	private[activate] val cache =
 		new ReferenceWeakKeyMap[Class[E], ReferenceWeakValueMap[String, E] with Lockable] with Lockable
 
-	def reinitialize =
-		cache.doWithWriteLock {
-			cache.clear
+	def reinitialize = 
+		logInfo("live cache reinitialize") {
+			cache.doWithWriteLock {
+				cache.clear
+			}
 		}
 
 	def contains(entity: E) =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).contains(entity.id)
-
-	def cachedInstance(entity: E) =
+		
+	def cachedInstance(entity: E): Unit =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).getOrElse(entity.id, {
 			toCache(entity)
 			entity.boundVarsToEntity
 			entity
 		})
 
-	def delete(entity: => E) = {
-		val map = entityInstacesMap(entity.getClass.asInstanceOf[Class[E]])
+	def delete(entity: E): Unit =
+		delete(entity.id)
+		
+	def delete(entityId: String) = {
+		val map = entityInstacesMap(EntityHelper.getEntityClassFromId(entityId))
 		map.doWithWriteLock {
-			map -= entity.id
+			map -= entityId
 		}
-		entity
 	}
+	
+	def toCache(entity: E): E = 
+		toCache(entity.getClass.asInstanceOf[Class[E]], () =>entity)
 
-	def toCache(entity: => E) = {
-		val map = entityInstacesMap(entity.getClass.asInstanceOf[Class[E]])
+	def toCache(entityClass: Class[E], fEntity: () => E): E = {
+		val map = entityInstacesMap(entityClass)
 		map.doWithWriteLock {
+			val entity = fEntity()
 			map += (entity.id -> entity)
+			entity
 		}
-		entity
 	}
 
 	def fromCache(entityClass: Class[E]) =
@@ -83,23 +94,21 @@ class LiveCache(val context: ActivateContext) {
 			yield toTuple[S](for (column <- line)
 			yield column match {
 			case value: EntityInstanceReferenceValue[_] =>
-				Option(materializeEntity(value))
+				if(value.value == None)
+					None
+				else
+					Option(materializeEntity(value.value.get))
 			case other: EntityValue[_] =>
 				other.value
 		}))
 		(fromCache ::: fromStorage).toSet.toList
 	}
 
-	def materializeEntity(value: EntityInstanceReferenceValue[_]): E = {
-		if (value.value == None)
-			null
-		else {
-			val entityId = value.value.get
-			val entityClass = value.entityClass.asInstanceOf[Class[E]]
-			entityInstacesMap(entityClass).getOrElse(entityId, {
-				toCache(createLazyEntity(entityClass, entityId))
-			})
-		}
+	def materializeEntity(entityId: String): Entity = {
+		val entityClass = EntityHelper.getEntityClassFromId(entityId)
+		entityInstacesMap(entityClass).getOrElse(entityId, {
+			toCache(entityClass, () => createLazyEntity(entityClass, entityId))
+		})
 	}
 
 	def createLazyEntity[E](entityClass: Class[E], entityId: String) = {
@@ -107,7 +116,7 @@ class LiveCache(val context: ActivateContext) {
 		val (idField, fields) = net.fwbrasil.activate.entity.EntityHelper.getEntityFields(entityClass.asInstanceOf[Class[Entity]])
 		context.transactional(context.transient) {
 			for ((field, typ) <- fields) {
-				val ref = new Var[Any](null)(manifestClass(typ), tvalFunction(typ), context)
+				val ref = new Var[Any](None)(manifestClass(typ), tvalFunction(typ), context)
 				field.set(entity, ref)
 			}
 		}
@@ -128,6 +137,7 @@ class LiveCache(val context: ActivateContext) {
 		val vars = entity.vars.toList
 		for (i <- 0 to vars.size - 1)
 			vars(i).asInstanceOf[Var[Any]].setRefContent(tuple.productElement(i).asInstanceOf[Option[Any]])
+		println("a")
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[E]]): List[S] = {

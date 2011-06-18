@@ -1,45 +1,88 @@
 package net.fwbrasil.activate.storage.memory
 
+import net.fwbrasil.activate.storage.marshalling._
+import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.{EntityValue, Entity, Var}
+import net.fwbrasil.activate.entity.{ EntityValue, Entity, Var, EntityInstanceReferenceValue }
 import net.fwbrasil.radon.transaction.Transaction
-import org.prevayler.{Transaction => PrevaylerTransaction, PrevaylerFactory, Prevayler}
+import org.prevayler.{ Transaction => PrevaylerTransaction, PrevaylerFactory, Prevayler }
+import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 
-class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MemoryStorage {
-	
+class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MarshalStorage {
+
 	var prevayler: Prevayler = _
-	
+
 	lazy val name = "activate"
 
+	var prevalentSystem: scala.collection.mutable.HashMap[String, Entity] = _
+
 	initialize
-	
-	override def initialize = {
-		super.initialize
-		prevayler = PrevaylerFactory.createPrevayler(storage, name)
-		storage = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
-		for((id, entity) <- storage)
-			entity.addToLiveCache
+
+	def initialize = {
+		prevalentSystem = scala.collection.mutable.HashMap[String, Entity]()
+		val factory = new PrevaylerFactory()
+		factory.configureTransactionFiltering(false)
+		factory.configurePrevalentSystem(prevalentSystem)
+		factory.configurePrevalenceDirectory(name)
+		prevayler = factory.create
+		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 	}
-		
-	override def reinitialize = 
+
+	override def reinitialize =
 		initialize
-		
-	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Var[Any], EntityValue[Any]]): Unit =
-		prevayler.execute(PrevaylerMemoryStorageTransaction(assignments, deletes))
-	
+
+	def store(pAssignments: Map[Var[_], StorageValue], pDeletes: Map[Var[Any], StorageValue]): Unit = {
+		val assignments = MutableMap[String, Set[(String, StorageValue)]]()
+		val deletes =
+			(for ((ref, value) <- pDeletes)
+				yield ref.outerEntity.id).toSet
+		for ((ref, value) <- pAssignments; if(!deletes.contains(ref.outerEntity.id)))
+			assignments.put(ref.outerEntity.id, assignments.getOrElse(ref.outerEntity.id, Set()) + Tuple2(ref.name, value))
+		prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments.toMap, deletes))
+	}
+
+	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
+		List()
+
 }
 
-case class PrevaylerMemoryStorageTransaction(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Var[Any], EntityValue[Any]]) extends PrevaylerTransaction {
+case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignments: Map[String, Set[(String, StorageValue)]], deletes: Set[String]) extends PrevaylerTransaction {
 	def executeOn(system: Object, date: java.util.Date) = {
+
+		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
+
+		val liveCache = context.liveCache
 		
-		for((ref: Var[Any], entityValue: EntityValue[Any]) <- assignments) {
-			val outerEntity = ref.outerEntity
-			if(!outerEntity.isInLiveCache) {
-				outerEntity.varNamed(ref.name).get.asInstanceOf[Var[Any]].setRefContent(entityValue.value)
-				outerEntity.setPersisted
-			}
+		for ((entityId, changeSet) <- assignments) {
+			val entity = materializeEntity(entityId)
+			storage += (entity.id -> entity)
+//			if (!entity.isInitialized) {
+				for ((varName, value) <- changeSet) {
+					entity.setInitialized
+					val ref = entity.varNamed(varName).get.asInstanceOf[Var[Any]]
+					val entityValue = Marshaller.unmarshalling(value) match {
+						case value: EntityInstanceReferenceValue[_] =>
+							if(value.value != None)
+								ref.setRefContent(Option(materializeEntity(value.value.get)))
+							else
+								ref.setRefContent(None)
+						case other: EntityValue[_] =>
+							ref.setRefContent(other.value)
+					}
+				}
+//			}
 		}
 		
-		MemoryStorage.toStorage(system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]], assignments, deletes)
+		for(delete <- deletes) {
+			storage -= delete
+			liveCache.delete(delete)
+		}
+
+		def materializeEntity(entityId: String) = {
+			val entity = liveCache.materializeEntity(entityId)
+			storage += (entity.id -> entity)
+			entity
+		}
+
 	}
 }

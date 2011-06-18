@@ -10,13 +10,17 @@ import net.fwbrasil.activate.storage._
 import net.fwbrasil.activate.cache.live._
 import scala.collection.mutable.{ Set => MutableSet }
 import java.io._
+import net.fwbrasil.activate.util.Logging
 
 trait ActivateContext
 	extends EntityContext
 	with QueryContext
 	with Serializable
 	with NamedSingletonSerializable
-	with RefContext {
+	with RefContext
+	with Logging {
+	
+	info("Initializing context " + contextName)
 
 	private[activate] lazy val liveCache = new LiveCache(this)
 
@@ -24,13 +28,16 @@ trait ActivateContext
 
 	val storage: Storage
 	
-	def reinitializeContext = {
-		liveCache.reinitialize
-		storage.reinitialize
-	}
+	def reinitializeContext = 
+		logInfo("reinitializing context " + contextName){
+			liveCache.reinitialize
+			storage.reinitialize
+		}
 	
 	def executeQuery[S](query: Query[S]): List[S] =
-		liveCache.executeQuery(query)
+		logInfo("executing query " + query.toString) {
+			liveCache.executeQuery(query)
+		}
 	
 	def name = contextName
 	def contextName: String
