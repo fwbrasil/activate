@@ -10,8 +10,21 @@ import org.specs2.runner._
 import org.specs2.execute.FailureException
 import tools.scalap.scalax.rules.scalasig._
 import scala.runtime._
+import java.security._
+import java.math.BigInteger
+
 
 object runningFlag
+
+object Test {
+	def main(args: Array[String]) = {
+		val md = MessageDigest.getInstance( "MD2" )
+        md.update( "asasa".getBytes() )
+        val hash = new BigInteger( 1, md.digest() )    
+        println(hash.toString( 32 ))  
+	}
+}
+
 
 @RunWith(classOf[JUnitRunner])
 trait ActivateTest extends Specification {
@@ -75,6 +88,14 @@ trait ActivateTest extends Specification {
 				OneTransaction(ctx), 
 				MultipleTransactions(ctx), 
 				MultipleTransactionsWithReinitialize(ctx))
+				
+	def contexts =
+		List[ActivateTestContext](
+			memoryContext,
+			prevaylerContext,
+			oracleContext,
+			mysqlContext
+		)
 
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 		for (ctx <- contexts) {
@@ -112,9 +133,20 @@ trait ActivateTest extends Specification {
 			cal.setTimeInMillis(98977898)
 			cal
 		})
+		
+		def fullTraitValue1 = 
+			Option(all[TraitAttribute1].headOption.getOrElse({
+				new TraitAttribute1("1")
+			}))
+		
+		def fullTraitValue2 = 
+			Option(all[TraitAttribute2].headOption.getOrElse({
+				new TraitAttribute2("2")
+			}))
+		
 		val fullByteArrayValue = Option("S".getBytes)
 		def fullEntityValue =
-			Option(allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
+ 			Option(allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
 				val entity = newEmptyActivateTestEntity
 				entity.dummy := true
 				entity
@@ -132,6 +164,8 @@ trait ActivateTest extends Specification {
 			entity.calendarValue.put(fullCalendarValue)
 			entity.byteArrayValue.put(fullByteArrayValue)
 			entity.entityValue.put(fullEntityValue)
+			entity.traitValue1.put(fullTraitValue1)
+			entity.traitValue2.put(fullTraitValue2)
 			entity
 		}
 
@@ -147,6 +181,8 @@ trait ActivateTest extends Specification {
 			entity.calendarValue.put(None)
 			entity.byteArrayValue.put(None)
 			entity.entityValue.put(None)
+			entity.traitValue1.put(None)
+			entity.traitValue2.put(None)
 			entity
 		}
 
@@ -154,6 +190,19 @@ trait ActivateTest extends Specification {
 			setEmptyEntity(newTestEntity())
 		def newFullActivateTestEntity =
 			setFullEntity(newTestEntity())
+			
+		trait TraitAttribute extends Entity{
+			def testTraitAttribute
+		}
+		
+		case class TraitAttribute1(attribute: Var[String]) extends TraitAttribute {
+			def testTraitAttribute = attribute.get
+		}
+		
+		case class TraitAttribute2(attribute: Var[String]) extends TraitAttribute {
+			def testTraitAttribute = attribute.get
+		}
+			
 		case class ActivateTestEntity(
 			dummy: Var[Boolean] = false,
 			intValue: Var[Int],
@@ -166,9 +215,9 @@ trait ActivateTest extends Specification {
 			dateValue: Var[java.util.Date],
 			calendarValue: Var[java.util.Calendar],
 			byteArrayValue: Var[Array[Byte]],
-			entityValue: Var[ActivateTestEntity] ) extends Entity {
-//			val test: Var[Boolean] = true
-		}
+			entityValue: Var[ActivateTestEntity],
+			traitValue1: Var[TraitAttribute],
+			traitValue2: Var[TraitAttribute]) extends Entity
 
 		def validateFullTestEntity(entity: ActivateTestEntity = null,
 			intValue: Option[Int] = fullIntValue,
@@ -181,7 +230,9 @@ trait ActivateTest extends Specification {
 			dateValue: Option[java.util.Date] = fullDateValue,
 			calendarValue: Option[java.util.Calendar] = fullCalendarValue,
 			byteArrayValue: Option[Array[Byte]] = fullByteArrayValue,
-			entityValue: Option[ActivateTestEntity] = fullEntityValue) =
+			entityValue: Option[ActivateTestEntity] = fullEntityValue,
+			traitValue1: Option[TraitAttribute] = fullTraitValue1,
+			traitValue2: Option[TraitAttribute] = fullTraitValue2) =
 
 			validateEmptyTestEntity(
 				entity,
@@ -195,7 +246,9 @@ trait ActivateTest extends Specification {
 				dateValue,
 				calendarValue,
 				byteArrayValue,
-				entityValue)
+				entityValue,
+				traitValue1,
+				traitValue2)
 
 		def validateEmptyTestEntity(entity: ActivateTestEntity = null,
 			intValue: Option[Int] = None,
@@ -208,18 +261,22 @@ trait ActivateTest extends Specification {
 			dateValue: Option[java.util.Date] = None,
 			calendarValue: Option[java.util.Calendar] = None,
 			byteArrayValue: Option[Array[Byte]] = None,
-			entityValue: Option[ActivateTestEntity] = None) = {
+			entityValue: Option[ActivateTestEntity] = None,
+			traitValue1: Option[TraitAttribute] = None,
+			traitValue2: Option[TraitAttribute] = None) = {
 
 			entity.intValue.get must beEqualTo(intValue)
 			entity.booleanValue.get must beEqualTo(booleanValue)
 			entity.charValue.get must beEqualTo(charValue)
 			entity.stringValue.get must beEqualTo(stringValue)
 			entity.floatValue.get must beEqualTo(floatValue)
-//			entity.doubleValue.get must beEqualTo(doubleValue)
+			entity.doubleValue.get must beEqualTo(doubleValue)
 			entity.bigDecimalValue.get must beEqualTo(bigDecimalValue)
 			entity.dateValue.get must beEqualTo(dateValue)
 			entity.calendarValue.get must beEqualTo(calendarValue)
 			entity.entityValue.get must beEqualTo(entityValue)
+			entity.traitValue1.get must beEqualTo(traitValue1)
+			entity.traitValue2.get must beEqualTo(traitValue2)
 		}
 
 		def newTestEntity(intValue: Option[Int] = None,
@@ -232,7 +289,9 @@ trait ActivateTest extends Specification {
 			dateValue: Option[java.util.Date] = None,
 			calendarValue: Option[java.util.Calendar] = None,
 			byteArrayValue: Option[Array[Byte]] = None,
-			entityValue: Option[ActivateTestEntity] = None) =
+			entityValue: Option[ActivateTestEntity] = None,
+			traitValue1: Option[TraitAttribute] = None,
+			traitValue2: Option[TraitAttribute] = None) =
 			new ActivateTestEntity(
 				intValue = intValue,
 				booleanValue = booleanValue,
@@ -244,16 +303,9 @@ trait ActivateTest extends Specification {
 				dateValue = dateValue,
 				calendarValue = calendarValue,
 				byteArrayValue = byteArrayValue,
-				entityValue = entityValue)
-		def createEmptyAndFullEntity = {
-			transactional {
-				val empty = newEmptyActivateTestEntity
-				empty.intValue := 1
-				val full = newFullActivateTestEntity
-				full.intValue := 0
-				(empty.id, full.id)
-			}
-		}
+				entityValue = entityValue,
+				traitValue1 = traitValue1,
+				traitValue2 = traitValue2)
 	}
 
 	object prevaylerContext extends ActivateTestContext {
@@ -288,11 +340,5 @@ trait ActivateTest extends Specification {
 		}
 	}
 
-	def contexts =
-		List[ActivateTestContext](
-			prevaylerContext,
-			memoryContext,
-			oracleContext,
-			mysqlContext
-		)
+	
 }

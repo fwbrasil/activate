@@ -43,6 +43,8 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		List()
+		
+	override def isMemoryStorage = true
 
 }
 

@@ -20,7 +20,11 @@ trait Entity {
 	def isDeleted =
 		vars.first.isDestroyed
 		
-	val id = UUIDUtil.generateUUID.hashCode + "@" + EntityHelper.getEntityClassHashId(this.getClass)
+	val id = {
+		val uuid = UUIDUtil.generateUUID 
+		val classId = EntityHelper.getEntityClassHashId(this.getClass)
+		uuid + "-" + classId
+	}
 
 	private[this] var persistedflag = false
 	private[this] var isVarsBound = false
@@ -117,30 +121,43 @@ trait Entity {
 
 object EntityHelper {
 	
-	private[this] lazy val entityClassesMap = {
+	private[this] val entityVarFields =
+		mutable.WeakHashMap[Class[Entity], (Field, List[(Field, Class[_])])]()
+	
+	private[this] val entityClassesMap = {
 		val map = mutable.HashMap[String, Class[_]]()
-		for(entityClass <- Reflection.getAllImplementors[Entity]) {
+		val entityClasses = Reflection.getAllImplementors[Entity]
+		println(entityClasses)
+		for(entityClass <- entityClasses; if(!entityClass.isInterface)) {
+			getEntityFields(entityClass)
+			val scalaSig = Reflection.getScalaSig(entityClass)
 			val entityName = getEntityName(entityClass)
 			if(map.contains(entityName))
 				throw new IllegalStateException("Duplicate entity name.")
-			map += (entityName -> entityClass)
+			map += (getEntityClassHashId(entityName) -> entityClass)
 		}
 		map
 	}
 	
-	def getEntityClassFromId(entityId: String) = {
-		val entityClassHash = entityId.split("@")(1)
-		entityClassesMap(entityClassesMap.keys.find(_.hashCode.toString == entityClassHash).get).asInstanceOf[Class[Entity]]
+	
+	// Just load class
+	def initialize = {
+		
 	}
 	
-	def getEntityClassHashId(entityClass: Class[_]) =
-		getEntityName(entityClass).hashCode
+	def getEntityClassFromId(entityId: String) = {
+		val entityClassHash = entityId.split("-").last
+		entityClassesMap(entityClassesMap.keys.find(_ == entityClassHash).get).asInstanceOf[Class[Entity]]
+	}
 	
+	def getEntityClassHashId(entityClass: Class[_]): String =
+		getEntityClassHashId(getEntityName(entityClass))
+	
+	def getEntityClassHashId(entityName: String): String =
+		Integer.toHexString(entityName.hashCode)
+		
 	def getEntityName(entityClass: Class[_]) = 
 		entityClass.getSimpleName.split('$')(0)
-
-	private[this] val entityVarFields =
-		mutable.WeakHashMap[Class[Entity], (Field, List[(Field, Class[_])])]()
 
 	private[activate] def getEntityFields(clazz: Class[Entity]) =
 		entityVarFields.getOrElseUpdate(clazz, {

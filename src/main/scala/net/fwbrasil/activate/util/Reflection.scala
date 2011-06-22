@@ -28,7 +28,7 @@ object Reflection {
 		} while (clazz != null)
 		fields
 	}
-	
+
 	val ByteClass = classOf[scala.Byte]
 	val ShortClass = classOf[scala.Short]
 	val CharClass = classOf[scala.Char]
@@ -39,26 +39,42 @@ object Reflection {
 	val BooleanClass = classOf[scala.Boolean]
 	val NullClass = classOf[scala.Null]
 	val UnitClass = classOf[scala.Unit]
-	
-	def getScalaSig(clazz: Class[_]) = {
+
+	def getScalaSig(clazz: Class[_]): ClassSymbol = {
 		val split = clazz.getName.split('$')
 		val baseClass = Class.forName(split(0))
 		val sigOption = ScalaSigParser.parse(baseClass)
-		if(sigOption == None)
+		if (sigOption == None)
 			throw new IllegalStateException("Scala signature not found for class {0} using base class {1}.".format(clazz, baseClass))
-		val sigBaseClass = sigOption.get.topLevelClasses.filter(_.name == baseClass.getSimpleName).head
-		var sigClazz = sigBaseClass
-		for(sigInner <- split.tail)
-			sigClazz = sigClazz.children.filter(_.name == sigInner).head.asInstanceOf[ClassSymbol]
+		val topLevelClasses = sigOption.get.topLevelClasses.headOption
+		val sigBaseClass = topLevelClasses.filter(_.name == baseClass.getSimpleName).headOption.getOrElse({
+			sigOption.get.topLevelObjects.filter(_.name == baseClass.getSimpleName).headOption.map(_.infoType.asInstanceOf[TypeRefType].symbol).get
+		})
+		var sigClazz = sigBaseClass.asInstanceOf[ClassSymbol]
+		for (sigInner <- split.tail) {
+			sigClazz = getScalaSig(sigClazz, sigInner).get
+		}
 		sigClazz
 	}
-
 	
+	def getScalaSig(baseSymbol: Symbol, className: String): Option[ClassSymbol] = {
+		val children = baseSymbol.children
+		val foundOption = findClassSymbol(className, children)
+		if(foundOption != None)
+			foundOption
+		else 
+			(for(symbol <- children)
+				yield getScalaSig(symbol, className)).filter(!_.isEmpty).headOption.getOrElse(None)
+	}
+	
+	def findClassSymbol(className: String, symbolList: Seq[Symbol]): Option[ClassSymbol] =
+		symbolList.filter((sig: Symbol) => sig.name == className && sig.isInstanceOf[ClassSymbol]).headOption.asInstanceOf[Option[ClassSymbol]]
+
 	// TODO reimplementar, esta especifico para os tipos atuais de atributos
 	def getEntityFieldTypeArgument(sig: => ClassSymbol, field: Field) = {
 		val genericType = field.getGenericType
 		val arguments = genericType.asInstanceOf[ParameterizedType].getActualTypeArguments
-		if(arguments.size!=1)
+		if (arguments.size != 1)
 			throw new IllegalStateException("There should be only one type argument")
 		val jclazz = arguments(0) match {
 			case genericArrayType: GenericArrayType =>
@@ -86,8 +102,8 @@ object Reflection {
 			}
 		} else jclazz
 	}
-	
-	def getAllImplementors[E: Manifest] = 
+
+	def getAllImplementors[E: Manifest] =
 		Set(new Reflections("").getSubTypesOf(manifest[E].erasure).toArray: _*).asInstanceOf[Set[Class[E]]]
-	
+
 }

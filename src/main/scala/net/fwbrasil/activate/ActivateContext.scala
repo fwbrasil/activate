@@ -21,6 +21,8 @@ trait ActivateContext
 	with Logging {
 	
 	info("Initializing context " + contextName)
+	
+	EntityHelper.initialize
 
 	private[activate] lazy val liveCache = new LiveCache(this)
 

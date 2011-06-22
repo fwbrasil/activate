@@ -22,14 +22,21 @@ class Var[T]
 	def outerEntityClass = outerEntity.getClass.asInstanceOf[Class[_ <: Entity]]
 	def toEntityPropertyValue(value: Any) = tval(Option(value).asInstanceOf[Option[T]])
 	
-	override def get = {
-		if(outerEntity!=null)outerEntity.initialize
+	override def get = doInitialized {
 		super.get
 	}
 
-	override def put(value: Option[T]) = {
-		if(outerEntity!=null)outerEntity.initialize
+	override def put(value: Option[T]) = doInitialized {
 		super.put(value)
+	}
+	
+	override def destroy: Unit = doInitialized {
+	    super.destroy
+	}
+	   
+	private[this] def doInitialized[A](f: => A): A = {
+		if(outerEntity!=null)outerEntity.initialize
+		f
 	}
 	
 	override def toString = name + " -> " + super.toString

@@ -13,7 +13,7 @@ class ActivateProject(info: ProjectInfo) extends DefaultProject(info) {
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.1.0.7.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.0.1"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.2"
 	val prevayler = "org.prevayler" % "prevayler" % "2.3"
 	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.5"
