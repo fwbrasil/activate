@@ -32,7 +32,7 @@ Maven
 
 	<dependency>
     	<groupId>net.fwbrasil</groupId>
-	    <artifactId>activate</artifactId>
+	    <artifactId>activate_2.9.0</artifactId>
     	<version>0.0.1</version>
 	</dependency>
 	
