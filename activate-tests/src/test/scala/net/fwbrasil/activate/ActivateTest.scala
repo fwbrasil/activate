@@ -93,7 +93,7 @@ trait ActivateTest extends Specification {
 		List[ActivateTestContext](
 			memoryContext,
 			prevaylerContext,
-			oracleContext,
+			//oracleContext,
 			mysqlContext
 		)
 
@@ -124,6 +124,7 @@ trait ActivateTest extends Specification {
 		val fullBooleanValue = Option(true)
 		val fullCharValue = Option('A')
 		val fullStringValue = Option("S")
+		val fullLazyValue = Option("L")
 		val fullFloatValue = Option(0.1f)
 		val fullDoubleValue = Option(1d)
 		val fullBigDecimalValue = Option(BigDecimal(1))
@@ -166,6 +167,7 @@ trait ActivateTest extends Specification {
 			entity.entityValue.put(fullEntityValue)
 			entity.traitValue1.put(fullTraitValue1)
 			entity.traitValue2.put(fullTraitValue2)
+			entity.lazyValue.put(fullLazyValue)
 			entity
 		}
 
@@ -183,6 +185,7 @@ trait ActivateTest extends Specification {
 			entity.entityValue.put(None)
 			entity.traitValue1.put(None)
 			entity.traitValue2.put(None)
+			entity.lazyValue.put(None)
 			entity
 		}
 
@@ -203,21 +206,24 @@ trait ActivateTest extends Specification {
 			def testTraitAttribute = attribute.get
 		}
 			
-		case class ActivateTestEntity(
-			dummy: Var[Boolean] = false,
-			intValue: Var[Int],
-			booleanValue: Var[Boolean],
-			charValue: Var[Char],
-			stringValue: Var[String],
-			floatValue: Var[Float],
-			doubleValue: Var[Double],
-			bigDecimalValue: Var[BigDecimal],
-			dateValue: Var[java.util.Date],
-			calendarValue: Var[java.util.Calendar],
-			byteArrayValue: Var[Array[Byte]],
-			entityValue: Var[ActivateTestEntity],
-			traitValue1: Var[TraitAttribute],
-			traitValue2: Var[TraitAttribute]) extends Entity
+		class ActivateTestEntity(
+			val dummy: Var[Boolean] = false,
+			val intValue: Var[Int],
+			val booleanValue: Var[Boolean],
+			val charValue: Var[Char],
+			val stringValue: Var[String],
+			val floatValue: Var[Float],
+			val doubleValue: Var[Double],
+			val bigDecimalValue: Var[BigDecimal],
+			val dateValue: Var[java.util.Date],
+			val calendarValue: Var[java.util.Calendar],
+			val byteArrayValue: Var[Array[Byte]],
+			val entityValue: Var[ActivateTestEntity],
+			val traitValue1: Var[TraitAttribute],
+			val traitValue2: Var[TraitAttribute],
+			lazyValueValue: Var[String]) extends Entity {
+			lazy val lazyValue: Var[String] = lazyValueValue
+		}
 
 		def validateFullTestEntity(entity: ActivateTestEntity = null,
 			intValue: Option[Int] = fullIntValue,
@@ -232,7 +238,8 @@ trait ActivateTest extends Specification {
 			byteArrayValue: Option[Array[Byte]] = fullByteArrayValue,
 			entityValue: Option[ActivateTestEntity] = fullEntityValue,
 			traitValue1: Option[TraitAttribute] = fullTraitValue1,
-			traitValue2: Option[TraitAttribute] = fullTraitValue2) =
+			traitValue2: Option[TraitAttribute] = fullTraitValue2,
+			lazyValue: Option[String] = fullLazyValue) =
 
 			validateEmptyTestEntity(
 				entity,
@@ -248,7 +255,8 @@ trait ActivateTest extends Specification {
 				byteArrayValue,
 				entityValue,
 				traitValue1,
-				traitValue2)
+				traitValue2,
+				lazyValue)
 
 		def validateEmptyTestEntity(entity: ActivateTestEntity = null,
 			intValue: Option[Int] = None,
@@ -263,7 +271,8 @@ trait ActivateTest extends Specification {
 			byteArrayValue: Option[Array[Byte]] = None,
 			entityValue: Option[ActivateTestEntity] = None,
 			traitValue1: Option[TraitAttribute] = None,
-			traitValue2: Option[TraitAttribute] = None) = {
+			traitValue2: Option[TraitAttribute] = None,
+			lazyValue: Option[String] = None) = {
 
 			entity.intValue.get must beEqualTo(intValue)
 			entity.booleanValue.get must beEqualTo(booleanValue)
@@ -291,7 +300,8 @@ trait ActivateTest extends Specification {
 			byteArrayValue: Option[Array[Byte]] = None,
 			entityValue: Option[ActivateTestEntity] = None,
 			traitValue1: Option[TraitAttribute] = None,
-			traitValue2: Option[TraitAttribute] = None) =
+			traitValue2: Option[TraitAttribute] = None,
+			lazyValue: Option[String] = None) =
 			new ActivateTestEntity(
 				intValue = intValue,
 				booleanValue = booleanValue,
@@ -305,7 +315,8 @@ trait ActivateTest extends Specification {
 				byteArrayValue = byteArrayValue,
 				entityValue = entityValue,
 				traitValue1 = traitValue1,
-				traitValue2 = traitValue2)
+				traitValue2 = traitValue2,
+				lazyValueValue = lazyValue)
 	}
 
 	object prevaylerContext extends ActivateTestContext {
