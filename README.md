@@ -44,25 +44,23 @@ Maven
 Getting Started
 ===============
 
-Declare an ActivateContext instance:
+Declare an ActivateContext instance with your storage:
 
 Prevayler
 
-	object prevaylerContext extends ActivateTestContext {
+	import net.fwbrasil.activate.ActivateContext
+
+	object prevaylerContext extends ActivateContext {
 		def contextName = "prevaylerContext"
 		val storage = new PrevaylerMemoryStorage {}
 	}
 
-Transient memory
-
-	object memoryContext extends ActivateTestContext {
+	object memoryContext extends ActivateContext {
 		def contextName = "memoryContext"
 		val storage = new MemoryStorage {}
 	}
 
-Oracle
-
-	object oracleContext extends ActivateTestContext {
+	object oracleContext extends ActivateContext {
 		def contextName = "oracleContext"
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
@@ -74,9 +72,7 @@ Oracle
 		}
 	}
 
-Mysql
-
-	object mysqlContext extends ActivateTestContext {
+	object mysqlContext extends ActivateContext {
 		def contextName = "mysqlContext"
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "com.mysql.jdbc.Driver"
@@ -88,7 +84,7 @@ Mysql
 		}
 	}
 
-Import from context:
+Import your context:
 
 	import prevaylerContext._
 	

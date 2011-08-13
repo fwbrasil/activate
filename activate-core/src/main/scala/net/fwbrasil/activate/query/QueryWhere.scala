@@ -2,9 +2,9 @@ package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.entity._
 
-case class Operator
+case class Operator()
 
-abstract case class QueryBooleanValue extends QueryValue
+abstract class QueryBooleanValue() extends QueryValue
 
 case class SimpleQueryBooleanValue(value: Boolean)(implicit val tval: Boolean => EntityValue[Boolean]) extends QueryBooleanValue {
 	def entityValue: EntityValue[Boolean] = value
@@ -23,8 +23,8 @@ trait OperatorContext {
 	implicit def toIsSomel[V <% QueryValue](value: V) = IsSome(value)
 }
 
-case class SimpleOperator extends Operator
-case class CompositeOperator extends Operator
+class SimpleOperator() extends Operator
+class CompositeOperator() extends Operator
 
 case class IsNone(valueA: QueryValue) extends SimpleOperator {
 	def isNone = SimpleOperatorCriteria(valueA, this)
@@ -41,7 +41,7 @@ case class IsEqualTo(valueA : QueryValue) extends CompositeOperator {
 	override def toString = ":=="
 }
 
-case class ComparationOperator extends CompositeOperator
+class ComparationOperator() extends CompositeOperator
 
 case class IsGreaterThan(valueA : QueryValue) extends ComparationOperator {
 	def :>(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
@@ -63,7 +63,7 @@ case class IsLessOrEqualTo(valueA : QueryValue) extends ComparationOperator {
 	override def toString = ":<="
 }
 
-abstract case class BooleanOperator extends CompositeOperator
+abstract case class BooleanOperator() extends CompositeOperator
 
 case class And(valueA : QueryBooleanValue) extends BooleanOperator {
 	def :&&(valueB: QueryBooleanValue) = BooleanOperatorCriteria(valueA, this, valueB)
@@ -75,7 +75,7 @@ case class Or(valueA : QueryBooleanValue) extends BooleanOperator {
 }
 
 
-abstract case class Criteria extends QueryBooleanValue
+abstract case class Criteria() extends QueryBooleanValue
 
 case class SimpleOperatorCriteria(valueA: QueryValue, operator: SimpleOperator) extends Criteria {
 	override def toString = "(" + valueA + " " + operator + ")"

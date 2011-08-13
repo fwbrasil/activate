@@ -113,13 +113,16 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def createLazyEntity[E](entityClass: Class[E], entityId: String) = {
 		val entity = newInstance[Entity](entityClass)
-		val (idField, fields) = net.fwbrasil.activate.entity.EntityHelper.getEntityFields(entityClass.asInstanceOf[Class[Entity]])
+		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
 		context.transactional(context.transient) {
-			for ((field, typ) <- fields) {
+			for (propertyMetadata <- entityMetadata.propertiesMetadata) {
+				val typ = propertyMetadata.propertyType
+				val field = propertyMetadata.varField
 				val ref = new Var[Any](None)(manifestClass(typ), tvalFunction(typ), context)
 				field.set(entity, ref)
 			}
 		}
+		val idField = entityMetadata.idField
 		idField.setAccessible(true)
 		idField.set(entity, entityId)
 		entity.boundVarsToEntity
@@ -133,7 +136,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val list = query({ (e: Entity) =>
 			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValue(ref)).toList)
 		})(manifestClass(entity.getClass)).execute
-		val tuple = list.first
+		val tuple = list.head
 		val vars = entity.vars.toList
 		for (i <- 0 to vars.size - 1)
 			vars(i).asInstanceOf[Var[Any]].setRefContent(tuple.productElement(i).asInstanceOf[Option[Any]])

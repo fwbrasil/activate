@@ -4,7 +4,7 @@ import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import java.lang.{ Integer => JInteger, Boolean => JBoolean, Character => JCharacter, Float => JFloat, Double => JDouble }
 
-abstract sealed case class EntityValue[V: Manifest](val value: Option[V])
+abstract class EntityValue[V: Manifest](val value: Option[V])
 
 case class IntEntityValue(override val value: Option[Int])
 	extends EntityValue(value)

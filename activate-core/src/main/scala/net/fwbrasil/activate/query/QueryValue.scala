@@ -3,9 +3,9 @@ package net.fwbrasil.activate.query
 import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.query.QueryMocks.FakeVarToQuery
 
-case class QueryValue
+class QueryValue()
 
-case class QuerySelectValue[V] extends QueryValue
+class QuerySelectValue[V]() extends QueryValue
 
 trait QueryValueContext extends ValueContext {
 	
@@ -13,9 +13,9 @@ trait QueryValueContext extends ValueContext {
         val (entity, path) = propertyPath(ref)
         val sourceOption = From.entitySourceFor(entity)
         if (sourceOption != None)
-            QueryEntitySourcePropertyValue[V](sourceOption.get, ref, path:_*)
+            new QueryEntitySourcePropertyValue[V](sourceOption.get, ref, path:_*)
         else
-            SimpleValue[V](ref.get.get)(ref.tval.asInstanceOf[V => EntityValue[V]])
+            new SimpleValue[V](ref.get.get)(ref.tval.asInstanceOf[V => EntityValue[V]])
     }
 	
 	def propertyPath(ref: Var[_]) = {
@@ -40,9 +40,9 @@ trait QueryValueContext extends ValueContext {
     implicit def toQueryValueEntity[E <: Entity](entity: E): QueryEntityValue[E] = {
         val sourceOption = From.entitySourceFor(entity)
         if (sourceOption != None)
-            QueryEntitySourceValue(sourceOption.get)
+            new QueryEntitySourceValue(sourceOption.get)
         else
-            QueryEntityInstanceValue(entity)
+            new QueryEntityInstanceValue(entity)
     }
 
     implicit def toQueryValue[V <% EntityValue[V]](value: V): QuerySelectValue[V] = {
@@ -50,7 +50,7 @@ trait QueryValueContext extends ValueContext {
             case entity: Entity =>
                 toQueryValueEntity[Entity](entity).asInstanceOf[QuerySelectValue[V]]
             case value =>
-                SimpleValue[V](value)
+                new SimpleValue[V](value)
         }
     }
     
@@ -59,22 +59,22 @@ trait QueryValueContext extends ValueContext {
 
 }
 
-abstract case class QueryEntityValue[V] extends QuerySelectValue[V]
+abstract class QueryEntityValue[V]() extends QuerySelectValue[V]
 
-case class QueryEntityInstanceValue[E <: Entity](entity: E) extends QueryEntityValue[E] {
+class QueryEntityInstanceValue[E <: Entity](val entity: E) extends QueryEntityValue[E] {
 	def entityId = entity.id
     override def toString = entityId
 }
 
-case class QueryEntitySourceValue[V](entitySource: EntitySource) extends QueryEntityValue[V] {
+class QueryEntitySourceValue[V](val entitySource: EntitySource) extends QueryEntityValue[V] {
     override def toString = entitySource.name
 }
 
-case class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySource, ref: Var[P], propertyPath: String*) extends QueryEntitySourceValue[P](entitySource) {
+class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySource, val ref: Var[P], val propertyPath: String*) extends QueryEntitySourceValue[P](entitySource) {
     override def toString = entitySource.name + "." + propertyPath.mkString(".")
 }
 
-case class SimpleValue[V <% EntityValue[V]](anyValue: V) extends QuerySelectValue[V] {
+class SimpleValue[V <% EntityValue[V]](val anyValue: V) extends QuerySelectValue[V] {
 	def entityValue: EntityValue[V] = anyValue
     override def toString = anyValue.toString
 }

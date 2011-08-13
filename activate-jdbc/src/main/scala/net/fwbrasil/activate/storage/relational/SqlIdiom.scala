@@ -41,13 +41,13 @@ case class SqlStatement(statement: String, binds: Map[String, StorageValue]) {
 
 abstract class SqlIdiom {
 
-	protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Integer, optionValue: Option[V], sqlType: Integer): Unit =
+	protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
 		if (optionValue == None || optionValue == null)
 			ps.setNull(i, sqlType)
 		else
 			f(optionValue.get)
 
-	def setValue(ps: PreparedStatement, i: Integer, storageValue: StorageValue): Unit = {
+	def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
 		storageValue match {
 			case value: IntStorageValue =>
 				setValue(ps, (v: Int) => ps.setInt(i, v), i, value.value, Types.INTEGER)
@@ -78,7 +78,7 @@ abstract class SqlIdiom {
 				Option(value)
 		}
 
-	def getValue(resultSet: ResultSet, i: Integer, storageValue: StorageValue): StorageValue = {
+	def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
 		storageValue match {
 			case value: IntStorageValue =>
 				IntStorageValue(getValue(resultSet, resultSet.getInt(i)))(value.entityValue)
@@ -235,7 +235,7 @@ abstract class SqlIdiom {
 
 object mySqlDialect extends SqlIdiom {
 	
-	override def getValue(resultSet: ResultSet, i: Integer, storageValue: StorageValue) = {
+	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue) = {
 		storageValue match {
 			case value: DateStorageValue =>
 				DateStorageValue(getValue(resultSet, resultSet.getLong(i)).map((t: Long) => new Date(t)))(value.entityValue)
@@ -244,7 +244,7 @@ object mySqlDialect extends SqlIdiom {
 		}
 	}
 	
-	override def setValue(ps: PreparedStatement, i: Integer, storageValue: StorageValue): Unit = {
+	override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
 		storageValue match {
 			case value: DateStorageValue =>
 				setValue(ps, (v: Date) => ps.setLong(i, v.getTime), i, value.value, Types.BIGINT)

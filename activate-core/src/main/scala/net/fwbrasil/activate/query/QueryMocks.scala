@@ -40,16 +40,18 @@ object QueryMocks {
     def mockEntity[E <: Entity](clazz: Class[E]): E =
     	entityMockCache.getOrElseUpdate(clazz, mockEntity[E](clazz, null)).asInstanceOf[E]
     
-    def mockEntity[E <: Entity](clazz: Class[E], originVar: FakeVarToQuery[_]): E = {
-        val entity = newInstance(clazz).asInstanceOf[E]
-        val (idField, fields) = EntityHelper.getEntityFields(clazz.asInstanceOf[Class[Entity]])
-        for ((field, typ) <- fields) {
+    def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVarToQuery[_]): E = {
+        val entity = newInstance(entityClass).asInstanceOf[E]
+        val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+        for (propertyMetadata <- entityMetadata.propertiesMetadata) {
             val ref = mockVar
+            val typ = propertyMetadata.propertyType
+            val field = propertyMetadata.varField
             ref.fakeValueClass = typ
             ref.originVar = originVar
             field.set(entity, ref)
         }
-        idField.set(entity, generateUUID)
+        entityMetadata.idField.set(entity, generateUUID)
         entity.boundVarsToEntity
         entity
     }

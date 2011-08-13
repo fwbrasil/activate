@@ -4,6 +4,7 @@ import tools.scalap.scalax.rules.scalasig._
 import scala.runtime._
 import org.objenesis._
 import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 import org.reflections.Reflections
@@ -27,6 +28,16 @@ object Reflection {
 			clazz = clazz.getSuperclass()
 		} while (clazz != null)
 		fields
+	}
+	
+	def getDeclaredMethodsIncludingSuperClasses(concreteClass: Class[_]) = {
+		var clazz = concreteClass
+		var methods = List[Method]()
+		do {
+			methods ++= clazz.getDeclaredMethods()
+			clazz = clazz.getSuperclass()
+		} while (clazz != null)
+		methods
 	}
 
 	val ByteClass = classOf[scala.Byte]

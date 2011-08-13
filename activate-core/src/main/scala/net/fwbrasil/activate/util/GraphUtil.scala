@@ -30,6 +30,9 @@ object GraphUtil {
 		def resolve = {
 			if(roots.isEmpty && nodeMap.nonEmpty)
 				throwCyclicReferenceException
+				
+			val list = List(1, 2, 3)
+			list.sortIfComparable
 			val r = roots.toList.sortIfComparable
 			val resolved = ListBuffer[Node[T]]()
 			for(node <- roots)

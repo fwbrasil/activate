@@ -4,6 +4,7 @@
 test
 project/build/target
 project/boot
+**.DS_Store
 activate-core/bin
 activate-core/project/build/target
 activate-core/project/plugins/target

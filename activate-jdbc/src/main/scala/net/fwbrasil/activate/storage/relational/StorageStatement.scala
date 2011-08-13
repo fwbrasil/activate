@@ -5,9 +5,9 @@ import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.query._
 
-abstract sealed case class StorageStatement
+abstract class StorageStatement
 
-abstract sealed case class DmlStorageStatement(entityClass: Class[_], entityId: String, propertyMap: Map[String, StorageValue])
+abstract class DmlStorageStatement(val entityClass: Class[_], val entityId: String, val propertyMap: Map[String, StorageValue])
 	extends StorageStatement
 
 case class InsertDmlStorageStatement(override val entityClass: Class[_], override val entityId: String, override val propertyMap: Map[String, StorageValue])
