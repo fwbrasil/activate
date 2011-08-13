@@ -46,17 +46,31 @@ Getting Started
 
 Declare an ActivateContext instance with your storage:
 
+Prevayler
+
 	import net.fwbrasil.activate.ActivateContext
+	import net.fwbrasil.activate.storage.prevayler._
 
 	object prevaylerContext extends ActivateContext {
 		def contextName = "prevaylerContext"
 		val storage = new PrevaylerMemoryStorage {}
 	}
 
+Transient memory
+
+	import net.fwbrasil.activate.ActivateContext
+	import net.fwbrasil.activate.storage.memory._
+	
 	object memoryContext extends ActivateContext {
 		def contextName = "memoryContext"
 		val storage = new MemoryStorage {}
 	}
+
+Oracle
+
+	import net.fwbrasil.activate.ActivateContext
+	import net.fwbrasil.activate.storage.relational._
+	import net.fwbrasil.activate.serialization.javaSerializator
 
 	object oracleContext extends ActivateContext {
 		def contextName = "oracleContext"
@@ -70,6 +84,12 @@ Declare an ActivateContext instance with your storage:
 		}
 	}
 
+Mysql
+
+	import net.fwbrasil.activate.ActivateContext
+	import net.fwbrasil.activate.storage.relational._
+	import net.fwbrasil.activate.serialization.javaSerializator
+
 	object mysqlContext extends ActivateContext {
 		def contextName = "mysqlContext"
 		val storage = new SimpleJdbcRelationalStorage {
@@ -82,7 +102,7 @@ Declare an ActivateContext instance with your storage:
 		}
 	}
 
-Import your context:
+Import your context to use Activate:
 
 	import prevaylerContext._
 	
@@ -91,10 +111,12 @@ Extend "Entity" trait and declare attributes as Vars:
 	class Person(val name: Var[String], val age: Var[Int]) extends Entity
 
 ********************************************************
+
 IMPORTANT:
 
  * Make sure to use immutable values inside Vars
  * The framework supports only Vars declareds in entity constructor parameters.
+ 
 ********************************************************
 
 Use entities always inside transaction:
