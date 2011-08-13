@@ -46,8 +46,6 @@ Getting Started
 
 Declare an ActivateContext instance with your storage:
 
-Prevayler
-
 	import net.fwbrasil.activate.ActivateContext
 
 	object prevaylerContext extends ActivateContext {
