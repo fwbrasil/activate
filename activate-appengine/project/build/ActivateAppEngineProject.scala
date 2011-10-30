@@ -2,7 +2,7 @@ import sbt._
 
 class ActivateAppEngineProject(info: ProjectInfo) extends AppengineProject(info) {
     val servletapi = "javax.servlet" % "servlet-api" % "2.5"
-    
+
     val appengine = "com.google" % "appengine-api-1.0-sdk" %  "1.5.1"
 
     val scalaToolsSnapshots = "Scala Tools Repository" at "http://nexus.scala-tools.org/content/repositories/snapshots/"

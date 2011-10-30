@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.{ Entity => DatastoreEntity, Datastore
 import com.google.appengine.api.datastore.{ Query => DatastoreQuery }
 
 class AppengineStorage extends MarshalStorage {
- 
+
 	val datastore = DatastoreServiceFactory.getDatastoreService()
 
 	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
@@ -42,7 +42,7 @@ class AppengineStorage extends MarshalStorage {
 
 	private[this] def toDatastoreValue(storageValue: StorageValue) =
 		storageValue.value.getOrElse(null)
-		
+
 	private[this] def getKey(entity: Entity) = {
 		val entityName = getEntityName(entity.getClass)
 		KeyFactory.createKey(entityName, entity.id)
