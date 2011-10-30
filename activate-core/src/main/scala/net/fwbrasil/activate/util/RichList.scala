@@ -17,6 +17,6 @@ case class RichList[T: Manifest](list: List[T]) {
 
 object RichList {
 	implicit def toRichList[T: Manifest](list: List[T]) = RichList(list)
-	
+
 }
 
