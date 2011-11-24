@@ -113,8 +113,21 @@ object Reflection {
 			}
 		} else jclazz
 	}
-
-	def getAllImplementors[E: Manifest] =
-		Set(new Reflections("").getSubTypesOf(manifest[E].erasure).toArray: _*).asInstanceOf[Set[Class[E]]]
+	
+	def set(obj: Object, fieldName: String, value: Object) = {
+		val field = getDeclaredFieldsIncludingSuperClasses(obj.getClass()).filter(_.getName() == fieldName).head
+		field.setAccessible(true)
+		field.set(obj, value)
+	}
+	
+	def invoke(obj: Object, methodName: String, params: Object*) = {
+		val clazz = obj.getClass
+		val method = clazz.getDeclaredMethods().filter(_.toString().contains(methodName)).head
+		method.setAccessible(true)
+		method.invoke(obj, params: _*)
+	}
+	
+	def getAllImplementorsNames(interfaceName: String) =
+		Set(new Reflections("").getStore.getSubTypesOf(interfaceName).toArray: _*).asInstanceOf[Set[String]]
 
 }

@@ -19,39 +19,43 @@ trait ActivateContext
 	with NamedSingletonSerializable
 	with RefContext
 	with Logging {
-	
-	info("Initializing context " + contextName)
-	
-	EntityHelper.initialize
 
-	private[activate] lazy val liveCache = new LiveCache(this)
+	info("Initializing context " + contextName)
+
+	EntityHelper.initialize
+	
+	var running = true
+	
+	def start = synchronized {
+		running = true
+	}
+	
+	def stop = synchronized {
+		running = false
+	}
+
+	private[activate] val liveCache = new LiveCache(this)
 
 	implicit val context = this
 
 	val storage: Storage
-	
-	def reinitializeContext = 
-		logInfo("reinitializing context " + contextName){
+
+	def reinitializeContext =
+		logInfo("reinitializing context " + contextName) {
 			liveCache.reinitialize
 			storage.reinitialize
 		}
-	
+
 	def executeQuery[S](query: Query[S]): List[S] =
 		logInfo("executing query " + query.toString) {
 			liveCache.executeQuery(query)
 		}
-	
+
 	def name = contextName
 	def contextName: String
 
 	def initialize(entity: Entity) =
 		liveCache.initialize(entity)
-
-	implicit def valueToVar[A](value: A)(implicit m: Manifest[A], tval: Option[A] => EntityValue[A]): Var[A] =
-		new Var(value)(m, tval, this)
-
-	implicit def valueToVar[A](value: Option[A])(implicit m: Manifest[A], tval: Option[A] => EntityValue[A]): Var[A] =
-		new Var[A](value)(m, tval, this)
 
 	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		query { (entity: E) =>
@@ -65,7 +69,7 @@ trait ActivateContext
 
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isSome)
-	
+
 	def byId[E <: Entity: Manifest](id: String) =
 		allWhere[E](_ :== id).headOption
 
@@ -82,7 +86,7 @@ trait ActivateContext
 		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
 		val assignments = MutableSet[Tuple2[Var[Any], EntityValue[Any]]]()
 		val deletes = MutableSet[Tuple2[Var[Any], EntityValue[Any]]]()
-		for ((ref, (value, destroyed)) <- varAssignments) {
+		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
 				if (ref.outerEntity.isPersisted)
 					deletes += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
@@ -91,8 +95,19 @@ trait ActivateContext
 		}
 		(assignments.toMap, deletes.toMap)
 	}
-	
+
+	protected[activate] def acceptEntity(entityClass: Class[_ <: Entity]) =
+		running
+
 	override def toString = "ActivateContext: " + name
 
 }
 
+object ActivateContext {
+	def contextFor(entityClass: Class[_ <: Entity]) =
+		(for (
+			ctx <- NamedSingletonSerializable.instancesOf(classOf[ActivateContext]);
+			if (ctx.acceptEntity(entityClass))
+		) yield ctx).head
+
+}

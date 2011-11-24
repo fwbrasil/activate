@@ -9,7 +9,7 @@ class QuerySelectValue[V]() extends QueryValue
 
 trait QueryValueContext extends ValueContext {
 	
-	implicit def toQueryValue[V](ref: Var[V]): QuerySelectValue[V] = {
+	implicit def toQueryValueRef[V](ref: Var[V]): QuerySelectValue[V] = {
         val (entity, path) = propertyPath(ref)
         val sourceOption = From.entitySourceFor(entity)
         if (sourceOption != None)
@@ -45,14 +45,21 @@ trait QueryValueContext extends ValueContext {
             new QueryEntityInstanceValue(entity)
     }
 
-    implicit def toQueryValue[V <% EntityValue[V]](value: V): QuerySelectValue[V] = {
+    implicit def toQueryValueEntityValue[V](value: V)(implicit m: V => EntityValue[V]): QuerySelectValue[V] = {
         value match {
             case entity: Entity =>
                 toQueryValueEntity[Entity](entity).asInstanceOf[QuerySelectValue[V]]
             case value =>
-                new SimpleValue[V](value)
+            	QueryMocks.lastFakeVarCalled match {
+            		case Some(ref) =>
+            			toQueryValueRef(ref.asInstanceOf[Var[V]])
+            		case other =>
+            			new SimpleValue[V](value)
+            	}
+                
         }
     }
+    
     
     implicit def toSimpleQueryBooleanValue(value: Boolean) = 
     	SimpleQueryBooleanValue(value)
@@ -75,6 +82,7 @@ class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySource,
 }
 
 class SimpleValue[V <% EntityValue[V]](val anyValue: V) extends QuerySelectValue[V] {
+	require(anyValue != null)
 	def entityValue: EntityValue[V] = anyValue
     override def toString = anyValue.toString
 }

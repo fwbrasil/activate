@@ -43,7 +43,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def cachedInstance(entity: E): Unit =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).getOrElse(entity.id, {
 			toCache(entity)
-			entity.boundVarsToEntity
 			entity
 		})
 
@@ -118,14 +117,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 				val typ = propertyMetadata.propertyType
 				val field = propertyMetadata.varField
-				val ref = new Var[Any](None)(manifestClass(typ), tvalFunction(typ), context)
+				val ref = new Var(typ, field.getName, entity)
 				field.set(entity, ref)
 			}
 		}
 		val idField = entityMetadata.idField
 		idField.setAccessible(true)
 		idField.set(entity, entityId)
-		entity.boundVarsToEntity
 		entity.setPersisted
 		entity.setNotInitialized
 		entity
@@ -134,7 +132,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def initialize(entity: Entity) = {
 		import context._
 		val list = query({ (e: Entity) =>
-			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValue(ref)).toList)
+			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValueRef(ref)).toList)
 		})(manifestClass(entity.getClass)).execute
 		val tuple = list.head
 		val vars = entity.vars.toList

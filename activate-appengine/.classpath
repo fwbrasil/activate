@@ -28,7 +28,6 @@
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/pegdown-0.9.1.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/reflections-0.9.5-RC2.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-compiler-2.9.0.jar"/>
-	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-library-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalacheck_2.9.0-1.9.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalap-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalaz-core_2.9.0-6.0.RC2.jar"/>

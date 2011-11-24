@@ -3,37 +3,26 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 
-class Var[T]
-          (pValueOption: Option[T])
-          (implicit m: Manifest[T], 
-           val tval: Option[T] => EntityValue[T], 
-           override val context: ActivateContext)
-           
-    extends Ref[T](pValueOption)(context) 
+class Var[T](_valueClass: Class[_], val name: String, val outerEntity: Entity)
+    extends Ref[T](None)(outerEntity.context) 
     	with java.io.Serializable {
 
-	def this(pValue: T) (implicit m: Manifest[T], 
-           tval: Option[T] => EntityValue[T], 
-           context: ActivateContext) = this(Option(pValue))
-	
-	var name: String = _
-	def valueClass = manifest[T].erasure
-	var outerEntity: Entity = _
-	def outerEntityClass = outerEntity.getClass.asInstanceOf[Class[_ <: Entity]]
+	val tval = EntityValue.tvalFunction(_valueClass).asInstanceOf[Option[T] => EntityValue[T]]
 	def toEntityPropertyValue(value: Any) = tval(Option(value).asInstanceOf[Option[T]])
+	def outerEntityClass = outerEntity.getClass.asInstanceOf[Class[_ <: Entity]]
 	
 	override def get = doInitialized {
 		super.get
 	}
 
-	override def put(value: Option[T]) = doInitialized {
+	override def put(value: Option[T]): Unit = doInitialized {
 		super.put(value)
 	}
 	
 	override def destroy: Unit = doInitialized {
 	    super.destroy
 	}
-	   
+	
 	private[this] def doInitialized[A](f: => A): A = {
 		if(outerEntity!=null)outerEntity.initialize
 		f
@@ -41,3 +30,6 @@ class Var[T]
 	
 	override def toString = name + " -> " + super.toString
 }
+
+
+import net.fwbrasil.activate.serialization.NamedSingletonSerializable

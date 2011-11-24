@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/grizzled-slf4j_2.9.0-0.5.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/gson-1.4.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/hamcrest-all-1.1.jar"/>
-	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/javassist-3.8.0.GA.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/jug-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/junit-4.7.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/logback-classic-0.9.29.jar"/>
@@ -28,7 +27,6 @@
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/prevayler-2.3.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/reflections-0.9.5-RC2.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-compiler-2.9.0.jar"/>
-	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-library-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalacheck_2.9.0-1.9.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalap-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalaz-core_2.9.0-6.0.RC2.jar"/>

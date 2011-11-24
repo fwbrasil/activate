@@ -24,6 +24,7 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
 		factory.configurePrevalenceDirectory(name)
+		factory.configureTransientMode(true)
 		prevayler = factory.create
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 	}

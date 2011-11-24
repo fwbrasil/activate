@@ -37,7 +37,7 @@ object MemoryStorage {
 		    deletes: Map[Var[Any], EntityValue[Any]]
 	): Unit = {
 		for((ref, value) <- assignments)
-			if(!storage.contains(ref.outerEntity.id))
+			if(ref.outerEntity != null && !storage.contains(ref.outerEntity.id))
 				storage += (ref.outerEntity.id -> ref.outerEntity)
 		for((ref, value) <- deletes)
 		  storage -= (ref.outerEntity.id)

@@ -4,7 +4,7 @@ import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import java.lang.{ Integer => JInteger, Boolean => JBoolean, Character => JCharacter, Float => JFloat, Double => JDouble }
 
-abstract class EntityValue[V: Manifest](val value: Option[V])
+abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable
 
 case class IntEntityValue(override val value: Option[Int])
 	extends EntityValue(value)
@@ -80,7 +80,8 @@ object EntityValue extends ValueContext {
               case value: Option[Char] => toCharEntityValueOption(value)
               case value: Option[Float] => toFloatEntityValueOption(value)
               case value: Option[Double] => toDoubleEntityValueOption(value)
-              case other => throw new IllegalStateException("Invalid entity value.")
+              case other => 
+              	throw new IllegalStateException("Invalid entity value.")
             }).asInstanceOf[(T) => EntityValue[T]])).asInstanceOf[(Option[T]) => EntityValue[T]]
 			
 }

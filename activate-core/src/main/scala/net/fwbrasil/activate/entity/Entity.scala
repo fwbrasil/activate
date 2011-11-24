@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.entity
 
 import scala.tools.nsc.util.ClassPath.DefaultJavaContext
-import java.lang.reflect.{Modifier, Field, Method}
+import java.lang.reflect.{ Modifier, Field, Method }
 import net.fwbrasil.activate.cache.live._
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.util.Reflection
@@ -11,8 +11,8 @@ import scala.collection._
 import tools.scalap.scalax.rules.scalasig.ClassSymbol
 
 trait Entity {
-  
-  def delete = {
+
+	def delete = {
 		initialize
 		for (ref <- vars)
 			ref.destroy
@@ -20,9 +20,9 @@ trait Entity {
 
 	def isDeleted =
 		vars.head.isDestroyed
-		
+
 	val id = {
-		val uuid = UUIDUtil.generateUUID 
+		val uuid = UUIDUtil.generateUUID
 		val classId = EntityHelper.getEntityClassHashId(this.getClass)
 		uuid + "-" + classId
 	}
@@ -39,7 +39,7 @@ trait Entity {
 
 	private[activate] def setNotInitialized =
 		initialized = false
-	
+
 	private[activate] def setInitialized =
 		initialized = true
 
@@ -48,14 +48,14 @@ trait Entity {
 
 	private[activate] def initialize =
 		this.synchronized {
-			if (!initialized)
+			if (!initialized && id != null)
 				context.initialize(this.asInstanceOf[Entity])
 			initialized = true
 		}
 
 	private[activate] def isInLiveCache =
 		context.liveCache.contains(this.asInstanceOf[Entity])
-		
+
 	private[this] def entityMetadata =
 		EntityHelper.getEntityMetadata(this.getClass)
 
@@ -85,36 +85,13 @@ trait Entity {
 	private[activate] def vars =
 		varFieldsMap.values
 
-	private[this] def context: ActivateContext = {
-		val field = varFields.head
-		val value = field.get(this)
-		value.asInstanceOf[Var[_]].context
+	def context: ActivateContext = {
+		ActivateContext.contextFor(this.getClass)
 	}
 
 	private[activate] def varNamed(name: String) =
 		varFieldsMap.get(name)
 
-	boundVarsToEntity
-	private[activate] def boundVarsToEntity = {
-		isVarsBound.asInstanceOf[AnyRef].synchronized {
-			if (!isVarsBound) {
-				for (property <- entityMetadata.propertiesMetadata) {
-					val getter = property.getter
-					val entityVar = getter.invoke(this)
-					if(entityVar==null)
-						throw new IllegalStateException("Vars can't be null, set it to None.")
-					if (entityVar != null) {
-						val castVar = entityVar.asInstanceOf[Var[_]]
-						castVar.outerEntity = this.asInstanceOf[Entity]
-						castVar.name = property.name.split('$').last
-					}
-				}
-				isVarsBound = true
-			}
-		}
-	}
-
-	addToLiveCache
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this.asInstanceOf[Entity])
 
@@ -127,12 +104,12 @@ trait Entity {
 }
 
 class EntityPropertyMetadata(
-		val varField: Field,
-		entityMethods: List[Method],
-		scalaSig: ClassSymbol) {
+	val varField: Field,
+	entityMethods: List[Method],
+	scalaSig: ClassSymbol) {
 	val name = varField.getName
-	val propertyType = 
-		Reflection.getEntityFieldTypeArgument(scalaSig, varField)
+	val propertyType =
+		classOf[String]
 	val getter = entityMethods.find(_.getName == name).get
 	varField.setAccessible(true)
 	getter.setAccessible(true)
@@ -140,59 +117,59 @@ class EntityPropertyMetadata(
 }
 
 class EntityMetadata(
-		val name: String,
-		val entityClass: Class[Entity]) {
-	val allFields = 
+	val name: String,
+	val entityClass: Class[Entity]) {
+	val allFields =
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
-	val allMethods = 
+	val allMethods =
 		Reflection.getDeclaredMethodsIncludingSuperClasses(entityClass)
-	val varFields = 
-		allFields.filter(_.getType.isAssignableFrom(classOf[Var[_]]))
-	if (varFields.isEmpty)
-			throw new IllegalStateException("An entity must have at least one var.")
-	val idField = 
+	val varFields =
+		allFields.filter((field: Field) => classOf[Var[_]].isAssignableFrom(field.getType))
+	val idField =
 		allFields.filter(_.getName.equals("id")).head
 	lazy val scalaSig = Reflection.getScalaSig(entityClass)
 	def isEntityProperty(varField: Field) =
 		allMethods.find(_.getName == varField.getName).nonEmpty
-	val propertiesMetadata = 
-		for(varField <- varFields; if(isEntityProperty(varField)))
+	val propertiesMetadata =
+		for (varField <- varFields; if (isEntityProperty(varField)))
 			yield new EntityPropertyMetadata(varField, allMethods, scalaSig)
 	idField.setAccessible(true)
-	override def toString = "Entity metadata for "+ name
+	varFields.foreach(_.setAccessible(true))
+	override def toString = "Entity metadata for " + name
 }
 
 object EntityHelper {
-	
+
 	private[this] val entitiesMetadatas =
 		mutable.HashMap[String, EntityMetadata]()
 
-	for(entityClass <- Reflection.getAllImplementors[Entity]; if(!entityClass.isInterface)) {
-		val entityClassHashId = getEntityClassHashId(entityClass)
-		if(entitiesMetadatas.contains(entityClassHashId))
-			throw new IllegalStateException("Duplicate entity name.")
-		val entityName = getEntityName(entityClass)
-		entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
-	}
-		
+	for (entityClass <- EntityEnhancer.enhancedEntityClasses; if (!entityClass.isInterface()))
+		if (!entityClass.isInterface()) {
+			val entityClassHashId = getEntityClassHashId(entityClass)
+			if (entitiesMetadatas.contains(entityClassHashId))
+				throw new IllegalStateException("Duplicate entity name.")
+			val entityName = getEntityName(entityClass)
+			entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
+		}
+
 	// Just load class
 	def initialize = {
+
 	}
-	
+
 	def getEntityClassFromId(entityId: String) =
 		entitiesMetadatas(entityId.split("-").last).entityClass
-	
+
 	def getEntityClassHashId(entityClass: Class[_]): String =
 		getEntityClassHashId(getEntityName(entityClass))
-		
-	def getEntityName(entityClass: Class[_]) = 
+
+	def getEntityName(entityClass: Class[_]) =
 		entityClass.getSimpleName.split('$')(0)
-	
+
 	def getEntityClassHashId(entityName: String): String =
 		Integer.toHexString(entityName.hashCode)
-		
-	
-	def getEntityMetadata(clazz: Class[_]) = 
+
+	def getEntityMetadata(clazz: Class[_]) =
 		entitiesMetadatas(getEntityClassHashId(clazz))
 
 }

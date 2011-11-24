@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src/main/scala"/>
 	<classpathentry kind="src" path="src/test/scala"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/activate-core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/activate-jdbc"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/activate-prevayler"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/radon-stm"/>
@@ -33,7 +32,6 @@
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/prevayler-2.3.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/reflections-0.9.5-RC2.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-compiler-2.9.0.jar"/>
-	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scala-library-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalacheck_2.9.0-1.9.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalap-2.9.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/scalaz-core_2.9.0-6.0.RC2.jar"/>
@@ -43,5 +41,6 @@
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/specs2-scalaz-core_2.9.0-6.0.RC2.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/test-interface-0.5.jar"/>
 	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/xml-apis-1.0.b2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/activate-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

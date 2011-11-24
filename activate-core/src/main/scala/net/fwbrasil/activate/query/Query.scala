@@ -1,6 +1,7 @@
 package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.entity._
+import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
 
 trait QueryContext extends QueryValueContext with OperatorContext {
@@ -67,7 +68,12 @@ trait QueryContext extends QueryValueContext with OperatorContext {
 }
 
 case class Query[S](from: From, where: Where, select: Select) {
-	def execute(implicit context: QueryContext): List[S] = context.executeQuery(this)
+	def execute: List[S] = {
+		val context = 
+			(for(src <- from.entitySources)
+				yield ActivateContext.contextFor(src.entityClass)).toSet.head
+		context.executeQuery(this)
+	}
 	override def toString = from + " => where" + where + " select "+ select + ""
 }
 
