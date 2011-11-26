@@ -106,10 +106,11 @@ trait Entity {
 class EntityPropertyMetadata(
 	val varField: Field,
 	entityMethods: List[Method],
-	scalaSig: ClassSymbol) {
+	scalaSig: ClassSymbol,
+	entityClass: Class[Entity]) {
 	val name = varField.getName
 	val propertyType =
-		classOf[String]
+		Reflection.getStatic(entityClass, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]].get(name)
 	val getter = entityMethods.find(_.getName == name).get
 	varField.setAccessible(true)
 	getter.setAccessible(true)
@@ -132,7 +133,7 @@ class EntityMetadata(
 		allMethods.find(_.getName == varField.getName).nonEmpty
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(varField, allMethods, scalaSig)
+			yield new EntityPropertyMetadata(varField, allMethods, scalaSig, entityClass)
 	idField.setAccessible(true)
 	varFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name
@@ -143,18 +144,20 @@ object EntityHelper {
 	private[this] val entitiesMetadatas =
 		mutable.HashMap[String, EntityMetadata]()
 
-	for (entityClass <- EntityEnhancer.enhancedEntityClasses; if (!entityClass.isInterface()))
-		if (!entityClass.isInterface()) {
-			val entityClassHashId = getEntityClassHashId(entityClass)
-			if (entitiesMetadatas.contains(entityClassHashId))
-				throw new IllegalStateException("Duplicate entity name.")
-			val entityName = getEntityName(entityClass)
-			entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
+	var initialized = false
+
+	def initialize = synchronized {
+		if (!initialized) {
+			for (entityClass <- EntityEnhancer.enhancedEntityClasses; if (!entityClass.isInterface()))
+				if (!entityClass.isInterface()) {
+					val entityClassHashId = getEntityClassHashId(entityClass)
+					if (entitiesMetadatas.contains(entityClassHashId))
+						throw new IllegalStateException("Duplicate entity name.")
+					val entityName = getEntityName(entityClass)
+					entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
+				}
 		}
-
-	// Just load class
-	def initialize = {
-
+		initialized = true
 	}
 
 	def getEntityClassFromId(entityId: String) =

@@ -51,7 +51,7 @@ trait QueryValueContext extends ValueContext {
                 toQueryValueEntity[Entity](entity).asInstanceOf[QuerySelectValue[V]]
             case value =>
             	QueryMocks.lastFakeVarCalled match {
-            		case Some(ref) =>
+            		case Some(ref: Var[_]) =>
             			toQueryValueRef(ref.asInstanceOf[Var[V]])
             		case other =>
             			new SimpleValue[V](value)
@@ -59,10 +59,6 @@ trait QueryValueContext extends ValueContext {
                 
         }
     }
-    
-    
-    implicit def toSimpleQueryBooleanValue(value: Boolean) = 
-    	SimpleQueryBooleanValue(value)
 
 }
 

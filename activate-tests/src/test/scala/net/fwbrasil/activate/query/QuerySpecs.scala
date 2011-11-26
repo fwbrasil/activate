@@ -50,16 +50,16 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						allWhere[ActivateTestEntity](
-							_.intValue :== fullIntValue.get,
-							_.booleanValue :== fullBooleanValue.get,
-							_.charValue :== fullCharValue.get,
-							_.stringValue :== fullStringValue.get,
-							_.floatValue :== fullFloatValue.get,
-							_.doubleValue :== fullDoubleValue.get,
-							_.bigDecimalValue :== fullBigDecimalValue.get,
-							_.dateValue :== fullDateValue.get,
-							_.calendarValue :== fullCalendarValue.get,
-							_.entityValue :== fullEntityValue.get
+							_.intValue :== fullIntValue,
+							_.booleanValue :== fullBooleanValue,
+							_.charValue :== fullCharValue,
+							_.stringValue :== fullStringValue,
+							_.floatValue :== fullFloatValue,
+							_.doubleValue :== fullDoubleValue,
+							_.bigDecimalValue :== fullBigDecimalValue,
+							_.dateValue :== fullDateValue,
+							_.calendarValue :== fullCalendarValue,
+							_.entityValue :== fullEntityValue
 						).size must beEqualTo(1)
 						
 						allWhere[ActivateTestEntity](
@@ -215,12 +215,12 @@ class QuerySpecs extends ActivateTest {
 					step {
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.dateValue :<= fullDateValue.get) select(e)
+								where(e.dateValue :<= fullDateValue) select(e)
 						}.execute.size must beEqualTo(1)
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.dateValue :>= fullDateValue.get) select(e)
+								where(e.dateValue :>= fullDateValue) select(e)
 						}.execute.size must beEqualTo(1)
 						
 						query {

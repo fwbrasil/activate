@@ -91,15 +91,16 @@ trait ActivateTest extends Specification {
 				
 	def contexts =
 		List[ActivateTestContext](
-			memoryContext,
-			prevaylerContext,
+			memoryContext//,
+//			prevaylerContext
 			//oracleContext,
-			mysqlContext
+//			mysqlContext
 		)
 
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 		for (ctx <- contexts) {
 			import ctx._
+			start
 			def clear = transactional {
 				all[ActivateTestEntity].foreach(_.delete)
 			}
@@ -109,6 +110,7 @@ trait ActivateTest extends Specification {
 				executor.finalizeExecution
 				clear
 			}
+			stop
 		}
 		true must beTrue
 	}
@@ -119,73 +121,86 @@ trait ActivateTest extends Specification {
 		
 		def contextName =
 			this.getClass.getSimpleName
+			
+		val emptyIntValue = 0
+		val emptyBooleanValue = false
+		val emptyCharValue = 'N'
+		val emptyStringValue = null
+		val emptyLazyValue = null
+		val emptyFloatValue = 0f
+		val emptyDoubleValue = 0d
+		val emptyBigDecimalValue = null
+		val emptyDateValue = null
+		val emptyCalendarValue = null
+		def emptyTraitValue1 = null
+		val emptyTraitValue2 = null
+		val emptyByteArrayValue = Array[Byte]()
+		val emptyEntityValue = null
 
-		val fullIntValue = Option(1)
-		val fullBooleanValue = Option(true)
-		val fullCharValue = Option('A')
-		val fullStringValue = Option("S")
-		val fullLazyValue = Option("L")
-		val fullFloatValue = Option(0.1f)
-		val fullDoubleValue = Option(1d)
-		val fullBigDecimalValue = Option(BigDecimal(1))
-		val fullDateValue = Option(new java.util.Date(98977898))
-		val fullCalendarValue = Option({
+		val fullIntValue = 1
+		val fullBooleanValue = true
+		val fullCharValue = 'A'
+		val fullStringValue = "S"
+		val fullLazyValue = "L"
+		val fullFloatValue = 0.1f
+		val fullDoubleValue = 1d
+		val fullBigDecimalValue = BigDecimal(1)
+		val fullDateValue = new java.util.Date(98977898)
+		val fullCalendarValue = {
 			val cal = java.util.Calendar.getInstance()
 			cal.setTimeInMillis(98977898)
 			cal
-		})
+		}
 		
 		def fullTraitValue1 = 
-			Option(all[TraitAttribute1].headOption.getOrElse({
+			all[TraitAttribute1].headOption.getOrElse({
 				new TraitAttribute1("1")
-			}))
+			})
 		
 		def fullTraitValue2 = 
-			Option(all[TraitAttribute2].headOption.getOrElse({
+			all[TraitAttribute2].headOption.getOrElse({
 				new TraitAttribute2("2")
-			}))
+			})
 		
-		val fullByteArrayValue = Option("S".getBytes)
+		val fullByteArrayValue = "S".getBytes
 		def fullEntityValue =
- 			Option(allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
+ 			allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
 				val entity = newEmptyActivateTestEntity
-				entity.dummy := true
+				entity.dummy = true
 				entity
-			}))
+			})
 
 		def setFullEntity(entity: ActivateTestEntity) = {
-			entity.intValue.put(fullIntValue)
-			entity.booleanValue.put(fullBooleanValue)
-			entity.charValue.put(fullCharValue)
-			entity.stringValue.put(fullStringValue)
-			entity.floatValue.put(fullFloatValue)
-			entity.doubleValue.put(fullDoubleValue)
-			entity.bigDecimalValue.put(fullBigDecimalValue)
-			entity.dateValue.put(fullDateValue)
-			entity.calendarValue.put(fullCalendarValue)
-			entity.byteArrayValue.put(fullByteArrayValue)
-			entity.entityValue.put(fullEntityValue)
-			entity.traitValue1.put(fullTraitValue1)
-			entity.traitValue2.put(fullTraitValue2)
-			entity.lazyValue.put(fullLazyValue)
+			entity.intValue = fullIntValue
+			entity.booleanValue = fullBooleanValue
+			entity.charValue = fullCharValue
+			entity.stringValue = fullStringValue
+			entity.floatValue = fullFloatValue
+			entity.doubleValue = fullDoubleValue
+			entity.bigDecimalValue = fullBigDecimalValue
+			entity.dateValue = fullDateValue
+			entity.calendarValue = fullCalendarValue
+			entity.byteArrayValue = fullByteArrayValue
+			entity.entityValue = fullEntityValue
+			entity.traitValue1 = fullTraitValue1
+			entity.traitValue2 = fullTraitValue2
 			entity
 		}
 
 		def setEmptyEntity(entity: ActivateTestEntity) = {
-			entity.intValue.put(None)
-			entity.booleanValue.put(None)
-			entity.charValue.put(None)
-			entity.stringValue.put(None)
-			entity.floatValue.put(None)
-			entity.doubleValue.put(None)
-			entity.bigDecimalValue.put(None)
-			entity.dateValue.put(None)
-			entity.calendarValue.put(None)
-			entity.byteArrayValue.put(None)
-			entity.entityValue.put(None)
-			entity.traitValue1.put(None)
-			entity.traitValue2.put(None)
-			entity.lazyValue.put(None)
+			entity.intValue = emptyIntValue
+			entity.booleanValue = emptyBooleanValue
+			entity.charValue = emptyCharValue
+			entity.stringValue = emptyStringValue
+			entity.floatValue = emptyFloatValue
+			entity.doubleValue = emptyDoubleValue
+			entity.bigDecimalValue = emptyBigDecimalValue
+			entity.dateValue = emptyDateValue
+			entity.calendarValue = emptyCalendarValue
+			entity.byteArrayValue = emptyByteArrayValue
+			entity.entityValue = emptyEntityValue
+			entity.traitValue1 = emptyTraitValue1
+			entity.traitValue2 = emptyTraitValue2
 			entity
 		}
 
@@ -198,48 +213,48 @@ trait ActivateTest extends Specification {
 			def testTraitAttribute
 		}
 		
-		case class TraitAttribute1(attribute: Var[String]) extends TraitAttribute {
-			def testTraitAttribute = attribute.get
+		class TraitAttribute1(val attribute: String) extends TraitAttribute {
+			def testTraitAttribute = attribute
 		}
 		
-		case class TraitAttribute2(attribute: Var[String]) extends TraitAttribute {
+		class TraitAttribute2(val attribute: String) extends TraitAttribute {
 			def testTraitAttribute = attribute.get
 		}
 			
 		class ActivateTestEntity(
-			val dummy: Var[Boolean] = false,
-			val intValue: Var[Int],
-			val booleanValue: Var[Boolean],
-			val charValue: Var[Char],
-			val stringValue: Var[String],
-			val floatValue: Var[Float],
-			val doubleValue: Var[Double],
-			val bigDecimalValue: Var[BigDecimal],
-			val dateValue: Var[java.util.Date],
-			val calendarValue: Var[java.util.Calendar],
-			val byteArrayValue: Var[Array[Byte]],
-			val entityValue: Var[ActivateTestEntity],
-			val traitValue1: Var[TraitAttribute],
-			val traitValue2: Var[TraitAttribute],
-			lazyValueValue: Var[String]) extends Entity {
-			lazy val lazyValue: Var[String] = lazyValueValue
+			var dummy: Boolean = false,
+			var intValue: Int,
+			var booleanValue: Boolean,
+			var charValue: Char,
+			var stringValue: String,
+			var floatValue: Float,
+			var doubleValue: Double,
+			var bigDecimalValue: BigDecimal,
+			var dateValue: java.util.Date,
+			var calendarValue: java.util.Calendar,
+			var byteArrayValue: Array[Byte],
+			var entityValue: ActivateTestEntity,
+			var traitValue1: TraitAttribute,
+			var traitValue2: TraitAttribute,
+			lazyValueValue: String) extends Entity {
+			lazy val lazyValue: String = lazyValueValue
 		}
 
 		def validateFullTestEntity(entity: ActivateTestEntity = null,
-			intValue: Option[Int] = fullIntValue,
-			booleanValue: Option[Boolean] = fullBooleanValue,
-			charValue: Option[Char] = fullCharValue,
-			stringValue: Option[String] = fullStringValue,
-			floatValue: Option[Float] = fullFloatValue,
-			doubleValue: Option[Double] = fullDoubleValue,
-			bigDecimalValue: Option[BigDecimal] = fullBigDecimalValue,
-			dateValue: Option[java.util.Date] = fullDateValue,
-			calendarValue: Option[java.util.Calendar] = fullCalendarValue,
-			byteArrayValue: Option[Array[Byte]] = fullByteArrayValue,
-			entityValue: Option[ActivateTestEntity] = fullEntityValue,
-			traitValue1: Option[TraitAttribute] = fullTraitValue1,
-			traitValue2: Option[TraitAttribute] = fullTraitValue2,
-			lazyValue: Option[String] = fullLazyValue) =
+			intValue: Int = fullIntValue,
+			booleanValue: Boolean = fullBooleanValue,
+			charValue: Char = fullCharValue,
+			stringValue: String = fullStringValue,
+			floatValue: Float = fullFloatValue,
+			doubleValue: Double = fullDoubleValue,
+			bigDecimalValue: BigDecimal = fullBigDecimalValue,
+			dateValue: java.util.Date = fullDateValue,
+			calendarValue: java.util.Calendar = fullCalendarValue,
+			byteArrayValue: Array[Byte] = fullByteArrayValue,
+			entityValue: ActivateTestEntity = fullEntityValue,
+			traitValue1: TraitAttribute = fullTraitValue1,
+			traitValue2: TraitAttribute = fullTraitValue2,
+			lazyValue: String = fullLazyValue) =
 
 			validateEmptyTestEntity(
 				entity,
@@ -259,52 +274,53 @@ trait ActivateTest extends Specification {
 				lazyValue)
 
 		def validateEmptyTestEntity(entity: ActivateTestEntity = null,
-			intValue: Option[Int] = None,
-			booleanValue: Option[Boolean] = None,
-			charValue: Option[Char] = None,
-			stringValue: Option[String] = None,
-			floatValue: Option[Float] = None,
-			doubleValue: Option[Double] = None,
-			bigDecimalValue: Option[BigDecimal] = None,
-			dateValue: Option[java.util.Date] = None,
-			calendarValue: Option[java.util.Calendar] = None,
-			byteArrayValue: Option[Array[Byte]] = None,
-			entityValue: Option[ActivateTestEntity] = None,
-			traitValue1: Option[TraitAttribute] = None,
-			traitValue2: Option[TraitAttribute] = None,
-			lazyValue: Option[String] = None) = {
+			intValue: Int = emptyIntValue,
+			booleanValue: Boolean = emptyBooleanValue,
+			charValue: Char = emptyCharValue,
+			stringValue: String = emptyStringValue,
+			floatValue: Float = emptyFloatValue,
+			doubleValue: Double = emptyDoubleValue,
+			bigDecimalValue: BigDecimal = emptyBigDecimalValue,
+			dateValue: java.util.Date = emptyDateValue,
+			calendarValue: java.util.Calendar = emptyCalendarValue,
+			byteArrayValue: Array[Byte] = emptyByteArrayValue,
+			entityValue: ActivateTestEntity = emptyEntityValue,
+			traitValue1: TraitAttribute = emptyTraitValue1,
+			traitValue2: TraitAttribute = emptyTraitValue2,
+			lazyValue: String = emptyLazyValue) = {
 
-			entity.intValue.get must beEqualTo(intValue)
-			entity.booleanValue.get must beEqualTo(booleanValue)
-			entity.charValue.get must beEqualTo(charValue)
-			entity.stringValue.get must beEqualTo(stringValue)
-			entity.floatValue.get must beEqualTo(floatValue)
-			entity.doubleValue.get must beEqualTo(doubleValue)
-			entity.bigDecimalValue.get must beEqualTo(bigDecimalValue)
-			entity.dateValue.get must beEqualTo(dateValue)
-			entity.calendarValue.get must beEqualTo(calendarValue)
-			entity.entityValue.get must beEqualTo(entityValue)
-			entity.traitValue1.get must beEqualTo(traitValue1)
-			entity.traitValue2.get must beEqualTo(traitValue2)
+			entity.intValue must beEqualTo(intValue)
+			entity.booleanValue must beEqualTo(booleanValue)
+			entity.charValue must beEqualTo(charValue)
+			entity.stringValue must beEqualTo(stringValue)
+			entity.floatValue must beEqualTo(floatValue)
+			entity.doubleValue must beEqualTo(doubleValue)
+			entity.bigDecimalValue must beEqualTo(bigDecimalValue)
+			entity.dateValue must beEqualTo(dateValue)
+			entity.calendarValue must beEqualTo(calendarValue)
+			entity.entityValue must beEqualTo(entityValue)
+			entity.traitValue1 must beEqualTo(traitValue1)
+			entity.traitValue2 must beEqualTo(traitValue2)
 		}
 
-		def newTestEntity(intValue: Option[Int] = None,
-			booleanValue: Option[Boolean] = None,
-			charValue: Option[Char] = None,
-			stringValue: Option[String] = None,
-			floatValue: Option[Float] = None,
-			doubleValue: Option[Double] = None,
-			bigDecimalValue: Option[BigDecimal] = None,
-			dateValue: Option[java.util.Date] = None,
-			calendarValue: Option[java.util.Calendar] = None,
-			byteArrayValue: Option[Array[Byte]] = None,
-			entityValue: Option[ActivateTestEntity] = None,
-			traitValue1: Option[TraitAttribute] = None,
-			traitValue2: Option[TraitAttribute] = None,
-			lazyValue: Option[String] = None) =
+		def newTestEntity(
+			intValue: Int = emptyIntValue,
+			booleanValue: Boolean = emptyBooleanValue,
+			charValue: Char = emptyCharValue,
+			stringValue: String = emptyStringValue,
+			floatValue: Float = emptyFloatValue,
+			doubleValue: Double = emptyDoubleValue,
+			bigDecimalValue: BigDecimal = emptyBigDecimalValue,
+			dateValue: java.util.Date = emptyDateValue,
+			calendarValue: java.util.Calendar = emptyCalendarValue,
+			byteArrayValue: Array[Byte] = emptyByteArrayValue,
+			entityValue: ActivateTestEntity = emptyEntityValue,
+			traitValue1: TraitAttribute = emptyTraitValue1,
+			traitValue2: TraitAttribute = emptyTraitValue2,
+			lazyValue: String = emptyLazyValue) = {
 			new ActivateTestEntity(
 				intValue = intValue,
-				booleanValue = booleanValue,
+				booleanValue = booleanValue, 
 				charValue = charValue,
 				stringValue = stringValue,
 				floatValue = floatValue,
@@ -317,6 +333,7 @@ trait ActivateTest extends Specification {
 				traitValue1 = traitValue1,
 				traitValue2 = traitValue2,
 				lazyValueValue = lazyValue)
+		}
 	}
 
 	object prevaylerContext extends ActivateTestContext {

@@ -2,7 +2,9 @@ package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.entity._
 
-case class Operator()
+case class Operator() {
+	QueryMocks.clearFakeVarCalled
+}
 
 abstract class QueryBooleanValue() extends QueryValue
 

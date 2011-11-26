@@ -19,7 +19,7 @@ object Reflection {
 
 	def newInstance[T](clazz: Class[_]): T =
 		objenesis.newInstance(clazz).asInstanceOf[T]
-
+	
 	def getDeclaredFieldsIncludingSuperClasses(concreteClass: Class[_]) = {
 		var clazz = concreteClass
 		var fields = List[Field]()
@@ -118,6 +118,18 @@ object Reflection {
 		val field = getDeclaredFieldsIncludingSuperClasses(obj.getClass()).filter(_.getName() == fieldName).head
 		field.setAccessible(true)
 		field.set(obj, value)
+	}
+	
+	def get(obj: Object, fieldName: String) = {
+		val field = getDeclaredFieldsIncludingSuperClasses(obj.getClass()).filter(_.getName() == fieldName).head
+		field.setAccessible(true)
+		field.get(obj)
+	}
+	
+	def getStatic(obj: Class[_], fieldName: String) = {
+		val field = getDeclaredFieldsIncludingSuperClasses(obj).filter(_.getName() == fieldName).head
+		field.setAccessible(true)
+		field.get(obj)
 	}
 	
 	def invoke(obj: Object, methodName: String, params: Object*) = {

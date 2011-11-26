@@ -17,8 +17,12 @@ object QueryMocks {
 	
 	def lastFakeVarCalled = {
 		val last = _lastFakeVarCalled
-		_lastFakeVarCalled = None
+		clearFakeVarCalled
 		last
+	}
+	
+	def clearFakeVarCalled = {
+		_lastFakeVarCalled = None
 	}
 	
     class FakeVarToQuery[P]
@@ -34,13 +38,30 @@ object QueryMocks {
                 if (classOf[Entity].isAssignableFrom(fakeValueClass))
                     mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
                 else
-                    newInstance(fakeValueClass).asInstanceOf[P]
+                    if(!fakeValueClass.isPrimitive())
+                    	newInstance(fakeValueClass)
+                	else
+                    	mockPrimitive(fakeValueClass)	
             _lastFakeVarCalled = Some(this.asInstanceOf[Var[Any]])
             Option(value.asInstanceOf[P])
         }
         override def put(value: Option[P]): Unit = {
     		throw new IllegalStateException("You can't alter vars in a predicate!")
         }
+    }
+    
+    def mockPrimitive(clazz: Class[_]) = {
+    	println(clazz)
+    	clazz.getName match {
+			case "char" => 'M'
+			case "integer" => 0
+			case "long" => 0l
+			case "float" => 0f
+			case "double" => 0d
+			case "boolean" => false
+			case other =>
+				throw new IllegalStateException("Invalid primitive type "+ other)
+    	}
     }
 
     def mockEntity[E <: Entity](clazz: Class[E]): E =
