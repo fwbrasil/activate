@@ -16,9 +16,22 @@ import javassist.ClassClassPath
 import javassist.bytecode.LocalVariableAttribute
 import javassist.Modifier
 import javassist.CtPrimitiveType
+import java.lang.management.ManagementFactory
+import java.lang.management.RuntimeMXBean
+import net.fwbrasil.activate.util.Logging
 
-object EntityEnhancer {
-
+object EntityEnhancer extends Logging {
+	
+	def verifyNoVerify = {
+		val RuntimemxBean = ManagementFactory.getRuntimeMXBean
+		val arguments = RuntimemxBean.getInputArguments
+		if(List(arguments.toArray: _*).filter(_ == "-Xverify:none").isEmpty) {
+			val msg = "Please add -noverify to vm options"
+			error(msg)
+			throw new IllegalStateException(msg)
+		}
+	}
+	
 	val varClassName = classOf[Var[_]].getName
 	val hashMapClassName = classOf[java.util.HashMap[_, _]].getName
 	val entityClassName = classOf[Entity].getName
@@ -116,6 +129,7 @@ object EntityEnhancer {
 	}
 
 	def enhancedEntityClasses = {
+		verifyNoVerify
 		val entityClassNames = Reflection.getAllImplementorsNames(classOf[Entity].getName)
 		var enhancedEntityClasses = Set[CtClass]()
 		for (entityClassName <- entityClassNames)

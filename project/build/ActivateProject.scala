@@ -33,6 +33,9 @@ class ActivateProject(info: ProjectInfo) extends ParentProject(info) {
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0"
 	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"  intransitive() 
 	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
+	val dom4j = "dom4j" % "dom4j" % "1.6"
+	val gson = "com.google.code.gson" % "gson" % "1.4"
+	val servlet = "javax.servlet" % "servlet-api" % "2.5"
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.5"
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	
