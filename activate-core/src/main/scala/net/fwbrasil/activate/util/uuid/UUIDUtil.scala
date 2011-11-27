@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.util.uuid
 
-import _root_.org.safehaus.uuid.{UUIDGenerator, UUID => JugUUID}
-import _root_.java.util.{UUID => JavaUUID}
+import org.safehaus.uuid.{UUIDGenerator, UUID => JugUUID}
+import java.util.{UUID => JavaUUID}
 
 object UUIDUtil {
   

@@ -8,23 +8,12 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import org.specs2.execute.FailureException
-import tools.scalap.scalax.rules.scalasig._
 import scala.runtime._
 import java.security._
 import java.math.BigInteger
 
 
 object runningFlag
-
-object Test {
-	def main(args: Array[String]) = {
-		val md = MessageDigest.getInstance( "MD2" )
-        md.update( "asasa".getBytes() )
-        val hash = new BigInteger( 1, md.digest() )    
-        println(hash.toString( 32 ))  
-	}
-}
-
 
 @RunWith(classOf[JUnitRunner])
 trait ActivateTest extends Specification {
@@ -67,7 +56,7 @@ trait ActivateTest extends Specification {
 		def apply[A](s: => A): A = execute {
 			transactional {
 				s
-			}
+			} 
 		}
 	}
 
@@ -83,21 +72,26 @@ trait ActivateTest extends Specification {
 		}
 	} 
 
-	def executors(ctx: ActivateTestContext) =
+	def executors(ctx: ActivateTestContext): List[StepExecutor] =
 		List(
 				OneTransaction(ctx), 
 				MultipleTransactions(ctx), 
-				MultipleTransactionsWithReinitialize(ctx))
+				MultipleTransactionsWithReinitialize(ctx)
+				)
 				
-	def contexts =
-		List[ActivateTestContext](
-			memoryContext//,
-//			prevaylerContext
-			//oracleContext,
+	def contexts = {
+		val ret = List[ActivateTestContext](
+			memoryContext,
+			prevaylerContext,
+			oracleContext//,
 //			mysqlContext
 		)
-
+		ret.foreach(_.stop)
+		ret
+	}
+	
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
+		
 		for (ctx <- contexts) {
 			import ctx._
 			start
@@ -137,7 +131,7 @@ trait ActivateTest extends Specification {
 		val emptyByteArrayValue = Array[Byte]()
 		val emptyEntityValue = null
 
-		val fullIntValue = 1
+		val fullIntValue = 999
 		val fullBooleanValue = true
 		val fullCharValue = 'A'
 		val fullStringValue = "S"
@@ -209,7 +203,7 @@ trait ActivateTest extends Specification {
 		def newFullActivateTestEntity =
 			setFullEntity(newTestEntity())
 			
-		trait TraitAttribute extends Entity{
+		trait TraitAttribute extends Entity {
 			def testTraitAttribute
 		}
 		
@@ -218,7 +212,7 @@ trait ActivateTest extends Specification {
 		}
 		
 		class TraitAttribute2(val attribute: String) extends TraitAttribute {
-			def testTraitAttribute = attribute.get
+			def testTraitAttribute = attribute
 		}
 			
 		class ActivateTestEntity(
@@ -349,9 +343,9 @@ trait ActivateTest extends Specification {
 	object oracleContext extends ActivateTestContext {
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-			val user = "ACTIVATE"
-			val password = "ACTIVATE"
-			val url = "jdbc:oracle:thin:@localhost:1521:oracle"
+			val user = "ACTIVATE_TEST"
+			val password = "ACTIVATE_TEST"
+			val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
 			val dialect = oracleDialect
 			val serializator = javaSerializator
 		}

@@ -41,6 +41,15 @@ object EntityEnhancer {
 	def isCandidate(field: CtField) =
 		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field)
 
+	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
+		val lazyValueValueSuffix = "Value"
+		val lazyValues = fieldsToEnhance.filter((field: CtField) => fieldsToEnhance.filter(_.getName() == field.getName() + lazyValueValueSuffix).nonEmpty)
+		fieldsToEnhance.filter((field: CtField) => lazyValues.filter(_.getName() + lazyValueValueSuffix == field.getName()).isEmpty)
+	}
+	
+	def isEnhanced(clazz: CtClass) =
+		clazz.getDeclaredFields.filter(_.getName() == "varTypes").nonEmpty
+	
 	def box(typ: CtClass) =
 		if (typ.isPrimitive) {
 			val ctPrimitive = typ.asInstanceOf[CtPrimitiveType]
@@ -49,12 +58,12 @@ object EntityEnhancer {
 			"$$"
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-		if (!clazz.isFrozen && isEntityClass(clazz, classPool)) {
+		if (!clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
 			var enhancedFieldsMap = Map[CtField, CtClass]()
 			val varClazz = classPool.get(varClassName);
-			for (originalField <- clazz.getDeclaredFields; if (isCandidate(originalField))) {
+			val fieldsToEnhance = removeLazyValueValue(clazz.getDeclaredFields.filter((field: CtField) => isCandidate(field)))
+			for (originalField <- fieldsToEnhance; if (isCandidate(originalField))) {
 				val name = originalField.getName
-				println(name)
 				clazz.removeField(originalField)
 				val enhancedField = new CtField(varClazz, name, clazz);
 				enhancedField.setModifiers(Modifier.PRIVATE)
@@ -94,7 +103,7 @@ object EntityEnhancer {
 
 			init.insertBefore(initBody)
 
-			clazz.writeFile;
+//			clazz.writeFile;
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
@@ -103,9 +112,6 @@ object EntityEnhancer {
 	def enhance(clazzName: String): Set[CtClass] = {
 		val classPool = ClassPool.getDefault;
 		val clazz = classPool.get(clazzName)
-		if (clazz.isFrozen) {
-			println(clazz)
-		}
 		enhance(clazz, classPool)
 	}
 

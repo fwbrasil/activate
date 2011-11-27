@@ -7,15 +7,15 @@ class ActivateProject(info: ProjectInfo) extends ParentProject(info) {
   lazy val core = project("activate-core", "ActivateCoreProject", new ActivateCoreProject(_))
   lazy val prevayler = project("activate-prevayler", "ActivatePrevaylerProject", new ActivatePrevaylerProject(_), core)
   lazy val jdbc = project("activate-jdbc", "ActivateJdbcProject", new ActivateJdbcProject(_), core)
-  lazy val appengine = project("activate-appengine", "ActivateAppengineProject", new ActivateAppengineProject(_), core)
+//  lazy val appengine = project("activate-appengine", "ActivateAppengineProject", new ActivateAppengineProject(_), core)
   lazy val tests = project("activate-tests", "ActivateTestsProject", new ActivateTestsProject(_), prevayler, jdbc)
   
   val snapshots = "snapshots" at "http://scala-tools.org/repo-snapshots"
   val releases = "releases" at "http://scala-tools.org/repo-releases"
   val maven = "Maven" at "http://repo1.maven.org/maven2/"
   val mvnsearch = "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/"
-  val fwbrasil = "fwbrasil.net" at "http://reflections.googlecode.com/svn/repo"
-  val reflections_repo = "reflections-repo" at "http://fwbrasil.net/maven/"
+  val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+  val reflections_repo = "fwbrasil-repo" at "http://reflections.googlecode.com/svn/repo"
   
   
   trait Commom {
@@ -26,16 +26,16 @@ class ActivateProject(info: ProjectInfo) extends ParentProject(info) {
 
 	override def name = "activate-core"
 
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.2"
+	val javassist = "org.javassist" % "javassist" % "3.15.0-GA"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.3-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
-	val scalap = "org.scala-lang" % "scalap" % "2.9.0"
-	val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.9.0"
-	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
-	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"
+	val jug = "org.safehaus.jug" % "jug" % "2.0.0"
+	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"  intransitive() 
+	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.5"
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
-
+	
 	override def filterScalaJars = false
 	override def managedStyle = ManagedStyle.Maven
 }
@@ -62,20 +62,24 @@ class ActivateJdbcProject(info: ProjectInfo) extends DefaultProject(info) with C
 	override def managedStyle = ManagedStyle.Maven
 }
 
-class ActivateAppengineProject(info: ProjectInfo) extends DefaultProject(info) with Commom {
-
-        override def name = "activate-appengine"                                                 
-
-        val activate = "net.fwbrasil" %% "activate-core" % projectVersion.value.toString
-
-        override def filterScalaJars = false
-        override def managedStyle = ManagedStyle.Maven
-}
+//class ActivateAppengineProject(info: ProjectInfo) extends DefaultProject(info) with Commom {
+//
+//        override def name = "activate-appengine"                                                 
+//
+//        val activate = "net.fwbrasil" %% "activate-core" % projectVersion.value.toString
+//
+//        override def filterScalaJars = false
+//        override def managedStyle = ManagedStyle.Maven
+//}
   
   class ActivateTestsProject(info: ProjectInfo) extends DefaultProject(info) with Commom {
 	
   	
 	override def name = "activate-tests"
+		
+	val junit = "junit" % "junit" % "4.4" % "test"
+	val specs2 = "org.specs2" %% "specs2" % "1.3" % "test"
+	val scalaz = "org.specs2" %% "specs2-scalaz-core" % "6.0.RC2" % "test"
 
   	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
 	override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)

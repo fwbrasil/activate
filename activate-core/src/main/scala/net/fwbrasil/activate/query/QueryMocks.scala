@@ -38,10 +38,7 @@ object QueryMocks {
                 if (classOf[Entity].isAssignableFrom(fakeValueClass))
                     mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
                 else
-                    if(!fakeValueClass.isPrimitive())
-                    	newInstance(fakeValueClass)
-                	else
-                    	mockPrimitive(fakeValueClass)	
+                	mock(fakeValueClass)	
             _lastFakeVarCalled = Some(this.asInstanceOf[Var[Any]])
             Option(value.asInstanceOf[P])
         }
@@ -50,17 +47,19 @@ object QueryMocks {
         }
     }
     
-    def mockPrimitive(clazz: Class[_]) = {
-    	println(clazz)
+    def mock(clazz: Class[_]) = {
     	clazz.getName match {
 			case "char" => 'M'
-			case "integer" => 0
+			case "int" => 0
 			case "long" => 0l
 			case "float" => 0f
 			case "double" => 0d
 			case "boolean" => false
+			case "java.util.Calendar" => java.util.Calendar.getInstance
+			case "[B" => Array[Byte]()
 			case other =>
-				throw new IllegalStateException("Invalid primitive type "+ other)
+				println(clazz.getName)
+				newInstance(clazz)
     	}
     }
 

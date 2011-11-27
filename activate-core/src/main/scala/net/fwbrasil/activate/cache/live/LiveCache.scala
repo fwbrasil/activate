@@ -138,7 +138,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val vars = entity.vars.toList
 		for (i <- 0 to vars.size - 1)
 			vars(i).asInstanceOf[Var[Any]].setRefContent(tuple.productElement(i).asInstanceOf[Option[Any]])
-		println("a")
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[E]]): List[S] = {

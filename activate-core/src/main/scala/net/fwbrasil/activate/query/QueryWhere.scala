@@ -2,7 +2,7 @@ package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.entity._
 
-case class Operator() {
+class Operator() {
 	QueryMocks.clearFakeVarCalled
 }
 
@@ -65,7 +65,7 @@ case class IsLessOrEqualTo(valueA : QueryValue) extends ComparationOperator {
 	override def toString = ":<="
 }
 
-abstract case class BooleanOperator() extends CompositeOperator
+abstract class BooleanOperator() extends CompositeOperator
 
 case class And(valueA : QueryBooleanValue) extends BooleanOperator {
 	def :&&(valueB: QueryBooleanValue) = BooleanOperatorCriteria(valueA, this, valueB)
@@ -77,7 +77,7 @@ case class Or(valueA : QueryBooleanValue) extends BooleanOperator {
 }
 
 
-abstract case class Criteria() extends QueryBooleanValue
+abstract class Criteria() extends QueryBooleanValue
 
 case class SimpleOperatorCriteria(valueA: QueryValue, operator: SimpleOperator) extends Criteria {
 	override def toString = "(" + valueA + " " + operator + ")"

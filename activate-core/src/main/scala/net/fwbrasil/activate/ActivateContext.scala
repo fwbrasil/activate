@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.radon.ref.RefContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.storage.Storage
@@ -11,13 +12,13 @@ import net.fwbrasil.activate.cache.live._
 import scala.collection.mutable.{ Set => MutableSet }
 import java.io._
 import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.activate.util.RichList._
 
 trait ActivateContext
 	extends EntityContext
 	with QueryContext
 	with Serializable
 	with NamedSingletonSerializable
-	with RefContext
 	with Logging {
 
 	info("Initializing context " + contextName)
@@ -105,9 +106,9 @@ trait ActivateContext
 
 object ActivateContext {
 	def contextFor(entityClass: Class[_ <: Entity]) =
-		(for (
+		toRichList(for (
 			ctx <- NamedSingletonSerializable.instancesOf(classOf[ActivateContext]);
 			if (ctx.acceptEntity(entityClass))
-		) yield ctx).head
+		) yield ctx).onlyOne
 
 }

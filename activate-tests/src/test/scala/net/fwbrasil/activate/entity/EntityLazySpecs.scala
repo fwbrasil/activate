@@ -9,11 +9,11 @@ import net.fwbrasil.activate.ActivateTest
 class EntityLazySpecs extends ActivateTest {
 	
 	override def executors(ctx: ActivateTestContext) = 
-		List(MultipleTransactionsWithReinitialize(ctx))
+		List(MultipleTransactionsWithReinitialize(ctx)) 
 	
 	override def contexts =
 		super.contexts.filter(!_.storage.isMemoryStorage)
-
+ 
 	"Lazy entities" should {
 		"lazy load" in {
 			activateTest(

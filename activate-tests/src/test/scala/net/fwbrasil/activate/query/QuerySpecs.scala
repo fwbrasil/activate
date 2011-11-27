@@ -77,20 +77,14 @@ class QuerySpecs extends ActivateTest {
 						).size must beEqualTo(1)
 						
 						allWhere[ActivateTestEntity](
-							_.intValue isNone,
-							_.booleanValue isNone,
-							_.charValue isNone,
 							_.stringValue isNone,
-							_.floatValue isNone,
-							_.doubleValue isNone,
 							_.bigDecimalValue isNone,
 							_.dateValue isNone,
 							_.calendarValue isNone,
-							_.byteArrayValue isNone,
 							_.entityValue isNone
 						).size must beEqualTo(2)
 						
-						allWhere[ActivateTestEntity](_.booleanValue isNone, _.charValue :== 'A').headOption must beNone
+						allWhere[ActivateTestEntity](_.entityValue isNone, _.charValue :== 'A').headOption must beNone
 					}
 				}
 			)
@@ -141,7 +135,7 @@ class QuerySpecs extends ActivateTest {
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where((e.booleanValue :== true) :|| (e.booleanValue isSome)) select(e)
+								where((e.booleanValue :== true) :|| (e.charValue :== fullCharValue)) select(e)
 						}.execute.size must beEqualTo(1)
 					}
 				}
@@ -192,12 +186,12 @@ class QuerySpecs extends ActivateTest {
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :< 10) select(e)
-						}.execute.size must beEqualTo(1)
+								where(e.intValue :< fullIntValue) select(e)
+						}.execute.size must beEqualTo(2)
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :> 10) select(e)
+								where(e.intValue :> fullIntValue) select(e)
 						}.execute.size must beEqualTo(0)
 					}
 				}
@@ -230,23 +224,23 @@ class QuerySpecs extends ActivateTest {
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :>= 1) select(e)
+								where(e.intValue :>= fullIntValue) select(e)
 						}.execute.size must beEqualTo(1)
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :<= 1) select(e)
-						}.execute.size must beEqualTo(1)
+								where(e.intValue :<= fullIntValue) select(e)
+						}.execute.size must beEqualTo(3)
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :<= 10) select(e)
-						}.execute.size must beEqualTo(1)
+								where(e.intValue :<= emptyIntValue) select(e)
+						}.execute.size must beEqualTo(2)
 						
 						query {
 							(e: ActivateTestEntity) => 
-								where(e.intValue :>= 10) select(e)
-						}.execute.size must beEqualTo(0)
+								where(e.intValue :>= fullIntValue) select(e)
+						}.execute.size must beEqualTo(1)
 					}
 				}
 			)

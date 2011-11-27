@@ -1,6 +1,5 @@
 package net.fwbrasil.activate.entity
 
-import scala.tools.nsc.util.ClassPath.DefaultJavaContext
 import java.lang.reflect.{ Modifier, Field, Method }
 import net.fwbrasil.activate.cache.live._
 import net.fwbrasil.activate.util.uuid.UUIDUtil
@@ -8,9 +7,8 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
-import tools.scalap.scalax.rules.scalasig.ClassSymbol
 
-trait Entity {
+trait Entity extends Serializable {
 
 	def delete = {
 		initialize
@@ -28,7 +26,6 @@ trait Entity {
 	}
 
 	private[this] var persistedflag = false
-	private[this] var isVarsBound = false
 	private[this] var initialized = true
 
 	private[activate] def setPersisted =
@@ -70,8 +67,10 @@ trait Entity {
 
 	private[this] def buildVarFieldsMap =
 		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]])
-			yield if (ref.name == null)
-			throw new IllegalStateException("Ref should have a name!")
+			yield if (ref == null)
+				throw new IllegalStateException("Ref is null! (" + varField.getName() + ")") 
+			else if (ref.name == null)
+				throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
 		else
 			(ref.name -> ref)).toMap
 
@@ -85,8 +84,8 @@ trait Entity {
 	private[activate] def vars =
 		varFieldsMap.values
 
-	def context: ActivateContext = {
-		ActivateContext.contextFor(this.getClass)
+	private[activate] def context: ActivateContext = {
+		ActivateContext.contextFor(this.getClass.asInstanceOf[Class[Entity]])
 	}
 
 	private[activate] def varNamed(name: String) =
@@ -106,7 +105,6 @@ trait Entity {
 class EntityPropertyMetadata(
 	val varField: Field,
 	entityMethods: List[Method],
-	scalaSig: ClassSymbol,
 	entityClass: Class[Entity]) {
 	val name = varField.getName
 	val propertyType =
@@ -128,12 +126,11 @@ class EntityMetadata(
 		allFields.filter((field: Field) => classOf[Var[_]].isAssignableFrom(field.getType))
 	val idField =
 		allFields.filter(_.getName.equals("id")).head
-	lazy val scalaSig = Reflection.getScalaSig(entityClass)
 	def isEntityProperty(varField: Field) =
 		allMethods.find(_.getName == varField.getName).nonEmpty
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(varField, allMethods, scalaSig, entityClass)
+			yield new EntityPropertyMetadata(varField, allMethods, entityClass)
 	idField.setAccessible(true)
 	varFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name
