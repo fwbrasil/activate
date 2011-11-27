@@ -8,7 +8,7 @@ import net.fwbrasil.activate.ActivateTest
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
- 
+
 	"Query framework" should {
 		"support byId" in {
 			activateTest(
@@ -25,7 +25,7 @@ class QuerySpecs extends ActivateTest {
 				}
 			)
 		}
-		
+
 		"support all" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -61,7 +61,7 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue :== fullCalendarValue,
 							_.entityValue :== fullEntityValue
 						).size must beEqualTo(1)
-						
+
 						allWhere[ActivateTestEntity](
 							_.intValue isSome,
 							_.booleanValue isSome,
@@ -75,7 +75,7 @@ class QuerySpecs extends ActivateTest {
 							_.byteArrayValue isSome,
 							_.entityValue isSome
 						).size must beEqualTo(1)
-						
+
 						allWhere[ActivateTestEntity](
 							_.stringValue isNone,
 							_.bigDecimalValue isNone,
@@ -83,7 +83,7 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue isNone,
 							_.entityValue isNone
 						).size must beEqualTo(2)
-						
+
 						allWhere[ActivateTestEntity](_.entityValue isNone, _.charValue :== 'A').headOption must beNone
 					}
 				}
@@ -100,25 +100,25 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						query {
-							(e: ActivateTestEntity) => where(e.booleanValue :== true) select(e)
+							(e: ActivateTestEntity) => where(e.booleanValue :== true) select (e)
 						}.execute.headOption must beSome
-						
+
 						query {
-							(e: ActivateTestEntity) => where(e.stringValue :== "hhh") select(e)
+							(e: ActivateTestEntity) => where(e.stringValue :== "hhh") select (e)
 						}.execute.headOption must beNone
-						
+
 						query {
-							(e: ActivateTestEntity) => where(e.stringValue isNone) select(e)
+							(e: ActivateTestEntity) => where(e.stringValue isNone) select (e)
 						}.execute.headOption must beSome
-						
+
 						query {
-							(e: ActivateTestEntity) => where(e.stringValue isSome) select(e)
+							(e: ActivateTestEntity) => where(e.stringValue isSome) select (e)
 						}.execute.headOption must beSome
 					}
 				}
 			)
 		}
-		
+
 		"support query with or" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -129,19 +129,19 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						query {
-							(e: ActivateTestEntity) => 
-								where((e.booleanValue :== true) :|| (e.booleanValue :== false) :|| (e.booleanValue isNone)) select(e)
+							(e: ActivateTestEntity) =>
+								where((e.booleanValue :== true) :|| (e.booleanValue :== false) :|| (e.booleanValue isNone)) select (e)
 						}.execute.size must beEqualTo(3)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where((e.booleanValue :== true) :|| (e.charValue :== fullCharValue)) select(e)
+							(e: ActivateTestEntity) =>
+								where((e.booleanValue :== true) :|| (e.charValue :== fullCharValue)) select (e)
 						}.execute.size must beEqualTo(1)
 					}
 				}
 			)
 		}
-		
+
 		"support query with and" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -152,19 +152,19 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						query {
-							(e: ActivateTestEntity) => 
-								where((e.booleanValue :== true) :&& (e.booleanValue :== false) :&& (e.booleanValue isNone)) select(e)
+							(e: ActivateTestEntity) =>
+								where((e.booleanValue :== true) :&& (e.booleanValue :== false) :&& (e.booleanValue isNone)) select (e)
 						}.execute.size must beEqualTo(0)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where((e.booleanValue isSome) :&& (e.stringValue isSome)) select(e)
+							(e: ActivateTestEntity) =>
+								where((e.booleanValue isSome) :&& (e.stringValue isSome)) select (e)
 						}.execute.size must beEqualTo(1)
 					}
 				}
 			)
 		}
-		
+
 		"support query with > and <" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -175,29 +175,29 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.dateValue :< new Date) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.dateValue :< new Date) select (e)
 						}.execute.size must beEqualTo(1)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.dateValue :> new Date) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.dateValue :> new Date) select (e)
 						}.execute.size must beEqualTo(0)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :< fullIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :< fullIntValue) select (e)
 						}.execute.size must beEqualTo(2)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :> fullIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :> fullIntValue) select (e)
 						}.execute.size must beEqualTo(0)
 					}
 				}
 			)
 		}
-		
+
 		"support query with >= and <=" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -208,39 +208,50 @@ class QuerySpecs extends ActivateTest {
 					}
 					step {
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.dateValue :<= fullDateValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.dateValue :<= fullDateValue) select (e)
 						}.execute.size must beEqualTo(1)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.dateValue :>= fullDateValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.dateValue :>= fullDateValue) select (e)
 						}.execute.size must beEqualTo(1)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.dateValue :>= new Date) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.dateValue :>= new Date) select (e)
 						}.execute.size must beEqualTo(0)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :>= fullIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :>= fullIntValue) select (e)
 						}.execute.size must beEqualTo(1)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :<= fullIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :<= fullIntValue) select (e)
 						}.execute.size must beEqualTo(3)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :<= emptyIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :<= emptyIntValue) select (e)
 						}.execute.size must beEqualTo(2)
-						
+
 						query {
-							(e: ActivateTestEntity) => 
-								where(e.intValue :>= fullIntValue) select(e)
+							(e: ActivateTestEntity) =>
+								where(e.intValue :>= fullIntValue) select (e)
 						}.execute.size must beEqualTo(1)
+					}
+				}
+			)
+		}
+
+		"support query with abstract entity" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						all[TraitAttribute].size must beEqualTo(2)
 					}
 				}
 			)

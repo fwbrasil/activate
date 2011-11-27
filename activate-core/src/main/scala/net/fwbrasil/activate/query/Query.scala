@@ -54,7 +54,7 @@ trait QueryContext extends QueryValueContext with OperatorContext {
 	
 	def mockEntity[E <: Entity: Manifest]: E = {
 		val mockEntity = QueryMocks.mockEntity(manifest[E].erasure.asInstanceOf[Class[E]])
-		From.createAndRegisterEntitySource(mockEntity);
+		From.createAndRegisterEntitySource(manifest[E].erasure.asInstanceOf[Class[E]], mockEntity);
 		mockEntity
 	}
 	

@@ -14,7 +14,7 @@ object CollectionUtil {
 	def combine[T](lists: Seq[Seq[T]]) =
 		(if (lists.nonEmpty)
 			((lists.map(_.map(Seq(_))))
-			.reduceLeft((xs, ys) => for { x <- xs; y <- ys } yield x ++ y))
+			.reduceLeft((xs, ys) => for { x <- xs; y <- ys } yield x ++ y).toList)
 		else List(List[T]()))
 			.asInstanceOf[List[List[T]]]
 

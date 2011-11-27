@@ -3,7 +3,7 @@ package net.fwbrasil.activate.query
 import scala.collection._
 import net.fwbrasil.activate.entity.Entity
 
-case class EntitySource(entityClass: Class[E] forSome { type E <: Entity }, name: String) {
+case class EntitySource(var entityClass: Class[E] forSome { type E <: Entity }, name: String) {
 	override def toString = name + ": " + entityClass.getSimpleName
 }
 
@@ -18,8 +18,8 @@ object From {
 	def entitySourceFor(entity: Entity) =
 		entitySourceMap.get.get(entity)
 	def nextAlias = "t" + (entitySourceMap.get.size + 1)
-	def createAndRegisterEntitySource[E <: Entity](entity: E) =
-		entitySourceMap.get += (entity -> EntitySource(entity.getClass.asInstanceOf[Class[Entity]], nextAlias))
+	def createAndRegisterEntitySource[E <: Entity](clazz: Class[E], entity: E) =
+		entitySourceMap.get += (entity -> EntitySource(clazz, nextAlias))
 	private[this] def entitySources = entitySourceMap.get.values.toList
 	def from =
 		From(entitySources :_*)

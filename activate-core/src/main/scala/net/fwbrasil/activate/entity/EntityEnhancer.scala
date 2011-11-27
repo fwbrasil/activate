@@ -19,6 +19,7 @@ import javassist.CtPrimitiveType
 import java.lang.management.ManagementFactory
 import java.lang.management.RuntimeMXBean
 import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.activate.util.GraphUtil._
 
 object EntityEnhancer extends Logging {
 	
@@ -71,7 +72,7 @@ object EntityEnhancer extends Logging {
 			"$$"
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-		if (!clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
+		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
 			var enhancedFieldsMap = Map[CtField, CtClass]()
 			val varClazz = classPool.get(varClassName);
 			val fieldsToEnhance = removeLazyValueValue(clazz.getDeclaredFields.filter((field: CtField) => isCandidate(field)))
@@ -127,14 +128,29 @@ object EntityEnhancer extends Logging {
 		val clazz = classPool.get(clazzName)
 		enhance(clazz, classPool)
 	}
+	
+	def registerDependency(clazz: CtClass, tree: DependencyTree[CtClass], enhancedEntityClasses: Set[CtClass]): Unit = {
+		val superClass = clazz.getSuperclass()
+		if(superClass != null) {
+			if(enhancedEntityClasses.contains(superClass))
+				tree.addDependency(superClass, clazz)
+			registerDependency(superClass, tree, enhancedEntityClasses)
+		}
+	}
 
-	def enhancedEntityClasses = {
+	lazy val enhancedEntityClasses = {
 		verifyNoVerify
 		val entityClassNames = Reflection.getAllImplementorsNames(classOf[Entity].getName)
 		var enhancedEntityClasses = Set[CtClass]()
 		for (entityClassName <- entityClassNames)
 			enhancedEntityClasses ++= enhance(entityClassName)
+		val tree = new DependencyTree(enhancedEntityClasses)
 		for (enhancedEntityClass <- enhancedEntityClasses)
+			registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
+		val resolved = tree.resolve
+		for (enhancedEntityClass <- resolved)
+			println(enhancedEntityClass.getName)
+		for (enhancedEntityClass <- resolved)
 			yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]
 	}
 

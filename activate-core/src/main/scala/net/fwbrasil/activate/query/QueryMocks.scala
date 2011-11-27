@@ -67,8 +67,9 @@ object QueryMocks {
     	entityMockCache.getOrElseUpdate(clazz, mockEntity[E](clazz, null)).asInstanceOf[E]
     
     def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVarToQuery[_]): E = {
-        val entity = newInstance(entityClass).asInstanceOf[E]
-        val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+    	val concreteClass = EntityHelper.concreteClasses(entityClass.asInstanceOf[Class[Entity]]).head
+        val entity = newInstance(concreteClass).asInstanceOf[E]
+        val entityMetadata = EntityHelper.getEntityMetadata(concreteClass)
         for (propertyMetadata <- entityMetadata.propertiesMetadata) {
             val ref = mockVar
             val typ = propertyMetadata.propertyType

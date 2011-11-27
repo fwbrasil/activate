@@ -68,9 +68,9 @@ trait Entity extends Serializable {
 	private[this] def buildVarFieldsMap =
 		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]])
 			yield if (ref == null)
-				throw new IllegalStateException("Ref is null! (" + varField.getName() + ")") 
-			else if (ref.name == null)
-				throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
+			throw new IllegalStateException("Ref is null! (" + varField.getName() + ")")
+		else if (ref.name == null)
+			throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
 		else
 			(ref.name -> ref)).toMap
 
@@ -141,7 +141,16 @@ object EntityHelper {
 	private[this] val entitiesMetadatas =
 		mutable.HashMap[String, EntityMetadata]()
 
+	private[this] val concreteEntityClasses =
+		mutable.HashMap[Class[Entity], List[Class[Entity]]]()
+
 	var initialized = false
+
+	def concreteClasses(clazz: Class[Entity]) =
+		concreteEntityClasses.getOrElse(clazz, {
+			for ((hash, metadata) <- entitiesMetadatas; if (clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)))
+				yield metadata.entityClass
+		})
 
 	def initialize = synchronized {
 		if (!initialized) {
