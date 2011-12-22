@@ -38,7 +38,7 @@ object Marshaller {
 		}
 	
 	def marshalling[P](value: QueryEntitySourcePropertyValue[P]): StorageValue =
-		marshalling(value.ref.asInstanceOf[QueryMocks.FakeVarToQuery[_]].entityValueMock)
+		marshalling(value.lastVar.asInstanceOf[QueryMocks.FakeVarToQuery[_]].entityValueMock)
 	
 	def marshalling(value: SimpleValue[_]): StorageValue =
 		marshalling(value.entityValue)

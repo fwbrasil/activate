@@ -68,8 +68,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def fromCache(entityClass: Class[E]) =
-		entityInstacesMap(entityClass).values.filter((entity: Entity) => !entity.isDeleted && entity.isInitialized).toList
+	def fromCache(entityClass: Class[E]) = {
+		val entities = entityInstacesMap(entityClass).values.filter((entity: Entity) => entity.isInitialized && !entity.isDeleted).toList
+		if(!storage.isMemoryStorage)
+			for(entity <- entities)
+				if(!entity.isPersisted)
+					entity.initializeGraph
+		entities
+	}
 
 	def entityInstacesMap(entityClass: Class[E]) = {
 		val mapOption =
@@ -88,7 +94,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def executeQuery[S](query: Query[S]): List[S] = {
-		val fromCache = executeQueryWithEntitySources(query, entitySourceInstancesCombined(query.from))
+		val entities = entitySourceInstancesCombined(query.from)
+		val fromCache = executeQueryWithEntitySources(query, entities)
 		val fromStorage = (for (line <- storage.fromStorage(query))
 			yield toTuple[S](for (column <- line)
 			yield column match {
@@ -288,20 +295,20 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val entity = entitySourceInstancesMap.get(value.entitySource).get
 		value match {
 			case value: QueryEntitySourcePropertyValue[_] =>
-				entityPropertyPathRef(entity, value.propertyPath.toList)
+				entityPropertyPathRef(entity, value.propertyPathVars.toList)
 			case value: QueryEntitySourceValue[_] =>
 				entity
 		}
 	}
 
-	def entityPropertyPathRef(entity: E, propertyPath: List[String]): Any =
-		propertyPath match {
+	def entityPropertyPathRef(entity: E, propertyPathVars: List[Var[_]]): Any =
+		propertyPathVars match {
 			case Nil =>
 				null
-			case propertyName :: Nil =>
-				entityProperty(entity, propertyName)
-			case propertyName :: propertyPath => {
-				val property = entityProperty(entity, propertyName)
+			case propertyVar :: Nil =>
+				entityProperty(entity, propertyVar.name)
+			case propertyVar :: propertyPath => {
+				val property = entityProperty(entity, propertyVar.name)
 				if (property != null)
 					entityPropertyPathRef(
 						property.asInstanceOf[E],

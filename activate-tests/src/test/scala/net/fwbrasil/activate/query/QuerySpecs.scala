@@ -256,5 +256,19 @@ class QuerySpecs extends ActivateTest {
 				}
 			)
 		}
+		
+		"support query with nested property" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						println(newFullActivateTestEntity.isInitialized)
+					}
+					step {
+						allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
+					}
+				}
+			)
+		}
 	}
 }

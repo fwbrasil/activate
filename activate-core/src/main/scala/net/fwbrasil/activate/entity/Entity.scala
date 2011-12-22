@@ -49,6 +49,23 @@ trait Entity extends Serializable {
 				context.initialize(this.asInstanceOf[Entity])
 			initialized = true
 		}
+	
+	private[activate] def initializeGraph: Unit =
+		initializeGraph(Set())
+	
+	private[activate] def initializeGraph(seen: Set[Entity]): Unit =
+		this.synchronized {
+			initialize
+			for(ref <- varsOfTypeEntity)
+				if(ref.get.nonEmpty) {
+					val entity = ref.get.get.asInstanceOf[Entity]
+					if(!seen.contains(entity))
+						entity.initializeGraph(seen + this)
+				}
+		}
+	
+	private[this] def varsOfTypeEntity = 
+		vars.filter((ref: Var[_]) => classOf[Entity].isAssignableFrom(ref.valueClass))
 
 	private[activate] def isInLiveCache =
 		context.liveCache.contains(this.asInstanceOf[Entity])

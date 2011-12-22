@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational
 
+import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.query.Query
 
 import java.util.Date
@@ -14,7 +15,7 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import java.sql.Types
 
-trait JdbcRelationalStorage extends RelationalStorage {
+trait JdbcRelationalStorage extends RelationalStorage with Logging {
 	
 	val dialect: SqlIdiom
 	implicit val serializator: Serializator
@@ -62,6 +63,7 @@ trait JdbcRelationalStorage extends RelationalStorage {
 	
 	def createPreparedStatement(sqlStatement: SqlStatement, connection: Connection, isDml: Boolean) = {
 		val (statement, binds) = sqlStatement.toIndexedBind
+		info("Prepared statement: " + statement)
 		val ps = 
 			if(isDml)
 				connection.prepareStatement(statement)

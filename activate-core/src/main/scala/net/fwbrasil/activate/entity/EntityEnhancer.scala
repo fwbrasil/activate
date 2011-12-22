@@ -149,8 +149,6 @@ object EntityEnhancer extends Logging {
 			registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
 		val resolved = tree.resolve
 		for (enhancedEntityClass <- resolved)
-			println(enhancedEntityClass.getName)
-		for (enhancedEntityClass <- resolved)
 			yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]
 	}
 

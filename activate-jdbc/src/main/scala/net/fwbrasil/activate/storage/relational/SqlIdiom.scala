@@ -175,7 +175,7 @@ abstract class SqlIdiom {
 			case value: QueryEntityInstanceValue[Entity] =>
 				bind(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue[Entity](Option(value.entity))))
 			case value: QueryEntitySourcePropertyValue[v] =>
-				value.entitySource.name + "." + value.propertyPath.mkString(".")
+				value.entitySource.name + "." + value.propertyPathNames.mkString(".")
 			case value: QueryEntitySourceValue[v] =>
 				value.entitySource.name + ".id"
 		}

@@ -18,6 +18,12 @@ case class RichList[T: Manifest](list: List[T]) {
 			throw new IllegalStateException("List hasn't one element.")
 		else
 			list.head
+	def collect[R](func: (T) => R) =
+		for(elem <- list)
+			yield func(elem)
+	def select(func: (T) => Boolean) =
+		for(elem <- list; if(func(elem)))
+			yield elem
 }
 
 object RichList {

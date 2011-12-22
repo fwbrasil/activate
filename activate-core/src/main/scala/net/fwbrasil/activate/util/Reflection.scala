@@ -7,6 +7,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 import org.reflections.Reflections
+import scala.collection.mutable.{ Map => MutableMap }
 
 class Reflection(val clazz: Class[_]) {
 	def publicMethods = clazz.getMethods
@@ -66,5 +67,47 @@ object Reflection {
 	
 	def getAllImplementorsNames(interfaceName: String) =
 		Set(new Reflections("").getStore.getSubTypesOf(interfaceName).toArray: _*).asInstanceOf[Set[String]]
-
+	
+	def findObject[R](obj: T forSome { type T <:  Any })(f: (Any) => Boolean): Set[R] = {
+		(if(f(obj))
+			Set(obj)
+		else
+			obj match {
+				case seq: Seq[Any] =>
+					(for(value <- seq)
+						yield findObject(value)(f)).flatten.toSet
+				case obj: Product =>
+					(for(elem <- obj.productElements.toList)
+						yield findObject(elem)(f)).flatten.toSet
+				case other =>
+					Set()
+					
+			}).asInstanceOf[Set[R]]
+	}
+	
+	def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: Map[A, B]): T =
+		deepCopyMapping(obj, MutableMap() ++ map)
+	
+	private[this] def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: MutableMap[A, B]): T = {
+		val option = map.get(obj.asInstanceOf[A])
+		if(option.nonEmpty) {
+			val substitute = option.get.asInstanceOf[T]
+			deepCopyMapping(substitute, map - obj.asInstanceOf[A])
+		} else 
+			(obj match {
+				case seq: Seq[Any] =>
+					for(elem <- seq; if(elem != Nil))
+						yield deepCopyMapping(elem, map)
+				case obj: Product =>
+					val values =
+					for(elem <- obj.productElements.toList)
+						yield deepCopyMapping(elem, map)
+					val constructor = obj.getClass.getConstructors().head
+					val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
+					map += (obj -> newInstance).asInstanceOf[(A,B)]
+					newInstance
+				case other =>
+					other
+			}).asInstanceOf[T]
+	}
 }

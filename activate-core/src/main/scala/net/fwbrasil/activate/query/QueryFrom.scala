@@ -17,7 +17,7 @@ object From {
 	}
 	def entitySourceFor(entity: Entity) =
 		entitySourceMap.get.get(entity)
-	def nextAlias = "t" + (entitySourceMap.get.size + 1)
+	def nextAlias = "s" + (entitySourceMap.get.size + 1)
 	def createAndRegisterEntitySource[E <: Entity](clazz: Class[E], entity: E) =
 		entitySourceMap.get += (entity -> EntitySource(clazz, nextAlias))
 	private[this] def entitySources = entitySourceMap.get.values.toList

@@ -48,27 +48,14 @@ trait ActivateContext
 			storage.reinitialize
 		}
 
-	def executeQuery[S](query: Query[S]): List[S] = {
-		val concreteClasses =
-			(for (entitySource <- query.from.entitySources)
-				yield EntityHelper.concreteClasses(entitySource.entityClass.asInstanceOf[Class[Entity]]).toSeq).toSeq
-		val combined = combine(concreteClasses)
-		val originalClasses = (for(source <- query.from.entitySources) yield source.entityClass)
-		val originalSources = query.from.entitySources
-		try {
-			(for (classes <- combined) yield {
-				for (i <- 0 until classes.size)
-					yield originalSources(i).entityClass = classes(i)
-				logInfo("executing query " + query.toString) {
-					liveCache.executeQuery(query)
+	def executeQuery[S](query: Query[S]): List[S] =
+		logInfo("executing query " + query.toString) {
+			(for (normalized <- QueryNormalizer.normalize(query)) yield {
+				logInfo("executing normalized query " + normalized.toString) {
+					liveCache.executeQuery(normalized)
 				}
 			}).flatten
-		} finally {
-			for(i <- 0 until originalSources.size)
-				originalSources(i).entityClass = originalClasses(i)
 		}
-		
-	}
 
 	def name = contextName
 	def contextName: String

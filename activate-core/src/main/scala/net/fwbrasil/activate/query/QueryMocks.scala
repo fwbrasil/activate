@@ -45,6 +45,8 @@ object QueryMocks {
         override def put(value: Option[P]): Unit = {
     		throw new IllegalStateException("You can't alter vars in a predicate!")
         }
+        override def toString =
+        	name
     }
     
     def mock(clazz: Class[_]) = {
@@ -58,7 +60,6 @@ object QueryMocks {
 			case "java.util.Calendar" => java.util.Calendar.getInstance
 			case "[B" => Array[Byte]()
 			case other =>
-				println(clazz.getName)
 				newInstance(clazz)
     	}
     }

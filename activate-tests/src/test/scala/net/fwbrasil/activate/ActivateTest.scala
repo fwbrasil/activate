@@ -204,7 +204,7 @@ trait ActivateTest extends Specification {
 			setFullEntity(newTestEntity())
 			
 		trait TraitAttribute extends Entity {
-			def testTraitAttribute
+			def attribute: String
 		}
 		
 		class TraitAttribute1(val attribute: String) extends TraitAttribute {
