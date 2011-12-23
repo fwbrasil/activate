@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.query
 
+import java.util.IdentityHashMap
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.activate.entity.EntityHelper
@@ -43,19 +44,19 @@ object QueryNormalizer {
 		if (nestedProperties.nonEmpty) {
 			val entitySourceList = ListBuffer[EntitySource]()
 			val criteriaList = ListBuffer[Criteria]()
-			val normalizeMap = MutableMap[Any, Any]()
+			val normalizeMap = new IdentityHashMap[Any, Any]()
 			for (nested <- nestedProperties) {
 				val (entitySources, criterias, propValue) = normalizePropertyPath(nested, nextNumber)
 				entitySourceList ++= entitySources
 				criteriaList ++= criterias
-				normalizeMap += (nested -> propValue)
+				normalizeMap.put(nested, propValue)
 			}
 			var criteria = query.where.value
 			for (i <- 0 until criteriaList.size)
 				criteria = And(criteria) :&& criteriaList(i)
-			normalizeMap += (query.where.value -> criteria)
-			normalizeMap += (query.from -> From(entitySourceList: _*))
-			List(deepCopyMapping(query, normalizeMap.toMap))
+			normalizeMap.put(query.where.value, criteria)
+			normalizeMap.put(query.from, From(entitySourceList: _*))
+			List(deepCopyMapping(query, normalizeMap))
 		} else
 			List(query)
 	}
@@ -91,8 +92,12 @@ object QueryNormalizer {
 		val combined = combine(concreteClasses)
 		val originalSources = query.from.entitySources
 		val fromMaps =
-			for (classes <- combined) yield (for (i <- 0 until classes.size)
-				yield (originalSources(i) -> EntitySource(classes(i), originalSources(i).name))).toMap
+			for (classes <- combined) yield {
+				val fromMap = new IdentityHashMap[Any, Any]()
+				for (i <- 0 until classes.size)
+					fromMap.put(originalSources(i), EntitySource(classes(i), originalSources(i).name))
+				fromMap
+			}
 		for (fromMap <- fromMaps) yield deepCopyMapping(query, fromMap)
 	}
 

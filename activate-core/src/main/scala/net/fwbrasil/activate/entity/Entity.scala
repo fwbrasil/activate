@@ -210,9 +210,4 @@ trait EntityContext extends ValueContext with TransactionContext {
 
 	def initialize(entity: Entity)
 
-	implicit def varToValue[A](ref: Var[A]): A =
-		if (ref == null)
-			null.asInstanceOf[A]
-		else !ref
-
 }

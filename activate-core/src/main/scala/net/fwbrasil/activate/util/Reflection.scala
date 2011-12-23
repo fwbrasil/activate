@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 import org.reflections.Reflections
 import scala.collection.mutable.{ Map => MutableMap }
+import java.util.IdentityHashMap
 
 class Reflection(val clazz: Class[_]) {
 	def publicMethods = clazz.getMethods
@@ -85,14 +86,13 @@ object Reflection {
 			}).asInstanceOf[Set[R]]
 	}
 	
-	def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: Map[A, B]): T =
-		deepCopyMapping(obj, MutableMap() ++ map)
-	
-	private[this] def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: MutableMap[A, B]): T = {
-		val option = map.get(obj.asInstanceOf[A])
-		if(option.nonEmpty) {
-			val substitute = option.get.asInstanceOf[T]
-			deepCopyMapping(substitute, map - obj.asInstanceOf[A])
+	def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: IdentityHashMap[A, B]): T = {
+		val substitute = map.get(obj.asInstanceOf[A])
+		if(substitute != null) {
+			val newMap = new IdentityHashMap[A, B]()
+			newMap.putAll(map)
+			newMap.remove(obj)
+			deepCopyMapping(substitute.asInstanceOf[T], newMap)
 		} else 
 			(obj match {
 				case seq: Seq[Any] =>
@@ -104,7 +104,7 @@ object Reflection {
 						yield deepCopyMapping(elem, map)
 					val constructor = obj.getClass.getConstructors().head
 					val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
-					map += (obj -> newInstance).asInstanceOf[(A,B)]
+					map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
 					newInstance
 				case other =>
 					other

@@ -20,7 +20,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.Logging
 
 class LiveCache(val context: ActivateContext) extends Logging {
-	
+
 	info("Initializing live cache for context " + context.contextName)
 
 	def storage = context.storage
@@ -30,7 +30,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	private[activate] val cache =
 		new ReferenceWeakKeyMap[Class[E], ReferenceWeakValueMap[String, E] with Lockable] with Lockable
 
-	def reinitialize = 
+	def reinitialize =
 		logInfo("live cache reinitialize") {
 			cache.doWithWriteLock {
 				cache.clear
@@ -39,7 +39,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def contains(entity: E) =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).contains(entity.id)
-		
+
 	def cachedInstance(entity: E): Unit =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).getOrElse(entity.id, {
 			toCache(entity)
@@ -48,16 +48,16 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def delete(entity: E): Unit =
 		delete(entity.id)
-		
+
 	def delete(entityId: String) = {
 		val map = entityInstacesMap(EntityHelper.getEntityClassFromId(entityId))
 		map.doWithWriteLock {
 			map -= entityId
 		}
 	}
-	
-	def toCache(entity: E): E = 
-		toCache(entity.getClass.asInstanceOf[Class[E]], () =>entity)
+
+	def toCache(entity: E): E =
+		toCache(entity.getClass.asInstanceOf[Class[E]], () => entity)
 
 	def toCache(entityClass: Class[E], fEntity: () => E): E = {
 		val map = entityInstacesMap(entityClass)
@@ -70,9 +70,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def fromCache(entityClass: Class[E]) = {
 		val entities = entityInstacesMap(entityClass).values.filter((entity: Entity) => entity.isInitialized && !entity.isDeleted).toList
-		if(!storage.isMemoryStorage)
-			for(entity <- entities)
-				if(!entity.isPersisted)
+		if (!storage.isMemoryStorage)
+			for (entity <- entities)
+				if (!entity.isPersisted)
 					entity.initializeGraph
 		entities
 	}
@@ -100,7 +100,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			yield toTuple[S](for (column <- line)
 			yield column match {
 			case value: EntityInstanceReferenceValue[_] =>
-				if(value.value == None)
+				if (value.value == None)
 					None
 				else
 					Option(materializeEntity(value.value.get))
@@ -199,28 +199,27 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				val a = executeQueryValue(criteria.valueA)
 				val b = executeQueryValue(criteria.valueB)
 				(a != null && b != null) &&
-					compare(a,b) > 0
+					compare(a, b) > 0
 			case operator: IsLessThan =>
 				val a = executeQueryValue(criteria.valueA)
 				val b = executeQueryValue(criteria.valueB)
 				(a != null && b != null) &&
-					compare(a,b) < 0
+					compare(a, b) < 0
 			case operator: IsGreaterOrEqualTo =>
 				val a = executeQueryValue(criteria.valueA)
 				val b = executeQueryValue(criteria.valueB)
 				(a != null && b != null) &&
-					compare(a,b) >= 0
+					compare(a, b) >= 0
 			case operator: IsLessOrEqualTo =>
 				val a = executeQueryValue(criteria.valueA)
 				val b = executeQueryValue(criteria.valueB)
 				(a != null && b != null) &&
-					compare(a,b) <= 0
+					compare(a, b) <= 0
 		}
-	
 
 	def compare(a: Any, b: Any) =
 		(a.asInstanceOf[Comparable[Any]].compareTo(b))
-	
+
 	def equals(a: Any, b: Any) =
 		if (a == null)
 			b == null
