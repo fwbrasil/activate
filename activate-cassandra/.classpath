@@ -3,5 +3,29 @@
 	<classpathentry kind="src" path="src/main/scala"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/activate-core"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/cassandra-thrift-1.0.6.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/commons-codec-1.2.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/dom4j-1.6.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/google-collections-1.0.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/grizzled-slf4j_2.9.0-0.5.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/gson-1.4.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/javassist-3.15.0-GA.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/jug-2.0.0.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/junit-4.6.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/libthrift-0.6.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/logback-classic-0.9.29.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/logback-core-0.9.29.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/objenesis-1.2.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/reflections-0.9.5-RC2.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/servlet-api-2.5.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/slf4j-api-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib_managed/scala_2.9.0/compile/xml-apis-1.0.b2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/radon-stm"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

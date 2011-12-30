@@ -2,14 +2,14 @@ package net.fwbrasil.activate.storage.marshalling
 
 import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.query._
-import java.util.{Date, Calendar}
+import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.Reflection.newInstance
+import net.fwbrasil.activate.util.Reflection.get
+import net.fwbrasil.activate.util.Reflection.getObject
 
 object Marshaller {
-	
 
-	
 	def marshalling(value: QuerySelectValue[_]): StorageValue =
 		value match {
 			case value: QueryEntityValue[_] =>
@@ -25,7 +25,7 @@ object Marshaller {
 			case value: QueryEntitySourceValue[V] =>
 				marshalling(value)
 		}
-	
+
 	def marshalling[V <: Entity: Manifest](value: QueryEntityInstanceValue[V]): StorageValue =
 		marshalling(EntityInstanceEntityValue[V](Option(value.entity)))
 
@@ -36,14 +36,14 @@ object Marshaller {
 			case value: QueryEntitySourceValue[V] =>
 				marshalling(EntityInstanceEntityValue(None)(manifestClass(value.entitySource.entityClass)))
 		}
-	
+
 	def marshalling[P](value: QueryEntitySourcePropertyValue[P]): StorageValue =
 		marshalling(value.lastVar.asInstanceOf[QueryMocks.FakeVarToQuery[_]].entityValueMock)
-	
+
 	def marshalling(value: SimpleValue[_]): StorageValue =
 		marshalling(value.entityValue)
-		
-	def unmarshalling(storageValue: StorageValue): EntityValue[_] = 
+
+	def unmarshalling(storageValue: StorageValue): EntityValue[_] =
 		(storageValue, storageValue.entityValue) match {
 			case (storageValue: IntStorageValue, entityValue: IntEntityValue) =>
 				IntEntityValue(storageValue.value)
@@ -71,10 +71,19 @@ object Marshaller {
 				ByteArrayEntityValue(storageValue.value)
 			case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
 				EntityInstanceReferenceValue(storageValue.value)(entityValue.entityManifest)
+			case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
+				val value = if (stringValue.value.isDefined) {
+					val enumerationValueClass = enumerationValue.enumerationClass
+					val enumerationClass = enumerationValueClass.getEnclosingClass
+					val obj = getObject[ValueContext#EnumObject](Class.forName(enumerationClass.getClass + "$"))
+					Option(obj.withName(stringValue.value.get))
+				} else None
+				EnumerationEntityValue(value)
+			}
 			case other =>
 				throw new IllegalStateException("Invalid storage value.")
 		}
-	
+
 	def marshalling(implicit entityValue: EntityValue[_]): StorageValue =
 		(entityValue match {
 			case value: IntEntityValue =>
@@ -101,16 +110,18 @@ object Marshaller {
 				ReferenceStorageValue(transform(value, (v: Entity) => v.id))
 			case value: EntityInstanceReferenceValue[Entity] =>
 				ReferenceStorageValue(value.value)
+			case value: EnumerationEntityValue[_] =>
+				StringStorageValue(value.value.map(_.toString))
 		}).asInstanceOf[StorageValue]
-	
+
 	private[this] def transform[V, R](entityValue: EntityValue[V], f: (V) => R): Option[R] =
-		if(entityValue.value == None)
+		if (entityValue.value == None)
 			None
 		else
 			Option(f(entityValue.value.get))
-	
+
 	private[this] def transform[V, R](storageValue: StorageValue, f: (V) => R): Option[R] =
-		if(storageValue.value == None)
+		if (storageValue.value == None)
 			None
 		else
 			Option(f(storageValue.value.get.asInstanceOf[V]))

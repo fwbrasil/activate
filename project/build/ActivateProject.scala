@@ -8,6 +8,7 @@ class ActivateProject(info: ProjectInfo) extends ParentProject(info) {
   lazy val prevayler = project("activate-prevayler", "ActivatePrevaylerProject", new ActivatePrevaylerProject(_), core)
   lazy val jdbc = project("activate-jdbc", "ActivateJdbcProject", new ActivateJdbcProject(_), core)
 //  lazy val appengine = project("activate-appengine", "ActivateAppengineProject", new ActivateAppengineProject(_), core)
+  lazy val cassandra = project("activate-cassandra", "ActivateCassandraProject", new ActivateCassandraProject(_), core)
   lazy val tests = project("activate-tests", "ActivateTestsProject", new ActivateTestsProject(_), prevayler, jdbc)
   
   val snapshots = "snapshots" at "http://scala-tools.org/repo-snapshots"
@@ -39,6 +40,10 @@ class ActivateProject(info: ProjectInfo) extends ParentProject(info) {
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.5"
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	
+	val scalap = "org.scala-lang" % "scalap" % "2.9.0"
+	val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.9.0"
+
+	
 	override def filterScalaJars = false
 	override def managedStyle = ManagedStyle.Maven
 }
@@ -60,6 +65,18 @@ class ActivateJdbcProject(info: ProjectInfo) extends DefaultProject(info) with C
 	override def name = "activate-jdbc"
 
 	val activate = "net.fwbrasil" %% "activate-core" % projectVersion.value.toString
+
+	override def filterScalaJars = false
+	override def managedStyle = ManagedStyle.Maven
+}
+
+class ActivateCassandraProject(info: ProjectInfo) extends DefaultProject(info) with Commom {
+	
+	override def name = "activate-cassandra"
+
+	val activate = "net.fwbrasil" %% "activate-core" % projectVersion.value.toString
+
+	val prevayler = "org.apache.cassandra" % "cassandra-thrift" % "1.0.6"
 
 	override def filterScalaJars = false
 	override def managedStyle = ManagedStyle.Maven

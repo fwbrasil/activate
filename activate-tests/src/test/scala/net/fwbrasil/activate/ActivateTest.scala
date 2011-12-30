@@ -12,7 +12,6 @@ import scala.runtime._
 import java.security._
 import java.math.BigInteger
 
-
 object runningFlag
 
 @RunWith(classOf[JUnitRunner])
@@ -56,7 +55,7 @@ trait ActivateTest extends Specification {
 		def apply[A](s: => A): A = execute {
 			transactional {
 				s
-			} 
+			}
 		}
 	}
 
@@ -70,28 +69,28 @@ trait ActivateTest extends Specification {
 			reinitializeContext
 			ret
 		}
-	} 
+	}
 
 	def executors(ctx: ActivateTestContext): List[StepExecutor] =
 		List(
-				OneTransaction(ctx), 
-				MultipleTransactions(ctx), 
-				MultipleTransactionsWithReinitialize(ctx)
-				)
-				
+			OneTransaction(ctx),
+			MultipleTransactions(ctx),
+			MultipleTransactionsWithReinitialize(ctx)
+		)
+
 	def contexts = {
 		val ret = List[ActivateTestContext](
 			memoryContext,
-			prevaylerContext,
-			oracleContext//,
-//			mysqlContext
+			//			prevaylerContext,
+			oracleContext //,
+		//			mysqlContext
 		)
 		ret.foreach(_.stop)
 		ret
 	}
-	
+
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
-		
+
 		for (ctx <- contexts) {
 			import ctx._
 			start
@@ -110,12 +109,21 @@ trait ActivateTest extends Specification {
 	}
 
 	trait ActivateTestContext extends ActivateContext {
-		
+
 		override val retryLimit = 2
-		
+
 		def contextName =
 			this.getClass.getSimpleName
-			
+
+		object EnumerationValue extends EnumObject {
+			type EnumerationValue = Enum
+			val value1 = Enum("v1")
+			val value2 = Enum("v2")
+			val value3 = Enum("v3")
+		}
+
+		import EnumerationValue._
+
 		val emptyIntValue = 0
 		val emptyBooleanValue = false
 		val emptyCharValue = 'N'
@@ -130,6 +138,7 @@ trait ActivateTest extends Specification {
 		val emptyTraitValue2 = null
 		val emptyByteArrayValue = Array[Byte]()
 		val emptyEntityValue = null
+		val emptyEnumerationValue = null
 
 		val fullIntValue = 999
 		val fullBooleanValue = true
@@ -140,25 +149,26 @@ trait ActivateTest extends Specification {
 		val fullDoubleValue = 1d
 		val fullBigDecimalValue = BigDecimal(1)
 		val fullDateValue = new java.util.Date(98977898)
+		val fullEnumerationValue = EnumerationValue.value1
 		val fullCalendarValue = {
 			val cal = java.util.Calendar.getInstance()
 			cal.setTimeInMillis(98977898)
 			cal
 		}
-		
-		def fullTraitValue1 = 
+
+		def fullTraitValue1 =
 			all[TraitAttribute1].headOption.getOrElse({
 				new TraitAttribute1("1")
 			})
-		
-		def fullTraitValue2 = 
+
+		def fullTraitValue2 =
 			all[TraitAttribute2].headOption.getOrElse({
 				new TraitAttribute2("2")
 			})
-		
+
 		val fullByteArrayValue = "S".getBytes
 		def fullEntityValue =
- 			allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
+			allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
 				val entity = newEmptyActivateTestEntity
 				entity.dummy = true
 				entity
@@ -178,6 +188,7 @@ trait ActivateTest extends Specification {
 			entity.entityValue = fullEntityValue
 			entity.traitValue1 = fullTraitValue1
 			entity.traitValue2 = fullTraitValue2
+			entity.enumerationValue = fullEnumerationValue
 			entity
 		}
 
@@ -195,6 +206,7 @@ trait ActivateTest extends Specification {
 			entity.entityValue = emptyEntityValue
 			entity.traitValue1 = emptyTraitValue1
 			entity.traitValue2 = emptyTraitValue2
+			entity.enumerationValue = emptyEnumerationValue
 			entity
 		}
 
@@ -202,19 +214,19 @@ trait ActivateTest extends Specification {
 			setEmptyEntity(newTestEntity())
 		def newFullActivateTestEntity =
 			setFullEntity(newTestEntity())
-			
+
 		trait TraitAttribute extends Entity {
 			def attribute: String
 		}
-		
+
 		class TraitAttribute1(val attribute: String) extends TraitAttribute {
 			def testTraitAttribute = attribute
 		}
-		
+
 		class TraitAttribute2(val attribute: String) extends TraitAttribute {
 			def testTraitAttribute = attribute
 		}
-			
+
 		class ActivateTestEntity(
 			var dummy: Boolean = false,
 			var intValue: Int,
@@ -230,6 +242,7 @@ trait ActivateTest extends Specification {
 			var entityValue: ActivateTestEntity,
 			var traitValue1: TraitAttribute,
 			var traitValue2: TraitAttribute,
+			var enumerationValue: EnumerationValue,
 			lazyValueValue: String) extends Entity {
 			lazy val lazyValue: String = lazyValueValue
 		}
@@ -311,10 +324,11 @@ trait ActivateTest extends Specification {
 			entityValue: ActivateTestEntity = emptyEntityValue,
 			traitValue1: TraitAttribute = emptyTraitValue1,
 			traitValue2: TraitAttribute = emptyTraitValue2,
+			enumerationValue: EnumerationValue = emptyEnumerationValue,
 			lazyValue: String = emptyLazyValue) = {
 			new ActivateTestEntity(
 				intValue = intValue,
-				booleanValue = booleanValue, 
+				booleanValue = booleanValue,
 				charValue = charValue,
 				stringValue = stringValue,
 				floatValue = floatValue,
@@ -326,6 +340,7 @@ trait ActivateTest extends Specification {
 				entityValue = entityValue,
 				traitValue1 = traitValue1,
 				traitValue2 = traitValue2,
+				enumerationValue = enumerationValue,
 				lazyValueValue = lazyValue)
 		}
 	}
@@ -362,5 +377,4 @@ trait ActivateTest extends Specification {
 		}
 	}
 
-	
 }

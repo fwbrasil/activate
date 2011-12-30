@@ -76,6 +76,7 @@ class EntitySpecs extends ActivateTest {
 							entity.dateValue must beEqualTo(entity.varNamed("dateValue").get.unary_!.asInstanceOf[Any])
 							entity.calendarValue must beEqualTo(entity.varNamed("calendarValue").get.unary_!.asInstanceOf[Any])
 							entity.entityValue must beEqualTo(entity.varNamed("entityValue").get.unary_!.asInstanceOf[Any])
+							entity.enumerationValue must beEqualTo(entity.varNamed("enumerationValue").get.unary_!.asInstanceOf[Any])
 						}
 					}
 				}

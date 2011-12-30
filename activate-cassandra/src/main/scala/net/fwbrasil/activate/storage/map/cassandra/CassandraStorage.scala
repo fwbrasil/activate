@@ -50,6 +50,7 @@ trait CassandraStorage extends MapStorage {
 		        colPath.setColumn(serializator.toSerialized(path.propertyName));
 		        val timestamp = System.currentTimeMillis();
 		        val serialized = serializator.toSerialized(value)
+		        client.execute_cql_query()
 //		        client.insert(keyspace, path.entityId, colPath, serialized, timestamp, ConsistencyLevel.ONE);
 	    	}
     	}

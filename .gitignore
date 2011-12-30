@@ -41,3 +41,10 @@ activate-tests/project/plugins/target
 activate-tests/project/boot
 activate-tests/target
 activate-tests/lib_managed
+activate-tests/net/fwbrasil/activate/ActivateTest$ActivateTestContext$ActivateTestEntity.class
+
+activate-tests/net/fwbrasil/activate/ActivateTest$ActivateTestContext$TraitAttribute2.class
+
+activate-tests/net/fwbrasil/activate/ActivateTest$ActivateTestContext$TraitAttribute1.class
+
+activate-cassandra/.cache

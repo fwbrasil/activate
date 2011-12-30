@@ -117,7 +117,7 @@ object EntityEnhancer extends Logging {
 
 			init.insertBefore(initBody)
 
-//			clazz.writeFile;
+			clazz.writeFile;
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
