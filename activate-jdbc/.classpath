@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="target/scala-2.9.1/classes" path="src/main/scala"/>
+	<classpathentry kind="src" output="target/scala-2.9.1/classes" path="src/main/java"/>
+	<classpathentry kind="src" output="target/scala-2.9.1/test-classes" path="src/test/scala"/>
+	<classpathentry kind="src" output="target/scala-2.9.1/test-classes" path="src/test/java"/>
+	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.javassist/javassist/jars/javassist-3.15.0-GA.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/commons-collections/commons-collections/jars/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.objenesis/objenesis/jars/objenesis-1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.safehaus.jug/jug/jars/jug-2.0.0.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.reflections/reflections/jars/reflections-0.9.5-RC2.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/com.google.collections/google-collections/jars/google-collections-1.0.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/dom4j/dom4j/jars/dom4j-1.6.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/xml-apis/xml-apis/jars/xml-apis-1.0.b2.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/com.google.code.gson/gson/jars/gson-1.4.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/javax.servlet/servlet-api/jars/servlet-api-2.5.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.clapper/grizzled-slf4j_2.9.1/jars/grizzled-slf4j_2.9.1-0.6.6.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.2.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/ch.qos.logback/logback-classic/jars/logback-classic-0.9.29.jar"/>
+	<classpathentry kind="lib" path="/Users/fwbrasil/.ivy2/cache/ch.qos.logback/logback-core/jars/logback-core-0.9.29.jar"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/activate-core"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/radon-stm"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
