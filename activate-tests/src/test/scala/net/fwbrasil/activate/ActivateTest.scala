@@ -14,8 +14,17 @@ import java.math.BigInteger
 
 object runningFlag
 
-@RunWith(classOf[JUnitRunner])
-trait ActivateTest extends Specification {
+object EnumerationValue extends Enumeration {
+	case class EnumerationValue(name: String) extends Val(name)
+	val value1a = EnumerationValue("v1")
+	val value2 = EnumerationValue("v2")
+	val value3 = EnumerationValue("v3")
+}
+
+import EnumerationValue._
+
+//@RunWith(classOf[JUnitRunner])
+trait ActivateTest extends SpecificationWithJUnit {
 
 	trait StepExecutor {
 		def apply[A](step: => A): A
@@ -75,16 +84,14 @@ trait ActivateTest extends Specification {
 		List(
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx)
-		)
+			MultipleTransactionsWithReinitialize(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
 			memoryContext,
 			//			prevaylerContext,
-			oracleContext //,
-		//			mysqlContext
-		)
+			//			oracleContext,
+			mysqlContext)
 		ret.foreach(_.stop)
 		ret
 	}
@@ -94,9 +101,9 @@ trait ActivateTest extends Specification {
 		for (ctx <- contexts) {
 			import ctx._
 			start
-			def clear = transactional {
-				all[ActivateTestEntity].foreach(_.delete)
-			}
+				def clear = transactional {
+					all[ActivateTestEntity].foreach(_.delete)
+				}
 			for (executor <- executors(ctx)) {
 				clear
 				f(executor)
@@ -114,15 +121,6 @@ trait ActivateTest extends Specification {
 
 		def contextName =
 			this.getClass.getSimpleName
-
-		object EnumerationValue extends EnumObject {
-			type EnumerationValue = Enum
-			val value1 = Enum("v1")
-			val value2 = Enum("v2")
-			val value3 = Enum("v3")
-		}
-
-		import EnumerationValue._
 
 		val emptyIntValue = 0
 		val emptyBooleanValue = false
@@ -149,7 +147,7 @@ trait ActivateTest extends Specification {
 		val fullDoubleValue = 1d
 		val fullBigDecimalValue = BigDecimal(1)
 		val fullDateValue = new java.util.Date(98977898)
-		val fullEnumerationValue = EnumerationValue.value1
+		val fullEnumerationValue = EnumerationValue.value1a
 		val fullCalendarValue = {
 			val cal = java.util.Calendar.getInstance()
 			cal.setTimeInMillis(98977898)
@@ -370,7 +368,7 @@ trait ActivateTest extends Specification {
 		val storage = new SimpleJdbcRelationalStorage {
 			val jdbcDriver = "com.mysql.jdbc.Driver"
 			val user = "root"
-			val password = "root"
+			val password = ""
 			val url = "jdbc:mysql://127.0.0.1/teste"
 			val dialect = mySqlDialect
 			val serializator = javaSerializator

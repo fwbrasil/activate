@@ -18,7 +18,7 @@ case class CharEntityValue(override val value: Option[Char])
 case class StringEntityValue(override val value: Option[String])
 	extends EntityValue(value)
 
-case class EnumerationEntityValue[E <: ValueContext#EnumObject#Enum: Manifest](override val value: Option[E])
+case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val value: Option[E])
 	extends EntityValue[E](value) {
 	def enumerationManifest = manifest[E]
 	def enumerationClass = enumerationManifest.erasure
@@ -65,8 +65,8 @@ object EntityValue extends ValueContext {
 			(value: Option[Char]) => toCharEntityValueOption(value)
 		else if(clazz == classOf[String])
 			(value: Option[String]) => toStringEntityValueOption(value)
-		else if(classOf[EnumObject#Enum].isAssignableFrom(clazz))
-			(value: Option[EnumObject#Enum]) => toEnumerationEntityValueOption(value)(manifestClass(clazz))
+		else if(classOf[Enumeration#Value].isAssignableFrom(clazz))
+			(value: Option[Enumeration#Value]) => toEnumerationEntityValueOption(value)(manifestClass(clazz))
 		else if(clazz == classOf[Float])
 			(value: Option[Float]) => toFloatEntityValueOption(value)
 		else if(clazz == classOf[Double])
@@ -96,16 +96,6 @@ object EntityValue extends ValueContext {
 	
 trait ValueContext {
 
-	abstract class EnumObject {
-		var valuesMap = Map[String, Enum]()
-		case class Enum(desc: String) {
-			val enumObject = EnumObject.this
-			valuesMap += (desc -> this)
-		}
-		def withName(desc: String) =
-			valuesMap(desc)
-	}
-	
 	implicit def toIntEntityValue(value: Int) = 
 		toIntEntityValueOption(Option(value))
 	implicit def toBooleanEntityValue(value: Boolean) = 
@@ -114,7 +104,7 @@ trait ValueContext {
 		toCharEntityValueOption(Option(value))
 	implicit def toStringEntityValue(value: String) = 
 		toStringEntityValueOption(Option(value))
-	implicit def toEnumerationEntityValue[E <: EnumObject#Enum: Manifest](value: E) = 
+	implicit def toEnumerationEntityValue[E <: Enumeration#Value: Manifest](value: E): EnumerationEntityValue[E] = 
 		toEnumerationEntityValueOption[E](Option(value))
 	implicit def toFloatEntityValue(value: Float) = 
 		toFloatEntityValueOption(Option(value))
@@ -139,8 +129,8 @@ trait ValueContext {
 		CharEntityValue(value)
 	implicit def toStringEntityValueOption(value: Option[String]) = 
 		StringEntityValue(value)
-	implicit def toEnumerationEntityValueOption[E <: EnumObject#Enum: Manifest](value: Option[E]): EnumerationEntityValue[E] = 
-		EnumerationEntityValue(value)
+	implicit def toEnumerationEntityValueOption[E <: Enumeration#Value: Manifest](value: Option[E]): EnumerationEntityValue[E] = 
+		EnumerationEntityValue[E](value)
 	implicit def toFloatEntityValueOption(value: Option[Float]) = 
 		FloatEntityValue(value)
 	implicit def toDoubleEntityValueOption(value: Option[Double]) = 

@@ -122,10 +122,15 @@ trait Entity extends Serializable {
 class EntityPropertyMetadata(
 	val varField: Field,
 	entityMethods: List[Method],
-	entityClass: Class[Entity]) {
+	entityClass: Class[Entity],
+	varTypes: java.util.HashMap[String, Class[_]]) {
 	val name = varField.getName
 	val propertyType =
-		Reflection.getStatic(entityClass, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]].get(name)
+		varTypes.get(name)
+	if(propertyType == classOf[Enumeration#Value])
+		throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +
+				"Instead of \"type MyEnum = Value\", use " +
+				"\"case class MyEnum(name: String) extends Val(name)\"")
 	val getter = entityMethods.find(_.getName == name).get
 	varField.setAccessible(true)
 	getter.setAccessible(true)
@@ -145,9 +150,11 @@ class EntityMetadata(
 		allFields.filter(_.getName.equals("id")).head
 	def isEntityProperty(varField: Field) =
 		allMethods.find(_.getName == varField.getName).nonEmpty
+	val varTypes = 
+		Reflection.getStatic(entityClass, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]]
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(varField, allMethods, entityClass)
+			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)
 	idField.setAccessible(true)
 	varFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name

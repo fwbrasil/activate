@@ -75,10 +75,11 @@ object Marshaller {
 				val value = if (stringValue.value.isDefined) {
 					val enumerationValueClass = enumerationValue.enumerationClass
 					val enumerationClass = enumerationValueClass.getEnclosingClass
-					val obj = getObject[ValueContext#EnumObject](Class.forName(enumerationClass.getClass + "$"))
+					val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+					val obj = getObject[Enumeration](enumerationObjectClass)
 					Option(obj.withName(stringValue.value.get))
 				} else None
-				EnumerationEntityValue(value)
+				EnumerationEntityValue(None)
 			}
 			case other =>
 				throw new IllegalStateException("Invalid storage value.")

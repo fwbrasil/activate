@@ -230,6 +230,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				case (a, b) =>
 					valueForEquals(a).equals(valueForEquals(b))
 			}
+	
 
 	def valueForEquals(a: Any) =
 		a match {

@@ -1,5 +1,5 @@
 package net.fwbrasil.activate
-
+ 
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._

@@ -82,7 +82,8 @@ object EntityEnhancer extends Logging {
 				val enhancedField = new CtField(varClazz, name, clazz);
 				enhancedField.setModifiers(Modifier.PRIVATE)
 				clazz.addField(enhancedField)
-				enhancedFieldsMap += (enhancedField -> originalField.getType)
+				val originalFieldType = originalField.getType
+				enhancedFieldsMap += (enhancedField -> originalFieldType)
 			}
 
 			val hashMapClass = classPool.get(hashMapClassName)
