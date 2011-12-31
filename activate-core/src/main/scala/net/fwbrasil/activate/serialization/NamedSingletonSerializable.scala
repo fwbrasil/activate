@@ -35,9 +35,14 @@ object NamedSingletonSerializable {
 		ret
 	}
 	
-	def registerInstance(instance: NamedSingletonSerializable) =
-		instances.getOrElseUpdate(
+	def registerInstance(instance: NamedSingletonSerializable) = {
+		val map = instances.getOrElseUpdate(
 				instance.getClass, 
-				new mutable.HashMap[String, NamedSingletonSerializable]()) += (instance.name -> instance)
+				new mutable.HashMap[String, NamedSingletonSerializable]())
+		val option = map.get(instance.name)
+		if (option.isDefined && option.get != instance)
+			throw new IllegalStateException("Duplicate singleton!")
+		map += (instance.name -> instance)
+	}
 	
 }

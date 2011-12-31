@@ -110,10 +110,12 @@ trait ActivateContext
 }
 
 object ActivateContext {
-	def contextFor(entityClass: Class[_ <: Entity]) =
+	def contextFor(entityClass: Class[_ <: Entity]) = {
+		val instances = NamedSingletonSerializable.instancesOf(classOf[ActivateContext])
 		toRichList(for (
-			ctx <- NamedSingletonSerializable.instancesOf(classOf[ActivateContext]);
+			ctx <- instances;
 			if (ctx.acceptEntity(entityClass))
 		) yield ctx).onlyOne
+	}
 
 }

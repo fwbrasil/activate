@@ -58,7 +58,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, googleCollections, dom4j, gson, servlet,
-		    	      grizzled, logbackClassic, scalap)
+		    	      grizzled, logbackClassic)
 		    )
 		)
 

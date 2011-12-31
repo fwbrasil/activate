@@ -104,13 +104,15 @@ trait ActivateTest extends SpecificationWithJUnit {
 				def clear = transactional {
 					all[ActivateTestEntity].foreach(_.delete)
 				}
-			for (executor <- executors(ctx)) {
-				clear
-				f(executor)
-				executor.finalizeExecution
-				clear
-			}
-			stop
+			try {
+				for (executor <- executors(ctx)) {
+					clear
+					f(executor)
+					executor.finalizeExecution
+					clear
+				}
+			} finally
+				stop
 		}
 		true must beTrue
 	}
@@ -120,7 +122,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 		override val retryLimit = 2
 
 		def contextName =
-			this.getClass.getSimpleName
+			this.hashCode.toString
 
 		val emptyIntValue = 0
 		val emptyBooleanValue = false

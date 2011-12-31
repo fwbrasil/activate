@@ -4,6 +4,7 @@ import net.fwbrasil.activate.util.Reflection
 import javassist.ClassPool
 import javassist.CodeConverter
 import javassist.CtClass
+import javassist.ClassClassPath
 import javassist.CtField
 import javassist.expr.ExprEditor
 import javassist.expr.MethodCall
@@ -12,7 +13,6 @@ import javassist.expr.ConstructorCall
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.Reflection.set
 import net.fwbrasil.activate.util.Reflection.invoke
-import javassist.ClassClassPath
 import javassist.bytecode.LocalVariableAttribute
 import javassist.Modifier
 import javassist.CtPrimitiveType
@@ -124,8 +124,7 @@ object EntityEnhancer extends Logging {
 			Set()
 	}
 
-	def enhance(clazzName: String): Set[CtClass] = {
-		val classPool = ClassPool.getDefault;
+	def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] = {
 		val clazz = classPool.get(clazzName)
 		enhance(clazz, classPool)
 	}
@@ -143,8 +142,10 @@ object EntityEnhancer extends Logging {
 		verifyNoVerify
 		val entityClassNames = Reflection.getAllImplementorsNames(classOf[Entity].getName)
 		var enhancedEntityClasses = Set[CtClass]()
+		val classPool = ClassPool.getDefault
+		classPool.appendClassPath(new ClassClassPath(this.getClass()))
 		for (entityClassName <- entityClassNames)
-			enhancedEntityClasses ++= enhance(entityClassName)
+			enhancedEntityClasses ++= enhance(entityClassName, classPool)
 		val tree = new DependencyTree(enhancedEntityClasses)
 		for (enhancedEntityClass <- enhancedEntityClasses)
 			registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
