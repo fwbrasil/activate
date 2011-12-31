@@ -18,7 +18,7 @@ class CRUDSpecs extends ActivateTest {
 						}
 						step {
 							val emptyEntity = byId[ActivateTestEntity](emptyId).get
-							validateEmptyTestEntity(entity = emptyEntity)
+							validateEmptyTestEntity(entity = emptyEntity) 
 							val fullEntity = byId[ActivateTestEntity](fullId).get
 							validateFullTestEntity(entity = fullEntity)
 						}

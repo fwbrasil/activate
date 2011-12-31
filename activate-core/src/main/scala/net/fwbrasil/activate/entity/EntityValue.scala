@@ -3,6 +3,7 @@ package net.fwbrasil.activate.entity
 import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import java.lang.{ Integer => JInteger, Boolean => JBoolean, Character => JCharacter, Float => JFloat, Double => JDouble }
+import org.joda.time.base.AbstractInstant
 
 abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable
 
@@ -38,6 +39,11 @@ case class DateEntityValue(override val value: Option[java.util.Date])
 
 case class CalendarEntityValue(override val value: Option[java.util.Calendar])
 	extends EntityValue(value)
+
+case class JodaInstantEntityValue[I <: AbstractInstant: Manifest](override val value: Option[I])
+	extends EntityValue[I](value) {
+	def instantClass = manifest[I].erasure
+}
 
 case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
 	extends EntityValue(value)
@@ -75,6 +81,8 @@ object EntityValue extends ValueContext {
 			(value: Option[BigDecimal]) => toBigDecimalEntityValueOption(value)
 		else if(clazz == classOf[java.util.Date])
 			(value: Option[Date]) => toDateEntityValueOption(value)
+		else if(classOf[AbstractInstant].isAssignableFrom(clazz))
+			(value: Option[AbstractInstant]) => toJodaInstantEntityValueOption(value)(manifestClass(clazz))
 		else if(clazz == classOf[java.util.Calendar])
 			(value: Option[Calendar]) => toCalendarEntityValueOption(value)
 		else if(clazz == classOf[Array[Byte]])
@@ -114,7 +122,9 @@ trait ValueContext {
 		toBigDecimalEntityValueOption(Option(value))
 	implicit def toDateEntityValue(value: java.util.Date) = 
 		toDateEntityValueOption(Option(value))
-	implicit def toCalendarEntityValue(value: java.util.Calendar) =
+	implicit def toJodaInstantEntityValue[I <: AbstractInstant: Manifest](value: I): JodaInstantEntityValue[I] = 
+		toJodaInstantEntityValueOption(Option(value))
+	implicit def JodaInstant(value: java.util.Calendar) =
 		toCalendarEntityValueOption(Option(value))
 	implicit def toByteArrayEntityValue(value: Array[Byte]) = 
 		toByteArrayEntityValueOption(Option(value))
@@ -139,6 +149,8 @@ trait ValueContext {
 		BigDecimalEntityValue(value)
 	implicit def toDateEntityValueOption(value: Option[java.util.Date]) = 
 		DateEntityValue(value)
+	implicit def toJodaInstantEntityValueOption[I <: AbstractInstant: Manifest](value: Option[I]) = 
+		JodaInstantEntityValue(value)
 	implicit def toCalendarEntityValueOption(value: Option[java.util.Calendar]) =
 		CalendarEntityValue(value)
 	implicit def toByteArrayEntityValueOption(value: Option[Array[Byte]]) = 

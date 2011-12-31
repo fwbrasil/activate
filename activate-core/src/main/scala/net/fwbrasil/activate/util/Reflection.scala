@@ -1,5 +1,7 @@
 package net.fwbrasil.activate.util
 
+import java.lang.reflect.Constructor
+import org.joda.time.base.AbstractInstant
 import scala.runtime._
 import org.objenesis._
 import java.lang.reflect.Field
@@ -9,6 +11,7 @@ import java.lang.reflect.GenericArrayType
 import org.reflections.Reflections
 import scala.collection.mutable.{ Map => MutableMap }
 import java.util.IdentityHashMap
+import java.util.Date
 
 class Reflection(val clazz: Class[_]) {
 	def publicMethods = clazz.getMethods
@@ -116,5 +119,16 @@ object Reflection {
 
 	def getObject[T](clazz: Class[_]) = {
 		clazz.getField("MODULE$").get(clazz).asInstanceOf[T]
+	}
+
+	def materializeJodaInstant(clazz: Class[_], date: Date): AbstractInstant = {
+		val constructors = clazz.getDeclaredConstructors()
+		val constructor = constructors.find((c: Constructor[_]) => {
+			val paramTypes = c.getParameterTypes()
+			paramTypes.size == 1 && paramTypes.head.toString == "long"
+		}).get
+		val params: Seq[Object] = Seq(date.getTime.asInstanceOf[Object])
+		val materialized = constructor.newInstance(params:_*)
+		materialized.asInstanceOf[AbstractInstant]
 	}
 }

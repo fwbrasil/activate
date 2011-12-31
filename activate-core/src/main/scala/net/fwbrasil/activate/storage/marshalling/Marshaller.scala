@@ -7,6 +7,8 @@ import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.Reflection.get
 import net.fwbrasil.activate.util.Reflection.getObject
+import net.fwbrasil.activate.util.Reflection.materializeJodaInstant
+import org.joda.time.base.AbstractInstant
 
 object Marshaller {
 
@@ -50,7 +52,7 @@ object Marshaller {
 			case (storageValue: BooleanStorageValue, entityValue: BooleanEntityValue) =>
 				BooleanEntityValue(storageValue.value)
 			case (storageValue: StringStorageValue, entityValue: CharEntityValue) =>
-				CharEntityValue(transform(storageValue, (v: String) => v.charAt(0)))
+				CharEntityValue(storageValue.value.map(_.charAt(0)))
 			case (storageValue: StringStorageValue, entityValue: StringEntityValue) =>
 				StringEntityValue(storageValue.value)
 			case (storageValue: FloatStorageValue, entityValue: FloatEntityValue) =>
@@ -61,8 +63,10 @@ object Marshaller {
 				BigDecimalEntityValue(storageValue.value)
 			case (storageValue: DateStorageValue, entityValue: DateEntityValue) =>
 				DateEntityValue(storageValue.value)
+			case (storageValue: DateStorageValue, entityValue: JodaInstantEntityValue[_]) =>
+				JodaInstantEntityValue(storageValue.value.map((date: Date) => materializeJodaInstant(entityValue.instantClass, date)))
 			case (storageValue: DateStorageValue, entityValue: CalendarEntityValue) =>
-				CalendarEntityValue(transform(storageValue, (v: Date) => {
+				CalendarEntityValue(storageValue.value.map((v: Date) => {
 					val calendar = Calendar.getInstance
 					calendar.setTime(v)
 					calendar
@@ -92,7 +96,7 @@ object Marshaller {
 			case value: BooleanEntityValue =>
 				BooleanStorageValue(value.value)
 			case value: CharEntityValue =>
-				StringStorageValue(transform(value, (v: Char) => v.toString))
+				StringStorageValue(value.value.map(_.toString))
 			case value: StringEntityValue =>
 				StringStorageValue(value.value)
 			case value: FloatEntityValue =>
@@ -103,27 +107,18 @@ object Marshaller {
 				BigDecimalStorageValue(value.value)
 			case value: DateEntityValue =>
 				DateStorageValue(value.value)
+			case value: JodaInstantEntityValue[_] =>
+				DateStorageValue(value.value.map(_.toDate))
 			case value: CalendarEntityValue =>
-				DateStorageValue(transform(value, (v: Calendar) => v.getTime))
+				DateStorageValue(value.value.map(_.getTime))
 			case value: ByteArrayEntityValue =>
 				ByteArrayStorageValue(value.value)
 			case value: EntityInstanceEntityValue[Entity] =>
-				ReferenceStorageValue(transform(value, (v: Entity) => v.id))
+				ReferenceStorageValue(value.value.map(_.id))
 			case value: EntityInstanceReferenceValue[Entity] =>
 				ReferenceStorageValue(value.value)
 			case value: EnumerationEntityValue[_] =>
 				StringStorageValue(value.value.map(_.toString))
 		}).asInstanceOf[StorageValue]
 
-	private[this] def transform[V, R](entityValue: EntityValue[V], f: (V) => R): Option[R] =
-		if (entityValue.value == None)
-			None
-		else
-			Option(f(entityValue.value.get))
-
-	private[this] def transform[V, R](storageValue: StorageValue, f: (V) => R): Option[R] =
-		if (storageValue.value == None)
-			None
-		else
-			Option(f(storageValue.value.get.asInstanceOf[V]))
 }

@@ -11,6 +11,7 @@ import org.specs2.execute.FailureException
 import scala.runtime._
 import java.security._
 import java.math.BigInteger
+import org.joda.time.DateTime
 
 object runningFlag
 
@@ -139,6 +140,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 		val emptyByteArrayValue = Array[Byte]()
 		val emptyEntityValue = null
 		val emptyEnumerationValue = null
+		val emptyJodaInstantValue = null
 
 		val fullIntValue = 999
 		val fullBooleanValue = true
@@ -173,6 +175,8 @@ trait ActivateTest extends SpecificationWithJUnit {
 				entity.dummy = true
 				entity
 			})
+		
+		val fullJodaInstantValue = new DateTime(78317811l)
 
 		def setFullEntity(entity: ActivateTestEntity) = {
 			entity.intValue = fullIntValue
@@ -183,6 +187,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			entity.doubleValue = fullDoubleValue
 			entity.bigDecimalValue = fullBigDecimalValue
 			entity.dateValue = fullDateValue
+			entity.jodaInstantValue = fullJodaInstantValue
 			entity.calendarValue = fullCalendarValue
 			entity.byteArrayValue = fullByteArrayValue
 			entity.entityValue = fullEntityValue
@@ -201,6 +206,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			entity.doubleValue = emptyDoubleValue
 			entity.bigDecimalValue = emptyBigDecimalValue
 			entity.dateValue = emptyDateValue
+			entity.jodaInstantValue = emptyJodaInstantValue
 			entity.calendarValue = emptyCalendarValue
 			entity.byteArrayValue = emptyByteArrayValue
 			entity.entityValue = emptyEntityValue
@@ -237,6 +243,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			var doubleValue: Double,
 			var bigDecimalValue: BigDecimal,
 			var dateValue: java.util.Date,
+			var jodaInstantValue: DateTime,
 			var calendarValue: java.util.Calendar,
 			var byteArrayValue: Array[Byte],
 			var entityValue: ActivateTestEntity,
@@ -256,6 +263,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			doubleValue: Double = fullDoubleValue,
 			bigDecimalValue: BigDecimal = fullBigDecimalValue,
 			dateValue: java.util.Date = fullDateValue,
+			jodaInstantValue: DateTime = fullJodaInstantValue,
 			calendarValue: java.util.Calendar = fullCalendarValue,
 			byteArrayValue: Array[Byte] = fullByteArrayValue,
 			entityValue: ActivateTestEntity = fullEntityValue,
@@ -273,6 +281,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 				doubleValue,
 				bigDecimalValue,
 				dateValue,
+				jodaInstantValue,
 				calendarValue,
 				byteArrayValue,
 				entityValue,
@@ -289,6 +298,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			doubleValue: Double = emptyDoubleValue,
 			bigDecimalValue: BigDecimal = emptyBigDecimalValue,
 			dateValue: java.util.Date = emptyDateValue,
+			jodaInstantValue: DateTime = emptyJodaInstantValue,
 			calendarValue: java.util.Calendar = emptyCalendarValue,
 			byteArrayValue: Array[Byte] = emptyByteArrayValue,
 			entityValue: ActivateTestEntity = emptyEntityValue,
@@ -304,6 +314,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			entity.doubleValue must beEqualTo(doubleValue)
 			entity.bigDecimalValue must beEqualTo(bigDecimalValue)
 			entity.dateValue must beEqualTo(dateValue)
+			entity.jodaInstantValue must beEqualTo(jodaInstantValue)
 			entity.calendarValue must beEqualTo(calendarValue)
 			entity.entityValue must beEqualTo(entityValue)
 			entity.traitValue1 must beEqualTo(traitValue1)
@@ -319,6 +330,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			doubleValue: Double = emptyDoubleValue,
 			bigDecimalValue: BigDecimal = emptyBigDecimalValue,
 			dateValue: java.util.Date = emptyDateValue,
+			jodaInstantValue: DateTime = emptyJodaInstantValue,
 			calendarValue: java.util.Calendar = emptyCalendarValue,
 			byteArrayValue: Array[Byte] = emptyByteArrayValue,
 			entityValue: ActivateTestEntity = emptyEntityValue,
@@ -335,6 +347,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 				doubleValue = doubleValue,
 				bigDecimalValue = bigDecimalValue,
 				dateValue = dateValue,
+				jodaInstantValue = jodaInstantValue,
 				calendarValue = calendarValue,
 				byteArrayValue = byteArrayValue,
 				entityValue = entityValue,
