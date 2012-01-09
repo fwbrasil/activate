@@ -85,11 +85,18 @@ object QueryMocks {
 			set(ref, "outerEntity", entity)
 			field.set(entity, ref)
 		}
-		entityMetadata.idField.set(entity, generateUUID)
+		val idField = entityMetadata.idField
+		val ref = mockVar
+		val typ = classOf[String]
+		ref.fakeValueClass = typ
+		ref.originVar = originVar
+		set(ref, "name", "id")
+		set(ref, "outerEntity", entity)
+		idField.set(entity, ref)
 		entity
 	}
 
 	def mockVar =
 		newInstance(classOf[FakeVarToQuery[_]]).asInstanceOf[FakeVarToQuery[_]]
-
+	
 }

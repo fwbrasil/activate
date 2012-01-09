@@ -76,17 +76,15 @@ trait Entity extends Serializable {
 	private[this] def varFields =
 		entityMetadata.varFields
 
-	private[activate] def idField =
-		entityMetadata.idField
+	//	private[activate] def idField =
+	//		entityMetadata.idField
 
 	@transient
 	private[this] var varFieldsMapCache: Map[String, Var[_]] = _
 
 	private[this] def buildVarFieldsMap =
-		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]])
-			yield if (ref == null)
-			throw new IllegalStateException("Ref is null! (" + varField.getName() + ")")
-		else if (ref.name == null)
+		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
+			yield if (ref.name == null)
 			throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
 		else
 			(ref.name -> ref)).toMap
@@ -120,43 +118,44 @@ trait Entity extends Serializable {
 }
 
 class EntityPropertyMetadata(
-	val varField: Field,
-	entityMethods: List[Method],
-	entityClass: Class[Entity],
-	varTypes: java.util.HashMap[String, Class[_]]) {
+		val varField: Field,
+		entityMethods: List[Method],
+		entityClass: Class[Entity],
+		varTypes: java.util.HashMap[String, Class[_]]) {
 	val name = varField.getName
 	val propertyType =
 		varTypes.get(name)
-	if(propertyType == classOf[Enumeration#Value])
+	if (propertyType == classOf[Enumeration#Value])
 		throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +
-				"Instead of \"type MyEnum = Value\", use " +
-				"\"case class MyEnum(name: String) extends Val(name)\"")
+			"Instead of \"type MyEnum = Value\", use " +
+			"\"case class MyEnum(name: String) extends Val(name)\"")
 	val getter = entityMethods.find(_.getName == name).get
+	val setter = entityMethods.find(_.getName == name + "_$eq").getOrElse(null)
 	varField.setAccessible(true)
 	getter.setAccessible(true)
 	override def toString = "Property: " + name
 }
 
 class EntityMetadata(
-	val name: String,
-	val entityClass: Class[Entity]) {
+		val name: String,
+		val entityClass: Class[Entity]) {
 	val allFields =
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
 	val allMethods =
 		Reflection.getDeclaredMethodsIncludingSuperClasses(entityClass)
 	val varFields =
-		allFields.filter((field: Field) => classOf[Var[_]].isAssignableFrom(field.getType))
+		allFields.filter((field: Field) => classOf[Var[_]] == field.getType)
 	val idField =
-		allFields.filter(_.getName.equals("id")).head
+		allFields.find(_.getName == "id").get
 	def isEntityProperty(varField: Field) =
-		allMethods.find(_.getName == varField.getName).nonEmpty
-	val varTypes = 
+		varField.getName != "id" && allMethods.find(_.getName == varField.getName).nonEmpty
+	val varTypes =
 		Reflection.getStatic(entityClass, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]]
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
 			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)
-	idField.setAccessible(true)
 	varFields.foreach(_.setAccessible(true))
+	idField.setAccessible(true)
 	override def toString = "Entity metadata for " + name
 }
 

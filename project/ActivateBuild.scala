@@ -1,11 +1,14 @@
 import sbt._
 import Keys._
+import com.github.siasia._
+import WebPlugin._
+import PluginKeys._
 
 object ActivateBuild extends Build {
-  
+  	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.15.0-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.3-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.4-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0"
@@ -33,6 +36,12 @@ object ActivateBuild extends Build {
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
+  	/* Vaadin */
+  	val vaadin = "com.vaadin" % "vaadin" % "6.7.3"
+  	
+  	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
+	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
+  	
   	/* Resolvers */
   	val customResolvers = Seq(
   	    "snapshots" at "http://scala-tools.org/repo-snapshots",
@@ -48,7 +57,7 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateCassandra, activateTests),
+    		    activateJdbc, activateCassandra, activateTests, activateCrudVaadin, activateCrudVaadinExample),
     		settings = commonSettings
     	)
 
@@ -103,12 +112,35 @@ object ActivateBuild extends Build {
 		    	  Seq(junit, specs2, scalaz, objbd6, mysql)
 		    )
 		)
-    		  
+    
+	lazy val activateCrudVaadin = 
+    	Project(
+    	    id = "activate-crud-vaadin",
+    	    base = file("activate-crud-vaadin"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(vaadin)
+		    )
+    	)      
+    	
+	lazy val activateCrudVaadinExample = 
+    	Project(
+    	    id = "activate-crud-vaadin-example",
+    	    base = file("activate-crud-vaadin-example"),
+    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc),
+    	    settings = commonSettings ++ webSettings ++ Seq(
+ 	   	    	libraryDependencies ++= Seq(jettyWebApp, jettyPlus, servlet, mysql),
+ 	   	    	scanInterval := 1 
+ 	   	    )
+    	)
+		
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "0.5-SNAPSHOT",
     	    testFrameworks ++= Seq(specs2Framework),
+    	    publishMavenStyle := true,
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
     	    organization := "net.fwbrasil",
     	    scalaVersion := "2.9.1",

@@ -22,18 +22,19 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.GraphUtil._
 
 object EntityEnhancer extends Logging {
-	
+
 	def verifyNoVerify = {
 		val RuntimemxBean = ManagementFactory.getRuntimeMXBean
 		val arguments = RuntimemxBean.getInputArguments
-		if(List(arguments.toArray: _*).filter(_ == "-Xverify:none").isEmpty) {
+		if (List(arguments.toArray: _*).filter(_ == "-Xverify:none").isEmpty) {
 			val msg = "Please add -noverify to vm options"
 			error(msg)
 			throw new IllegalStateException(msg)
 		}
 	}
-	
+
 	val varClassName = classOf[Var[_]].getName
+	val idVarClassName = classOf[IdVar].getName
 	val hashMapClassName = classOf[java.util.HashMap[_, _]].getName
 	val entityClassName = classOf[Entity].getName
 	val entityClassFieldPrefix = entityClassName.replace(".", "$")
@@ -44,7 +45,7 @@ object EntityEnhancer extends Logging {
 			(clazz.getSuperclass != null && (isEntityClass(clazz.getSuperclass, classPool) || !clazz.getInterfaces.find((interface: CtClass) => isEntityClass(interface, classPool)).isEmpty))
 
 	def isEntityTraitField(field: CtField) =
-		field.getName.startsWith(entityClassFieldPrefix) || field.getName == "id"
+		field.getName.startsWith(entityClassFieldPrefix) // || field.getName == "id"
 
 	def isVarField(field: CtField) =
 		field.getType.getName == varClassName
@@ -60,10 +61,10 @@ object EntityEnhancer extends Logging {
 		val lazyValues = fieldsToEnhance.filter((field: CtField) => fieldsToEnhance.filter(_.getName() == field.getName() + lazyValueValueSuffix).nonEmpty)
 		fieldsToEnhance.filter((field: CtField) => lazyValues.filter(_.getName() + lazyValueValueSuffix == field.getName()).isEmpty)
 	}
-	
+
 	def isEnhanced(clazz: CtClass) =
 		clazz.getDeclaredFields.filter(_.getName() == "varTypes").nonEmpty
-	
+
 	def box(typ: CtClass) =
 		if (typ.isPrimitive) {
 			val ctPrimitive = typ.asInstanceOf[CtPrimitiveType]
@@ -75,7 +76,8 @@ object EntityEnhancer extends Logging {
 		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
 			var enhancedFieldsMap = Map[CtField, CtClass]()
 			val varClazz = classPool.get(varClassName);
-			val fieldsToEnhance = removeLazyValueValue(clazz.getDeclaredFields.filter((field: CtField) => isCandidate(field)))
+			val allFields = clazz.getDeclaredFields
+			val fieldsToEnhance = removeLazyValueValue(allFields.filter((field: CtField) => isCandidate(field)))
 			for (originalField <- fieldsToEnhance; if (isCandidate(originalField))) {
 				val name = originalField.getName
 				clazz.removeField(originalField)
@@ -108,13 +110,19 @@ object EntityEnhancer extends Logging {
 				})
 			for (c <- clazz.getConstructors) {
 				var replace = ""
-				for ((field, typ) <- enhancedFieldsMap)
-					replace += "this." + field.getName + " = new " + varClassName + "(" + typ.getName + ".class, \"" + field.getName + "\", this);"
+				for ((field, typ) <- enhancedFieldsMap) {
+					if (field.getName == "id")
+						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
+					else
+						replace += "this." + field.getName + " = new " + varClassName + "(" + typ.getName + ".class, \"" + field.getName + "\", this);"
+				}
 				c.insertBefore(replace)
 				c.insertAfter("addToLiveCache();")
 			}
 
-			val initBody = (for ((field, typ) <- enhancedFieldsMap) yield "varTypes.put(\"" + field.getName + "\", " + typ.getName + ".class)").mkString(";") + ";"
+			val initBody =
+				(for ((field, typ) <- enhancedFieldsMap)
+					yield "varTypes.put(\"" + field.getName + "\", " + typ.getName + ".class)").mkString(";") + ";"
 
 			init.insertBefore(initBody)
 
@@ -128,11 +136,11 @@ object EntityEnhancer extends Logging {
 		val clazz = classPool.get(clazzName)
 		enhance(clazz, classPool)
 	}
-	
+
 	def registerDependency(clazz: CtClass, tree: DependencyTree[CtClass], enhancedEntityClasses: Set[CtClass]): Unit = {
 		val superClass = clazz.getSuperclass()
-		if(superClass != null) {
-			if(enhancedEntityClasses.contains(superClass))
+		if (superClass != null) {
+			if (enhancedEntityClasses.contains(superClass))
 				tree.addDependency(superClass, clazz)
 			registerDependency(superClass, tree, enhancedEntityClasses)
 		}

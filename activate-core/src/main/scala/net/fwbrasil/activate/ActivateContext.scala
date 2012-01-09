@@ -16,11 +16,11 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.CollectionUtil.combine
 
 trait ActivateContext
-	extends EntityContext
-	with QueryContext
-	with Serializable
-	with NamedSingletonSerializable
-	with Logging {
+		extends EntityContext
+		with QueryContext
+		with Serializable
+		with NamedSingletonSerializable
+		with Logging {
 
 	info("Initializing context " + contextName)
 
@@ -76,8 +76,12 @@ trait ActivateContext
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isSome)
 
-	def byId[E <: Entity: Manifest](id: String) =
-		allWhere[E](_ :== id).headOption
+	def byId[T <: Entity: Manifest](id: String): Option[T] = {
+		val fromLiveCache = liveCache.byId[T](id)
+		if (fromLiveCache.isDefined)
+			fromLiveCache
+		else allWhere[T](_ :== id).headOption
+	}
 
 	override def makeDurable(transaction: Transaction) = {
 		val (assignments, deletes) = filterVars(transaction.refsAssignments)

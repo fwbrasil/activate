@@ -3,15 +3,16 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 
-class Var[T](val _valueClass: Class[_], val name: String, val outerEntity: Entity)
-    extends Ref[T](None)(outerEntity.context) 
-    	with java.io.Serializable {
+class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
+		extends Ref[T](None)(_outerEntity.context)
+		with java.io.Serializable {
 
+	val outerEntity = _outerEntity
 	val tval = EntityValue.tvalFunction(_valueClass).asInstanceOf[Option[T] => EntityValue[T]]
 	def toEntityPropertyValue(value: Any) = tval(Option(value).asInstanceOf[Option[T]])
 	def outerEntityClass = outerEntity.getClass.asInstanceOf[Class[_ <: Entity]]
 	def valueClass = _valueClass
-	
+
 	override def get = doInitialized {
 		super.get
 	}
@@ -19,18 +20,29 @@ class Var[T](val _valueClass: Class[_], val name: String, val outerEntity: Entit
 	override def put(value: Option[T]): Unit = doInitialized {
 		super.put(value)
 	}
-	
+
 	override def destroy: Unit = doInitialized {
-	    super.destroy
+		super.destroy
 	}
-	
+
 	private[this] def doInitialized[A](f: => A): A = {
-		if(outerEntity!=null)outerEntity.initialize
+		if (outerEntity != null) outerEntity.initialize
 		f
 	}
-	
+
 	override def toString = name + " -> " + super.toString
 }
 
+class IdVar(outerEntity: Entity)
+	extends Var[String](classOf[String], "id", outerEntity) {
+	
+	var id: String = _
+	
+	override def put(value: Option[String]): Unit = {
+		id = value.getOrElse(null)
+	}
+	
+	override def get =
+		Option(id)
 
-import net.fwbrasil.activate.serialization.NamedSingletonSerializable
+}

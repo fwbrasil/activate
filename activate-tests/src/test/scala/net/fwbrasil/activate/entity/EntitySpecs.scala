@@ -42,20 +42,20 @@ class EntitySpecs extends ActivateTest {
 			)
 		}
 
-		"return id field" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					step {
-						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-					}
-					step {
-						for (entity <- all[ActivateTestEntity])
-							entity.idField must not beNull
-					}
-				}
-			)
-		}
+//		"return id field" in {
+//			activateTest(
+//				(step: StepExecutor) => {
+//					import step.ctx._
+//					step {
+//						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+//					}
+//					step {
+//						for (entity <- all[ActivateTestEntity])
+//							entity.idField must not beNull
+//					}
+//				}
+//			)
+//		}
 
 		"return var named" in {
 			activateTest(

@@ -3,6 +3,7 @@ package net.fwbrasil.activate.cache.live
 import java.util.Arrays.{ equals => arrayEquals }
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.entity.EntityValue.tvalFunction
+import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import java.util.Collections
@@ -37,6 +38,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			}
 		}
 
+	def byId[T <: Entity: Manifest](id: String): Option[T] =
+		entityInstacesMap(manifest[T].erasure.asInstanceOf[Class[E]]).get(id).asInstanceOf[Option[T]]
+	
 	def contains(entity: E) =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).contains(entity.id)
 
@@ -129,8 +133,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			}
 		}
 		val idField = entityMetadata.idField
-		idField.setAccessible(true)
-		idField.set(entity, entityId)
+		val ref = new IdVar(entity)
+		idField.set(entity, ref)
+		ref := entityId
 		entity.setPersisted
 		entity.setNotInitialized
 		entity
