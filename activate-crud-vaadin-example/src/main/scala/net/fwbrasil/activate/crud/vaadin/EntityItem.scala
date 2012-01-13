@@ -22,8 +22,9 @@ import com.vaadin.data.Container
 import com.vaadin.data.Item
 import java.util.Collection
 import collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
-class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata, entity: E)(implicit val transaction: Transaction)
+class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata, val entity: E)(implicit val transaction: Transaction)
 		extends MethodProperty[Object](metadata.propertyType.asInstanceOf[Class[Object]], entity, metadata.getter, metadata.setter) {
 
 	val listener = new RefListener[Any] {
@@ -34,9 +35,12 @@ class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata,
 	entity.varNamed(metadata.name).get.asInstanceOf[Ref[Any]].addWeakListener(listener)
 
 	private[this] def doWithTransaction[A](f: => A) = {
-		val context = ActivateContext.contextFor(super.getType.asInstanceOf[Class[E]])
+		val context = ActivateContext.contextFor(entity.getClass.asInstanceOf[Class[E]])
 		context.transactional(transaction) {
-			f
+			if (entity.isDeleted)
+				null.asInstanceOf[A]
+			else
+				f
 		}
 	}
 
@@ -55,7 +59,7 @@ class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transacti
 	def metadata = EntityHelper.getEntityMetadata(m.erasure)
 	for (metadata <- metadata.propertiesMetadata)
 		addProperty(metadata)
-		
+
 	protected def addProperty(metadata: EntityPropertyMetadata): Unit =
 		addItemProperty(
 			metadata.name,
@@ -64,7 +68,7 @@ class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transacti
 				entity))
 }
 
-class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m: Manifest[E]) extends Container {
+class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m: Manifest[E]) extends Container with Container.Ordered {
 
 	val context = ActivateContext.contextFor(m.erasure.asInstanceOf[Class[Entity]])
 
@@ -74,12 +78,14 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 
 	val entityItemCache = ReferenceWeakValueMap[String, EntityItem[_]]()
 
-	val ids =
-		transactional(transaction) {
-			(query {
-				(entity: E) => where(entity.id isSome) select (entity.id)
-			}).execute.map(_._1.get)
-		}
+	var ids =
+		ListBuffer() ++ (
+			transactional(transaction) {
+				(query {
+					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id, entity.id) 
+				}).execute.map(_._1.get) 
+			} 
+		)
 
 	override def getItem(itemId: Any): Item =
 		entityItemCache.getOrElseUpdate(itemId.asInstanceOf[String],
@@ -87,13 +93,15 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 				val clazz = EntityHelper.getEntityClassFromId(itemId.asInstanceOf[String])
 				new EntityItem(byId(itemId.asInstanceOf[String]).get)(transaction, manifestClass(clazz))
 			})
+			
+	def teste: (String, Int) = ("a", 1)
 
 	override def getContainerPropertyIds: Collection[_] =
 		for (property <- metadata.propertiesMetadata)
 			yield property.name
 
 	override def getItemIds: Collection[_] =
-		ids
+		ids.toList
 
 	override def getContainerProperty(itemId: Any, propertyId: Any) =
 		getItem(itemId).getItemProperty(propertyId)
@@ -107,14 +115,18 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 	override def containsId(itemId: Any) =
 		ids.contains(itemId)
 
-	override def addItem(itemId: Any): Item =
-		throw new UnsupportedOperationException("EntityContainer.addItem")
+	override def addItem(itemId: Any): Item = {
+		ids += itemId.asInstanceOf[String]
+		getItem(itemId)
+	}
 
 	override def addItem: Object =
 		throw new UnsupportedOperationException("EntityContainer.addItem")
 
-	override def removeItem(itemId: Any): Boolean =
-		throw new UnsupportedOperationException("EntityContainer.removeItem")
+	override def removeItem(itemId: Any): Boolean = {
+		ids -= itemId.asInstanceOf[String]
+		true
+	}
 
 	override def addContainerProperty(propertyId: Any, typ: Class[_], defaultValue: Any): Boolean =
 		throw new UnsupportedOperationException("EntityContainer.addContainerProperty")
@@ -124,5 +136,41 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 
 	override def removeAllItems: Boolean =
 		throw new UnsupportedOperationException("EntityContainer.removeAllItems")
+
+	/* Ordered */
+
+	def nextItemId(itemId: Object): Object = {
+		val index = ids.indexOf(itemId) + 1
+		if (index > ids.size - 1)
+			null
+		else
+			ids(index)
+	}
+
+	def prevItemId(itemId: Object): Object = {
+		val index = ids.indexOf(itemId) - 1
+		if (index < 0)
+			null
+		else
+			ids(index)
+	}
+
+	def firstItemId: Object =
+		ids.headOption.getOrElse(null)
+
+	def lastItemId: Object =
+		ids.lastOption.getOrElse(null)
+
+	def isFirstId(itemId: Object): Boolean =
+		firstItemId == itemId
+
+	def isLastId(itemId: Object): Boolean =
+		lastItemId == itemId
+
+	def addItemAfter(previousItemId: Object): Object =
+		throw new UnsupportedOperationException("EntityContainer.addItemAfter")
+
+	def addItemAfter(previousItemId: Object, newItemId: Object): Item =
+		throw new UnsupportedOperationException("EntityContainer.addItemAfter")
 
 }

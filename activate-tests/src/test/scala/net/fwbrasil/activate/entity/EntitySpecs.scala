@@ -35,7 +35,7 @@ class EntitySpecs extends ActivateTest {
 					step {
 						for (entity <- all[ActivateTestEntity]) {
 							println(entity.vars)
-							entity.vars.toSet.size must beEqualTo(17)
+							entity.vars.toSet.size must beEqualTo(18)
 						}
 					}
 				}

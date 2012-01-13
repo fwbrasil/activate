@@ -79,7 +79,10 @@ trait ActivateContext
 	def byId[T <: Entity: Manifest](id: String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
-			fromLiveCache
+			if (fromLiveCache.get.isDeleted)
+				None
+			else
+				fromLiveCache
 		else allWhere[T](_ :== id).headOption
 	}
 

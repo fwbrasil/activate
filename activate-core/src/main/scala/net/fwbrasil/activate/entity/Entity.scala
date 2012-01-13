@@ -10,14 +10,18 @@ import scala.collection._
 
 trait Entity extends Serializable {
 
-	def delete = {
-		initialize
-		for (ref <- vars)
-			ref.destroy
-	}
+	def delete =
+		if (!isDeleted) {
+			initialize
+			for (ref <- vars)
+				ref.destroy
+		}
 
 	def isDeleted =
-		vars.head.isDestroyed
+		vars.find(_.name != "id").get.isDestroyed
+
+	def isDirty =
+		vars.filter(_.name != "id").find(_.isDirty).isDefined
 
 	val id = {
 		val uuid = UUIDUtil.generateUUID
@@ -113,7 +117,7 @@ trait Entity extends Serializable {
 		context.liveCache.cachedInstance(this.asInstanceOf[Entity])
 
 	override def toString =
-		this.getClass.getSimpleName + "(" + id + "@" + hashCode + ")"
+		this.getClass.getSimpleName + "(" + vars.mkString(", ") + ")"
 
 }
 

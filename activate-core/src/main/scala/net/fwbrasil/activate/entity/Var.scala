@@ -2,6 +2,8 @@ package net.fwbrasil.activate.entity
 
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.radon.transaction.Transaction
+import net.fwbrasil.activate.util.TabbedToString
 
 class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		extends Ref[T](None)(_outerEntity.context)
@@ -29,8 +31,8 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		if (outerEntity != null) outerEntity.initialize
 		f
 	}
-
-	override def toString = name + " -> " + super.toString
+	
+	override def toString = name + " -> " + super.snapshot
 }
 
 class IdVar(outerEntity: Entity)
@@ -38,11 +40,20 @@ class IdVar(outerEntity: Entity)
 	
 	var id: String = _
 	
+	override def getRequiredTransaction: Transaction = null
+	
+	override def getTransaction: Option[Transaction] = None
+	
 	override def put(value: Option[String]): Unit = {
 		id = value.getOrElse(null)
 	}
 	
 	override def get =
 		Option(id)
+		
+	override def destroy: Unit = {
+		
+	}
 
+	override def toString =  "id -> " + id
 }
