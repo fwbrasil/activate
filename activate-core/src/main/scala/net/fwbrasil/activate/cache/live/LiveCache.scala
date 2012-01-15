@@ -141,6 +141,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		ref := entityId
 		entity.setPersisted
 		entity.setNotInitialized
+		entity.invariants
 		entity
 	}
 

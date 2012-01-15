@@ -39,6 +39,7 @@ object EntityEnhancer extends Logging {
 	val entityClassName = classOf[Entity].getName
 	val entityClassFieldPrefix = entityClassName.replace(".", "$")
 	val scalaVariables = Array("$outer", "bitmap$")
+	val validEntityFields = Array("invariants", "listener")
 
 	def isEntityClass(clazz: CtClass, classPool: ClassPool): Boolean =
 		clazz.getInterfaces.contains(classPool.get(entityClassName)) ||
@@ -52,9 +53,12 @@ object EntityEnhancer extends Logging {
 
 	def isScalaVariable(field: CtField) =
 		scalaVariables.filter((name: String) => field.getName.startsWith(name)).nonEmpty
+	
+	def isValidEntityField(field: CtField) =
+		validEntityFields.filter((name: String) => field.getName == name).nonEmpty
 
 	def isCandidate(field: CtField) =
-		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field)
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -108,6 +112,7 @@ object EntityEnhancer extends Logging {
 						}
 					}
 				})
+				
 			for (c <- clazz.getConstructors) {
 				var replace = ""
 				for ((field, typ) <- enhancedFieldsMap) {
@@ -118,6 +123,7 @@ object EntityEnhancer extends Logging {
 				}
 				c.insertBefore(replace)
 				c.insertAfter("addToLiveCache();")
+				c.insertAfter("validate();")
 			}
 
 			val initBody =

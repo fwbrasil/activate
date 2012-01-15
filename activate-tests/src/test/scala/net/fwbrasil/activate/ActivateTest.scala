@@ -37,6 +37,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 				step
 			} catch {
 				case e: FailureException =>
+					e.printStackTrace
 					throw new IllegalStateException(e.f + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 				case e =>
 					e.printStackTrace
@@ -49,7 +50,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 
 	case class OneTransaction(ctx: ActivateTestContext) extends StepExecutor {
 		import ctx._
-		val transaction = new Transaction 
+		val transaction = new Transaction
 		def apply[A](s: => A): A = execute {
 			transactional(transaction) {
 				s
@@ -85,14 +86,13 @@ trait ActivateTest extends SpecificationWithJUnit {
 		List(
 //			OneTransaction(ctx),
 //			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx)
-			)
+			MultipleTransactionsWithReinitialize(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
 //			memoryContext,
-						prevaylerContext//,
-//						oracleContext,
+			prevaylerContext//,
+			//						oracleContext,
 //			mysqlContext
 			)
 		ret.foreach(_.stop)
@@ -177,7 +177,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 				entity.dummy = true
 				entity
 			})
-		
+
 		val fullJodaInstantValue = new DateTime(78317811l)
 
 		def setFullEntity(entity: ActivateTestEntity) = {
@@ -236,23 +236,23 @@ trait ActivateTest extends SpecificationWithJUnit {
 		}
 
 		class ActivateTestEntity(
-			var dummy: Boolean = false,
-			var intValue: Int,
-			var booleanValue: Boolean,
-			var charValue: Char,
-			var stringValue: String,
-			var floatValue: Float,
-			var doubleValue: Double,
-			var bigDecimalValue: BigDecimal,
-			var dateValue: java.util.Date,
-			var jodaInstantValue: DateTime,
-			var calendarValue: java.util.Calendar,
-			var byteArrayValue: Array[Byte],
-			var entityValue: ActivateTestEntity,
-			var traitValue1: TraitAttribute,
-			var traitValue2: TraitAttribute,
-			var enumerationValue: EnumerationValue,
-			lazyValueValue: String) extends Entity {
+				var dummy: Boolean = false,
+				var intValue: Int,
+				var booleanValue: Boolean,
+				var charValue: Char,
+				var stringValue: String,
+				var floatValue: Float,
+				var doubleValue: Double,
+				var bigDecimalValue: BigDecimal,
+				var dateValue: java.util.Date,
+				var jodaInstantValue: DateTime,
+				var calendarValue: java.util.Calendar,
+				var byteArrayValue: Array[Byte],
+				var entityValue: ActivateTestEntity,
+				var traitValue1: TraitAttribute,
+				var traitValue2: TraitAttribute,
+				var enumerationValue: EnumerationValue,
+				lazyValueValue: String) extends Entity {
 			lazy val lazyValue: String = lazyValueValue
 		}
 

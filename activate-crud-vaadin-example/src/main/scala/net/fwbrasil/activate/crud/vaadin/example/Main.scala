@@ -8,13 +8,42 @@ import net.fwbrasil.thor.thorContext._
 import net.fwbrasil.activate.crud.vaadin._
 import java.util.Date
 import com.vaadin.terminal.UserError
-
-class NotEmpty
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.radon.ref.RefListener
+import net.fwbrasil.radon.ref.Ref
 
 class Pessoa extends Entity {
+
+	def nomeNotBlank = invariant(nome notBlank)
+	def nomeMaxLenght = invariant(nome maxLength(30))
 	var nome: String = _
 	var sobrenome: String = _
 	var nomeMae: String = _
+	
+	def nomeCompleto =
+		{
+			nome + sobrenome
+		} postCond(_.isEmpty)
+
+	override def delete =
+		preCond(nome != "flaviof") {
+			super.delete
+		}
+		
+}
+
+class AAA(val string: String) extends Entity {
+	def stringLenght = invariant(string length(20))
+}
+
+object Test extends App {
+	transactional {
+		val aaa = new AAA("a")
+		val pessoa = new Pessoa
+//		pessoa.nome = null
+//		pessoa.nomeCompleto
+		pessoa.delete
+	}
 }
 
 class Main extends Application {
@@ -27,7 +56,7 @@ class Main extends Application {
 }
 
 abstract class ActivateVaadinCrud[E <: Entity: Manifest] extends Window {
-	
+
 	implicit val transaction = new Transaction
 
 	val table = new Table("List", new EntityContainer[E])
@@ -136,7 +165,7 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest] extends Window {
 	super.addComponent(discardButton)
 	super.addComponent(deleteButton)
 
-	def transactionalNewEmptyEntity = 
+	def transactionalNewEmptyEntity =
 		transactional(transaction) {
 			newEmptyEntity
 		}

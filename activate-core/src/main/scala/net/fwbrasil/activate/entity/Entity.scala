@@ -8,7 +8,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection._
 
-trait Entity extends Serializable {
+trait Entity extends Serializable with ValidEntity {
 
 	def delete =
 		if (!isDeleted) {
@@ -147,6 +147,8 @@ class EntityMetadata(
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
 	val allMethods =
 		Reflection.getDeclaredMethodsIncludingSuperClasses(entityClass)
+	val invariantMethods =
+		allMethods.filter((method: Method) => method.getReturnType == classOf[Invariant] && method.getName != "invariant")
 	val varFields =
 		allFields.filter((field: Field) => classOf[Var[_]] == field.getType)
 	val idField =
@@ -158,8 +160,8 @@ class EntityMetadata(
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
 			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)
-	varFields.foreach(_.setAccessible(true))
-	idField.setAccessible(true)
+	allMethods.foreach(_.setAccessible(true))
+	allFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name
 }
 
@@ -199,8 +201,13 @@ object EntityHelper {
 	def getEntityClassHashId(entityClass: Class[_]): String =
 		getEntityClassHashId(getEntityName(entityClass))
 
-	def getEntityName(entityClass: Class[_]) =
-		entityClass.getSimpleName.split('$')(0)
+	def getEntityName(entityClass: Class[_]) = {
+		val annotation = entityClass.getAnnotation(classOf[EntityName])
+		if (annotation != null)
+			annotation.value
+		else 
+			entityClass.getSimpleName.split('$')(0)
+	}
 
 	def getEntityClassHashId(entityName: String): String =
 		Integer.toHexString(entityName.hashCode)
@@ -210,11 +217,12 @@ object EntityHelper {
 
 }
 
-trait EntityContext extends ValueContext with TransactionContext {
+trait EntityContext extends ValueContext with TransactionContext with ValidEntityContext {
 
 	private[activate] val liveCache: LiveCache
 
 	type Entity = net.fwbrasil.activate.entity.Entity
+	type Entityname = net.fwbrasil.activate.entity.EntityName
 
 	type Var[A] = net.fwbrasil.activate.entity.Var[A]
 

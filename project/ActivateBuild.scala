@@ -41,6 +41,9 @@ object ActivateBuild extends Build {
   	
   	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
 	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
+	
+	/* Mongo */
+	val casbah = "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
   	
   	/* Resolvers */
   	val customResolvers = Seq(
@@ -57,7 +60,8 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateCassandra, activateTests, activateCrudVaadin, activateCrudVaadinExample),
+    		    activateJdbc, activateCassandra, activateMongo, 
+    		    activateTests, activateCrudVaadin, activateCrudVaadinExample),
     		settings = commonSettings
     	)
 
@@ -102,6 +106,17 @@ object ActivateBuild extends Build {
 		    )
     	)             
 
+    lazy val activateMongo = 
+    	Project(
+    	    id = "activate-mongo",
+    	    base = file("activate-mongo"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(casbah)
+		    )
+    	)
+    	
     lazy val activateTests = 
 		Project(id = "activate-tests",
 			base = file("activate-tests"),

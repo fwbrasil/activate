@@ -10,35 +10,35 @@ import net.fwbrasil.activate.ActivateTest
 class QuerySpecs extends ActivateTest {
 
 	"Query framework" should {
-//		"support byId" in {
-//			activateTest(
-//				(step: StepExecutor) => {
-//					import step.ctx._
-//					val (fullId, emptyId) = step {
-//						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-//					}
-//					step {
-//						byId[ActivateTestEntity](fullId) must beSome
-//						byId[ActivateTestEntity](emptyId) must beSome
-//						byId[ActivateTestEntity]("89889089") must beNone
-//					}
-//				}
-//			)
-//		}
-//
-//		"support all" in {
-//			activateTest(
-//				(step: StepExecutor) => {
-//					import step.ctx._
-//					val (fullId, emptyId) = step {
-//						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-//					}
-//					step {
-//						all[ActivateTestEntity].size must beEqualTo(3)
-//					}
-//				}
-//			)
-//		}
+		"support byId" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val (fullId, emptyId) = step {
+						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+					}
+					step {
+						byId[ActivateTestEntity](fullId) must beSome
+						byId[ActivateTestEntity](emptyId) must beSome
+						byId[ActivateTestEntity]("89889089") must beNone
+					}
+				}
+			)
+		}
+
+		"support all" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val (fullId, emptyId) = step {
+						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+					}
+					step {
+						all[ActivateTestEntity].size must beEqualTo(3)
+					}
+				}
+			)
+		}
 
 		"support allWhere" in {
 			activateTest(

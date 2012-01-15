@@ -3,7 +3,6 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
-import net.fwbrasil.activate.util.TabbedToString
 
 class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		extends Ref[T](None)(_outerEntity.context)
