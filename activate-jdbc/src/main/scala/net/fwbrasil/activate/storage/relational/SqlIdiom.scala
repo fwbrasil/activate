@@ -141,8 +141,7 @@ abstract class SqlIdiom {
 
 	def toSqlQueryOrderBy(orderBy: Option[OrderBy])(implicit binds: MutableMap[StorageValue, String]): String = {
 		if (orderBy.isDefined)
-			" ORDER BY " + (for (criteria <- orderBy.get.criterias)
-				yield toSqlQuery(criteria)).mkString(", ")
+			" ORDER BY " + toSqlQuery(orderBy.get.criterias: _*)
 		else ""
 	}
 
