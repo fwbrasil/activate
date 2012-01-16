@@ -105,17 +105,15 @@ object Reflection {
 				case obj: Enumeration#Value =>
 					obj
 				case obj: Product =>
-					if (obj.isInstanceOf[ScalaObject])
-						obj
-					else {
-						val values =
-							for (elem <- obj.productElements.toList)
-								yield deepCopyMapping(elem, map)
-						val constructor = obj.getClass.getConstructors().head
-						val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
+					val values =
+						for (elem <- obj.productElements.toList)
+							yield deepCopyMapping(elem, map)
+					val constructor = obj.getClass.getConstructors().headOption
+					if (constructor.isDefined) {
+						val newInstance = constructor.get.newInstance(values.asInstanceOf[Seq[Object]]: _*)
 						map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
 						newInstance
-					}
+					} else null
 				case other =>
 					other
 			}).asInstanceOf[T]

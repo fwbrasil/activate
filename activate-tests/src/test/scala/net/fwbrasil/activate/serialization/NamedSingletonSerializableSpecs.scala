@@ -10,13 +10,15 @@ import net.fwbrasil.activate.util.RichList._
 @RunWith(classOf[JUnitRunner])
 class NamedSingletonSerializableSpecs extends Specification {
 
+	object lock
+
 	class NamedSingletonSerializableTest(val pName: String) extends NamedSingletonSerializable {
 		def name = pName
 	}
 
 	"NamedSingletonSerializable" should {
 		"be a singleton after serialization" in {
-			"one thread" in {
+			"one thread" in lock.synchronized {
 				val singleton = new NamedSingletonSerializableTest("1")
 				val serialized = javaSerializator.toSerialized(singleton)
 				val restored = javaSerializator.fromSerialized[NamedSingletonSerializableTest](serialized)
@@ -24,7 +26,7 @@ class NamedSingletonSerializableSpecs extends Specification {
 			}
 
 			"with many threads" in {
-				"deserialization" in {
+				"deserialization" in lock.synchronized {
 					new ActorDsl with ManyActors with OneActorPerThread {
 						val singleton = new NamedSingletonSerializableTest("2")
 						val serialized = javaSerializator.toSerialized(singleton)
@@ -37,7 +39,7 @@ class NamedSingletonSerializableSpecs extends Specification {
 					} must not beNull
 				}
 
-				"serialization" in {
+				"serialization" in lock.synchronized {
 					new ActorDsl with ManyActors with OneActorPerThread {
 						val singleton = new NamedSingletonSerializableTest("3")
 						val serializedList = inParallelActors {
@@ -48,7 +50,7 @@ class NamedSingletonSerializableSpecs extends Specification {
 					} must not beNull
 				}
 
-				"serialization and deserialization" in {
+				"serialization and deserialization" in lock.synchronized {
 					new ActorDsl with ManyActors with OneActorPerThread {
 						val singleton = new NamedSingletonSerializableTest("4")
 						val serializedList = inParallelActors {
@@ -63,7 +65,7 @@ class NamedSingletonSerializableSpecs extends Specification {
 					} must not beNull
 				}
 
-				"creation, serialization and deserialization" in {
+				"creation, serialization and deserialization" in lock.synchronized {
 					new ActorDsl with ManyActors with OneActorPerThread {
 						val singletonList = inParallelActors {
 							new NamedSingletonSerializableTest(Thread.currentThread.toString)
