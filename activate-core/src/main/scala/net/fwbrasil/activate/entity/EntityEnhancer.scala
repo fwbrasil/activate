@@ -53,7 +53,7 @@ object EntityEnhancer extends Logging {
 
 	def isScalaVariable(field: CtField) =
 		scalaVariables.filter((name: String) => field.getName.startsWith(name)).nonEmpty
-	
+
 	def isValidEntityField(field: CtField) =
 		validEntityFields.filter((name: String) => field.getName == name).nonEmpty
 
@@ -112,7 +112,7 @@ object EntityEnhancer extends Logging {
 						}
 					}
 				})
-				
+
 			for (c <- clazz.getConstructors) {
 				var replace = ""
 				for ((field, typ) <- enhancedFieldsMap) {

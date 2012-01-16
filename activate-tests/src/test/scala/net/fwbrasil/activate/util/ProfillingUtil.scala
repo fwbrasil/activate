@@ -7,7 +7,7 @@ object ProfillingUtil {
 		val start = System.currentTimeMillis
 		val result = f
 		val end = System.currentTimeMillis
-		println("Ended " + blockName + "(" + (end-start) + "ms)")
+		println("Ended " + blockName + "(" + (end - start) + "ms)")
 		result
 	}
 }

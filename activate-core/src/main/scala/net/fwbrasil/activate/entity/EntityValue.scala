@@ -20,7 +20,7 @@ case class StringEntityValue(override val value: Option[String])
 	extends EntityValue(value)
 
 case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val value: Option[E])
-	extends EntityValue[E](value) {
+		extends EntityValue[E](value) {
 	def enumerationManifest = manifest[E]
 	def enumerationClass = enumerationManifest.erasure
 }
@@ -41,7 +41,7 @@ case class CalendarEntityValue(override val value: Option[java.util.Calendar])
 	extends EntityValue(value)
 
 case class JodaInstantEntityValue[I <: AbstractInstant: Manifest](override val value: Option[I])
-	extends EntityValue[I](value) {
+		extends EntityValue[I](value) {
 	def instantClass = manifest[I].erasure
 }
 
@@ -49,113 +49,113 @@ case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
 	extends EntityValue(value)
 
 case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
-	extends EntityValue[E](value) {
+		extends EntityValue[E](value) {
 	def entityManifest = manifest[E]
 	def entityClass = entityManifest.erasure
 }
 
 case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[String])
-	extends EntityValue[String](value) {
+		extends EntityValue[String](value) {
 	def entityManifest = manifest[E]
 	def entityClass = entityManifest.erasure
 }
 
 object EntityValue extends ValueContext {
-  
+
 	private[activate] def tvalFunction[T](clazz: Class[_]): (Option[T]) => EntityValue[T] =
-		(if(clazz == classOf[Int])
+		(if (clazz == classOf[Int])
 			(value: Option[Int]) => toIntEntityValueOption(value)
-		else if(clazz == classOf[Boolean])
+		else if (clazz == classOf[Boolean])
 			(value: Option[Boolean]) => toBooleanEntityValueOption(value)
-		else if(clazz == classOf[Char])
+		else if (clazz == classOf[Char])
 			(value: Option[Char]) => toCharEntityValueOption(value)
-		else if(clazz == classOf[String])
+		else if (clazz == classOf[String])
 			(value: Option[String]) => toStringEntityValueOption(value)
-		else if(classOf[Enumeration#Value].isAssignableFrom(clazz))
+		else if (classOf[Enumeration#Value].isAssignableFrom(clazz))
 			(value: Option[Enumeration#Value]) => toEnumerationEntityValueOption(value)(manifestClass(clazz))
-		else if(clazz == classOf[Float])
+		else if (clazz == classOf[Float])
 			(value: Option[Float]) => toFloatEntityValueOption(value)
-		else if(clazz == classOf[Double])
+		else if (clazz == classOf[Double])
 			(value: Option[Double]) => toDoubleEntityValueOption(value)
-		else if(clazz == classOf[BigDecimal])
+		else if (clazz == classOf[BigDecimal])
 			(value: Option[BigDecimal]) => toBigDecimalEntityValueOption(value)
-		else if(clazz == classOf[java.util.Date])
+		else if (clazz == classOf[java.util.Date])
 			(value: Option[Date]) => toDateEntityValueOption(value)
-		else if(classOf[AbstractInstant].isAssignableFrom(clazz))
+		else if (classOf[AbstractInstant].isAssignableFrom(clazz))
 			(value: Option[AbstractInstant]) => toJodaInstantEntityValueOption(value)(manifestClass(clazz))
-		else if(clazz == classOf[java.util.Calendar])
+		else if (clazz == classOf[java.util.Calendar])
 			(value: Option[Calendar]) => toCalendarEntityValueOption(value)
-		else if(clazz == classOf[Array[Byte]])
+		else if (clazz == classOf[Array[Byte]])
 			(value: Option[Array[Byte]]) => toByteArrayEntityValueOption(value)
-		else if(classOf[Entity].isAssignableFrom(clazz))
+		else if (classOf[Entity].isAssignableFrom(clazz))
 			((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
-        else
-            ((value: Option[Object]) => (value match {
-              case value: Option[Int] => toIntEntityValueOption(value)
-              case value: Option[Boolean] => toBooleanEntityValueOption(value)
-              case value: Option[Char] => toCharEntityValueOption(value)
-              case value: Option[Float] => toFloatEntityValueOption(value)
-              case value: Option[Double] => toDoubleEntityValueOption(value)
-              case other => 
-              	throw new IllegalStateException("Invalid entity value.")
-            }).asInstanceOf[(T) => EntityValue[T]])).asInstanceOf[(Option[T]) => EntityValue[T]]
-			
+		else
+			((value: Option[Object]) => (value match {
+				case value: Option[Int] => toIntEntityValueOption(value)
+				case value: Option[Boolean] => toBooleanEntityValueOption(value)
+				case value: Option[Char] => toCharEntityValueOption(value)
+				case value: Option[Float] => toFloatEntityValueOption(value)
+				case value: Option[Double] => toDoubleEntityValueOption(value)
+				case other =>
+					throw new IllegalStateException("Invalid entity value.")
+			}).asInstanceOf[(T) => EntityValue[T]])).asInstanceOf[(Option[T]) => EntityValue[T]]
+
 }
-	
+
 trait ValueContext {
 
-	implicit def toIntEntityValue(value: Int) = 
+	implicit def toIntEntityValue(value: Int) =
 		toIntEntityValueOption(Option(value))
-	implicit def toBooleanEntityValue(value: Boolean) = 
+	implicit def toBooleanEntityValue(value: Boolean) =
 		toBooleanEntityValueOption(Option(value))
-	implicit def toCharEntityValue(value: Char) = 
+	implicit def toCharEntityValue(value: Char) =
 		toCharEntityValueOption(Option(value))
-	implicit def toStringEntityValue(value: String) = 
+	implicit def toStringEntityValue(value: String) =
 		toStringEntityValueOption(Option(value))
-	implicit def toEnumerationEntityValue[E <: Enumeration#Value: Manifest](value: E): EnumerationEntityValue[E] = 
+	implicit def toEnumerationEntityValue[E <: Enumeration#Value: Manifest](value: E): EnumerationEntityValue[E] =
 		toEnumerationEntityValueOption[E](Option(value))
-	implicit def toFloatEntityValue(value: Float) = 
+	implicit def toFloatEntityValue(value: Float) =
 		toFloatEntityValueOption(Option(value))
-	implicit def toDoubleEntityValue(value: Double) = 
+	implicit def toDoubleEntityValue(value: Double) =
 		toDoubleEntityValueOption(Option(value))
-	implicit def toBigDecimalEntityValue(value: BigDecimal) = 
+	implicit def toBigDecimalEntityValue(value: BigDecimal) =
 		toBigDecimalEntityValueOption(Option(value))
-	implicit def toDateEntityValue(value: java.util.Date) = 
+	implicit def toDateEntityValue(value: java.util.Date) =
 		toDateEntityValueOption(Option(value))
-	implicit def toJodaInstantEntityValue[I <: AbstractInstant: Manifest](value: I): JodaInstantEntityValue[I] = 
+	implicit def toJodaInstantEntityValue[I <: AbstractInstant: Manifest](value: I): JodaInstantEntityValue[I] =
 		toJodaInstantEntityValueOption(Option(value))
 	implicit def JodaInstant(value: java.util.Calendar) =
 		toCalendarEntityValueOption(Option(value))
-	implicit def toByteArrayEntityValue(value: Array[Byte]) = 
+	implicit def toByteArrayEntityValue(value: Array[Byte]) =
 		toByteArrayEntityValueOption(Option(value))
-	implicit def toEntityInstanceEntityValue[E <: Entity: Manifest](value: E) = 
+	implicit def toEntityInstanceEntityValue[E <: Entity: Manifest](value: E) =
 		toEntityInstanceEntityValueOption(Option(value))
-	
-	implicit def toIntEntityValueOption(value: Option[Int]) = 
+
+	implicit def toIntEntityValueOption(value: Option[Int]) =
 		IntEntityValue(value)
-	implicit def toBooleanEntityValueOption(value: Option[Boolean]) = 
+	implicit def toBooleanEntityValueOption(value: Option[Boolean]) =
 		BooleanEntityValue(value)
-	implicit def toCharEntityValueOption(value: Option[Char]) = 
+	implicit def toCharEntityValueOption(value: Option[Char]) =
 		CharEntityValue(value)
-	implicit def toStringEntityValueOption(value: Option[String]) = 
+	implicit def toStringEntityValueOption(value: Option[String]) =
 		StringEntityValue(value)
-	implicit def toEnumerationEntityValueOption[E <: Enumeration#Value: Manifest](value: Option[E]): EnumerationEntityValue[E] = 
+	implicit def toEnumerationEntityValueOption[E <: Enumeration#Value: Manifest](value: Option[E]): EnumerationEntityValue[E] =
 		EnumerationEntityValue[E](value)
-	implicit def toFloatEntityValueOption(value: Option[Float]) = 
+	implicit def toFloatEntityValueOption(value: Option[Float]) =
 		FloatEntityValue(value)
-	implicit def toDoubleEntityValueOption(value: Option[Double]) = 
+	implicit def toDoubleEntityValueOption(value: Option[Double]) =
 		DoubleEntityValue(value)
-	implicit def toBigDecimalEntityValueOption(value: Option[BigDecimal]) = 
+	implicit def toBigDecimalEntityValueOption(value: Option[BigDecimal]) =
 		BigDecimalEntityValue(value)
-	implicit def toDateEntityValueOption(value: Option[java.util.Date]) = 
+	implicit def toDateEntityValueOption(value: Option[java.util.Date]) =
 		DateEntityValue(value)
-	implicit def toJodaInstantEntityValueOption[I <: AbstractInstant: Manifest](value: Option[I]) = 
+	implicit def toJodaInstantEntityValueOption[I <: AbstractInstant: Manifest](value: Option[I]) =
 		JodaInstantEntityValue(value)
 	implicit def toCalendarEntityValueOption(value: Option[java.util.Calendar]) =
 		CalendarEntityValue(value)
-	implicit def toByteArrayEntityValueOption(value: Option[Array[Byte]]) = 
+	implicit def toByteArrayEntityValueOption(value: Option[Array[Byte]]) =
 		ByteArrayEntityValue(value)
-	implicit def toEntityInstanceEntityValueOption[E <: Entity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] = 
+	implicit def toEntityInstanceEntityValueOption[E <: Entity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] =
 		EntityInstanceEntityValue(value)
-	
+
 }

@@ -28,30 +28,30 @@ import net.fwbrasil.activate.entity.Entity
 import org.objenesis.ObjenesisHelper
 
 trait CassandraStorage extends MapStorage {
-	
+
 	val serializator: Serializator
 	val cassandraPort = 9160
 	val cassandraHost: String
 	val keyspace: String
-	
+
 	lazy val tr = {
 		val tr = new TSocket(cassandraHost, cassandraPort)
 		tr.open
 		tr
 	}
-    lazy val proto = new TBinaryProtocol(tr);
-    def client = new Cassandra.Client(proto);
-    
-    override def toStorage(assignments: Set[PropertyAssignment[Entity, Any]]): Unit = {
-    	this.synchronized{
-	    	for(PropertyAssignment(path, value) <- assignments) {
+	lazy val proto = new TBinaryProtocol(tr);
+	def client = new Cassandra.Client(proto);
+
+	override def toStorage(assignments: Set[PropertyAssignment[Entity, Any]]): Unit = {
+		this.synchronized {
+			for (PropertyAssignment(path, value) <- assignments) {
 				val colFamily = path.entityClass.getCanonicalName
-		    	val colPath = new ColumnPath(colFamily);
-		        colPath.setColumn(serializator.toSerialized(path.propertyName));
-		        val timestamp = System.currentTimeMillis();
-		        val serialized = serializator.toSerialized(value)
-//		        client.insert(keyspace, path.entityId, colPath, serialized, timestamp, ConsistencyLevel.ONE);
-	    	}
-    	}
-    }
+				val colPath = new ColumnPath(colFamily);
+				colPath.setColumn(serializator.toSerialized(path.propertyName));
+				val timestamp = System.currentTimeMillis();
+				val serialized = serializator.toSerialized(value)
+				//		        client.insert(keyspace, path.entityId, colPath, serialized, timestamp, ConsistencyLevel.ONE);
+			}
+		}
+	}
 }

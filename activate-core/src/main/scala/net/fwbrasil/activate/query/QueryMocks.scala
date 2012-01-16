@@ -26,7 +26,7 @@ object QueryMocks {
 	}
 
 	class FakeVarToQuery[P]
-		extends Var[P](null, null, null) {
+			extends Var[P](null, null, null) {
 
 		def entityValueMock =
 			(EntityValue.tvalFunction(fakeValueClass))(None).asInstanceOf[EntityValue[P]]
@@ -60,8 +60,8 @@ object QueryMocks {
 			case "[B" => Array[Byte]()
 			case other =>
 				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {
-//					val enumeration = get(clazz, "$outer").asInstanceOf[Enumeration]
-//					enumeration(0)
+					//					val enumeration = get(clazz, "$outer").asInstanceOf[Enumeration]
+					//					enumeration(0)
 					null
 				} else
 					newInstance(clazz)
@@ -98,5 +98,5 @@ object QueryMocks {
 
 	def mockVar =
 		newInstance(classOf[FakeVarToQuery[_]]).asInstanceOf[FakeVarToQuery[_]]
-	
+
 }

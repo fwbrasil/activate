@@ -22,10 +22,10 @@ object From {
 		entitySourceMap.get += (entity -> EntitySource(clazz, nextAlias))
 	private[this] def entitySources = entitySourceMap.get.values.toList
 	def from =
-		From(entitySources :_*)
-	def clear = 
+		From(entitySources: _*)
+	def clear =
 		entitySourceMap.get.clear
-		
+
 	def runAndClearFrom[S](f: => Query[S]) = {
 		val old = entitySourceMap.get.clone
 		clear

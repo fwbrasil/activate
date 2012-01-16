@@ -6,11 +6,11 @@ import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
 class GraphUtilSpecs extends Specification {
-	
+
 	import GraphUtil._
-	
+
 	"DependencyTree" should {
-		
+
 		"resolve" in {
 			"one root" in {
 				testResolve(
@@ -70,7 +70,7 @@ class GraphUtilSpecs extends Specification {
 				) must beEqualTo(List(null, "a"))
 			}
 		}
-		
+
 		"detect cyclic reference" in {
 			"with root" in {
 				testResolve(
@@ -83,7 +83,7 @@ class GraphUtilSpecs extends Specification {
 					"a", "b", "c", "d"
 				) must throwA[IllegalStateException]
 			}
-			
+
 			"with roots" in {
 				testResolve(
 					List(
@@ -96,7 +96,7 @@ class GraphUtilSpecs extends Specification {
 					"a", "b", "c", "d", "f"
 				) must throwA[IllegalStateException]
 			}
-			
+
 			"without roots" in {
 				testResolve(
 					List(
@@ -120,15 +120,14 @@ class GraphUtilSpecs extends Specification {
 					"room", "event", "seat1", "ticket1", "seat2", "ticket2"
 				) must beEqualTo(List("room", "event", "seat1", "ticket1", "seat2", "ticket2"))
 			}
-			
+
 		}
-		
-		
+
 	}
-	
+
 	def testResolve[A: Manifest](edges: List[(A, A)], set: A*) = {
 		val tree = new DependencyTree[A](set.toSet)
-		for((a,b) <- edges)
+		for ((a, b) <- edges)
 			tree.addDependency(a, b)
 		tree.resolve
 	}

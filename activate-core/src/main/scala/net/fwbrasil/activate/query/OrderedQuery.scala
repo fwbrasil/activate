@@ -45,8 +45,8 @@ case class OrderByWrapper[S](query: Query[S]) {
 			ordering,
 			value1,
 			value2,
-			value3)		
-			
+			value3)
+
 	def orderBy[T1, T2, T3, T4](
 		value1: OrderByCriteria[T1],
 		value2: OrderByCriteria[T2],
@@ -57,8 +57,8 @@ case class OrderByWrapper[S](query: Query[S]) {
 			value1,
 			value2,
 			value3,
-			value4)				
-			
+			value4)
+
 	private[this] def orderedQuery(ordering: Ordering[_], values: OrderByCriteria[_]*): Query[S] =
 		OrderedQuery[S](query.from, query.where, query.select, OrderBy(ordering, values: _*))
 }

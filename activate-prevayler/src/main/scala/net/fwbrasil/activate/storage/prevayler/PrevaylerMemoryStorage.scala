@@ -24,7 +24,7 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
 		factory.configurePrevalenceDirectory(name)
-//		factory.configureTransientMode(true)
+		//		factory.configureTransientMode(true)
 		prevayler = factory.create
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 	}
@@ -32,7 +32,7 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	override def reinitialize =
 		initialize
 
-	 override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
+	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
 		val inserts =
 			for ((entity, propertyMap) <- insertMap)
 				yield (entity.id -> propertyMap.filter(_._1 != "id"))
@@ -82,11 +82,11 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			liveCache.delete(delete)
 		}
 
-		def materializeEntity(entityId: String) = {
-			val entity = liveCache.materializeEntity(entityId)
-			storage += (entity.id -> entity)
-			entity
-		}
+			def materializeEntity(entityId: String) = {
+				val entity = liveCache.materializeEntity(entityId)
+				storage += (entity.id -> entity)
+				entity
+			}
 
 	}
 }

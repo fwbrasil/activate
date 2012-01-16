@@ -38,44 +38,43 @@ case class IsSome(valueA: QueryValue) extends SimpleOperator {
 	override def toString = "isNotNull"
 }
 
-case class IsEqualTo(valueA : QueryValue) extends CompositeOperator {
+case class IsEqualTo(valueA: QueryValue) extends CompositeOperator {
 	def :==(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":=="
 }
 
 class ComparationOperator() extends CompositeOperator
 
-case class IsGreaterThan(valueA : QueryValue) extends ComparationOperator {
+case class IsGreaterThan(valueA: QueryValue) extends ComparationOperator {
 	def :>(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":>"
 }
 
-case class IsLessThan(valueA : QueryValue) extends ComparationOperator {
+case class IsLessThan(valueA: QueryValue) extends ComparationOperator {
 	def :<(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":<"
 }
 
-case class IsGreaterOrEqualTo(valueA : QueryValue) extends ComparationOperator {
+case class IsGreaterOrEqualTo(valueA: QueryValue) extends ComparationOperator {
 	def :>=(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":>="
 }
 
-case class IsLessOrEqualTo(valueA : QueryValue) extends ComparationOperator {
+case class IsLessOrEqualTo(valueA: QueryValue) extends ComparationOperator {
 	def :<=(valueB: QueryValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":<="
 }
 
 abstract class BooleanOperator() extends CompositeOperator
 
-case class And(valueA : QueryBooleanValue) extends BooleanOperator {
+case class And(valueA: QueryBooleanValue) extends BooleanOperator {
 	def :&&(valueB: QueryBooleanValue) = BooleanOperatorCriteria(valueA, this, valueB)
 	override def toString = "and"
 }
-case class Or(valueA : QueryBooleanValue) extends BooleanOperator {
+case class Or(valueA: QueryBooleanValue) extends BooleanOperator {
 	def :||(valueB: QueryBooleanValue) = BooleanOperatorCriteria(valueA, this, valueB)
 	override def toString = "or"
 }
-
 
 abstract class Criteria() extends QueryBooleanValue
 
@@ -91,50 +90,39 @@ case class BooleanOperatorCriteria(valueA: QueryBooleanValue, operator: BooleanO
 }
 
 case class Where(value: Criteria) {
-	
-	private[activate] def selectList
-	          (list: List[QuerySelectValue[_]]) = 
-		Query[Product](From.from, 
-				  this, 
-				  Select(list: _*))
-	
-	def select[V1, T1 <% QuerySelectValue[V1]]
-	          (tuple: T1) = 
-		Query[Tuple1[Option[V1]]](From.from, 
-				  this, 
-				  Select(tuple))
-		
-	def select[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2]]
-	          (tuple: Tuple2[T1, T2]) = 
+
+	private[activate] def selectList(list: List[QuerySelectValue[_]]) =
+		Query[Product](From.from,
+			this,
+			Select(list: _*))
+
+	def select[V1, T1 <% QuerySelectValue[V1]](tuple: T1) =
+		Query[Tuple1[Option[V1]]](From.from,
+			this,
+			Select(tuple))
+
+	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2]](tuple: Tuple2[T1, T2]) =
 		Query[Tuple2[Option[V1], Option[V2]]](
-				From.from, 
-				this, 
-				Select(tuple._1, 
-					   tuple._2))
-	
-	def select[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2],
-	           V3, T3 <% QuerySelectValue[V3]]
-	          (tuple: Tuple3[T1, T2, T3]) = 
+			From.from,
+			this,
+			Select(tuple._1,
+				tuple._2))
+
+	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2], V3, T3 <% QuerySelectValue[V3]](tuple: Tuple3[T1, T2, T3]) =
 		Query[Tuple3[Option[V1], Option[V2], Option[V3]]](
-				From.from, 
-				this, 
-				Select(tuple._1, 
-					   tuple._2,
-					   tuple._3))
-	
-	def select[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2],
-	           V3, T3 <% QuerySelectValue[V3],
-	           V4, T4 <% QuerySelectValue[V4]]
-	          (tuple: Tuple4[T1, T2, T3, T4]) = 
+			From.from,
+			this,
+			Select(tuple._1,
+				tuple._2,
+				tuple._3))
+
+	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2], V3, T3 <% QuerySelectValue[V3], V4, T4 <% QuerySelectValue[V4]](tuple: Tuple4[T1, T2, T3, T4]) =
 		Query[Tuple4[Option[V1], Option[V2], Option[V3], Option[V4]]](
-				From.from, 
-				this, 
-				Select(tuple._1, 
-					   tuple._2,
-					   tuple._3,
-					   tuple._4)) 
+			From.from,
+			this,
+			Select(tuple._1,
+				tuple._2,
+				tuple._3,
+				tuple._4))
 	override def toString = value.toString
 }

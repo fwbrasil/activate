@@ -59,8 +59,8 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue :== fullDateValue,
 							_.calendarValue :== fullCalendarValue,
 							_.entityValue :== fullEntityValue //,
-							//							_.enumerationValue :== fullEnumerationValue
-							).size must beEqualTo(1)
+						//							_.enumerationValue :== fullEnumerationValue
+						).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isSome,
@@ -74,8 +74,8 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue isSome,
 							_.byteArrayValue isSome,
 							_.entityValue isSome //,
-							//							_.enumerationValue isSome
-							).size must beEqualTo(1)
+						//							_.enumerationValue isSome
+						).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNone,
@@ -83,14 +83,14 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue isNone,
 							_.calendarValue isNone,
 							_.entityValue isNone //,
-							//							_.enumerationValue isNone
-							).size must beEqualTo(2)
+						//							_.enumerationValue isNone
+						).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
 							_.entityValue isNone,
 							_.charValue :== 'A' //, 
-							//							_.enumerationValue isNone
-							).headOption must beNone
+						//							_.enumerationValue isNone
+						).headOption must beNone
 					}
 				})
 		}

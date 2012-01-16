@@ -13,21 +13,21 @@ class IdableSpecs extends Specification {
 			val idable = new Idable {}
 			idable.id must not be null and not be empty
 		}
-		
+
 		"have a creationTimestamp" in {
 			val idable = new Idable {}
 			idable.creationTimestamp > 0 must beTrue
 		}
-		
+
 		"have a creationDate" in {
 			val idable = new Idable {}
 			idable.creationDate must not be null
 		}
-		
+
 		"have a creationTimestamp equal to creationDate" in {
 			val idable = new Idable {}
 			idable.creationDate.getTime must beEqualTo(idable.creationTimestamp)
 		}
-		
+
 	}
 }

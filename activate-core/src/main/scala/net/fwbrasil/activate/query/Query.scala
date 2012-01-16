@@ -60,13 +60,11 @@ case class Query[S](from: From, where: Where, select: Select) {
 	}
 
 	private[activate] def orderByClause: Option[OrderBy] = None
-	
+
 	override def toString = from + " => where" + where + " select " + select + ""
 }
 
 case class Select(values: QuerySelectValue[_]*) {
 	override def toString = "(" + values.mkString(", ") + ")"
 }
-
-
 

@@ -10,14 +10,14 @@ import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.{ Set => MutableSet, Map => MutableMap }
 
 trait Storage {
-	
+
 	def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Var[Any], EntityValue[Any]]): Unit
 	def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
 		List()
-	
+
 	def isMemoryStorage = false
 	def reinitialize = {
-		
+
 	}
 
 }

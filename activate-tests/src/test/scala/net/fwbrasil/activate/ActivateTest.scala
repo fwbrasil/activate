@@ -92,9 +92,9 @@ trait ActivateTest extends SpecificationWithJUnit {
 		val ret = List[ActivateTestContext](
 			memoryContext,
 			prevaylerContext,
-//									oracleContext,
+			//									oracleContext,
 			mysqlContext
-			)
+		)
 		ret.foreach(_.stop)
 		ret
 	}

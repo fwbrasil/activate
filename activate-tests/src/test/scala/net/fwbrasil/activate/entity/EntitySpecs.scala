@@ -67,7 +67,7 @@ class EntitySpecs extends ActivateTest {
 				}
 			)
 		}
-		
+
 	}
 
 }

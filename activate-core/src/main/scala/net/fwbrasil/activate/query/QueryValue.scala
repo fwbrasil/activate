@@ -74,9 +74,9 @@ case class QueryEntitySourceValue[V](val entitySource: EntitySource) extends Que
 
 case class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySource, val propertyPathVars: Var[_]*) extends QueryEntitySourceValue[P](entitySource) {
 	def lastVar = propertyPathVars.last
-	def propertyPathNames = 
-			for(prop <- propertyPathVars) 
-					yield prop.name
+	def propertyPathNames =
+		for (prop <- propertyPathVars)
+			yield prop.name
 	override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
 }
 

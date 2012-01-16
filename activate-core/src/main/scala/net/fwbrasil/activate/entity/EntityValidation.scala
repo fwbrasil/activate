@@ -43,7 +43,7 @@ trait ValidEntity {
 	private[activate] lazy val invariants = {
 		initializeListener
 		val metadata = EntityHelper.getEntityMetadata(this.getClass)
-		for(method <- metadata.invariantMethods)
+		for (method <- metadata.invariantMethods)
 			yield (method.getName, method.invoke(this).asInstanceOf[Invariant].f)
 	}
 

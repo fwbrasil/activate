@@ -205,7 +205,7 @@ object EntityHelper {
 		val annotation = entityClass.getAnnotation(classOf[EntityName])
 		if (annotation != null)
 			annotation.value
-		else 
+		else
 			entityClass.getSimpleName.split('$')(0)
 	}
 

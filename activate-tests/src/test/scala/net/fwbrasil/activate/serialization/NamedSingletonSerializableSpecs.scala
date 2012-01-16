@@ -9,7 +9,7 @@ import net.fwbrasil.activate.util.RichList._
 
 @RunWith(classOf[JUnitRunner])
 class NamedSingletonSerializableSpecs extends Specification {
- 
+
 	class NamedSingletonSerializableTest(val pName: String) extends NamedSingletonSerializable {
 		def name = pName
 	}
@@ -69,17 +69,17 @@ class NamedSingletonSerializableSpecs extends Specification {
 							new NamedSingletonSerializableTest(Thread.currentThread.toString)
 						}
 						val serializedList = inParallelActors {
-							for(singleton <- singletonList)
+							for (singleton <- singletonList)
 								yield javaSerializator.toSerialized(singleton)
 						}.flatten
 						val restoredList = inParallelActors {
-							for(serialized <- serializedList)
+							for (serialized <- serializedList)
 								yield javaSerializator.fromSerialized[NamedSingletonSerializableTest](serialized)
 						}.flatten
 						singletonList.toSet must beEqualTo(restoredList.toSet)
 					} must not beNull
 				}
-			} 
+			}
 		}
 	}
 

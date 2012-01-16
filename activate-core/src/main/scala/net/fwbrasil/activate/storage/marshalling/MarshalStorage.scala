@@ -16,7 +16,7 @@ trait MarshalStorage extends Storage {
 		val deleteMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
 		val insertMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
 		val updateMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
-		
+
 		for ((ref, value) <- deletes) {
 			val entity = ref.outerEntity
 			val propertyName = ref.name
@@ -48,7 +48,6 @@ trait MarshalStorage extends Storage {
 			}
 		}
 
-		
 		store(insertMap.mapValues(_.toMap).toMap, updateMap.mapValues(_.toMap).toMap, deleteMap.mapValues(_.toMap).toMap)
 	}
 

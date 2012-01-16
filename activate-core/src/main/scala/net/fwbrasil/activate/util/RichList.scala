@@ -7,27 +7,27 @@ case class RichList[T: Manifest](list: List[T]) {
 	def sortComparable[V](f: (T) => Comparable[V]) =
 		list.sortWith((a: T, b: T) => f(a).compareTo(f(b).asInstanceOf[V]) < 0)
 	def sortIfComparable =
-		if(classOf[Comparable[_]].isAssignableFrom(manifest[T].erasure))
+		if (classOf[Comparable[_]].isAssignableFrom(manifest[T].erasure))
 			sortComparable[Any]((v: T) => v.asInstanceOf[Comparable[Any]])
 	def randomElementOption =
-		if(list.nonEmpty)
+		if (list.nonEmpty)
 			Option(list(Random.nextInt(list.size)))
 		else None
 	def onlyOne =
-		if(list.size!=1)
+		if (list.size != 1)
 			throw new IllegalStateException("List hasn't one element.")
 		else
 			list.head
 	def collect[R](func: (T) => R) =
-		for(elem <- list)
+		for (elem <- list)
 			yield func(elem)
 	def select(func: (T) => Boolean) =
-		for(elem <- list; if(func(elem)))
+		for (elem <- list; if (func(elem)))
 			yield elem
 }
 
 object RichList {
 	implicit def toRichList[T: Manifest](list: List[T]) = RichList(list)
 	implicit def toRichList[T: Manifest](list: Seq[T]) = RichList(list.toList)
-	
+
 }

@@ -28,10 +28,10 @@ object QueryNormalizer {
 
 	def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
 		var count = 0
-		def nextNumber = {
-			count += 1
-			count
-		}
+			def nextNumber = {
+				count += 1
+				count
+			}
 		val nestedProperties = findObject[QueryEntitySourcePropertyValue[_]](query) {
 			(obj: Any) =>
 				obj match {
@@ -72,7 +72,7 @@ object QueryNormalizer {
 				} else
 					nested.entitySource
 			if (i != 0) {
-				criterias += (IsEqualTo(QueryEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i-1))) :== QueryEntitySourceValue(entitySource))
+				criterias += (IsEqualTo(QueryEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== QueryEntitySourceValue(entitySource))
 				entitySources += entitySource
 			}
 		}

@@ -40,7 +40,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def byId[T <: Entity: Manifest](id: String): Option[T] =
 		entityInstacesMap(manifest[T].erasure.asInstanceOf[Class[E]]).get(id).asInstanceOf[Option[T]]
-	
+
 	def contains(entity: E) =
 		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).contains(entity.id)
 
@@ -74,7 +74,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def isQueriable(entity: Entity) =
 		/*(storage.isMemoryStorage || !entity.isPersisted) &&*/ entity.isInitialized && !entity.isDeleted
-	
+
 	def fromCache(entityClass: Class[E]) = {
 		val entities = entityInstacesMap(entityClass).values.filter((entity: Entity) => isQueriable(entity)).toList
 		if (!storage.isMemoryStorage)
@@ -239,7 +239,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				case (a, b) =>
 					valueForEquals(a).equals(valueForEquals(b))
 			}
-	
 
 	def valueForEquals(a: Any) =
 		a match {

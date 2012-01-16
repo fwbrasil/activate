@@ -82,9 +82,9 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 		ListBuffer() ++ (
 			transactional(transaction) {
 				(query {
-					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id) 
-				}).execute.map(_._1.get) 
-			} 
+					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id)
+				}).execute.map(_._1.get)
+			}
 		)
 
 	override def getItem(itemId: Any): Item =
@@ -93,7 +93,7 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 				val clazz = EntityHelper.getEntityClassFromId(itemId.asInstanceOf[String])
 				new EntityItem(byId(itemId.asInstanceOf[String]).get)(transaction, manifestClass(clazz))
 			})
-			
+
 	def teste: (String, Int) = ("a", 1)
 
 	override def getContainerPropertyIds: Collection[_] =

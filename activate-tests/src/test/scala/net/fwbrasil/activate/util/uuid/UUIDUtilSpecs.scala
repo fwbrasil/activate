@@ -24,24 +24,24 @@ class UUIDUtilSpecs extends Specification {
 			} must not beNull
 		}
 
-//		"generate unique hascodes from UUIDs" in ProfillingUtil.profile("generate") {
-//			new ActorDsl with ManyActors with OneActorPerThread {
-//				override lazy val actorsPoolSize = 200
-//				val loops = 20
-//				val ids =
-//					(for (i <- 0 until loops) yield ProfillingUtil.profile("group: " + i) {
-//						val ids = inParallelActors {
-//							UUIDUtil.generateUUID.hashCode
-//						}
-//						ids.toSet.size must beEqualTo(actorsPoolSize)
-//						ids
-//					}).flatten
-//
-//				inMainActor {
-//					ids.toSet.size must beEqualTo(actorsPoolSize * loops)
-//				}
-//			} must not beNull
-//		}
+		//		"generate unique hascodes from UUIDs" in ProfillingUtil.profile("generate") {
+		//			new ActorDsl with ManyActors with OneActorPerThread {
+		//				override lazy val actorsPoolSize = 200
+		//				val loops = 20
+		//				val ids =
+		//					(for (i <- 0 until loops) yield ProfillingUtil.profile("group: " + i) {
+		//						val ids = inParallelActors {
+		//							UUIDUtil.generateUUID.hashCode
+		//						}
+		//						ids.toSet.size must beEqualTo(actorsPoolSize)
+		//						ids
+		//					}).flatten
+		//
+		//				inMainActor {
+		//					ids.toSet.size must beEqualTo(actorsPoolSize * loops)
+		//				}
+		//			} must not beNull
+		//		}
 
 	}
 }

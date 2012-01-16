@@ -1,17 +1,17 @@
 package net.fwbrasil.activate
- 
+
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
-class CRUDSpecs extends ActivateTest {  
- 
+class CRUDSpecs extends ActivateTest {
+
 	"Activate perssitence framework" should {
 		"support CRUD" in {
 			"create and retreive" in {
 				activateTest(
-					(step: StepExecutor) => {  
+					(step: StepExecutor) => {
 						import step.ctx._
 						val (fullId, emptyId) = step {
 							(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
@@ -23,7 +23,7 @@ class CRUDSpecs extends ActivateTest {
 							validateFullTestEntity(entity = fullEntity)
 						}
 					}
-				) 
+				)
 			}
 
 			"create, update and retreive" in {
@@ -81,7 +81,7 @@ class CRUDSpecs extends ActivateTest {
 					}
 				)
 			}
-			
+
 		}
 	}
 
