@@ -84,16 +84,16 @@ trait ActivateTest extends SpecificationWithJUnit {
 
 	def executors(ctx: ActivateTestContext): List[StepExecutor] =
 		List(
-//			OneTransaction(ctx),
-//			MultipleTransactions(ctx),
+			OneTransaction(ctx),
+			MultipleTransactions(ctx),
 			MultipleTransactionsWithReinitialize(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
-//			memoryContext,
-			prevaylerContext//,
-			//						oracleContext,
-//			mysqlContext
+			memoryContext,
+			prevaylerContext,
+//									oracleContext,
+			mysqlContext
 			)
 		ret.foreach(_.stop)
 		ret

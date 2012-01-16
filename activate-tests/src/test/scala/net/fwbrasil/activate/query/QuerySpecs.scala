@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import org.joda.time.DateTime
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -22,8 +23,7 @@ class QuerySpecs extends ActivateTest {
 						byId[ActivateTestEntity](emptyId) must beSome
 						byId[ActivateTestEntity]("89889089") must beNone
 					}
-				}
-			)
+				})
 		}
 
 		"support all" in {
@@ -36,8 +36,7 @@ class QuerySpecs extends ActivateTest {
 					step {
 						all[ActivateTestEntity].size must beEqualTo(3)
 					}
-				}
-			)
+				})
 		}
 
 		"support allWhere" in {
@@ -59,9 +58,9 @@ class QuerySpecs extends ActivateTest {
 							_.bigDecimalValue :== fullBigDecimalValue,
 							_.dateValue :== fullDateValue,
 							_.calendarValue :== fullCalendarValue,
-							_.entityValue :== fullEntityValue//,
-//							_.enumerationValue :== fullEnumerationValue
-						).size must beEqualTo(1)
+							_.entityValue :== fullEntityValue //,
+							//							_.enumerationValue :== fullEnumerationValue
+							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isSome,
@@ -74,27 +73,26 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue isSome,
 							_.calendarValue isSome,
 							_.byteArrayValue isSome,
-							_.entityValue isSome//,
-//							_.enumerationValue isSome
-						).size must beEqualTo(1)
+							_.entityValue isSome //,
+							//							_.enumerationValue isSome
+							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNone,
 							_.bigDecimalValue isNone,
 							_.dateValue isNone,
 							_.calendarValue isNone,
-							_.entityValue isNone//,
-//							_.enumerationValue isNone
-						).size must beEqualTo(2)
+							_.entityValue isNone //,
+							//							_.enumerationValue isNone
+							).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
-							_.entityValue isNone, 
-							_.charValue :== 'A'//, 
-//							_.enumerationValue isNone
-						).headOption must beNone
+							_.entityValue isNone,
+							_.charValue :== 'A' //, 
+							//							_.enumerationValue isNone
+							).headOption must beNone
 					}
-				}
-			)
+				})
 		}
 
 		"support simple query" in {
@@ -122,8 +120,7 @@ class QuerySpecs extends ActivateTest {
 							(e: ActivateTestEntity) => where(e.stringValue isSome) select (e)
 						}.execute.headOption must beSome
 					}
-				}
-			)
+				})
 		}
 
 		"support query with or" in {
@@ -145,8 +142,7 @@ class QuerySpecs extends ActivateTest {
 								where((e.booleanValue :== true) :|| (e.charValue :== fullCharValue)) select (e)
 						}.execute.size must beEqualTo(1)
 					}
-				}
-			)
+				})
 		}
 
 		"support query with and" in {
@@ -168,8 +164,7 @@ class QuerySpecs extends ActivateTest {
 								where((e.booleanValue isSome) :&& (e.stringValue isSome)) select (e)
 						}.execute.size must beEqualTo(1)
 					}
-				}
-			)
+				})
 		}
 
 		"support query with > and <" in {
@@ -201,8 +196,7 @@ class QuerySpecs extends ActivateTest {
 								where(e.intValue :> fullIntValue) select (e)
 						}.execute.size must beEqualTo(0)
 					}
-				}
-			)
+				})
 		}
 
 		"support query with >= and <=" in {
@@ -249,8 +243,7 @@ class QuerySpecs extends ActivateTest {
 								where(e.intValue :>= fullIntValue) select (e)
 						}.execute.size must beEqualTo(1)
 					}
-				}
-			)
+				})
 		}
 
 		"support query with abstract entity" in {
@@ -260,10 +253,9 @@ class QuerySpecs extends ActivateTest {
 					step {
 						all[TraitAttribute].size must beEqualTo(2)
 					}
-				}
-			)
+				})
 		}
-		
+
 		"support query with nested property" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -274,8 +266,8 @@ class QuerySpecs extends ActivateTest {
 					step {
 						allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
 					}
-				}
-			)
+				})
 		}
+
 	}
 }

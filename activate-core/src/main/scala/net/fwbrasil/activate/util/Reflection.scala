@@ -105,13 +105,17 @@ object Reflection {
 				case obj: Enumeration#Value =>
 					obj
 				case obj: Product =>
-					val values =
-						for (elem <- obj.productElements.toList)
-							yield deepCopyMapping(elem, map)
-					val constructor = obj.getClass.getConstructors().head
-					val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
-					map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
-					newInstance
+					if (obj.isInstanceOf[ScalaObject])
+						obj
+					else {
+						val values =
+							for (elem <- obj.productElements.toList)
+								yield deepCopyMapping(elem, map)
+						val constructor = obj.getClass.getConstructors().head
+						val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
+						map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
+						newInstance
+					}
 				case other =>
 					other
 			}).asInstanceOf[T]
@@ -128,7 +132,7 @@ object Reflection {
 			paramTypes.size == 1 && paramTypes.head.toString == "long"
 		}).get
 		val params: Seq[Object] = Seq(date.getTime.asInstanceOf[Object])
-		val materialized = constructor.newInstance(params:_*)
+		val materialized = constructor.newInstance(params: _*)
 		materialized.asInstanceOf[AbstractInstant]
 	}
 }

@@ -5,7 +5,7 @@ import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
 
-trait QueryContext extends QueryValueContext with OperatorContext {
+trait QueryContext extends QueryValueContext with OperatorContext with OrderedQueryContext {
 
 	private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
 		runAndClearFrom {
@@ -59,47 +59,14 @@ case class Query[S](from: From, where: Where, select: Select) {
 		context.executeQuery(this)
 	}
 
-
-	def orderBy[V1, T1 <% QuerySelectValue[V1]]
-	          (tuple: T1) =
-      	orderedQuery(Tuple1(tuple))
-		
-	def orderBy[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2]]
-	          (tuple: Tuple2[T1, T2]) = 
-		orderedQuery(tuple)
-	
-	def orderBy[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2],
-	           V3, T3 <% QuerySelectValue[V3]]
-	          (tuple: Tuple3[T1, T2, T3]) = 
-		orderedQuery(tuple)
-	
-	def orderBy[V1, T1 <% QuerySelectValue[V1], 
-	           V2, T2 <% QuerySelectValue[V2],
-	           V3, T3 <% QuerySelectValue[V3],
-	           V4, T4 <% QuerySelectValue[V4]]
-	          (tuple: Tuple4[T1, T2, T3, T4]) = 
-		orderedQuery(tuple)
-		
-	private[this] def orderedQuery(tuple: Product) = {
-		val values = tuple.productElements.toList.asInstanceOf[List[QuerySelectValue[_]]]
-		OrderedQuery[S](from, where, select, OrderBy(values:_*))
-	}
+	private[activate] def orderByClause: Option[OrderBy] = None
 	
 	override def toString = from + " => where" + where + " select " + select + ""
-}
-
-case class OrderedQuery[S](override val from: From, override val where: Where, override val select: Select, orderBy: OrderBy)
-	extends Query[S](from, where, select) {
-	override def toString = super.toString + orderBy.toString
 }
 
 case class Select(values: QuerySelectValue[_]*) {
 	override def toString = "(" + values.mkString(", ") + ")"
 }
 
-case class OrderBy(values: QuerySelectValue[_]*) {
-	override def toString = " orderBy (" + values.mkString(", ") + ")"
-}
+
 

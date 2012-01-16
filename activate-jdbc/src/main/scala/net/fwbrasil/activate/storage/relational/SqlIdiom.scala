@@ -69,14 +69,14 @@ abstract class SqlIdiom {
 				setValue(ps, (v: String) => ps.setString(i, v), i, value.value, Types.VARCHAR)
 		}
 	}
-	
+
 	protected def getValue[A](resultSet: ResultSet, f: => A): Option[A] = {
-			val value = f
-			if (resultSet.wasNull)
-				None
-			else
-				Option(value)
-		}
+		val value = f
+		if (resultSet.wasNull)
+			None
+		else
+			Option(value)
+	}
 
 	def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
 		storageValue match {
@@ -130,13 +130,33 @@ abstract class SqlIdiom {
 
 	def toSqlQuery(query: Query[_]): SqlStatement = {
 		implicit val binds = MutableMap[StorageValue, String]()
+
 		SqlStatement("SELECT DISTINCT " + toSqlQuery(query.select) +
-			" FROM " + toSqlQuery(query.from) + " WHERE " + toSqlQuery(query.where), (Map() ++ binds) map { _.swap })
+			" FROM " + toSqlQuery(query.from) + " WHERE " + toSqlQuery(query.where) + toSqlQueryOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
 	}
 
 	def toSqlQuery(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
 		(for (value <- select.values)
 			yield toSqlQuerySelect(value)).mkString(", ");
+
+	def toSqlQueryOrderBy(orderBy: Option[OrderBy])(implicit binds: MutableMap[StorageValue, String]): String = {
+		if (orderBy.isDefined)
+			" ORDER BY " + (for (criteria <- orderBy.get.criterias)
+				yield toSqlQuery(criteria)).mkString(", ")
+		else ""
+	}
+
+	def toSqlQuery(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =
+		(for (criteria <- criterias)
+			yield toSqlQuery(criteria)).mkString(", ")
+
+	def toSqlQuery(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
+		toSqlQuery(criteria.value) + " " + (
+			if (criteria.direction ==
+				orderByAscendingDirection)
+				"asc"
+			else
+				"desc")
 
 	def toSqlQuery(value: QueryValue)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
@@ -234,7 +254,7 @@ abstract class SqlIdiom {
 }
 
 object mySqlDialect extends SqlIdiom {
-	
+
 	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue) = {
 		storageValue match {
 			case value: DateStorageValue =>
@@ -243,7 +263,7 @@ object mySqlDialect extends SqlIdiom {
 				super.getValue(resultSet, i, storageValue)
 		}
 	}
-	
+
 	override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
 		storageValue match {
 			case value: DateStorageValue =>

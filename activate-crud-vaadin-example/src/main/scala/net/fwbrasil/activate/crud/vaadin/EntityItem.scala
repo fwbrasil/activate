@@ -82,7 +82,7 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 		ListBuffer() ++ (
 			transactional(transaction) {
 				(query {
-					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id, entity.id) 
+					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id) 
 				}).execute.map(_._1.get) 
 			} 
 		)
