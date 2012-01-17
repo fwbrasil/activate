@@ -52,7 +52,7 @@ trait ActivateContext
 		logInfo("executing query " + query.toString) {
 			(for (normalized <- QueryNormalizer.normalize(query)) yield {
 				logInfo("executing normalized query " + normalized.toString) {
-					liveCache.executeQuery(normalized)
+					QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized))
 				}
 			}).flatten
 		}

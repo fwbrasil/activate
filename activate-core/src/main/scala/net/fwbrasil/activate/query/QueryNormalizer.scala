@@ -6,6 +6,7 @@ import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.CollectionUtil.combine
+import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.util.Reflection._
 import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
 
@@ -16,10 +17,11 @@ object QueryNormalizer {
 	def normalize[S](query: Query[S]): List[Query[S]] =
 		cache.getOrElseUpdate(query, normalizeQuery(query)).asInstanceOf[List[Query[S]]]
 
-	def normalizeQuery[S](query: Query[S]): List[Query[S]] = {
+	def normalizeQuery[S](query: Query[S]): List[Query[_]] = {
 		val normalizedFrom = normalizeFrom(List(query))
 		val normalizedPropertyPath = normalizePropertyPath(normalizedFrom)
-		normalizedPropertyPath
+		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedPropertyPath)
+		normalizedSelectWithOrderBy
 	}
 
 	def normalizePropertyPath[S](queryList: List[Query[S]]): List[Query[S]] =
@@ -99,6 +101,33 @@ object QueryNormalizer {
 				fromMap
 			}
 		for (fromMap <- fromMaps) yield deepCopyMapping(query, fromMap)
+	}
+
+	def normalizeSelectWithOrderBy[S](queryList: List[Query[S]]): List[Query[_]] =
+		for (query <- queryList)
+			yield normalizeSelectWithOrderBy(query)
+
+	def normalizeSelectWithOrderBy[S](query: Query[S]): Query[_] = {
+		val orderByOption = query.orderByClause
+		if (orderByOption.isDefined) {
+			val orderByValues = orderByOption.get.criterias.map(_.value)
+			val select = query.select
+			val newSelect = Select(select.values ++ orderByValues: _*)
+			val map = new IdentityHashMap[Any, Any]()
+			map.put(select, newSelect)
+			deepCopyMapping(query, map)
+		} else query
+	}
+
+	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: Set[_]): Set[S] = {
+		val orderByOption = originalQuery.orderByClause
+		if (orderByOption.isDefined) {
+			val size = originalQuery.select.values.size
+			val denormalized =
+				for (row <- result)
+					yield toTuple[S](for (i <- 0 until size) yield row.asInstanceOf[Product].productElement(i))
+			denormalized
+		} else result.asInstanceOf[Set[S]]
 	}
 
 }

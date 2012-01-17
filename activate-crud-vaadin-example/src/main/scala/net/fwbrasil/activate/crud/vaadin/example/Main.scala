@@ -11,11 +11,12 @@ import com.vaadin.terminal.UserError
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.radon.ref.RefListener
 import net.fwbrasil.radon.ref.Ref
+import net.fwbrasil.activate.query.OrderByCriteria
 
 class Pessoa extends Entity {
 
-	def nomeNotBlank = invariant(nome notBlank)
-	def nomeMaxLenght = invariant(nome maxLength (30))
+	//	def nomeNotBlank = invariant(nome notBlank)
+	//	def nomeMaxLenght = invariant(nome maxLength (30))
 	var nome: String = _
 	var sobrenome: String = _
 	var nomeMae: String = _
@@ -55,11 +56,11 @@ class Main extends Application {
 	}
 }
 
-abstract class ActivateVaadinCrud[E <: Entity: Manifest] extends Window {
+abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (E) => OrderByCriteria[_]*) extends Window {
 
 	implicit val transaction = new Transaction
 
-	val table = new Table("List", new EntityContainer[E])
+	val table = new Table("List", new EntityContainer[E](orderByCriterias: _*))
 	table.setSelectable(true)
 	table.setImmediate(true)
 
@@ -172,6 +173,6 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest] extends Window {
 	def newEmptyEntity: E
 }
 
-class CrudPessoa extends ActivateVaadinCrud[Pessoa] {
+class CrudPessoa extends ActivateVaadinCrud[Pessoa](_.nome, _.nomeMae) {
 	def newEmptyEntity = new Pessoa
 }

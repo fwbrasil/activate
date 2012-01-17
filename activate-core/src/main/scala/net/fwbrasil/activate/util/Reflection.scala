@@ -113,7 +113,7 @@ object Reflection {
 						val newInstance = constructor.get.newInstance(values.asInstanceOf[Seq[Object]]: _*)
 						map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
 						newInstance
-					} else null
+					} else obj
 				case other =>
 					other
 			}).asInstanceOf[T]

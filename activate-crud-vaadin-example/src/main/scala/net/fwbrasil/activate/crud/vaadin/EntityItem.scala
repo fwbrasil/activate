@@ -5,6 +5,7 @@ import com.vaadin.data.util.PropertysetItem
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.query.OrderByCriteria
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil._
@@ -68,7 +69,7 @@ class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transacti
 				entity))
 }
 
-class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m: Manifest[E]) extends Container with Container.Ordered {
+class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[_]*)(implicit val transaction: Transaction, val m: Manifest[E]) extends Container with Container.Ordered {
 
 	val context = ActivateContext.contextFor(m.erasure.asInstanceOf[Class[Entity]])
 
@@ -78,12 +79,16 @@ class EntityContainer[E <: Entity](implicit val transaction: Transaction, val m:
 
 	val entityItemCache = ReferenceWeakValueMap[String, EntityItem[_]]()
 
+	private[this] def orderByCriteriasForEntity(entity: E) =
+		for (criteria <- orderByCriterias)
+			yield criteria(entity)
+
 	var ids =
 		ListBuffer() ++ (
 			transactional(transaction) {
 				(query {
-					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (entity.id)
-				}).execute.map(_._1.get)
+					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (orderByCriteriasForEntity(entity): _*)
+				}).execute.map(_._1)
 			}
 		)
 

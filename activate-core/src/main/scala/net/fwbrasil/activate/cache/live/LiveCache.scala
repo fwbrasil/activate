@@ -19,6 +19,7 @@ import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.Logging
+import scala.collection.immutable.TreeSet
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -100,7 +101,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def executeQuery[S](query: Query[S]): List[S] = {
+	def executeQuery[S](query: Query[S]): Set[S] = {
 		val entities = entitySourceInstancesCombined(query.from)
 		val fromCache = executeQueryWithEntitySources(query, entities)
 		val fromStorage = (for (line <- storage.fromStorage(query))
@@ -114,7 +115,42 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			case other: EntityValue[_] =>
 				other.value.getOrElse(null)
 		}))
-		(fromCache ::: fromStorage).toSet.toList
+		val unordered = (fromCache ::: fromStorage).toSet
+		val orderBy = query.orderByClause
+		if (orderBy.isDefined) {
+			val ordering = new Ordering[S] {
+				def compare(x: S, y: S) = {
+					val criterias = orderBy.get.criterias
+					val tuple1 = x.asInstanceOf[Product]
+					val tuple2 = y.asInstanceOf[Product]
+					val tuplesArity = tuple1.productArity
+					val criteriasSize = criterias.size
+					var result = 0
+					val tupleStartPos = tuplesArity - criteriasSize
+					val stream = (tupleStartPos until tuplesArity).toStream
+					stream.takeWhile((i: Int) => result == 0).foreach { (i: Int) =>
+						val a = tuple1.productElement(i)
+						val b = tuple2.productElement(i)
+						result =
+							if (a == null && b != null)
+								1
+							else if (a != null && b == null)
+								-1
+							else if (a == null && b == null)
+								0
+							else {
+								val ordering = criterias(i - tupleStartPos).ordering
+								ordering.asInstanceOf[Ordering[Any]].compare(a, b)
+							}
+					}
+					0
+					result
+				}
+			}
+			val ordered = TreeSet.empty(ordering)
+			ordered ++ unordered
+		} else
+			unordered
 	}
 
 	def materializeEntity(entityId: String): Entity = {
