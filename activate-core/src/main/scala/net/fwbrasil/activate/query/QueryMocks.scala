@@ -57,6 +57,7 @@ object QueryMocks {
 			case "double" => 0d
 			case "boolean" => false
 			case "java.util.Calendar" => java.util.Calendar.getInstance
+			case "java.lang.String" => "mock"
 			case "[B" => Array[Byte]()
 			case other =>
 				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {

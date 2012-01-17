@@ -96,33 +96,34 @@ case class Where(value: Criteria) {
 			this,
 			Select(list: _*))
 
-	def select[V1, T1 <% QuerySelectValue[V1]](tuple: T1) =
-		Query[Tuple1[Option[V1]]](From.from,
+	def select[T1](tuple: => T1)(implicit tval1: (T1) => QuerySelectValue[T1]) =
+		Query[Tuple1[T1]](From.from,
 			this,
 			Select(tuple))
 
-	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2]](tuple: Tuple2[T1, T2]) =
-		Query[Tuple2[Option[V1], Option[V2]]](
+	def select[T1, T2](value1: => T1, value2: => T2)(implicit tval1: (T1) => QuerySelectValue[T1], tval2: (T2) => QuerySelectValue[T2]) =
+		Query[Tuple2[T1, T2]](
 			From.from,
 			this,
-			Select(tuple._1,
-				tuple._2))
+			Select(tval1(value1),
+				tval2(value2)))
 
-	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2], V3, T3 <% QuerySelectValue[V3]](tuple: Tuple3[T1, T2, T3]) =
-		Query[Tuple3[Option[V1], Option[V2], Option[V3]]](
+	def select[T1, T2, T3](value1: => T1, value2: => T2, value3: => T3)(implicit tval1: (T1) => QuerySelectValue[T1], tval2: (T2) => QuerySelectValue[T2], tval3: (T3) => QuerySelectValue[T3]) =
+		Query[Tuple3[T1, T2, T3]](
 			From.from,
 			this,
-			Select(tuple._1,
-				tuple._2,
-				tuple._3))
+			Select(tval1(value1),
+				tval2(value2),
+				tval3(value3)))
 
-	def select[V1, T1 <% QuerySelectValue[V1], V2, T2 <% QuerySelectValue[V2], V3, T3 <% QuerySelectValue[V3], V4, T4 <% QuerySelectValue[V4]](tuple: Tuple4[T1, T2, T3, T4]) =
-		Query[Tuple4[Option[V1], Option[V2], Option[V3], Option[V4]]](
+	def select[T1, T2, T3, T4](value1: => T1, value2: => T2, value3: => T3, value4: => T4)(implicit tval1: (T1) => QuerySelectValue[T1], tval2: (T2) => QuerySelectValue[T2], tval3: (T3) => QuerySelectValue[T3], tval4: (T4) => QuerySelectValue[T4]) =
+		Query[Tuple4[T1, T2, T3, T4]](
 			From.from,
 			this,
-			Select(tuple._1,
-				tuple._2,
-				tuple._3,
-				tuple._4))
+			Select(tval1(value1),
+				tval2(value2),
+				tval3(value3),
+				tval4(value4)))
+
 	override def toString = value.toString
 }

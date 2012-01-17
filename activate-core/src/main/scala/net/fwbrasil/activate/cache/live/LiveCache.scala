@@ -108,11 +108,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			yield column match {
 			case value: EntityInstanceReferenceValue[_] =>
 				if (value.value == None)
-					None
+					null
 				else
-					Option(materializeEntity(value.value.get))
+					materializeEntity(value.value.get)
 			case other: EntityValue[_] =>
-				other.value
+				other.value.getOrElse(null)
 		}))
 		(fromCache ::: fromStorage).toSet.toList
 	}
@@ -153,7 +153,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val tuple = list.head
 		val vars = entity.vars.toList
 		for (i <- 0 to vars.size - 1)
-			vars(i).asInstanceOf[Var[Any]].setRefContent(tuple.productElement(i).asInstanceOf[Option[Any]])
+			vars(i).asInstanceOf[Var[Any]].setRefContent(Option(tuple.productElement(i)))
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[E]]): List[S] = {
@@ -184,7 +184,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def executeSelect[S](values: QuerySelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, E]): S = {
 		val list = ListBuffer[Any]()
 		for (value <- values)
-			list += Option(executeQuerySelectValue(value))
+			list += executeQuerySelectValue(value)
 		CollectionUtil.toTuple(list)
 	}
 
