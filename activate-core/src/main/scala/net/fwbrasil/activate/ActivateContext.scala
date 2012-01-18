@@ -71,7 +71,7 @@ trait ActivateContext
 					criteria = criteria :&& criterias(i)(entity)
 				criteria
 			}) select (entity)
-		}.execute.mapConserve(_._1).asInstanceOf[List[E]]
+		}.execute
 
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isSome)

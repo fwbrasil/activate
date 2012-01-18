@@ -9,6 +9,7 @@ import net.fwbrasil.activate.util.CollectionUtil.combine
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.util.Reflection._
 import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
+import scala.collection.immutable.TreeSet
 
 object QueryNormalizer {
 
@@ -119,15 +120,16 @@ object QueryNormalizer {
 		} else query
 	}
 
-	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: Set[_]): Set[S] = {
+	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: Set[S]): List[S] = {
 		val orderByOption = originalQuery.orderByClause
-		if (orderByOption.isDefined) {
+		val ret = if (orderByOption.isDefined) {
 			val size = originalQuery.select.values.size
-			val denormalized =
-				for (row <- result)
-					yield toTuple[S](for (i <- 0 until size) yield row.asInstanceOf[Product].productElement(i))
-			denormalized
-		} else result.asInstanceOf[Set[S]]
+			var list = ListBuffer[S]()
+			for (row <- result)
+				list += toTuple[S](for (i <- 0 until size) yield row.asInstanceOf[Product].productElement(i))
+			list.toList
+		} else result.toList
+		ret
 	}
 
 }

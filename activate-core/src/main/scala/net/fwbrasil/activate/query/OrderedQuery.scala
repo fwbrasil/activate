@@ -1,6 +1,7 @@
 package net.fwbrasil.activate.query
 
 import org.joda.time.base.AbstractInstant
+import scala.collection.immutable.TreeSet
 
 trait OrderedQueryContext {
 
@@ -33,6 +34,35 @@ case class OrderedQuery[S](override val from: From, override val where: Where, o
 }
 
 case class OrderBy(criterias: OrderByCriteria[_]*) {
+	def emptyOrderedSet[S] = TreeSet.empty(ordering[S])
+	private[this] def ordering[S] = new Ordering[S] {
+		def compare(x: S, y: S) = {
+			val tuple1 = x.asInstanceOf[Product]
+			val tuple2 = y.asInstanceOf[Product]
+			val tuplesArity = tuple1.productArity
+			val criteriasSize = criterias.size
+			var result = 0
+			val tupleStartPos = tuplesArity - criteriasSize
+			val stream = (tupleStartPos until tuplesArity).toStream
+			stream.takeWhile((i: Int) => result == 0).foreach { (i: Int) =>
+				val a = tuple1.productElement(i)
+				val b = tuple2.productElement(i)
+				result =
+					if (a == null && b != null)
+						1
+					else if (a != null && b == null)
+						-1
+					else if (a == null && b == null)
+						0
+					else {
+						val ordering = criterias(i - tupleStartPos).ordering
+						ordering.asInstanceOf[Ordering[Any]].compare(a, b)
+					}
+			}
+			0
+			result
+		}
+	}
 	override def toString = " orderBy (" + criterias.mkString(", ") + ")"
 }
 

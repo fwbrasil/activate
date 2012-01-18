@@ -49,9 +49,10 @@ trait Entity extends Serializable with ValidEntity {
 
 	private[activate] def initialize =
 		this.synchronized {
-			if (!initialized && id != null)
+			if (!initialized && id != null) {
+				initialized = true
 				context.initialize(this.asInstanceOf[Entity])
-			initialized = true
+			}
 		}
 
 	private[activate] def initializeGraph: Unit =

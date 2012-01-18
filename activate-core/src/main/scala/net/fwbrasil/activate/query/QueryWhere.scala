@@ -97,7 +97,7 @@ case class Where(value: Criteria) {
 			Select(list: _*))
 
 	def select[T1](tuple: => T1)(implicit tval1: (T1) => QuerySelectValue[T1]) =
-		Query[Tuple1[T1]](From.from,
+		Query[T1](From.from,
 			this,
 			Select(tuple))
 

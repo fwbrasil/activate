@@ -21,7 +21,7 @@ object CollectionUtil {
 	def toTuple[T](seq: Seq[_]) =
 		(seq.size match {
 			case 1 =>
-				Tuple1(seq(0))
+				seq(0)
 			case 2 =>
 				Tuple2(seq(0), seq(1))
 			case 3 =>

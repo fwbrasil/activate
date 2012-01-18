@@ -32,6 +32,9 @@ class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata,
 		override def notifyPut(ref: Ref[Any], obj: Option[Any]) = {
 			fireValueChange
 		}
+		override def notifyRollback(ref: Ref[Any]) = {
+			fireValueChange
+		}
 	}
 	entity.varNamed(metadata.name).get.asInstanceOf[Ref[Any]].addWeakListener(listener)
 
@@ -88,7 +91,7 @@ class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[
 			transactional(transaction) {
 				(query {
 					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (orderByCriteriasForEntity(entity): _*)
-				}).execute.map(_._1)
+				}).execute
 			}
 		)
 
@@ -98,8 +101,6 @@ class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[
 				val clazz = EntityHelper.getEntityClassFromId(itemId.asInstanceOf[String])
 				new EntityItem(byId(itemId.asInstanceOf[String]).get)(transaction, manifestClass(clazz))
 			})
-
-	def teste: (String, Int) = ("a", 1)
 
 	override def getContainerPropertyIds: Collection[_] =
 		for (property <- metadata.propertiesMetadata)

@@ -12,25 +12,25 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 			f(mockEntity[E1])
 		}
 
-	def query[S <: Product, E1 <: Entity: Manifest](f: (E1) => Query[S]) =
+	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]) =
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}
 
-	def query[S <: Product, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]) =
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]) =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2])
 		}
 
-	def query[S <: Product, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]) =
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]) =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2],
 				mockEntity[E3])
 		}
 
-	def query[S <: Product, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]) =
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]) =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2],
