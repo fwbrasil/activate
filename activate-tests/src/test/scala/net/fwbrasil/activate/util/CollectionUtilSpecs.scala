@@ -57,7 +57,7 @@ class CollectionUtilSpecs extends Specification with DataTables {
 		"tupelize" in {
 			List(
 				Seq("a")
-					-> Tuple1("a"),
+					-> "a",
 				Seq("a", "b")
 					-> Tuple2("a", "b"),
 				Seq("a", "b", "c")

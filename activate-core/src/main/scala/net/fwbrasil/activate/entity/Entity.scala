@@ -31,6 +31,7 @@ trait Entity extends Serializable with ValidEntity {
 
 	private[this] var persistedflag = false
 	private[this] var initialized = true
+	private[this] var initializing = false
 
 	private[activate] def setPersisted =
 		persistedflag = true
@@ -49,9 +50,11 @@ trait Entity extends Serializable with ValidEntity {
 
 	private[activate] def initialize =
 		this.synchronized {
-			if (!initialized && id != null) {
-				initialized = true
+			if (!initializing && !initialized && id != null) {
+				initializing = true
 				context.initialize(this.asInstanceOf[Entity])
+				initialized = true
+				initializing = false
 			}
 		}
 
