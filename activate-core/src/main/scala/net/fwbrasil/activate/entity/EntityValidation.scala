@@ -47,12 +47,12 @@ trait ValidEntity {
 			yield (method.getName, method.invoke(this).asInstanceOf[Invariant].f)
 	}
 
-	private[this] def initializeListener: Unit = {
-		val listener = new RefListener[Any] with Serializable {
-			override def notifyPut(ref: Ref[Any], obj: Option[Any]) = {
-				validate
-			}
+	lazy val listener = new RefListener[Any] with Serializable {
+		override def notifyPut(ref: Ref[Any], obj: Option[Any]) = {
+			validate
 		}
+	}
+	private[this] def initializeListener: Unit = {
 		for (ref <- vars)
 			ref.asInstanceOf[Ref[Any]].addWeakListener(listener)
 

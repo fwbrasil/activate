@@ -84,9 +84,6 @@ trait Entity extends Serializable with ValidEntity {
 	private[this] def varFields =
 		entityMetadata.varFields
 
-	//	private[activate] def idField =
-	//		entityMetadata.idField
-
 	@transient
 	private[this] var varFieldsMapCache: Map[String, Var[_]] = _
 
@@ -200,7 +197,7 @@ object EntityHelper {
 	}
 
 	def getEntityClassFromId(entityId: String) =
-		entitiesMetadatas(entityId.split("-").last).entityClass
+		entitiesMetadatas(entityId.substring(37)).entityClass
 
 	def getEntityClassHashId(entityClass: Class[_]): String =
 		getEntityClassHashId(getEntityName(entityClass))
@@ -209,8 +206,9 @@ object EntityHelper {
 		val annotation = entityClass.getAnnotation(classOf[EntityName])
 		if (annotation != null)
 			annotation.value
-		else
-			entityClass.getSimpleName.split('$')(0)
+		else {
+			entityClass.getSimpleName
+		}
 	}
 
 	def getEntityClassHashId(entityName: String): String =

@@ -9,7 +9,7 @@ import net.fwbrasil.activate.query._
 import net.fwbrasil.activate.serialization._
 import net.fwbrasil.activate.storage._
 import net.fwbrasil.activate.cache.live._
-import scala.collection.mutable.{ Set => MutableSet }
+import scala.collection.mutable.{ Map => MutableMap }
 import java.io._
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.RichList._
@@ -97,8 +97,8 @@ trait ActivateContext
 
 	def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
 		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
-		val assignments = MutableSet[Tuple2[Var[Any], EntityValue[Any]]]()
-		val deletes = MutableSet[Tuple2[Var[Any], EntityValue[Any]]]()
+		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
+		val deletes = MutableMap[Var[Any], EntityValue[Any]]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
 				if (ref.outerEntity.isPersisted)
