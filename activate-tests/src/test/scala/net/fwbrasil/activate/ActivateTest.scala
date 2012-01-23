@@ -12,6 +12,7 @@ import scala.runtime._
 import java.security._
 import java.math.BigInteger
 import org.joda.time.DateTime
+import net.fwbrasil.activate.storage.mongo.MongoStorage
 
 object runningFlag
 
@@ -91,10 +92,11 @@ trait ActivateTest extends SpecificationWithJUnit {
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
-			memoryContext,
-			prevaylerContext,
+			//			memoryContext,
+			//			prevaylerContext,
 			//									oracleContext,
-			mysqlContext
+			//			mysqlContext
+			mongoContext
 		)
 		ret.foreach(_.stop)
 		ret
@@ -390,6 +392,14 @@ trait ActivateTest extends SpecificationWithJUnit {
 			val url = "jdbc:mysql://127.0.0.1/teste"
 			val dialect = mySqlDialect
 			val serializator = javaSerializator
+		}
+	}
+
+	object mongoContext extends ActivateTestContext {
+		val storage = new MongoStorage {
+			override val host = "localhost"
+			override val port = 27017
+			override val db = "activate"
 		}
 	}
 

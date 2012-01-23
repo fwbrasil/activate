@@ -43,7 +43,7 @@ object ActivateBuild extends Build {
 	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
 	
 	/* Mongo */
-	val casbah = "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
+	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.7.2"
   	
   	/* Resolvers */
   	val customResolvers = Seq(
@@ -60,7 +60,7 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateCassandra, activateMongo, 
+    		    activateJdbc, activateMongo, 
     		    activateTests, activateCrudVaadin, activateCrudVaadinExample),
     		settings = commonSettings
     	)
@@ -95,16 +95,6 @@ object ActivateBuild extends Build {
     		dependencies = Seq(activateCore)
     	)
                            
-    lazy val activateCassandra = 
-    	Project(
-    	    id = "activate-cassandra",
-    	    base = file("activate-cassandra"),
-    	    dependencies = Seq(activateCore),
-			settings = commonSettings ++ Seq(
-		      libraryDependencies ++= 
-		    	  Seq(cassandra)
-		    )
-    	)             
 
     lazy val activateMongo = 
     	Project(
@@ -113,7 +103,7 @@ object ActivateBuild extends Build {
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(casbah)
+		    	  Seq(mongoDriver)
 		    )
     	)
     	
@@ -121,7 +111,7 @@ object ActivateBuild extends Build {
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateCassandra),
+			    activateMongo),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
 		    	  Seq(junit, specs2, scalaz, objbd6, mysql)
