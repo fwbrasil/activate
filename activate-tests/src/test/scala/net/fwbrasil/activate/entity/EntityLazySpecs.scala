@@ -30,12 +30,11 @@ class EntityLazySpecs extends ActivateTest {
 							for (ref <- entity.vars) {
 								ref.context must not beNull;
 								ref.name must not beNull;
-								ref.outerEntity must not beNull;
+								ref.outerEntity != null must beTrue;
 							}
 						}
 					}
-				}
-			)
+				})
 		}
 
 		"lazy load and initialize" in {
@@ -53,8 +52,7 @@ class EntityLazySpecs extends ActivateTest {
 						for (entity <- all[ActivateTestEntity])
 							entity.isInitialized must beTrue
 					}
-				}
-			)
+				})
 		}
 
 		"lazy load and initialize by a var" in {
@@ -72,8 +70,7 @@ class EntityLazySpecs extends ActivateTest {
 						for (entity <- all[ActivateTestEntity])
 							entity.isInitialized must beTrue
 					}
-				}
-			)
+				})
 		}
 	}
 

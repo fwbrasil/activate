@@ -59,8 +59,8 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue :== fullDateValue,
 							_.calendarValue :== fullCalendarValue,
 							_.entityValue :== fullEntityValue //,
-						//							_.enumerationValue :== fullEnumerationValue
-						).size must beEqualTo(1)
+							//							_.enumerationValue :== fullEnumerationValue
+							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isSome,
@@ -74,8 +74,8 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue isSome,
 							_.byteArrayValue isSome,
 							_.entityValue isSome //,
-						//							_.enumerationValue isSome
-						).size must beEqualTo(1)
+							//							_.enumerationValue isSome
+							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNone,
@@ -83,14 +83,14 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue isNone,
 							_.calendarValue isNone,
 							_.entityValue isNone //,
-						//							_.enumerationValue isNone
-						).size must beEqualTo(2)
+							//							_.enumerationValue isNone
+							).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
 							_.entityValue isNone,
 							_.charValue :== 'A' //, 
-						//							_.enumerationValue isNone
-						).headOption must beNone
+							//							_.enumerationValue isNone
+							).headOption must beNone
 					}
 				})
 		}
@@ -260,11 +260,13 @@ class QuerySpecs extends ActivateTest {
 			activateTest(
 				(step: StepExecutor) => {
 					import step.ctx._
-					step {
-						println(newFullActivateTestEntity.isInitialized)
-					}
-					step {
-						allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
+					if (step.ctx.storage.supportComplexQueries) {
+						step {
+							println(newFullActivateTestEntity.isInitialized)
+						}
+						step {
+							allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
+						}
 					}
 				})
 		}

@@ -20,6 +20,7 @@ import net.fwbrasil.activate.util.RichList._
 import scala.collection.JavaConversions._
 import net.fwbrasil.activate.query._
 import java.util.Date
+import net.fwbrasil.activate.entity._
 
 trait MongoStorage extends MarshalStorage {
 
@@ -36,6 +37,8 @@ trait MongoStorage extends MarshalStorage {
 		}
 		ret
 	}
+	
+	override def supportComplexQueries = false
 
 	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
 		for ((entity, properties) <- insertMap) {
@@ -46,7 +49,7 @@ trait MongoStorage extends MarshalStorage {
 			coll(entity).insert(doc)
 			val ret = coll(entity).find()
 		}
-		for ((entity, properties) <- insertMap) {
+		for ((entity, properties) <- updateMap) {
 			val query = new BasicDBObject();
 			query.put("_id", entity.id)
 			val update = new BasicDBObject();
@@ -70,13 +73,13 @@ trait MongoStorage extends MarshalStorage {
 			case value: StringStorageValue =>
 				value.value.getOrElse(null)
 			case value: FloatStorageValue =>
-				value.value.map(_.floatValue).getOrElse(null)
+				value.value.map(_.doubleValue).getOrElse(null)
 			case value: DateStorageValue =>
 				value.value.getOrElse(null)
 			case value: DoubleStorageValue =>
 				value.value.map(_.doubleValue).getOrElse(null)
 			case value: BigDecimalStorageValue =>
-				value.value.map(_.bigDecimal).getOrElse(null)
+				value.value.map(_.doubleValue).getOrElse(null)
 			case value: ByteArrayStorageValue =>
 				value.value.getOrElse(null)
 			case value: ReferenceStorageValue =>
@@ -113,13 +116,13 @@ trait MongoStorage extends MarshalStorage {
 			case value: StringStorageValue =>
 				StringStorageValue(getValue[String](obj, name))(value.entityValue)
 			case value: FloatStorageValue =>
-				FloatStorageValue(getValue[Float](obj, name))(value.entityValue)
+				FloatStorageValue(getValue[Double](obj, name).map(_.floatValue))(value.entityValue)
 			case value: DateStorageValue =>
 				DateStorageValue(getValue[Date](obj, name))(value.entityValue)
 			case value: DoubleStorageValue =>
 				DoubleStorageValue(getValue[Double](obj, name))(value.entityValue)
 			case value: BigDecimalStorageValue =>
-				BigDecimalStorageValue(getValue[BigDecimal](obj, name))(value.entityValue)
+				BigDecimalStorageValue(getValue[Double](obj, name).map(BigDecimal(_)))(value.entityValue)
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue[Array[Byte]](obj, name))(value.entityValue)
 			case value: ReferenceStorageValue =>
@@ -163,6 +166,16 @@ trait MongoStorage extends MarshalStorage {
 				}
 				obj
 			case criteria: SimpleOperatorCriteria =>
+			  	val property = queryEntityProperty(criteria.valueA)
+			  	val value = criteria.operator match {
+			  	  	case value: IsNone =>
+			  	  	  null
+			  	  	case value: IsSome =>
+			  	  	  val temp = new BasicDBObject
+			  	  	  temp.put("$ne", null)
+			  	  	  temp
+			  	}
+			  	obj.put(property, value)
 				obj
 		}
 	}
@@ -170,9 +183,11 @@ trait MongoStorage extends MarshalStorage {
 	def query(value: QueryValue): Any =
 		value match {
 			case value: SimpleQueryBooleanValue =>
-				value.value
+				getMongoValue(Marshaller.marshalling(value.value))
 			case value: SimpleValue[_] =>
-				value.anyValue
+				getMongoValue(Marshaller.marshalling(value.entityValue))
+			case value: QueryEntityInstanceValue[_] =>
+			  	getMongoValue(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue(None)))
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria.")
 		}
@@ -215,31 +230,4 @@ trait MongoStorage extends MarshalStorage {
 				throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
 		}
 
-}
-
-object MongoContext extends ActivateContext {
-	val storage = new MongoStorage {
-		override val host = "localhost"
-		override val port = 27017
-		override val db = "activate"
-	}
-	def contextName = "mongo"
-}
-
-import MongoContext._
-
-class SomeEntity(var string: String, var number: Int) extends Entity
-
-object Main extends App {
-	//	transactional {
-	//		new SomeEntity("a", 10)
-	//	}
-	transactional {
-		query {
-			(e: SomeEntity) => where((e.number :> 5) :&& (e.string :== "a")) select (e.number, e, e.string)
-		}.execute.foreach(println(_))
-		query {
-			(e: SomeEntity) => where(e.number :> 15) select (e)
-		}.execute.foreach(println(_))
-	}
 }

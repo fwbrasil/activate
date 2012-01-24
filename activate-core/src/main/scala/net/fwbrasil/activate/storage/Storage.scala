@@ -16,6 +16,7 @@ trait Storage {
 		List()
 
 	def isMemoryStorage = false
+	def supportComplexQueries = true
 	def reinitialize = {
 
 	}

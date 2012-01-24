@@ -87,17 +87,15 @@ trait ActivateTest extends SpecificationWithJUnit {
 		List(
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx)
-		)
+			MultipleTransactionsWithReinitialize(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
-			//			memoryContext,
-			//			prevaylerContext,
+			memoryContext,
+			prevaylerContext,
 			//									oracleContext,
-			//			mysqlContext
-			mongoContext
-		)
+			mysqlContext,
+			mongoContext)
 		ret.foreach(_.stop)
 		ret
 	}
@@ -107,9 +105,9 @@ trait ActivateTest extends SpecificationWithJUnit {
 		for (ctx <- contexts) {
 			import ctx._
 			start
-				def clear = transactional {
-					all[ActivateTestEntity].foreach(_.delete)
-				}
+			def clear = transactional {
+				all[ActivateTestEntity].foreach(_.delete)
+			}
 			try {
 				for (executor <- executors(ctx)) {
 					clear
