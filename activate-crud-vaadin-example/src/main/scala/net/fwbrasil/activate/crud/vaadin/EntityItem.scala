@@ -21,6 +21,7 @@ import net.fwbrasil.radon.ref.Ref
 import scala.collection.mutable.ListBuffer
 import com.vaadin.data.Container
 import com.vaadin.data.Item
+import com.vaadin.ui.DefaultFieldFactory
 import java.util.Collection
 import collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -92,14 +93,21 @@ class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[
 				(query {
 					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (orderByCriteriasForEntity(entity): _*)
 				}).execute
-			}
-		)
+			})
 
 	override def getItem(itemId: Any): Item =
-		entityItemCache.getOrElseUpdate(itemId.asInstanceOf[String],
+		entityItemCache.getOrElse(itemId.asInstanceOf[String],
 			transactional(transaction) {
-				val clazz = EntityHelper.getEntityClassFromId(itemId.asInstanceOf[String])
-				new EntityItem(byId(itemId.asInstanceOf[String]).get)(transaction, manifestClass(clazz))
+				val entityOption = byId(itemId.asInstanceOf[String])
+				if (entityOption.isDefined) {
+					val clazz = EntityHelper.getEntityClassFromId(itemId.asInstanceOf[String])
+					val entityItem = new EntityItem(entityOption.get)(transaction, manifestClass(clazz))
+					entityItemCache += (itemId.asInstanceOf[String] -> entityItem)
+					entityItem
+				} else {
+					ids -= itemId.asInstanceOf[String]
+					null
+				}
 			})
 
 	override def getContainerPropertyIds: Collection[_] =

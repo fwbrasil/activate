@@ -28,30 +28,16 @@ class Pessoa extends Entity {
 		} postCond (_.nonEmpty)
 
 	override def delete =
+
 		preCond(nome != "flaviof") {
 			super.delete
 		}
 
 }
 
-class AAA(val string: String) extends Entity {
-	def stringLenght = invariant(string length (20))
-}
-
-object Test extends App {
-	transactional {
-		val aaa = new AAA("a")
-		val pessoa = new Pessoa
-		//		pessoa.nome = null
-		//		pessoa.nomeCompleto
-		pessoa.delete
-	}
-}
-
 class Main extends Application {
 	def init = {
-		transactional {
-		}
+		reinitializeContext
 		super.setTheme("runo")
 		setMainWindow(new CrudPessoa)
 	}
@@ -64,6 +50,8 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 	val table = new Table("List", new EntityContainer[E](orderByCriterias: _*))
 	table.setSelectable(true)
 	table.setImmediate(true)
+	for (header <- table.getColumnHeaders)
+		table.setColumnHeader(header, DefaultFieldFactory.createCaptionByPropertyId(header))
 
 	var emptyEntityOption: Option[E] = None
 
@@ -79,33 +67,57 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 	form.setImmediate(true)
 	form.setWriteThrough(false)
 
-	def setFormDataSource(entityItem: EntityItem[E]) = {
+	def doWithFormUnmodified(f: => Unit) =
 		if (form.isModified)
 			super.showNotification("This is a warning",
 				"Add, discard or delete.",
 				Window.Notification.TYPE_WARNING_MESSAGE);
-		else
+		else {
+			f
+		}
+
+	def setFormDataSource(entityItem: EntityItem[E]) =
+		doWithFormUnmodified {
+			deleteUnsedEntity
 			form.setItemDataSource(entityItem)
-	}
-	def setFormNewDataSource = {
-		val freshEntity = transactionalNewEmptyEntity
-		setFormDataSource(new EntityItem(freshEntity))
-	}
-	setFormNewDataSource
+		}
+
+	def deleteUnsedEntity =
+		{
+			val item = form.getItemDataSource.asInstanceOf[EntityItem[E]]
+			if (item != null) {
+				val oldEntity = form.getItemDataSource.asInstanceOf[EntityItem[E]].entity
+				transactional(transaction) {
+					if (!oldEntity.isDeleted && !table.getContainerDataSource.containsId(oldEntity.id))
+						oldEntity.delete
+				}
+			}
+		}
+
+	def setFormNewDataSource =
+		doWithFormUnmodified {
+			val freshEntity = transactionalNewEmptyEntity
+			setFormDataSource(new EntityItem(freshEntity))
+			addUpdateButton.setCaption("Add")
+		}
 
 	table.addListener(new ItemClickEvent.ItemClickListener {
 		def itemClick(event: ItemClickEvent) = {
 			val item = event.getItem.asInstanceOf[EntityItem[E]]
 			setFormDataSource(item)
+			addUpdateButton.setCaption("Update")
 		}
 	})
 
 	val saveButton =
 		new Button("Save",
 			new Button.ClickListener() {
-				def buttonClick(event: Button#ClickEvent) {
-					transaction.commit
-				}
+				def buttonClick(event: Button#ClickEvent) =
+					doWithFormUnmodified {
+						deleteUnsedEntity
+						transaction.commit
+						setFormNewDataSource
+					}
 			})
 
 	val newButton =
@@ -116,7 +128,7 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 				}
 			})
 
-	val addButton =
+	val addUpdateButton: Button =
 		new Button("Add",
 			new Button.ClickListener() {
 				def buttonClick(event: Button#ClickEvent) {
@@ -125,6 +137,7 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 					if (!table.containsId(item.entity.id))
 						table.addItem(item.entity.id)
 					table.refreshRowCache
+					addUpdateButton.setCaption("Update")
 				}
 			})
 
@@ -163,7 +176,7 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 
 	super.addComponent(listLayout)
 	super.addComponent(formLayout)
-	super.addComponent(addButton)
+	super.addComponent(addUpdateButton)
 	super.addComponent(discardButton)
 	super.addComponent(deleteButton)
 
@@ -172,6 +185,8 @@ abstract class ActivateVaadinCrud[E <: Entity: Manifest](val orderByCriterias: (
 			newEmptyEntity
 		}
 	def newEmptyEntity: E
+
+	setFormNewDataSource
 }
 
 class CrudPessoa extends ActivateVaadinCrud[Pessoa](_.nome, _.nomeMae) {

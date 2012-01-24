@@ -37,7 +37,7 @@ trait MongoStorage extends MarshalStorage {
 		}
 		ret
 	}
-	
+
 	override def supportComplexQueries = false
 
 	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
@@ -94,7 +94,7 @@ trait MongoStorage extends MarshalStorage {
 
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		if (queryInstance.from.entitySources.size != 1)
-			throw new UnsupportedOperationException("Mongo storage supports only simple queries (only one 'from' entity)")
+			throw new UnsupportedOperationException("Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
 		val entitySource = queryInstance.from.entitySources.onlyOne
 		val where = query(queryInstance.where.value)
 		val selectValues = query(queryInstance.select.values: _*)
@@ -166,16 +166,16 @@ trait MongoStorage extends MarshalStorage {
 				}
 				obj
 			case criteria: SimpleOperatorCriteria =>
-			  	val property = queryEntityProperty(criteria.valueA)
-			  	val value = criteria.operator match {
-			  	  	case value: IsNone =>
-			  	  	  null
-			  	  	case value: IsSome =>
-			  	  	  val temp = new BasicDBObject
-			  	  	  temp.put("$ne", null)
-			  	  	  temp
-			  	}
-			  	obj.put(property, value)
+				val property = queryEntityProperty(criteria.valueA)
+				val value = criteria.operator match {
+					case value: IsNone =>
+						null
+					case value: IsSome =>
+						val temp = new BasicDBObject
+						temp.put("$ne", null)
+						temp
+				}
+				obj.put(property, value)
 				obj
 		}
 	}
@@ -187,7 +187,7 @@ trait MongoStorage extends MarshalStorage {
 			case value: SimpleValue[_] =>
 				getMongoValue(Marshaller.marshalling(value.entityValue))
 			case value: QueryEntityInstanceValue[_] =>
-			  	getMongoValue(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue(None)))
+				getMongoValue(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue(None)))
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria.")
 		}
