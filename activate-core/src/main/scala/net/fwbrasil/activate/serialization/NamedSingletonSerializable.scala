@@ -5,7 +5,7 @@ import scala.collection.mutable.ListBuffer
 
 trait NamedSingletonSerializable extends java.io.Serializable {
 
-	def name: String
+	private[activate] def name: String
 
 	NamedSingletonSerializable.registerInstance(this)
 

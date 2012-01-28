@@ -18,7 +18,6 @@ import net.fwbrasil.activate.util.CollectionUtil.combine
 trait ActivateContext
 		extends EntityContext
 		with QueryContext
-		with Serializable
 		with NamedSingletonSerializable
 		with Logging {
 
@@ -26,13 +25,13 @@ trait ActivateContext
 
 	EntityHelper.initialize
 
-	var running = true
+	private[this] var running = true
 
-	def start = synchronized {
+	private[activate] def start = synchronized {
 		running = true
 	}
 
-	def stop = synchronized {
+	private[activate] def stop = synchronized {
 		running = false
 	}
 
@@ -48,7 +47,7 @@ trait ActivateContext
 			storage.reinitialize
 		}
 
-	def executeQuery[S](query: Query[S]): List[S] =
+	private[activate] def executeQuery[S](query: Query[S]): List[S] =
 		logInfo("executing query " + query.toString) {
 			(for (normalized <- QueryNormalizer.normalize(query)) yield {
 				logInfo("executing normalized query " + normalized.toString) {
@@ -57,34 +56,11 @@ trait ActivateContext
 			}).flatten
 		}
 
-	def name = contextName
+	private[activate] def name = contextName
 	def contextName: String
 
-	def initialize(entity: Entity) =
+	private[activate] def initialize(entity: Entity) =
 		liveCache.initialize(entity)
-
-	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
-		query { (entity: E) =>
-			where({
-				var criteria = criterias(0)(entity)
-				for (i <- 1 until criterias.size)
-					criteria = criteria :&& criterias(i)(entity)
-				criteria
-			}) select (entity)
-		}.execute
-
-	def all[E <: Entity: Manifest] =
-		allWhere[E](_ isSome)
-
-	def byId[T <: Entity: Manifest](id: String): Option[T] = {
-		val fromLiveCache = liveCache.byId[T](id)
-		if (fromLiveCache.isDefined)
-			if (fromLiveCache.get.isDeleted)
-				None
-			else
-				fromLiveCache
-		else allWhere[T](_ :== id).headOption
-	}
 
 	override def makeDurable(transaction: Transaction) = {
 		val (assignments, deletes) = filterVars(transaction.refsAssignments)
@@ -95,7 +71,7 @@ trait ActivateContext
 			liveCache.delete(ref.outerEntity)
 	}
 
-	def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
+	private[this] def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
 		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
 		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
 		val deletes = MutableMap[Var[Any], EntityValue[Any]]()
@@ -117,7 +93,7 @@ trait ActivateContext
 }
 
 object ActivateContext {
-	def contextFor(entityClass: Class[_ <: Entity]) = {
+	private[activate] def contextFor(entityClass: Class[_ <: Entity]) = {
 		val instances = NamedSingletonSerializable.instancesOf(classOf[ActivateContext])
 		toRichList(for (
 			ctx <- instances;

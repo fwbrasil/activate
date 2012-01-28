@@ -9,7 +9,7 @@ class QuerySelectValue[V]() extends QueryValue
 
 trait QueryValueContext extends ValueContext {
 
-	def toQueryValueRef[V](ref: Var[V]): QuerySelectValue[V] = {
+	private[activate] def toQueryValueRef[V](ref: Var[V]): QuerySelectValue[V] = {
 		val (entity, path) = propertyPath(ref)
 		val sourceOption = From.entitySourceFor(entity)
 		if (sourceOption != None)
@@ -18,7 +18,7 @@ trait QueryValueContext extends ValueContext {
 			new SimpleValue[V](ref.get.get, ref.tval.asInstanceOf[V => EntityValue[V]])
 	}
 
-	def propertyPath(ref: Var[_]) = {
+	private[activate] def propertyPath(ref: Var[_]) = {
 		ref match {
 			case ref: FakeVarToQuery[_] => {
 				var propertyPath = List[Var[_]](ref)
@@ -36,7 +36,7 @@ trait QueryValueContext extends ValueContext {
 		}
 	}
 
-	def toQueryValueEntity[E <: Entity](entity: E): QueryEntityValue[E] = {
+	private[activate] def toQueryValueEntity[E <: Entity](entity: E): QueryEntityValue[E] = {
 		val sourceOption = From.entitySourceFor(entity)
 		if (sourceOption != None)
 			new QueryEntitySourceValue(sourceOption.get)

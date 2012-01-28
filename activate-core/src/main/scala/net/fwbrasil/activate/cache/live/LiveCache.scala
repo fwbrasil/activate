@@ -21,7 +21,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.Logging
 import scala.collection.immutable.TreeSet
 
-class LiveCache(val context: ActivateContext) extends Logging {
+private[activate] class LiveCache(val context: ActivateContext) extends Logging {
 
 	info("Initializing live cache for context " + context.contextName)
 
@@ -29,7 +29,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	type E = Entity
 
-	private[activate] val cache =
+	val cache =
 		new ReferenceWeakKeyMap[Class[E], ReferenceWeakValueMap[String, E] with Lockable] with Lockable
 
 	def reinitialize =
@@ -328,8 +328,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				if (property != null)
 					entityPropertyPathRef(
 						property.asInstanceOf[E],
-						propertyPath
-					)
+						propertyPath)
 				else
 					null
 			}

@@ -221,13 +221,11 @@ object EntityHelper {
 
 trait EntityContext extends ValueContext with TransactionContext with ValidEntityContext {
 
-	private[activate] val liveCache: LiveCache
-
 	type Entity = net.fwbrasil.activate.entity.Entity
-	type Entityname = net.fwbrasil.activate.entity.EntityName
-
+	type EntityName = net.fwbrasil.activate.entity.EntityName
 	type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
-	def initialize(entity: Entity)
+	private[activate] val liveCache: LiveCache
+	private[activate] def initialize(entity: Entity)
 
 }

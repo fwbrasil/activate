@@ -13,10 +13,6 @@ import scala.collection.mutable.{ Map => MutableMap }
 import java.util.IdentityHashMap
 import java.util.Date
 
-class Reflection(val clazz: Class[_]) {
-	def publicMethods = clazz.getMethods
-}
-
 object Reflection {
 
 	val objenesis = new ObjenesisStd(false);

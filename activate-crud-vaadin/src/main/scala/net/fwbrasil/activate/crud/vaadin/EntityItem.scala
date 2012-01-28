@@ -75,7 +75,8 @@ class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transacti
 
 class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[_]*)(implicit val transaction: Transaction, val m: Manifest[E]) extends Container with Container.Ordered {
 
-	val context = ActivateContext.contextFor(m.erasure.asInstanceOf[Class[Entity]])
+	val entityClass = m.erasure.asInstanceOf[Class[Entity]]
+	val context = ActivateContext.contextFor(entityClass)
 
 	val metadata = EntityHelper.getEntityMetadata(m.erasure)
 
