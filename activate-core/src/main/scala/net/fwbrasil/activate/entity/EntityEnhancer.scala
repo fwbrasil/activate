@@ -1,25 +1,17 @@
 package net.fwbrasil.activate.entity
 
-import net.fwbrasil.activate.util.Reflection
-import javassist.ClassPool
-import javassist.CodeConverter
 import javassist.CtClass
-import javassist.ClassClassPath
+import javassist.ClassPool
 import javassist.CtField
-import javassist.expr.ExprEditor
-import javassist.expr.MethodCall
-import javassist.expr.FieldAccess
-import javassist.expr.ConstructorCall
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.util.Reflection.set
-import net.fwbrasil.activate.util.Reflection.invoke
-import javassist.bytecode.LocalVariableAttribute
-import javassist.Modifier
 import javassist.CtPrimitiveType
+import javassist.expr.ExprEditor
+import javassist.ClassClassPath
 import java.lang.management.ManagementFactory
-import java.lang.management.RuntimeMXBean
+import javassist.Modifier
+import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.util.GraphUtil._
+import net.fwbrasil.activate.util.GraphUtil.DependencyTree
+import javassist.expr.FieldAccess
 
 object EntityEnhancer extends Logging {
 

@@ -2,9 +2,8 @@ package net.fwbrasil.activate.storage.memory
 
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.entity.Entity
 
 trait MemoryStorage extends Storage {
 

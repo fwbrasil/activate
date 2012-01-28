@@ -1,16 +1,12 @@
 package net.fwbrasil.activate.util
 
-import java.lang.reflect.Constructor
 import org.joda.time.base.AbstractInstant
-import scala.runtime._
-import org.objenesis._
+import org.objenesis.ObjenesisStd
+import java.util.IdentityHashMap
+import org.reflections.Reflections
+import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.GenericArrayType
-import org.reflections.Reflections
-import scala.collection.mutable.{ Map => MutableMap }
-import java.util.IdentityHashMap
 import java.util.Date
 
 object Reflection {

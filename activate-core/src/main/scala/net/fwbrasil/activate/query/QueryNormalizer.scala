@@ -7,7 +7,8 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.CollectionUtil.combine
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
-import net.fwbrasil.activate.util.Reflection._
+import net.fwbrasil.activate.util.Reflection.deepCopyMapping
+import net.fwbrasil.activate.util.Reflection.findObject
 import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
 import scala.collection.immutable.TreeSet
 
@@ -31,10 +32,10 @@ object QueryNormalizer {
 
 	def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
 		var count = 0
-			def nextNumber = {
-				count += 1
-				count
-			}
+		def nextNumber = {
+			count += 1
+			count
+		}
 		val nestedProperties = findObject[QueryEntitySourcePropertyValue[_]](query) {
 			(obj: Any) =>
 				obj match {

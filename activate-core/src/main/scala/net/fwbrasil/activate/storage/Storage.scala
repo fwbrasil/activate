@@ -1,13 +1,8 @@
 package net.fwbrasil.activate.storage
 
-import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.query.Query
-import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.activate.ActivateContext
-import scala.collection.mutable.{ Set => MutableSet, Map => MutableMap }
+import net.fwbrasil.activate.entity.EntityValue
 
 trait Storage {
 

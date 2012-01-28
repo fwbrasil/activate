@@ -1,11 +1,11 @@
 package net.fwbrasil.activate.storage.marshalling
 
 import net.fwbrasil.activate.entity.{ EntityValue, Var, Entity }
-import net.fwbrasil.activate.query._
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
+import net.fwbrasil.activate.query.Query
 
 trait MarshalStorage extends Storage {
 

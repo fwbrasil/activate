@@ -1,6 +1,5 @@
 package net.fwbrasil.activate.query
 
-import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.Reflection.set
 import net.fwbrasil.activate.util.Reflection.get
@@ -8,6 +7,10 @@ import net.fwbrasil.activate.util.uuid.UUIDUtil.generateUUID
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityHelper
 
 object QueryMocks {
 

@@ -1,12 +1,13 @@
 package net.fwbrasil.activate.entity
 
-import java.lang.reflect.{ Modifier, Field, Method }
-import net.fwbrasil.activate.cache.live._
-import net.fwbrasil.activate.util.uuid.UUIDUtil
-import net.fwbrasil.activate.util.Reflection
-import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionContext
-import scala.collection._
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.util.uuid.UUIDUtil
+import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.util.Reflection
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import scala.collection.mutable.{ HashMap => MutableHashMap }
 
 trait Entity extends Serializable with ValidEntity {
 
@@ -169,10 +170,10 @@ class EntityMetadata(
 object EntityHelper {
 
 	private[this] val entitiesMetadatas =
-		mutable.HashMap[String, EntityMetadata]()
+		MutableHashMap[String, EntityMetadata]()
 
 	private[this] val concreteEntityClasses =
-		mutable.HashMap[Class[Entity], List[Class[Entity]]]()
+		MutableHashMap[Class[Entity], List[Class[Entity]]]()
 
 	var initialized = false
 

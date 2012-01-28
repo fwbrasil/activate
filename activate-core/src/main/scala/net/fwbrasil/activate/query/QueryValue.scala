@@ -1,7 +1,10 @@
 package net.fwbrasil.activate.query
 
-import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.query.QueryMocks.FakeVarToQuery
+import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.ValueContext
+import net.fwbrasil.activate.entity.Entity
 
 class QueryValue()
 

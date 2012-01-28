@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.query
 
-import net.fwbrasil.activate.entity._
+import net.fwbrasil.activate.entity.EntityValue
 
 class Operator() {
 	QueryMocks.clearFakeVarCalled

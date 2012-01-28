@@ -1,11 +1,10 @@
 package net.fwbrasil.activate.serialization
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.io.Serializable
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 class JavaSerializatorEvelope[T](val value: T) extends Serializable
 

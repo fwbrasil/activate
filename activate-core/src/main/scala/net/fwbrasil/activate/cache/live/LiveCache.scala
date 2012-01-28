@@ -1,31 +1,53 @@
 package net.fwbrasil.activate.cache.live
 
-import java.util.Arrays.{ equals => arrayEquals }
-import net.fwbrasil.activate.util.Reflection.newInstance
-import net.fwbrasil.activate.entity.EntityValue.tvalFunction
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.query.IsLessThan
+import net.fwbrasil.activate.query.QueryEntityValue
+import net.fwbrasil.activate.query.QueryValue
+import net.fwbrasil.activate.query.IsGreaterOrEqualTo
+import net.fwbrasil.activate.query.IsSome
+import net.fwbrasil.activate.query.QueryEntitySourceValue
+import net.fwbrasil.activate.query.EntitySource
+import net.fwbrasil.activate.query.QueryEntitySourcePropertyValue
+import net.fwbrasil.activate.query.IsEqualTo
+import net.fwbrasil.activate.query.QuerySelectValue
+import net.fwbrasil.activate.query.BooleanOperatorCriteria
+import net.fwbrasil.activate.query.IsNone
+import net.fwbrasil.activate.query.SimpleValue
+import net.fwbrasil.activate.query.CompositeOperatorCriteria
+import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.util.ManifestUtil.manifestClass
-import java.util.Collections
-import net.fwbrasil.activate.entity._
-import net.fwbrasil.activate.query._
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.util.CollectionUtil
-import net.fwbrasil.activate.storage.Storage
-import net.fwbrasil.radon.util.ReferenceWeakValueMap
-import net.fwbrasil.radon.util.ReferenceWeakKeyMap
 import net.fwbrasil.radon.util.Lockable
-import net.fwbrasil.activate.util.Reflection.newInstance
-import net.fwbrasil.activate.util.CollectionUtil.toTuple
-import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.query.Criteria
+import net.fwbrasil.activate.query.SimpleQueryBooleanValue
+import net.fwbrasil.radon.util.ReferenceWeakKeyMap
+import net.fwbrasil.activate.query.QueryBooleanValue
+import net.fwbrasil.activate.query.QueryEntityInstanceValue
+import net.fwbrasil.activate.query.IsLessOrEqualTo
+import net.fwbrasil.activate.util.CollectionUtil
+import net.fwbrasil.activate.query.IsGreaterThan
+import net.fwbrasil.activate.query.From
+import net.fwbrasil.activate.query.SimpleOperatorCriteria
+import net.fwbrasil.activate.query.And
+import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.util.Logging
-import scala.collection.immutable.TreeSet
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.query.Or
+import net.fwbrasil.radon.util.ReferenceWeakValueMap
+import java.util.Arrays.{ equals => arrayEquals }
+import net.fwbrasil.activate.util.CollectionUtil.toTuple
+import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.util.Reflection.newInstance
+import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 
-private[activate] class LiveCache(val context: ActivateContext) extends Logging {
+class LiveCache(val context: ActivateContext) extends Logging {
 
 	info("Initializing live cache for context " + context.contextName)
 
 	def storage = context.storage
+
+	import context._
 
 	type E = Entity
 
@@ -154,7 +176,6 @@ private[activate] class LiveCache(val context: ActivateContext) extends Logging 
 	}
 
 	def initialize(entity: Entity) = {
-		import context._
 		val list = query({ (e: Entity) =>
 			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValueRef(ref)).toList)
 		})(manifestClass(entity.getClass)).execute

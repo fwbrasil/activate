@@ -1,19 +1,21 @@
 package net.fwbrasil.activate
 
-import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.radon.ref.RefContext
-import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.storage.Storage
-import net.fwbrasil.activate.entity._
-import net.fwbrasil.activate.query._
-import net.fwbrasil.activate.serialization._
-import net.fwbrasil.activate.storage._
-import net.fwbrasil.activate.cache.live._
-import scala.collection.mutable.{ Map => MutableMap }
-import java.io._
+import net.fwbrasil.activate.entity.EntityContext
+import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.query.QueryContext
+import net.fwbrasil.radon.transaction.Transaction
+import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.util.RichList._
-import net.fwbrasil.activate.util.CollectionUtil.combine
+import net.fwbrasil.activate.util.RichList.toRichList
+import net.fwbrasil.activate.serialization.NamedSingletonSerializable
+import net.fwbrasil.radon.ref.Ref
+import net.fwbrasil.activate.query.QueryNormalizer
+import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.entity.EntityValue
 
 trait ActivateContext
 		extends EntityContext

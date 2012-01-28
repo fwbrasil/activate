@@ -1,7 +1,6 @@
 package net.fwbrasil.activate.serialization
 
-import scala.collection._
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, SynchronizedMap }
 
 trait NamedSingletonSerializable extends java.io.Serializable {
 
@@ -23,7 +22,7 @@ class NamedSingletonSerializableWrapper(instance: NamedSingletonSerializable) ex
 
 object NamedSingletonSerializable {
 	val instances =
-		new mutable.HashMap[Class[_], mutable.HashMap[String, NamedSingletonSerializable]] with mutable.SynchronizedMap[Class[_], mutable.HashMap[String, NamedSingletonSerializable]]
+		new MutableHashMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]]
 
 	def instancesOf[T](clazz: Class[T]) = {
 		val ret = new ListBuffer[T]
@@ -37,7 +36,7 @@ object NamedSingletonSerializable {
 	def registerInstance(instance: NamedSingletonSerializable) = {
 		val map = instances.getOrElseUpdate(
 			instance.getClass,
-			new mutable.HashMap[String, NamedSingletonSerializable]())
+			new MutableHashMap[String, NamedSingletonSerializable]())
 		val option = map.get(instance.name)
 		if (option.isDefined && option.get != instance)
 			throw new IllegalStateException("Duplicate singleton!")

@@ -2,7 +2,6 @@ package net.fwbrasil.activate.entity
 
 import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
-import java.lang.{ Integer => JInteger, Boolean => JBoolean, Character => JCharacter, Float => JFloat, Double => JDouble }
 import org.joda.time.base.AbstractInstant
 
 abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable

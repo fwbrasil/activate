@@ -1,9 +1,8 @@
 package net.fwbrasil.activate.entity
 
 import net.fwbrasil.radon.ref.RefListener
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.radon.ref.Ref
 import scala.collection.SeqLike
+import net.fwbrasil.radon.ref.Ref
 
 case class PostCond[R](f: () => R) {
 

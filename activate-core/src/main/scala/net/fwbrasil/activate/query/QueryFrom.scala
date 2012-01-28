@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.query
 
-import scala.collection._
+import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.Entity
 
 case class EntitySource(var entityClass: Class[E] forSome { type E <: Entity }, name: String) {
@@ -12,8 +12,8 @@ case class From(entitySources: EntitySource*) {
 }
 
 object From {
-	val entitySourceMap = new ThreadLocal[mutable.Map[Entity, EntitySource]] {
-		override def initialValue = mutable.Map[Entity, EntitySource]()
+	val entitySourceMap = new ThreadLocal[MutableMap[Entity, EntitySource]] {
+		override def initialValue = MutableMap[Entity, EntitySource]()
 	}
 	def entitySourceFor(entity: Entity) =
 		entitySourceMap.get.get(entity)

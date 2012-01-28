@@ -1,10 +1,10 @@
 package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.util.RichList._
-import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
 import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.entity.Entity
 
 trait QueryContext extends QueryValueContext with OperatorContext with OrderedQueryContext {
 

@@ -1,7 +1,5 @@
 package net.fwbrasil.activate.storage.marshalling
 
-import net.fwbrasil.activate.entity._
-import net.fwbrasil.activate.query._
 import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.Reflection.newInstance
@@ -9,6 +7,29 @@ import net.fwbrasil.activate.util.Reflection.get
 import net.fwbrasil.activate.util.Reflection.getObject
 import net.fwbrasil.activate.util.Reflection.materializeJodaInstant
 import org.joda.time.base.AbstractInstant
+import net.fwbrasil.activate.query.QueryEntityValue
+import net.fwbrasil.activate.entity.EnumerationEntityValue
+import net.fwbrasil.activate.entity.DateEntityValue
+import net.fwbrasil.activate.query.QueryEntitySourceValue
+import net.fwbrasil.activate.entity.FloatEntityValue
+import net.fwbrasil.activate.query.QueryEntitySourcePropertyValue
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
+import net.fwbrasil.activate.entity.CharEntityValue
+import net.fwbrasil.activate.entity.DoubleEntityValue
+import net.fwbrasil.activate.entity.JodaInstantEntityValue
+import net.fwbrasil.activate.query.QuerySelectValue
+import net.fwbrasil.activate.query.SimpleValue
+import net.fwbrasil.activate.entity.StringEntityValue
+import net.fwbrasil.activate.entity.IntEntityValue
+import net.fwbrasil.activate.entity.BooleanEntityValue
+import net.fwbrasil.activate.query.QueryMocks
+import net.fwbrasil.activate.entity.ByteArrayEntityValue
+import net.fwbrasil.activate.query.QueryEntityInstanceValue
+import net.fwbrasil.activate.entity.BigDecimalEntityValue
+import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
+import net.fwbrasil.activate.entity.CalendarEntityValue
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityValue
 
 object Marshaller {
 
