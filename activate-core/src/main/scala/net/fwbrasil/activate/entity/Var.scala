@@ -9,9 +9,9 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		with java.io.Serializable {
 
 	val outerEntity = _outerEntity
-	val tval = EntityValue.tvalFunction(_valueClass).asInstanceOf[Option[T] => EntityValue[T]]
-	def toEntityPropertyValue(value: Any) = tval(Option(value).asInstanceOf[Option[T]])
-	def outerEntityClass = outerEntity.getClass.asInstanceOf[Class[_ <: Entity]]
+	val tval = EntityValue.tvalFunction[T](_valueClass)
+	def toEntityPropertyValue(value: T) = tval(Option(value))
+	def outerEntityClass = outerEntity.getClass
 	def valueClass = _valueClass
 
 	override def get = doInitialized {

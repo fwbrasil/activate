@@ -53,7 +53,7 @@ trait Entity extends Serializable with ValidEntity {
 		this.synchronized {
 			if (!initializing && !initialized && id != null) {
 				initializing = true
-				context.initialize(this.asInstanceOf[Entity])
+				context.initialize(this)
 				initialized = true
 				initializing = false
 			}
@@ -67,17 +67,17 @@ trait Entity extends Serializable with ValidEntity {
 			initialize
 			for (ref <- varsOfTypeEntity)
 				if (ref.get.nonEmpty) {
-					val entity = ref.get.get.asInstanceOf[Entity]
+					val entity = ref.get.get
 					if (!seen.contains(entity))
 						entity.initializeGraph(seen + this)
 				}
 		}
 
 	private[this] def varsOfTypeEntity =
-		vars.filter((ref: Var[_]) => classOf[Entity].isAssignableFrom(ref.valueClass))
+		vars.filter((ref: Var[_]) => classOf[Entity].isAssignableFrom(ref.valueClass)).toList.asInstanceOf[List[Var[Entity]]]
 
 	private[activate] def isInLiveCache =
-		context.liveCache.contains(this.asInstanceOf[Entity])
+		context.liveCache.contains(this)
 
 	private[this] def entityMetadata =
 		EntityHelper.getEntityMetadata(this.getClass)
@@ -106,17 +106,17 @@ trait Entity extends Serializable with ValidEntity {
 		varFieldsMap.values
 
 	private[activate] def context: ActivateContext = {
-		ActivateContext.contextFor(this.getClass.asInstanceOf[Class[Entity]])
+		ActivateContext.contextFor(this.getClass)
 	}
 
 	private[activate] def varNamed(name: String) =
 		varFieldsMap.get(name)
 
 	private[activate] def addToLiveCache =
-		context.liveCache.toCache(this.asInstanceOf[Entity])
+		context.liveCache.toCache(this)
 
 	private[activate] def cachedInstance =
-		context.liveCache.cachedInstance(this.asInstanceOf[Entity])
+		context.liveCache.cachedInstance(this)
 
 	override def toString =
 		this.getClass.getSimpleName + "(" + vars.mkString(", ") + ")"
@@ -227,6 +227,6 @@ trait EntityContext extends ValueContext with TransactionContext with ValidEntit
 	type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
 	private[activate] val liveCache: LiveCache
-	private[activate] def initialize(entity: Entity)
+	private[activate] def initialize[E <: Entity](entity: E)
 
 }

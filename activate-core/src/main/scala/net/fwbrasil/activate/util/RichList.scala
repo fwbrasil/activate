@@ -13,14 +13,20 @@ case class RichList[T: Manifest](list: List[T]) {
 		if (list.nonEmpty)
 			Option(list(Random.nextInt(list.size)))
 		else None
-	def onlyOne =
+
+	def onlyOne: T =
+		onlyOne("List hasn't one element.")
+
+	def onlyOne(msg: String): T =
 		if (list.size != 1)
-			throw new IllegalStateException("List hasn't one element.")
+			throw new IllegalStateException(msg)
 		else
 			list.head
+
 	def collect[R](func: (T) => R) =
 		for (elem <- list)
 			yield func(elem)
+
 	def select(func: (T) => Boolean) =
 		for (elem <- list; if (func(elem)))
 			yield elem

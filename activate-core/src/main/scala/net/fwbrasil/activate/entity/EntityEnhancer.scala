@@ -62,11 +62,12 @@ object EntityEnhancer extends Logging {
 		clazz.getDeclaredFields.filter(_.getName() == "varTypes").nonEmpty
 
 	def box(typ: CtClass) =
-		if (typ.isPrimitive) {
-			val ctPrimitive = typ.asInstanceOf[CtPrimitiveType]
-			"new " + ctPrimitive.getWrapperName + "($$)"
-		} else
-			"$$"
+		typ match {
+			case typ: CtPrimitiveType =>
+				"new " + typ.getWrapperName + "($$)"
+			case other =>
+				"$$"
+		}
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
 		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {

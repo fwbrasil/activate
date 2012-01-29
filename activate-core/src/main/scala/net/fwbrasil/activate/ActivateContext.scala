@@ -12,6 +12,7 @@ import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable
+import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.query.QueryNormalizer
 import scala.collection.mutable.{ Map => MutableMap }
@@ -26,16 +27,6 @@ trait ActivateContext
 	info("Initializing context " + contextName)
 
 	EntityHelper.initialize
-
-	private[this] var running = true
-
-	private[activate] def start = synchronized {
-		running = true
-	}
-
-	private[activate] def stop = synchronized {
-		running = false
-	}
 
 	private[activate] val liveCache = new LiveCache(this)
 
@@ -61,16 +52,26 @@ trait ActivateContext
 	private[activate] def name = contextName
 	def contextName: String
 
-	private[activate] def initialize(entity: Entity) =
+	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)
 
 	override def makeDurable(transaction: Transaction) = {
 		val (assignments, deletes) = filterVars(transaction.refsAssignments)
 		storage.toStorage(assignments, deletes)
+		setPersisted(assignments)
+		deleteFromLiveCache(deletes)
+	}
+
+	private[this] def setPersisted(assignments: Map[Var[Any], EntityValue[Any]]) =
 		for ((ref, value) <- assignments)
-			ref.outerEntity.setPersisted
-		for ((ref, value) <- deletes)
-			liveCache.delete(ref.outerEntity)
+			yield ref.outerEntity.setPersisted
+
+	private[this] def deleteFromLiveCache(deletes: Map[Var[Any], EntityValue[Any]]) = {
+		val deletedEntities =
+			(for ((ref, value) <- deletes)
+				yield ref.outerEntity).toSet
+		for (entity <- deletedEntities)
+			liveCache.delete(entity)
 	}
 
 	private[this] def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
@@ -87,20 +88,18 @@ trait ActivateContext
 		(assignments.toMap, deletes.toMap)
 	}
 
-	protected[activate] def acceptEntity(entityClass: Class[_ <: Entity]) =
-		running
+	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
+		true
 
 	override def toString = "ActivateContext: " + name
 
 }
 
 object ActivateContext {
-	private[activate] def contextFor(entityClass: Class[_ <: Entity]) = {
-		val instances = NamedSingletonSerializable.instancesOf(classOf[ActivateContext])
-		toRichList(for (
-			ctx <- instances;
-			if (ctx.acceptEntity(entityClass))
-		) yield ctx).onlyOne
-	}
+
+	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
+		instancesOf[ActivateContext]
+			.filter(_.acceptEntity(entityClass))
+			.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context.")
 
 }

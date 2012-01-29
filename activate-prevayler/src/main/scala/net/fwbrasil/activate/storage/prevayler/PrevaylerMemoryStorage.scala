@@ -26,7 +26,12 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 		factory.configurePrevalenceDirectory(name)
 		prevayler = factory.create
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
+		for (entity <- prevalentSystem.values)
+			context.liveCache.cachedInstance(entity)
 	}
+
+	def snapshot =
+		prevayler.takeSnapshot
 
 	override def reinitialize =
 		initialize

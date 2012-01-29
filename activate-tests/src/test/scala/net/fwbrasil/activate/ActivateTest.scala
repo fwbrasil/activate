@@ -33,6 +33,8 @@ trait ActivateTest extends SpecificationWithJUnit {
 		def finalizeExecution = {
 
 		}
+		def accept(context: ActivateTestContext) =
+			true
 		def execute[A](step: => A): A =
 			try {
 				step
@@ -83,11 +85,27 @@ trait ActivateTest extends SpecificationWithJUnit {
 		}
 	}
 
+	case class MultipleTransactionsWithReinitializeAndSnapshot(ctx: ActivateTestContext) extends StepExecutor {
+		import ctx._
+		def apply[A](s: => A): A = execute {
+			val ret =
+				transactional {
+					s
+				}
+			ctx.storage.asInstanceOf[PrevaylerMemoryStorage].snapshot
+			reinitializeContext
+			ret
+		}
+		override def accept(ctx: ActivateTestContext) =
+			ctx.storage.isInstanceOf[PrevaylerMemoryStorage]
+	}
+
 	def executors(ctx: ActivateTestContext): List[StepExecutor] =
 		List(
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx))
+			MultipleTransactionsWithReinitialize(ctx),
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
@@ -127,6 +145,19 @@ trait ActivateTest extends SpecificationWithJUnit {
 
 		def contextName =
 			this.getClass.getName + "@" + this.hashCode.toString
+
+		private[this] var running = true
+
+		private[activate] def start = synchronized {
+			running = true
+		}
+
+		private[activate] def stop = synchronized {
+			running = false
+		}
+
+		override protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
+			running
 
 		val emptyIntValue = 0
 		val emptyBooleanValue = false

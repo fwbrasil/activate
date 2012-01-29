@@ -40,19 +40,17 @@ import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
+import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
+import scala.collection.mutable.{ HashMap => MutableHashMap }
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
 	info("Initializing live cache for context " + context.contextName)
 
-	def storage = context.storage
-
 	import context._
 
-	type E = Entity
-
 	val cache =
-		new ReferenceWeakKeyMap[Class[E], ReferenceWeakValueMap[String, E] with Lockable] with Lockable
+		new MutableHashMap[Class[_ <: Entity], ReferenceWeakValueMap[String, _ <: Entity] with Lockable] with Lockable
 
 	def reinitialize =
 		logInfo("live cache reinitialize") {
@@ -61,19 +59,19 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			}
 		}
 
-	def byId[T <: Entity: Manifest](id: String): Option[T] =
-		entityInstacesMap(manifest[T].erasure.asInstanceOf[Class[E]]).get(id).asInstanceOf[Option[T]]
+	def byId[E <: Entity: Manifest](id: String): Option[E] =
+		entityInstacesMap[E].get(id).asInstanceOf[Option[E]]
 
-	def contains(entity: E) =
-		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).contains(entity.id)
+	def contains[E <: Entity](entity: E) =
+		entityInstacesMap(entity.getClass).contains(entity.id)
 
-	def cachedInstance(entity: E): Unit =
-		entityInstacesMap(entity.getClass.asInstanceOf[Class[E]]).getOrElse(entity.id, {
+	def cachedInstance[E <: Entity](entity: E): Unit =
+		entityInstacesMap(entity.getClass).getOrElse(entity.id, {
 			toCache(entity)
 			entity
 		})
 
-	def delete(entity: E): Unit =
+	def delete(entity: Entity): Unit =
 		delete(entity.id)
 
 	def delete(entityId: String) = {
@@ -83,10 +81,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def toCache(entity: E): E =
+	def toCache[E <: Entity](entity: E): E =
 		toCache(entity.getClass.asInstanceOf[Class[E]], () => entity)
 
-	def toCache(entityClass: Class[E], fEntity: () => E): E = {
+	def toCache[E <: Entity](entityClass: Class[E], fEntity: () => E): E = {
 		val map = entityInstacesMap(entityClass)
 		map.doWithWriteLock {
 			val entity = fEntity()
@@ -96,10 +94,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def isQueriable(entity: Entity) =
-		/*(storage.isMemoryStorage || !entity.isPersisted) &&*/ entity.isInitialized && !entity.isDeleted
+		entity.isInitialized && !entity.isDeleted
 
-	def fromCache(entityClass: Class[E]) = {
-		val entities = entityInstacesMap(entityClass).values.filter((entity: Entity) => isQueriable(entity)).toList
+	def fromCache(entityClass: Class[Entity]) = {
+		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_)).toList
 		if (!storage.isMemoryStorage)
 			for (entity <- entities)
 				if (!entity.isPersisted)
@@ -107,18 +105,21 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entities
 	}
 
-	def entityInstacesMap(entityClass: Class[E]) = {
+	def entityInstacesMap[E <: Entity: Manifest]: ReferenceWeakValueMap[String, E] with Lockable =
+		entityInstacesMap(manifestToClass(manifest[E]))
+
+	def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceWeakValueMap[String, E] with Lockable = {
 		val mapOption =
 			cache.doWithReadLock {
 				cache.get(entityClass)
 			}
 		if (mapOption != None)
-			mapOption.get
+			mapOption.get.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
 		else {
 			cache.doWithWriteLock {
 				val entitiesMap = new ReferenceWeakValueMap[String, E] with Lockable
-				cache += (entityClass.asInstanceOf[Class[E]] -> entitiesMap)
-				entitiesMap
+				cache += (entityClass -> entitiesMap)
+				entitiesMap.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
 			}
 		}
 	}
@@ -154,10 +155,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		})
 	}
 
-	def createLazyEntity[E](entityClass: Class[E], entityId: String) = {
-		val entity = newInstance[Entity](entityClass)
+	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
+		val entity = newInstance[E](entityClass)
 		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
-		context.transactional(context.transient) {
+		transactional(transient) {
 			for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 				val typ = propertyMetadata.propertyType
 				val field = propertyMetadata.varField
@@ -185,15 +186,15 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			vars(i).asInstanceOf[Var[Any]].setRefContent(Option(tuple.productElement(i)))
 	}
 
-	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[E]]): List[S] = {
+	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[S] = {
 		val result = ListBuffer[S]()
 		for (entitySourcesInstances <- entitySourcesInstancesCombined)
 			result ++= executeQueryWithEntitySourcesMap(query, entitySourceInstancesMap(query.from, entitySourcesInstances))
 		result.toList
 	}
 
-	def entitySourceInstancesMap(from: From, entitySourcesInstances: List[E]) = {
-		var result = Map[EntitySource, E]()
+	def entitySourceInstancesMap(from: From, entitySourcesInstances: List[Entity]) = {
+		var result = Map[EntitySource, Entity]()
 		var i = 0
 		for (entitySourceInstance <- entitySourcesInstances) {
 			result += (from.entitySources(i) -> entitySourceInstance)
@@ -202,7 +203,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		result
 	}
 
-	def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, E]): List[S] = {
+	def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[S] = {
 		val satisfyWhere = executeCriteria(query.where.value)(entitySourceInstancesMap)
 		if (satisfyWhere) {
 			List(executeSelect[S](query.select.values: _*)(entitySourceInstancesMap))
@@ -210,14 +211,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			List[S]()
 	}
 
-	def executeSelect[S](values: QuerySelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, E]): S = {
+	def executeSelect[S](values: QuerySelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): S = {
 		val list = ListBuffer[Any]()
 		for (value <- values)
 			list += executeQuerySelectValue(value)
 		CollectionUtil.toTuple(list)
 	}
 
-	def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Boolean =
+	def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria match {
 			case criteria: BooleanOperatorCriteria =>
 				executeBooleanOperatorCriteria(criteria)
@@ -227,7 +228,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeCompositeOperatorCriteria(criteria)
 		}
 
-	def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Boolean =
+	def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: IsEqualTo =>
 				val a = executeQueryValue(criteria.valueA)
@@ -277,7 +278,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				other
 		}
 
-	def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Boolean =
+	def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: IsNone =>
 				executeQueryValue(criteria.valueA) == null
@@ -285,7 +286,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeQueryValue(criteria.valueA) != null
 		}
 
-	def executeBooleanOperatorCriteria(criteria: BooleanOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Boolean =
+	def executeBooleanOperatorCriteria(criteria: BooleanOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: And =>
 				executeQueryBooleanValue(criteria.valueA) && executeQueryBooleanValue(criteria.valueB)
@@ -293,7 +294,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeQueryBooleanValue(criteria.valueA) || executeQueryBooleanValue(criteria.valueB)
 		}
 
-	def executeQueryBooleanValue(value: QueryBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Boolean =
+	def executeQueryBooleanValue(value: QueryBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		value match {
 			case value: SimpleQueryBooleanValue =>
 				value.value
@@ -301,7 +302,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeCriteria(value)
 		}
 
-	def executeQueryValue(value: QueryValue)(implicit entitySourceInstancesMap: Map[EntitySource, E]): Any =
+	def executeQueryValue(value: QueryValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
 			case value: Criteria =>
 				executeCriteria(value)
@@ -312,7 +313,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 		}
 
-	def executeQuerySelectValue(value: QuerySelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, E]): Any =
+	def executeQuerySelectValue(value: QuerySelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
 			case value: QueryEntityValue[_] =>
 				executeQueryEntityValue(value)
@@ -320,7 +321,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				value.anyValue
 		}
 
-	def executeQueryEntityValue(value: QueryEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, E]): Any =
+	def executeQueryEntityValue(value: QueryEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
 			case value: QueryEntityInstanceValue[_] =>
 				value.entity
@@ -328,7 +329,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeQueryEntitySourceValue(value)
 		}
 
-	def executeQueryEntitySourceValue(value: QueryEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, E]): Any = {
+	def executeQueryEntitySourceValue(value: QueryEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any = {
 		val entity = entitySourceInstancesMap.get(value.entitySource).get
 		value match {
 			case value: QueryEntitySourcePropertyValue[_] =>
@@ -338,7 +339,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def entityPropertyPathRef(entity: E, propertyPathVars: List[Var[_]]): Any =
+	def entityPropertyPathRef(entity: Entity, propertyPathVars: List[Var[_]]): Any =
 		propertyPathVars match {
 			case Nil =>
 				null
@@ -348,14 +349,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				val property = entityProperty(entity, propertyVar.name)
 				if (property != null)
 					entityPropertyPathRef(
-						property.asInstanceOf[E],
+						property.asInstanceOf[Entity],
 						propertyPath)
 				else
 					null
 			}
 		}
 
-	def entityProperty(entity: E, propertyName: String) =
+	def entityProperty(entity: Entity, propertyName: String) =
 		entity.varNamed(propertyName) match {
 			case None =>
 				null
@@ -368,6 +369,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def entitySourceInstances(entitySources: EntitySource*) =
 		for (entitySource <- entitySources)
-			yield fromCache(entitySource.entityClass.asInstanceOf[Class[E]])
+			yield fromCache(entitySource.entityClass.asInstanceOf[Class[Entity]])
 
 }

@@ -24,13 +24,16 @@ object NamedSingletonSerializable {
 	val instances =
 		new MutableHashMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]]
 
-	def instancesOf[T](clazz: Class[T]) = {
+	def instancesOf[T <: NamedSingletonSerializable: Manifest]: List[T] =
+		instancesOf(manifest[T].erasure.asInstanceOf[Class[T]])
+
+	def instancesOf[T <: NamedSingletonSerializable](clazz: Class[T]): List[T] = {
 		val ret = new ListBuffer[T]
 		for (map <- instances.values)
 			for (instance <- map.values)
 				if (clazz.isAssignableFrom(instance.getClass()))
 					ret += instance.asInstanceOf[T]
-		ret
+		ret.toList
 	}
 
 	def registerInstance(instance: NamedSingletonSerializable) = {
