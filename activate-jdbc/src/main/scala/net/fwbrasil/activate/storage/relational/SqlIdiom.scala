@@ -120,7 +120,7 @@ abstract class SqlIdiom {
 			case delete: DeleteDmlStorageStatement =>
 				SqlStatement(
 					"DELETE FROM " + toTableName(delete.entityClass) +
-						" WHERE ID = :id",
+						" WHERE ID = '" + delete.entityId + "'",
 					delete.propertyMap)
 		}
 	}

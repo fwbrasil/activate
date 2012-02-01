@@ -38,7 +38,7 @@ class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata,
 			fireValueChange
 		}
 	}
-	entity.varNamed(metadata.name).get.asInstanceOf[Ref[Any]].addWeakListener(listener)
+	entity.varNamed(metadata.name).get.addWeakListener(listener)
 
 	private[this] def doWithTransaction[A](f: => A) = {
 		val context = ActivateContext.contextFor(entity.niceClass)

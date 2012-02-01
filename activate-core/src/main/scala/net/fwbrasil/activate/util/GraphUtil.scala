@@ -8,6 +8,7 @@ import net.fwbrasil.activate.util.RichList._
 object GraphUtil {
 
 	class DependencyTree[T: Manifest](values: scala.collection.Set[T]) {
+
 		private[this] val nodeMap = MutableMap[T, Node[T]]()
 		private[this] val leaves = MutableSet[Node[T]]()
 
@@ -20,11 +21,13 @@ object GraphUtil {
 			leaves += nodeB
 			nodeA.addEdge(nodeB)
 		}
+
 		def roots =
 			nodeMap.values.toSet -- leaves
+
 		private[this] def nodeFor(value: T) =
 			nodeMap.getOrElseUpdate(value, Node(value))
-		def throwCyclicReferenceException =
+		private[this] def throwCyclicReferenceException =
 			throw new IllegalStateException("Cyclic reference.")
 
 		def resolve = {

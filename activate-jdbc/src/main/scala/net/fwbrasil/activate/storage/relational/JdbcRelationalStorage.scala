@@ -18,7 +18,6 @@ import java.sql.Types
 trait JdbcRelationalStorage extends RelationalStorage with Logging {
 
 	val dialect: SqlIdiom
-	implicit val serializator: Serializator
 
 	def getConnection: Connection
 

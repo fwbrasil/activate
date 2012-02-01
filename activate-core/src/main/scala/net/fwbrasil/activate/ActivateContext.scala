@@ -15,7 +15,7 @@ import net.fwbrasil.activate.serialization.NamedSingletonSerializable
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.query.QueryNormalizer
-import scala.collection.mutable.{ Map => MutableMap }
+import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.entity.EntityValue
 
 trait ActivateContext
@@ -66,26 +66,22 @@ trait ActivateContext
 		for ((ref, value) <- assignments)
 			yield ref.outerEntity.setPersisted
 
-	private[this] def deleteFromLiveCache(deletes: Map[Var[Any], EntityValue[Any]]) = {
-		val deletedEntities =
-			(for ((ref, value) <- deletes)
-				yield ref.outerEntity).toSet
-		for (entity <- deletedEntities)
+	private[this] def deleteFromLiveCache(deletes: Set[Entity]) =
+		for (entity <- deletes)
 			liveCache.delete(entity)
-	}
 
 	private[this] def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
 		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
 		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
-		val deletes = MutableMap[Var[Any], EntityValue[Any]]()
+		val deletes = MutableSet[Entity]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
 				if (ref.outerEntity.isPersisted)
-					deletes += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
+					deletes += ref.outerEntity
 			} else
 				assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 		}
-		(assignments.toMap, deletes.toMap)
+		(assignments.toMap, deletes.toSet)
 	}
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =

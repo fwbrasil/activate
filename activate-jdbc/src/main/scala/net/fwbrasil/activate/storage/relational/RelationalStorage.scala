@@ -13,7 +13,7 @@ import scala.collection.mutable.{ Map => MutableMap }
 
 trait RelationalStorage extends MarshalStorage {
 
-	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
+	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Set[Entity]): Unit = {
 
 		val inserts =
 			for ((entity, propertyMap) <- insertMap)
@@ -26,14 +26,14 @@ trait RelationalStorage extends MarshalStorage {
 				yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
 
 		val deletes =
-			for ((entity, propertyMap) <- deleteMap)
-				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
+			for (entity <- deleteSet)
+				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, Map())
 
 		val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
 		val sqls = insertsResolved ::: updates.toList ::: deletesResolved
 
-		execute(sqls.asInstanceOf[List[DmlStorageStatement]])
+		execute(sqls)
 	}
 
 	def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = {

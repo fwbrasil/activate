@@ -40,10 +40,13 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 	def select(func: (T) => Boolean) =
 		for (elem <- iterable; if (func(elem)))
 			yield elem
+
+	def mapBy[R](f: (T) => R): Map[R, T] =
+		list.map((v) => (f(v), v)).toMap
 }
 
 object RichList {
+
 	implicit def toRichList[T: Manifest](list: Iterable[T]) = RichList(list)
-	//	implicit def toRichList[T: Manifest](list: Seq[T]) = RichList(list.toList)
 
 }
