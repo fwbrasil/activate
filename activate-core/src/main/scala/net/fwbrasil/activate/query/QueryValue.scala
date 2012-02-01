@@ -18,7 +18,7 @@ trait QueryValueContext extends ValueContext {
 		if (sourceOption != None)
 			new QueryEntitySourcePropertyValue[V](sourceOption.get, path: _*)
 		else
-			new SimpleValue[V](ref.get.get, ref.tval.asInstanceOf[V => EntityValue[V]])
+			new SimpleValue[V](ref.get.get, ref.tval)
 	}
 
 	private[activate] def propertyPath(ref: Var[_]) = {
@@ -47,14 +47,14 @@ trait QueryValueContext extends ValueContext {
 			new QueryEntityInstanceValue(entity)
 	}
 
-	implicit def toQueryValueEntityValue[V](value: V)(implicit m: V => EntityValue[V]): QuerySelectValue[V] = {
+	implicit def toQueryValueEntityValue[V](value: V)(implicit m: Option[V] => EntityValue[V]): QuerySelectValue[V] = {
 		QueryMocks.lastFakeVarCalled match {
-			case Some(ref) =>
-				toQueryValueRef(ref.asInstanceOf[Var[V]])
+			case Some(ref: V) =>
+				toQueryValueRef(ref)
 			case other =>
 				value match {
 					case entity: Entity =>
-						toQueryValueEntity[Entity](entity).asInstanceOf[QuerySelectValue[V]]
+						toQueryValueEntity(entity).asInstanceOf[QuerySelectValue[V]]
 					case value =>
 						new SimpleValue[V](value, m)
 
@@ -83,8 +83,8 @@ case class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySo
 	override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
 }
 
-case class SimpleValue[V](val anyValue: V, val f: (V) => EntityValue[V]) extends QuerySelectValue[V] {
+case class SimpleValue[V](val anyValue: V, val f: (Option[V]) => EntityValue[V]) extends QuerySelectValue[V] {
 	require(anyValue != null)
-	def entityValue: EntityValue[V] = f(anyValue)
+	def entityValue: EntityValue[V] = f(Option(anyValue))
 	override def toString = anyValue.toString
 }

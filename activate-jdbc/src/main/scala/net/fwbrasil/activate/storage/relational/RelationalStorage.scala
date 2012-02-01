@@ -8,6 +8,7 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.util.GraphUtil._
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.mutable.{ Map => MutableMap }
 
 trait RelationalStorage extends MarshalStorage {
@@ -16,17 +17,17 @@ trait RelationalStorage extends MarshalStorage {
 
 		val inserts =
 			for ((entity, propertyMap) <- insertMap)
-				yield InsertDmlStorageStatement(entity.getClass, entity.id, propertyMap.toMap)
+				yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
 
 		val insertsResolved = resolveDependencies(inserts.toSet)
 
 		val updates =
 			for ((entity, propertyMap) <- updateMap)
-				yield UpdateDmlStorageStatement(entity.getClass, entity.id, propertyMap.toMap)
+				yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
 
 		val deletes =
 			for ((entity, propertyMap) <- deleteMap)
-				yield DeleteDmlStorageStatement(entity.getClass, entity.id, propertyMap.toMap)
+				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
 
 		val deletesResolved = resolveDependencies(deletes.toSet).reverse
 

@@ -3,6 +3,7 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.radon.ref.RefListener
 import scala.collection.SeqLike
 import net.fwbrasil.radon.ref.Ref
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 
 case class PostCond[R](f: () => R) {
 
@@ -41,7 +42,7 @@ trait ValidEntity {
 
 	private[activate] lazy val invariants = {
 		initializeListener
-		val metadata = EntityHelper.getEntityMetadata(this.getClass)
+		val metadata = EntityHelper.getEntityMetadata(this.niceClass)
 		for (method <- metadata.invariantMethods)
 			yield (method.getName, method.invoke(this).asInstanceOf[Invariant].f)
 	}
@@ -51,11 +52,10 @@ trait ValidEntity {
 			validate
 		}
 	}
-	private[this] def initializeListener: Unit = {
+	private[this] def initializeListener: Unit =
 		for (ref <- vars)
-			ref.asInstanceOf[Ref[Any]].addWeakListener(listener)
+			ref.addWeakListener(listener)
 
-	}
 	protected def invariant(f: => Boolean) =
 		Invariant(() => f)
 

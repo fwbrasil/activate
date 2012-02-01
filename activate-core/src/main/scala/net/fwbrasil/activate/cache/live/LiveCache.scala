@@ -39,6 +39,7 @@ import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.Reflection.newInstance
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
 import scala.collection.mutable.{ HashMap => MutableHashMap }
@@ -60,13 +61,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 
 	def byId[E <: Entity: Manifest](id: String): Option[E] =
-		entityInstacesMap[E].get(id).asInstanceOf[Option[E]]
+		entityInstacesMap[E].get(id)
 
 	def contains[E <: Entity](entity: E) =
-		entityInstacesMap(entity.getClass).contains(entity.id)
+		entityInstacesMap(entity.niceClass).contains(entity.id)
 
 	def cachedInstance[E <: Entity](entity: E): Unit =
-		entityInstacesMap(entity.getClass).getOrElse(entity.id, {
+		entityInstacesMap(entity.niceClass).getOrElse(entity.id, {
 			toCache(entity)
 			entity
 		})
@@ -82,7 +83,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def toCache[E <: Entity](entity: E): E =
-		toCache(entity.getClass.asInstanceOf[Class[E]], () => entity)
+		toCache(entity.niceClass, () => entity)
 
 	def toCache[E <: Entity](entityClass: Class[E], fEntity: () => E): E = {
 		val map = entityInstacesMap(entityClass)
@@ -93,10 +94,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def isQueriable(entity: Entity) =
+	def isQueriable(entity: Entity) = {
+		if (!entity.isInitialized)
+			println("a")
 		entity.isInitialized && !entity.isDeleted
-
-	def fromCache(entityClass: Class[Entity]) = {
+	}
+	def fromCache[E <: Entity](entityClass: Class[E]) = {
 		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_)).toList
 		if (!storage.isMemoryStorage)
 			for (entity <- entities)
@@ -114,15 +117,15 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				cache.get(entityClass)
 			}
 		if (mapOption != None)
-			mapOption.get.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
+			mapOption.get
 		else {
 			cache.doWithWriteLock {
 				val entitiesMap = new ReferenceWeakValueMap[String, E] with Lockable
 				cache += (entityClass -> entitiesMap)
-				entitiesMap.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
+				entitiesMap
 			}
 		}
-	}
+	}.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
 
 	def executeQuery[S](query: Query[S]): Set[S] = {
 		var result =
@@ -179,11 +182,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def initialize(entity: Entity) = {
 		val list = query({ (e: Entity) =>
 			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValueRef(ref)).toList)
-		})(manifestClass(entity.getClass)).execute
+		})(manifestClass(entity.niceClass)).execute
 		val tuple = list.head
 		val vars = entity.vars.toList
 		for (i <- 0 to vars.size - 1)
-			vars(i).asInstanceOf[Var[Any]].setRefContent(Option(tuple.productElement(i)))
+			vars(i).setRefContent(Option(tuple.productElement(i)))
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[S] = {
@@ -346,29 +349,29 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			case propertyVar :: Nil =>
 				entityProperty(entity, propertyVar.name)
 			case propertyVar :: propertyPath => {
-				val property = entityProperty(entity, propertyVar.name)
+				val property = entityProperty[Entity](entity, propertyVar.name)
 				if (property != null)
 					entityPropertyPathRef(
-						property.asInstanceOf[Entity],
+						property,
 						propertyPath)
 				else
 					null
 			}
 		}
 
-	def entityProperty(entity: Entity, propertyName: String) =
-		entity.varNamed(propertyName) match {
+	def entityProperty[T](entity: Entity, propertyName: String) =
+		(entity.varNamed(propertyName) match {
 			case None =>
 				null
 			case someRef: Some[Var[_]] =>
 				!someRef.get
-		}
+		}).asInstanceOf[T]
 
 	def entitySourceInstancesCombined(from: From) =
 		CollectionUtil.combine(entitySourceInstances(from.entitySources: _*))
 
 	def entitySourceInstances(entitySources: EntitySource*) =
 		for (entitySource <- entitySources)
-			yield fromCache(entitySource.entityClass.asInstanceOf[Class[Entity]])
+			yield fromCache(entitySource.entityClass)
 
 }

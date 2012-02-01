@@ -2,6 +2,7 @@ package net.fwbrasil.activate.entity
 
 import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
+import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import org.joda.time.base.AbstractInstant
 
 abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable
@@ -21,7 +22,7 @@ case class StringEntityValue(override val value: Option[String])
 case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val value: Option[E])
 		extends EntityValue[E](value) {
 	def enumerationManifest = manifest[E]
-	def enumerationClass = enumerationManifest.erasure
+	def enumerationClass = erasureOf[E]
 }
 
 case class FloatEntityValue(override val value: Option[Float])
@@ -41,7 +42,7 @@ case class CalendarEntityValue(override val value: Option[java.util.Calendar])
 
 case class JodaInstantEntityValue[I <: AbstractInstant: Manifest](override val value: Option[I])
 		extends EntityValue[I](value) {
-	def instantClass = manifest[I].erasure
+	def instantClass = erasureOf[I]
 }
 
 case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
@@ -50,17 +51,18 @@ case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
 case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
 		extends EntityValue[E](value) {
 	def entityManifest = manifest[E]
-	def entityClass = entityManifest.erasure
+	def entityClass = erasureOf[E]
 }
 
 case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[String])
 		extends EntityValue[String](value) {
 	def entityManifest = manifest[E]
-	def entityClass = entityManifest.erasure
+	def entityClass = erasureOf[E]
 }
 
 object EntityValue extends ValueContext {
 
+	// TODO Melhorar erro quando um tipo nao e valido
 	private[activate] def tvalFunction[T](clazz: Class[_]): (Option[T]) => EntityValue[T] =
 		(if (clazz == classOf[Int])
 			(value: Option[Int]) => toIntEntityValueOption(value)

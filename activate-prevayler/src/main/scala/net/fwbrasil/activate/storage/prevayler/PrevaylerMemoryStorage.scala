@@ -26,8 +26,9 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 		factory.configurePrevalenceDirectory(name)
 		prevayler = factory.create
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
-		for (entity <- prevalentSystem.values)
-			context.liveCache.cachedInstance(entity)
+		for (entity <- prevalentSystem.values) {
+			context.liveCache.toCache(entity)
+		}
 	}
 
 	def snapshot =
@@ -65,13 +66,11 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 
 		for ((entityId, changeSet) <- assignments) {
 			val entity = materializeEntity(entityId)
-			storage += (entity.id -> entity)
 			for ((varName, value) <- changeSet) {
-				entity.setInitialized
-				val ref = entity.varNamed(varName).get.asInstanceOf[Var[Any]]
+				val ref = entity.varNamed(varName).get
 				val entityValue = Marshaller.unmarshalling(value) match {
 					case value: EntityInstanceReferenceValue[_] =>
-						if (value.value != None)
+						if (value.value.isDefined)
 							ref.setRefContent(Option(materializeEntity(value.value.get)))
 						else
 							ref.setRefContent(None)
@@ -88,6 +87,7 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 
 		def materializeEntity(entityId: String) = {
 			val entity = liveCache.materializeEntity(entityId)
+			entity.setInitialized
 			storage += (entity.id -> entity)
 			entity
 		}

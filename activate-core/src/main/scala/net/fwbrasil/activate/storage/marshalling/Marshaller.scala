@@ -111,7 +111,7 @@ object Marshaller {
 		}
 
 	def marshalling(implicit entityValue: EntityValue[_]): StorageValue =
-		(entityValue match {
+		entityValue match {
 			case value: IntEntityValue =>
 				IntStorageValue(value.value)
 			case value: BooleanEntityValue =>
@@ -140,6 +140,6 @@ object Marshaller {
 				ReferenceStorageValue(value.value)
 			case value: EnumerationEntityValue[_] =>
 				StringStorageValue(value.value.map(_.toString))
-		}).asInstanceOf[StorageValue]
+		}
 
 }

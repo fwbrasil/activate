@@ -8,8 +8,11 @@ object ManifestUtil {
 	implicit def classToManifest[C](clazz: Class[C]): Manifest[C] =
 		manifestClass(clazz).asInstanceOf[Manifest[C]]
 
-	implicit def manifestToClass[T](manifest: Manifest[T]) =
+	def manifestToClass[T](manifest: Manifest[T]) =
 		manifest.erasure.asInstanceOf[Class[T]]
+
+	def erasureOf[T: Manifest] =
+		manifest[T].erasure.asInstanceOf[Class[T]]
 
 	val ByteClass = classOf[scala.Byte]
 	val ShortClass = classOf[scala.Short]

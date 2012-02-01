@@ -5,6 +5,8 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ HashMap => MutableHashMap }
@@ -26,7 +28,7 @@ trait Entity extends Serializable with ValidEntity {
 
 	val id = {
 		val uuid = UUIDUtil.generateUUID
-		val classId = EntityHelper.getEntityClassHashId(this.getClass)
+		val classId = EntityHelper.getEntityClassHashId(this.niceClass)
 		uuid + "-" + classId
 	}
 
@@ -74,19 +76,19 @@ trait Entity extends Serializable with ValidEntity {
 		}
 
 	private[this] def varsOfTypeEntity =
-		vars.filter((ref: Var[_]) => classOf[Entity].isAssignableFrom(ref.valueClass)).toList.asInstanceOf[List[Var[Entity]]]
+		vars.filterByType[Entity, Var[Entity]]((ref: Var[Any]) => ref.valueClass)
 
 	private[activate] def isInLiveCache =
 		context.liveCache.contains(this)
 
 	private[this] def entityMetadata =
-		EntityHelper.getEntityMetadata(this.getClass)
+		EntityHelper.getEntityMetadata(this.niceClass)
 
 	private[this] def varFields =
 		entityMetadata.varFields
 
 	@transient
-	private[this] var varFieldsMapCache: Map[String, Var[_]] = _
+	private[this] var varFieldsMapCache: Map[String, Var[Any]] = _
 
 	private[this] def buildVarFieldsMap =
 		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
@@ -106,7 +108,7 @@ trait Entity extends Serializable with ValidEntity {
 		varFieldsMap.values
 
 	private[activate] def context: ActivateContext = {
-		ActivateContext.contextFor(this.getClass)
+		ActivateContext.contextFor(this.niceClass)
 	}
 
 	private[activate] def varNamed(name: String) =
@@ -119,7 +121,7 @@ trait Entity extends Serializable with ValidEntity {
 		context.liveCache.cachedInstance(this)
 
 	override def toString =
-		this.getClass.getSimpleName + "(" + vars.mkString(", ") + ")"
+		this.niceClass.getSimpleName + (if (initialized) "(" + vars.mkString(", ") + ")" else "(uninitialized id->" + id + ")")
 
 }
 
@@ -173,15 +175,15 @@ object EntityHelper {
 		MutableHashMap[String, EntityMetadata]()
 
 	private[this] val concreteEntityClasses =
-		MutableHashMap[Class[Entity], List[Class[Entity]]]()
+		MutableHashMap[Class[_ <: Entity], List[Class[Entity]]]()
 
 	var initialized = false
 
-	def concreteClasses(clazz: Class[Entity]) =
+	def concreteClasses[E <: Entity](clazz: Class[E]) =
 		concreteEntityClasses.getOrElse(clazz, {
 			for ((hash, metadata) <- entitiesMetadatas; if (clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)))
 				yield metadata.entityClass
-		})
+		}).toList.asInstanceOf[List[Class[_ <: E]]]
 
 	def initialize = synchronized {
 		if (!initialized) {

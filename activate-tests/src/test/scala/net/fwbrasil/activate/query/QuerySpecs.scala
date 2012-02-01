@@ -251,6 +251,10 @@ class QuerySpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					step {
+						fullTraitValue1
+						fullTraitValue2
+					}
+					step {
 						all[TraitAttribute].size must beEqualTo(2)
 					}
 				})
@@ -262,9 +266,10 @@ class QuerySpecs extends ActivateTest {
 					import step.ctx._
 					if (step.ctx.storage.supportComplexQueries) {
 						step {
-							println(newFullActivateTestEntity.isInitialized)
+							println(newFullActivateTestEntity.traitValue1.isInitialized)
 						}
 						step {
+							val a = all[ActivateTestEntity]
 							allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
 						}
 					}

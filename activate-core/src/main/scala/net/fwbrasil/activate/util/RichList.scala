@@ -2,15 +2,25 @@ package net.fwbrasil.activate.util
 
 import scala.util.Random
 import java.lang.Comparable
+import net.fwbrasil.activate.util.ManifestUtil.erasureOf
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 
-case class RichList[T: Manifest](list: List[T]) {
+case class RichList[T: Manifest](iterable: Iterable[T]) {
+
+	def list = iterable.toList
+
+	def filterByType[A: Manifest, B](f: (T) => Class[_]): List[B] =
+		iterable.filter((elem) => erasureOf[A].isAssignableFrom(f(elem))).toList.asInstanceOf[List[B]]
+
 	def sortComparable[V](f: (T) => Comparable[V]) =
 		list.sortWith((a: T, b: T) => f(a).compareTo(f(b).asInstanceOf[V]) < 0)
+
 	def sortIfComparable =
-		if (classOf[Comparable[_]].isAssignableFrom(manifest[T].erasure))
+		if (classOf[Comparable[_]].isAssignableFrom(erasureOf[T]))
 			sortComparable[Any]((v: T) => v.asInstanceOf[Comparable[Any]])
+
 	def randomElementOption =
-		if (list.nonEmpty)
+		if (iterable.nonEmpty)
 			Option(list(Random.nextInt(list.size)))
 		else None
 
@@ -18,22 +28,22 @@ case class RichList[T: Manifest](list: List[T]) {
 		onlyOne("List hasn't one element.")
 
 	def onlyOne(msg: String): T =
-		if (list.size != 1)
+		if (iterable.size != 1)
 			throw new IllegalStateException(msg)
 		else
-			list.head
+			iterable.head
 
 	def collect[R](func: (T) => R) =
-		for (elem <- list)
+		for (elem <- iterable)
 			yield func(elem)
 
 	def select(func: (T) => Boolean) =
-		for (elem <- list; if (func(elem)))
+		for (elem <- iterable; if (func(elem)))
 			yield elem
 }
 
 object RichList {
-	implicit def toRichList[T: Manifest](list: List[T]) = RichList(list)
-	implicit def toRichList[T: Manifest](list: Seq[T]) = RichList(list.toList)
+	implicit def toRichList[T: Manifest](list: Iterable[T]) = RichList(list)
+	//	implicit def toRichList[T: Manifest](list: Seq[T]) = RichList(list.toList)
 
 }

@@ -4,6 +4,7 @@ import net.fwbrasil.activate.storage.prevayler._
 import net.fwbrasil.activate.storage.relational._
 import net.fwbrasil.activate.storage.memory._
 import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
@@ -47,7 +48,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 					throw new IllegalStateException(e.getMessage + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 			}
 		def contextName = ctx.name
-		val modeName = this.getClass.getSimpleName
+		val modeName = this.niceClass.getSimpleName
 		val ctx: ActivateTestContext
 	}
 
@@ -125,6 +126,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 			start
 			def clear = transactional {
 				all[ActivateTestEntity].foreach(_.delete)
+				all[TraitAttribute].foreach(_.delete)
 			}
 			try {
 				for (executor <- executors(ctx)) {
@@ -144,7 +146,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 		override val retryLimit = 2
 
 		def contextName =
-			this.getClass.getName + "@" + this.hashCode.toString
+			this.niceClass.getName + "@" + this.hashCode.toString
 
 		private[this] var running = true
 
@@ -193,14 +195,12 @@ trait ActivateTest extends SpecificationWithJUnit {
 		}
 
 		def fullTraitValue1 =
-			all[TraitAttribute1].headOption.getOrElse({
-				new TraitAttribute1("1")
-			})
+			all[TraitAttribute1].headOption.getOrElse(
+				new TraitAttribute1("1"))
 
 		def fullTraitValue2 =
-			all[TraitAttribute2].headOption.getOrElse({
-				new TraitAttribute2("2")
-			})
+			all[TraitAttribute2].headOption.getOrElse(
+				new TraitAttribute2("2"))
 
 		val fullByteArrayValue = "S".getBytes
 		def fullEntityValue =

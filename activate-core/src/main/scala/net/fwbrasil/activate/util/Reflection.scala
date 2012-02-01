@@ -13,7 +13,13 @@ object Reflection {
 
 	val objenesis = new ObjenesisStd(false);
 
-	def newInstance[T](clazz: Class[_]): T =
+	class NiceObject[T](x: T) {
+		def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
+	}
+
+	implicit def toNiceObject[T](x: T) = new NiceObject(x)
+
+	def newInstance[T](clazz: Class[T]): T =
 		objenesis.newInstance(clazz).asInstanceOf[T]
 
 	def getDeclaredFieldsIncludingSuperClasses(concreteClass: Class[_]) = {
@@ -37,13 +43,13 @@ object Reflection {
 	}
 
 	def set(obj: Object, fieldName: String, value: Object) = {
-		val field = getDeclaredFieldsIncludingSuperClasses(obj.getClass()).filter(_.getName() == fieldName).head
+		val field = getDeclaredFieldsIncludingSuperClasses(obj.niceClass).filter(_.getName() == fieldName).head
 		field.setAccessible(true)
 		field.set(obj, value)
 	}
 
 	def get(obj: Object, fieldName: String) = {
-		val fields = getDeclaredFieldsIncludingSuperClasses(obj.getClass())
+		val fields = getDeclaredFieldsIncludingSuperClasses(obj.niceClass)
 		val field = fields.filter(_.getName() == fieldName).head
 		field.setAccessible(true)
 		field.get(obj)
@@ -56,7 +62,7 @@ object Reflection {
 	}
 
 	def invoke(obj: Object, methodName: String, params: Object*) = {
-		val clazz = obj.getClass
+		val clazz = obj.niceClass
 		val method = clazz.getDeclaredMethods().filter(_.toString().contains(methodName)).head
 		method.setAccessible(true)
 		method.invoke(obj, params: _*)
@@ -100,7 +106,7 @@ object Reflection {
 					val values =
 						for (elem <- obj.productElements.toList)
 							yield deepCopyMapping(elem, map)
-					val constructor = obj.getClass.getConstructors().headOption
+					val constructor = obj.niceClass.getConstructors().headOption
 					if (constructor.isDefined) {
 						val newInstance = constructor.get.newInstance(values.asInstanceOf[Seq[Object]]: _*)
 						map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])

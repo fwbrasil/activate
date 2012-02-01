@@ -16,7 +16,7 @@ object QueryMocks {
 
 	val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
 
-	var _lastFakeVarCalled: Option[Var[Any]] = None
+	var _lastFakeVarCalled: Option[Var[_]] = None
 
 	def lastFakeVarCalled = {
 		val last = _lastFakeVarCalled
@@ -41,7 +41,7 @@ object QueryMocks {
 					mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
 				else
 					mock(fakeValueClass)
-			_lastFakeVarCalled = Some(this.asInstanceOf[Var[Any]])
+			_lastFakeVarCalled = Some(this)
 			Option(value.asInstanceOf[P])
 		}
 		override def put(value: Option[P]): Unit = {
@@ -64,8 +64,7 @@ object QueryMocks {
 			case "[B" => Array[Byte]()
 			case other =>
 				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {
-					//					val enumeration = get(clazz, "$outer").asInstanceOf[Enumeration]
-					//					enumeration(0)
+					// TODO Bug!
 					null
 				} else
 					newInstance(clazz)
@@ -76,8 +75,8 @@ object QueryMocks {
 		entityMockCache.getOrElseUpdate(clazz, mockEntity[E](clazz, null)).asInstanceOf[E]
 
 	def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVarToQuery[_]): E = {
-		val concreteClass = EntityHelper.concreteClasses(entityClass.asInstanceOf[Class[Entity]]).head
-		val entity = newInstance(concreteClass).asInstanceOf[E]
+		val concreteClass = EntityHelper.concreteClasses(entityClass).head
+		val entity = newInstance(concreteClass)
 		val entityMetadata = EntityHelper.getEntityMetadata(concreteClass)
 		for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 			val ref = mockVar
@@ -101,6 +100,6 @@ object QueryMocks {
 	}
 
 	def mockVar =
-		newInstance(classOf[FakeVarToQuery[_]]).asInstanceOf[FakeVarToQuery[_]]
+		newInstance(classOf[FakeVarToQuery[_]])
 
 }

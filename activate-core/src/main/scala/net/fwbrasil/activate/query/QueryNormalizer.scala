@@ -92,7 +92,7 @@ object QueryNormalizer {
 	def normalizeFrom[S](query: Query[S]): List[Query[S]] = {
 		val concreteClasses =
 			(for (entitySource <- query.from.entitySources)
-				yield EntityHelper.concreteClasses(entitySource.entityClass.asInstanceOf[Class[Entity]]).toSeq).toSeq
+				yield EntityHelper.concreteClasses(entitySource.entityClass).toSeq).toSeq
 		val combined = combine(concreteClasses)
 		val originalSources = query.from.entitySources
 		val fromMaps =

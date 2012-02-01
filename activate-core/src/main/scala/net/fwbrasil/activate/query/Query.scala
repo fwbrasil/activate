@@ -5,6 +5,7 @@ import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 
 trait QueryContext extends QueryValueContext with OperatorContext with OrderedQueryContext {
 
@@ -66,8 +67,8 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 		query(f).execute
 
 	private[this] def mockEntity[E <: Entity: Manifest]: E = {
-		val mockEntity = QueryMocks.mockEntity(manifest[E].erasure.asInstanceOf[Class[E]])
-		From.createAndRegisterEntitySource(manifest[E].erasure.asInstanceOf[Class[E]], mockEntity);
+		val mockEntity = QueryMocks.mockEntity(erasureOf[E])
+		From.createAndRegisterEntitySource(erasureOf[E], mockEntity);
 		mockEntity
 	}
 

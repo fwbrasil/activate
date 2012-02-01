@@ -9,6 +9,7 @@ import net.fwbrasil.activate.query.OrderByCriteria
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.radon.util.ReferenceWeakValueMap
 import com.vaadin.data.util.VaadinPropertyDescriptor
 import com.vaadin.data.util.MethodPropertyDescriptor
@@ -40,7 +41,7 @@ class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata,
 	entity.varNamed(metadata.name).get.asInstanceOf[Ref[Any]].addWeakListener(listener)
 
 	private[this] def doWithTransaction[A](f: => A) = {
-		val context = ActivateContext.contextFor(entity.getClass.asInstanceOf[Class[E]])
+		val context = ActivateContext.contextFor(entity.niceClass)
 		context.transactional(transaction) {
 			if (entity.isDeleted)
 				null.asInstanceOf[A]
@@ -61,7 +62,7 @@ class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata,
 }
 
 class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transaction, val m: Manifest[E]) extends PropertysetItem {
-	def metadata = EntityHelper.getEntityMetadata(m.erasure)
+	def metadata = EntityHelper.getEntityMetadata(erasureOf[E])
 	for (metadata <- metadata.propertiesMetadata)
 		addProperty(metadata)
 
@@ -75,10 +76,10 @@ class EntityItem[E <: Entity](val entity: E)(implicit val transaction: Transacti
 
 class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[_]*)(implicit val transaction: Transaction, val m: Manifest[E]) extends Container with Container.Ordered {
 
-	val entityClass = m.erasure.asInstanceOf[Class[Entity]]
+	val entityClass = erasureOf[E]
 	val context = ActivateContext.contextFor(entityClass)
 
-	val metadata = EntityHelper.getEntityMetadata(m.erasure)
+	val metadata = EntityHelper.getEntityMetadata(entityClass)
 
 	import context._
 

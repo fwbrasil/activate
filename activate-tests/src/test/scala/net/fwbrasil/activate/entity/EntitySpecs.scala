@@ -21,8 +21,7 @@ class EntitySpecs extends ActivateTest {
 						for (entity <- all[ActivateTestEntity])
 							entity.isInLiveCache must beTrue
 					}
-				}
-			)
+				})
 		}
 
 		"return vars fields" in {
@@ -34,12 +33,10 @@ class EntitySpecs extends ActivateTest {
 					}
 					step {
 						for (entity <- all[ActivateTestEntity]) {
-							println(entity.vars)
 							entity.vars.toSet.size must beEqualTo(18)
 						}
 					}
-				}
-			)
+				})
 		}
 
 		"return var named" in {
@@ -64,8 +61,7 @@ class EntitySpecs extends ActivateTest {
 							entity.enumerationValue must beEqualTo(entity.varNamed("enumerationValue").get.unary_!.asInstanceOf[Any])
 						}
 					}
-				}
-			)
+				})
 		}
 
 	}

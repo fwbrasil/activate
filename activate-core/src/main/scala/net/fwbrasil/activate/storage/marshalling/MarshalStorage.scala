@@ -22,7 +22,9 @@ trait MarshalStorage extends Storage {
 			val propertyName = ref.name
 
 			deleteMap.getOrElseUpdate(entity, {
-				MutableMap[String, StorageValue]("id" -> (StringStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
+				val map = MutableMap[String, StorageValue]()
+				addId(map, entity)
+				map
 			}) += (propertyName -> marshalling(value))
 
 		}
@@ -30,7 +32,7 @@ trait MarshalStorage extends Storage {
 		for ((ref, value) <- assignments if (!ref.outerEntity.isPersisted && !deleteMap.contains(ref.outerEntity))) {
 			val entity = ref.outerEntity
 			insertMap += (entity -> MutableMap[String, StorageValue]())
-			insertMap(entity) += ("id" -> (StringStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity))).asInstanceOf[StorageValue]))
+			addId(insertMap(entity), entity)
 		}
 
 		for ((ref, value) <- assignments if (!deleteMap.contains(ref.outerEntity))) {
@@ -42,7 +44,7 @@ trait MarshalStorage extends Storage {
 			} else {
 				if (!updateMap.contains(entity)) {
 					updateMap += (entity -> MutableMap[String, StorageValue]())
-					updateMap(entity) += ("id" -> (StringStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
+					addId(updateMap(entity), entity)
 				}
 				updateMap(entity) += (propertyName -> marshalling(value))
 			}
@@ -50,6 +52,9 @@ trait MarshalStorage extends Storage {
 
 		store(insertMap.mapValues(_.toMap).toMap, updateMap.mapValues(_.toMap).toMap, deleteMap.mapValues(_.toMap).toMap)
 	}
+
+	private[this] def addId(map: MutableMap[String, StorageValue], entity: Entity) =
+		map += ("id" -> (StringStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
 
 	override def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
 		val expectedTypes =

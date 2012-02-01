@@ -17,6 +17,7 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper.getEntityName
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.JavaConversions._
 import net.fwbrasil.activate.query._
 import java.util.Date
@@ -87,7 +88,7 @@ trait MongoStorage extends MarshalStorage {
 		}
 
 	private[this] def coll(entity: Entity): DBCollection =
-		coll(entity.getClass())
+		coll(entity.niceClass)
 
 	private[this] def coll(entityClass: Class[_]): DBCollection =
 		mongoDB.getCollection(getEntityName(entityClass))
