@@ -266,7 +266,7 @@ class QuerySpecs extends ActivateTest {
 					import step.ctx._
 					if (step.ctx.storage.supportComplexQueries) {
 						step {
-							println(newFullActivateTestEntity.traitValue1.isInitialized)
+							newFullActivateTestEntity
 						}
 						step {
 							val a = all[ActivateTestEntity]

@@ -14,6 +14,7 @@ import java.security._
 import java.math.BigInteger
 import org.joda.time.DateTime
 import net.fwbrasil.activate.storage.mongo.MongoStorage
+import net.fwbrasil.radon.util.GCUtil.runGC
 
 object runningFlag
 
@@ -32,7 +33,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 	trait StepExecutor {
 		def apply[A](step: => A): A
 		def finalizeExecution = {
-
+			//			runGC
 		}
 		def accept(context: ActivateTestContext) =
 			true
@@ -62,6 +63,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 		}
 		override def finalizeExecution = {
 			transaction.commit
+			super.finalizeExecution
 		}
 	}
 

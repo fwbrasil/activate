@@ -94,11 +94,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def isQueriable(entity: Entity) = {
-		if (!entity.isInitialized)
-			println("a")
+	def isQueriable(entity: Entity) =
 		entity.isInitialized && !entity.isDeleted
-	}
+
 	def fromCache[E <: Entity](entityClass: Class[E]) = {
 		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_)).toList
 		if (!storage.isMemoryStorage)

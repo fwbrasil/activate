@@ -11,7 +11,7 @@ object ActivateBuild extends Build {
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.4-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
-	val jug = "org.safehaus.jug" % "jug" % "2.0.0"
+	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
 	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"  intransitive() 
 	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val dom4j = "dom4j" % "dom4j" % "1.6"
@@ -38,7 +38,6 @@ object ActivateBuild extends Build {
   	
   	/* Vaadin */
   	val vaadin = "com.vaadin" % "vaadin" % "6.7.3"
-  	val contextmenu = "org.vaadin.addons" % "contextmenu" % "3.1.0"
   	
   	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
 	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
@@ -54,7 +53,8 @@ object ActivateBuild extends Build {
   	    "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
-  	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons"
+  	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons",
+  	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/"
   	)
 
     lazy val activate = 
@@ -127,7 +127,7 @@ object ActivateBuild extends Build {
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(vaadin, contextmenu)
+		    	  Seq(vaadin)
 		    )
     	)      
     	
