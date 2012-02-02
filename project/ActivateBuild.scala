@@ -38,7 +38,6 @@ object ActivateBuild extends Build {
   	
   	/* Vaadin */
   	val vaadin = "com.vaadin" % "vaadin" % "6.7.3"
-  	val contextmenu = "org.vaadin.addons" % "contextmenu" % "3.1.0"
   	
   	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
 	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
@@ -54,7 +53,8 @@ object ActivateBuild extends Build {
   	    "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
-  	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons"
+  	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons",
+  	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/"
   	)
 
     lazy val activate = 
@@ -127,7 +127,7 @@ object ActivateBuild extends Build {
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(vaadin, contextmenu)
+		    	  Seq(vaadin)
 		    )
     	)      
     	
