@@ -39,7 +39,7 @@ object EntityEnhancer extends Logging {
 			(clazz.getSuperclass != null && (isEntityClass(clazz.getSuperclass, classPool) || !clazz.getInterfaces.find((interface: CtClass) => isEntityClass(interface, classPool)).isEmpty))
 
 	def isEntityTraitField(field: CtField) =
-		field.getName.startsWith(entityClassFieldPrefix) // || field.getName == "id"
+		field.getName.startsWith(entityClassFieldPrefix)
 
 	def isVarField(field: CtField) =
 		field.getType.getName == varClassName
