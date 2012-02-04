@@ -43,7 +43,7 @@ abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => Orde
 	val window = new Window
 	window.setClosable(true)
 	window.setName("a")
-	window.setDraggable(false)
+	window.setDraggable(true)
 	window.setCloseShortcut(KeyCode.ESCAPE)
 	window.setResizable(false)
 	window.setBorder(0)

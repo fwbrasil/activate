@@ -23,26 +23,10 @@ import com.vaadin.event.ShortcutAction.ModifierKey
 import com.vaadin.event.Action.Listener
 
 class Pessoa extends Entity {
-	//
-	//	def nomeNotBlank = 
-	//		invariant(nome notBlank)
-	//	def nomeMaxLenght = 
-	//		invariant(nome maxLength (30))
-	var nome: String = _
 
+	var nome: String = _
 	var sobrenome: String = _
 	var nomeMae: String = _
-
-	def nomeCompleto =
-		{
-			nome + sobrenome
-		} postCond (_.nonEmpty)
-
-	override def delete =
-
-		preCond(nome != "flaviof") {
-			super.delete
-		}
 
 }
 

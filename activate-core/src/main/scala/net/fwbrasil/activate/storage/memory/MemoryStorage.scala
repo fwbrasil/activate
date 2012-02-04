@@ -6,7 +6,7 @@ import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 
-trait MemoryStorage extends Storage {
+class MemoryStorage extends Storage {
 
 	var storage: MutableHashMap[String, Entity] = _
 

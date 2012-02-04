@@ -107,8 +107,9 @@ trait ActivateTest extends SpecificationWithJUnit {
 		List(
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx),
-			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+			MultipleTransactionsWithReinitialize(ctx) //,
+			//			MultipleTransactionsWithReinitializeAndSnapshot(ctx)
+			).filter(_.accept(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](

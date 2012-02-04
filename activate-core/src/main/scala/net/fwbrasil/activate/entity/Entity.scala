@@ -107,7 +107,10 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def vars =
 		varFieldsMap.values
 
-	private[activate] def context: ActivateContext = {
+	private[activate] def context: ActivateContext =
+		_context
+
+	private[this] lazy val _context = {
 		ActivateContext.contextFor(this.niceClass)
 	}
 

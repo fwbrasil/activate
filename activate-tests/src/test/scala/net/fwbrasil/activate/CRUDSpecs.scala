@@ -22,8 +22,7 @@ class CRUDSpecs extends ActivateTest {
 							val fullEntity = byId[ActivateTestEntity](fullId).get
 							validateFullTestEntity(entity = fullEntity)
 						}
-					}
-				)
+					})
 			}
 
 			"create, update and retreive" in {
@@ -46,8 +45,7 @@ class CRUDSpecs extends ActivateTest {
 							val emptyEntity = byId[ActivateTestEntity](emptyId).get
 							validateFullTestEntity(entity = emptyEntity)
 						}
-					}
-				)
+					})
 			}
 
 			"create, update, retreive and delete" in {
@@ -78,8 +76,7 @@ class CRUDSpecs extends ActivateTest {
 							byId[ActivateTestEntity](fullId) must beNone
 							byId[ActivateTestEntity](emptyId) must beNone
 						}
-					}
-				)
+					})
 			}
 
 		}

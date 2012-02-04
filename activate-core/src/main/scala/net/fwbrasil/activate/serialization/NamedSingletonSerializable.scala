@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.serialization
 
-import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, SynchronizedMap }
+import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, SynchronizedMap, HashSet => MutableHashSet }
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
@@ -33,8 +33,12 @@ object NamedSingletonSerializable {
 			erasureOf[T],
 			new MutableHashMap[String, NamedSingletonSerializable]()).asInstanceOf[MutableHashMap[String, T]]
 
-	def instancesOf[T <: NamedSingletonSerializable: Manifest] =
-		instances.filterKeys(erasureOf[T].isAssignableFrom(_)).values.map(_.values).flatten.toSet.asInstanceOf[Set[T]]
+	def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
+		val ret = MutableHashSet[T]()
+		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(clazz)))
+			ret ++= instancesMap.values.asInstanceOf[Iterable[T]]
+		ret
+	}
 
 	def registerInstance[T <: NamedSingletonSerializable](instance: T) = {
 		implicit val m = manifestClass[T](instance.niceClass)

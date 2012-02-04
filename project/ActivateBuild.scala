@@ -135,7 +135,7 @@ object ActivateBuild extends Build {
     	Project(
     	    id = "activate-crud-vaadin-example",
     	    base = file("activate-crud-vaadin-example"),
-    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc),
+    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc, activatePrevayler),
     	    settings = commonSettings ++ webSettings ++ Seq(
  	   	    	libraryDependencies ++= Seq(jettyWebApp, jettyPlus, servlet, mysql),
  	   	    	scanInterval := 1 
@@ -148,7 +148,7 @@ object ActivateBuild extends Build {
     		version := "0.5-SNAPSHOT",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
-    	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
+    	    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), // Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
     	    organization := "net.fwbrasil",
     	    scalaVersion := "2.9.1",
     	    resolvers ++= customResolvers
