@@ -71,9 +71,9 @@ trait ValidEntity {
 	}
 
 	def validate = {
-		//		val invalid = invalidInvariants
-		//		if (invalid.nonEmpty)
-		//			throw new InvariantViolationException(invalid: _*)
+		val invalid = invalidInvariants
+		if (invalid.nonEmpty)
+			throw new InvariantViolationException(invalid: _*)
 	}
 
 	private[this] def invalidInvariants = {

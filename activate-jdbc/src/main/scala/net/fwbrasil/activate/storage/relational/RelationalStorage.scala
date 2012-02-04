@@ -13,21 +13,21 @@ import scala.collection.mutable.{ Map => MutableMap }
 
 trait RelationalStorage extends MarshalStorage {
 
-	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Set[Entity]): Unit = {
+	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
 
 		val inserts =
 			for ((entity, propertyMap) <- insertMap)
-				yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
+				yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
 		val insertsResolved = resolveDependencies(inserts.toSet)
 
 		val updates =
 			for ((entity, propertyMap) <- updateMap)
-				yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap.toMap)
+				yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
 		val deletes =
-			for (entity <- deleteSet)
-				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, Map())
+			for ((entity, propertyMap) <- deleteMap)
+				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
 		val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
@@ -41,7 +41,7 @@ trait RelationalStorage extends MarshalStorage {
 		val tree = new DependencyTree[DmlStorageStatement](statements)
 		for (insertA <- statements) {
 			for ((propertyName, propertyValue) <- insertA.propertyMap)
-				if (propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
+				if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
 					val entityIdB = propertyValue.value.get.asInstanceOf[String]
 					if (entityInsertMap.contains(entityIdB))
 						tree.addDependency(entityInsertMap(entityIdB), insertA)

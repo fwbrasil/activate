@@ -62,8 +62,7 @@ case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val valu
 
 object EntityValue extends ValueContext {
 
-	// TODO Melhorar erro quando um tipo nao e valido
-	private[activate] def tvalFunction[T](clazz: Class[_]): (Option[T]) => EntityValue[T] =
+	private[activate] def tvalFunction[T](clazz: Class[_]) =
 		(if (clazz == classOf[Int])
 			(value: Option[Int]) => toIntEntityValueOption(value)
 		else if (clazz == classOf[Boolean])
@@ -91,15 +90,7 @@ object EntityValue extends ValueContext {
 		else if (classOf[Entity].isAssignableFrom(clazz))
 			((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
 		else
-			((value: Option[Object]) => (value match {
-				case value: Option[Int] => toIntEntityValueOption(value)
-				case value: Option[Boolean] => toBooleanEntityValueOption(value)
-				case value: Option[Char] => toCharEntityValueOption(value)
-				case value: Option[Float] => toFloatEntityValueOption(value)
-				case value: Option[Double] => toDoubleEntityValueOption(value)
-				case other =>
-					throw new IllegalStateException("Invalid entity value.")
-			}).asInstanceOf[(T) => EntityValue[T]])).asInstanceOf[(Option[T]) => EntityValue[T]]
+			throw new IllegalStateException("Invalid entity property type. " + clazz)).asInstanceOf[(Option[T]) => EntityValue[T]]
 
 }
 

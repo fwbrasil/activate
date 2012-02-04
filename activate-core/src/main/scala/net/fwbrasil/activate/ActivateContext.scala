@@ -66,22 +66,22 @@ trait ActivateContext
 		for ((ref, value) <- assignments)
 			yield ref.outerEntity.setPersisted
 
-	private[this] def deleteFromLiveCache(deletes: Set[Entity]) =
-		for (entity <- deletes)
+	private[this] def deleteFromLiveCache(deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]) =
+		for ((entity, map) <- deletes)
 			liveCache.delete(entity)
 
 	private[this] def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
 		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
 		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
-		val deletes = MutableSet[Entity]()
+		val deletes = MutableMap[Entity, MutableMap[Var[Any], EntityValue[Any]]]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
 				if (ref.outerEntity.isPersisted)
-					deletes += ref.outerEntity
+					deletes.getOrElseUpdate(ref.outerEntity, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 			} else
 				assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 		}
-		(assignments.toMap, deletes.toSet)
+		(assignments.toMap, deletes.mapValues(_.toMap).toMap)
 	}
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =

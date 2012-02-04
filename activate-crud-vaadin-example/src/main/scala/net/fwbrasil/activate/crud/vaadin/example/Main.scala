@@ -27,7 +27,7 @@ class Pessoa extends Entity {
 	var nome: String = _
 	var sobrenome: String = _
 	var nomeMae: String = _
-
+	var nascimento: Date = _
 }
 
 class Main extends Application {

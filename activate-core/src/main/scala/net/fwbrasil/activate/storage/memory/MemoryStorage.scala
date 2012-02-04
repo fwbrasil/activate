@@ -19,7 +19,7 @@ class MemoryStorage extends Storage {
 		for ((id, entity) <- storage)
 			entity.addToLiveCache
 
-	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Set[Entity]): Unit = {
+	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]): Unit = {
 		MemoryStorage.toStorage(storage, assignments, deletes)
 	}
 
@@ -31,11 +31,11 @@ object MemoryStorage {
 	def toStorage(
 		storage: MutableHashMap[String, Entity],
 		assignments: Map[Var[Any], EntityValue[Any]],
-		deletes: Set[Entity]): Unit = {
+		deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]): Unit = {
 		for ((ref, value) <- assignments)
 			if (ref.outerEntity != null && !storage.contains(ref.outerEntity.id))
 				storage += (ref.outerEntity.id -> ref.outerEntity)
-		for (entity <- deletes)
+		for ((entity, map) <- deletes)
 			storage -= (entity.id)
 	}
 }

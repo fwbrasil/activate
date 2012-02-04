@@ -160,6 +160,7 @@ object EntityEnhancer extends Logging {
 		val resolved = tree.resolve
 		for (enhancedEntityClass <- resolved)
 			yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]
+
 	}
 
 }

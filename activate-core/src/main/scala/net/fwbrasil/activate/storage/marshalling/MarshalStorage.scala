@@ -10,32 +10,36 @@ import net.fwbrasil.activate.query.Query
 
 trait MarshalStorage extends Storage {
 
-	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Set[Entity]): Unit = {
+	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]): Unit = {
 
 		import Marshaller._
 
 		val insertMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
 		val updateMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
+		val deleteMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
 
 		def propertyMap(map: MutableMap[Entity, MutableMap[String, StorageValue]], entity: Entity) =
 			map.getOrElseUpdate(entity, newPropertyMap(entity))
 
+		for ((entity, properties) <- deletes)
+			propertyMap(deleteMap, entity) ++=
+				(for ((ref, value) <- properties) yield (ref.name -> marshalling(value)))
+
 		for ((ref, value) <- assignments) {
 			val entity = ref.outerEntity
 			val propertyName = ref.name
-			if (!deletes.contains(entity)) {
+			if (!deletes.contains(entity))
 				if (!entity.isPersisted)
 					propertyMap(insertMap, entity) += (propertyName -> marshalling(value))
 				else
 					propertyMap(updateMap, entity) += (propertyName -> marshalling(value))
-			}
 		}
 
-		store(insertMap.mapValues(_.toMap).toMap, updateMap.mapValues(_.toMap).toMap, deletes)
+		store(insertMap.mapValues(_.toMap).toMap, updateMap.mapValues(_.toMap).toMap, deleteMap.mapValues(_.toMap).toMap)
 	}
 
 	private[this] def newPropertyMap(entity: Entity) =
-		MutableMap("id" -> (StringStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
+		MutableMap("id" -> (ReferenceStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
 
 	override def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
 		val expectedTypes =
@@ -47,7 +51,7 @@ trait MarshalStorage extends Storage {
 			yield Marshaller.unmarshalling(column))
 	}
 
-	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Set[Entity]): Unit
+	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Map[Entity, Map[String, StorageValue]]): Unit
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 
