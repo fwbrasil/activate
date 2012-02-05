@@ -83,7 +83,6 @@ Oracle
 			val password = "PASS"
 			val url = "jdbc:oracle:thin:@localhost:1521:oracle"
 			val dialect = oracleDialect
-			val serializator = javaSerializator
 		}
 	}
 
@@ -226,7 +225,7 @@ Banco de dados
 Este é o mapeamento entre os tipos dos atributos das entidades e os tipos dos bancos de dados:
 
 Tipo         | Mysql       | Oracle
-=============|=============|=================
+-------------|-------------|-----------------
 Int          | INTEGER     | INTEGER
 Boolean      | BOOLEAN     | NUMBER(1)
 Char         | CHAR        | CHAR

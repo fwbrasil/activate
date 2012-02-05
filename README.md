@@ -83,7 +83,6 @@ Oracle
 			val password = "PASS"
 			val url = "jdbc:oracle:thin:@localhost:1521:oracle"
 			val dialect = oracleDialect
-			val serializator = javaSerializator
 		}
 	}
 
@@ -136,7 +135,7 @@ Use whenever entities within transactions:
 	transactional {
 		val person = new NauralPerson("John", "Marie")
 		person.name = "John2"
-		println(Person.name)
+		println(person.name)
 	}
 
 It is not necessary to call a method like "store" or "save" to add the entity. Just create, use, and it will be persisted.
@@ -157,7 +156,7 @@ Perform queries within transactions:
 			println(person.name)
 	}
 
-There are alternative forms of consultation. With the allWhere can use a list of criteria.
+There are alternative forms of query. With the allWhere you can use a list of criterias.
 
 	transactional {
 		val personList1 = all[Person]
@@ -226,7 +225,8 @@ Database
 This is the mapping between the types of attributes of entities and types of databases:
 
 Tipo         | Mysql       | Oracle
-=============|=============|=================
+-------------|-------------|-----------------
+ID           | VARCHAR(50) | VARCHAR2(50)
 Int          | INTEGER     | INTEGER
 Boolean      | BOOLEAN     | NUMBER(1)
 Char         | CHAR        | CHAR
@@ -240,7 +240,7 @@ Array[Byte]  | BLOB        | BLOB
 Entity       | VARCHAR(50) | VARCHAR2(50)
 Enumeration  | VARCHAR(20) | VARCHAR2(20)
 
-* Always add a column "ID" of type VARCHAR2 (50) tables of authorities.
+* Always add a column "ID" to entities.
 * The table name is the name of the entity class.
 * The type AbstractInstant (JodaTime) follows the mapemanento of type Date.
 
