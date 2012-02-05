@@ -22,27 +22,20 @@ The main benefits of the framework are:
 Artifacts
 ===========
 
-Add dependency on Activate to your project:
+Add necessary dependencies on Activate to your project:
 
-[SBT](http://code.google.com/p/simple-build-tool/ "SBT")
+[SBT](https://github.com/harrah/xsbt/ "SBT")
 
-	val activate = "net.fwbrasil" %% "activate" % "0.6"
-	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-prevayler" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-oracle" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-jdbc" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-mongo" % "0.6"
 
-******************
+Direct download
 
-Maven
-
-	<dependency>
-    	<groupId>net.fwbrasil</groupId>
-	    <artifactId>activate</artifactId>
-    	<version>0.6</version>
-	</dependency>
 	
-	<repository>
-		<id>fwbrasil</id>
-		<url>http://fwbrasil.net/maven/</url>
-    </repository>
 
 Use
 ==========
@@ -247,4 +240,4 @@ Enumeration  | VARCHAR(20) | VARCHAR2(20)
 License
 =======
 
-The code is licensed as LGPL.
+The code is licensed under LGPL.

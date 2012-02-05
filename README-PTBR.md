@@ -22,27 +22,20 @@ Os principais benefícios do framework são:
 Artefatos
 ===========
 
-Adicione a dependência do Activate ao seu projeto:
+Adicione as dependências necessárias do Activate ao seu projeto:
 
-[SBT](http://code.google.com/p/simple-build-tool/ "SBT")
+[SBT](https://github.com/harrah/xsbt/ "SBT")
 
-	val activate = "net.fwbrasil" %% "activate" % "0.6"
-	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
+	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-prevayler" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-oracle" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-jdbc" % "0.6"
+	libraryDependencies += "net.fwbrasil" %% "activate-mongo" % "0.6"
 
-******************
+Download direto
 
-Maven
-
-	<dependency>
-    	<groupId>net.fwbrasil</groupId>
-	    <artifactId>activate</artifactId>
-    	<version>0.6</version>
-	</dependency>
 	
-	<repository>
-		<id>fwbrasil</id>
-		<url>http://fwbrasil.net/maven/</url>
-    </repository>
 
 Utilização
 ==========
