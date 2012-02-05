@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.crud.vaadin
 
+import com.vaadin.terminal.Sizeable
 import com.vaadin.Application
 import com.vaadin.ui._
 import com.vaadin.ui.Table.HeaderClickListener
@@ -24,65 +25,23 @@ import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateContext
 
-abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[_]*)(implicit context: ActivateContext, m: Manifest[E]) extends Window {
+abstract class ActivateVaadinCrud[E <: Entity](implicit context: ActivateContext, m: Manifest[E]) extends Window {
 
 	implicit val transaction = new Transaction
 
 	import context._
 
-	val res = new ThemeResource("../runo/icons/16/arrow-down.png")
+	def orderByCriterias: List[(E) => OrderByCriteria[_]] = List()
+
+	super.setHeight(80, Sizeable.UNITS_PERCENTAGE)
+	super.setWidth(80, Sizeable.UNITS_PERCENTAGE)
+	super.setSizeFull()
 
 	val table = new Table("List", new EntityContainer[E](orderByCriterias: _*))
 	table.setSelectable(true)
 	table.setImmediate(true)
-	for (header <- table.getColumnHeaders) {
+	for (header <- table.getColumnHeaders)
 		table.setColumnHeader(header, DefaultFieldFactory.createCaptionByPropertyId(header))
-		table.setColumnIcon(header, res)
-	}
-
-	val window = new Window
-	window.setClosable(true)
-	window.setName("a")
-	window.setDraggable(true)
-	window.setCloseShortcut(KeyCode.ESCAPE)
-	window.setResizable(false)
-	window.setBorder(0)
-	var propertyId: Option[String] = None
-	val asc =
-		new Button("Asc", println("asc"))
-	window.addComponent(asc)
-	val desc =
-		new Button("Desc",
-			new Button.ClickListener() {
-				def buttonClick(event: Button#ClickEvent) = {}
-			})
-	window.addComponent(desc)
-
-	table.addListener(new HeaderClickListener {
-		def headerClick(event: HeaderClickEvent) = {
-			propertyId = Option(event.getPropertyId.asInstanceOf[String])
-			window.setPositionX(event.getClientX())
-			window.setPositionY(event.getClientY())
-			window.addListener(new BlurListener() {
-				def blur(event: BlurEvent) = {
-					getWindow.removeWindow(window)
-				}
-			})
-			getWindow.addAction(new ShortcutAction("Next field", KeyCode.ESCAPE, Array[Int]()) with Listener {
-				def handleAction(a: Any, b: Any) = {
-					getWindow.removeWindow(window)
-				}
-			})
-			addListener(new FocusListener() {
-				def focus(event: FocusEvent) = {
-					if (event.getComponent() != window)
-						getWindow.removeWindow(window)
-				}
-			})
-			if (window.getParent == null)
-				getWindow.addWindow(window)
-		}
-	})
 
 	var emptyEntityOption: Option[E] = None
 
@@ -100,8 +59,7 @@ abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => Orde
 
 	def doWithFormUnmodified(f: => Unit) =
 		if (form.isModified)
-			super.showNotification("This is a warning",
-				"Add, discard or delete.",
+			super.showNotification("Add, discard or delete.",
 				Window.Notification.TYPE_WARNING_MESSAGE);
 		else {
 			f
@@ -139,11 +97,13 @@ abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => Orde
 	})
 
 	val saveButton =
-		new Button("Save",
+		new Button("Save modifications",
 			doWithFormUnmodified {
 				deleteUnsedEntity
 				transaction.commit
 				setFormNewDataSource
+				super.showNotification("Modifications saved.",
+					Window.Notification.TYPE_HUMANIZED_MESSAGE);
 			})
 
 	val newButton =
@@ -157,6 +117,12 @@ abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => Orde
 			if (!table.containsId(item.entity.id))
 				table.addItem(item.entity.id)
 			table.refreshRowCache
+			if (addUpdateButton.getCaption == "Add")
+				super.showNotification("Entity added to list.",
+					Window.Notification.TYPE_TRAY_NOTIFICATION);
+			else
+				super.showNotification("Entity updated.",
+					Window.Notification.TYPE_TRAY_NOTIFICATION);
 			addUpdateButton.setCaption("Update")
 		})
 
@@ -175,13 +141,15 @@ abstract class ActivateVaadinCrud[E <: Entity](val orderByCriterias: (E) => Orde
 			table.refreshRowCache
 			form.discard
 			setFormNewDataSource
+			super.showNotification("Entity deleted.",
+				Window.Notification.TYPE_TRAY_NOTIFICATION);
 		})
 
 	addComponent(
-		(newButton | saveButton) >
-			table >
+		saveButton >
 			form >
-			(addUpdateButton | discardButton | deleteButton))
+			(newButton | deleteButton | discardButton | addUpdateButton) >
+			(table dim (35 per, 80 per)))
 
 	def transactionalNewEmptyEntity =
 		transactional(transaction) {

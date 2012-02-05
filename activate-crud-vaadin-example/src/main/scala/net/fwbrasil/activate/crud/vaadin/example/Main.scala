@@ -1,43 +1,75 @@
 package net.fwbrasil.activate.crud.vaadin.example
 
-import com.vaadin.Application
-import com.vaadin.ui._
-import com.vaadin.ui.Table.HeaderClickListener
-import com.vaadin.ui.Table.HeaderClickEvent
-import com.vaadin.event.ItemClickEvent
-import com.vaadin.data.Item
-import com.vaadin.terminal.ThemeResource
-import net.fwbrasil.thor.thorContext._
-import net.fwbrasil.activate.crud.vaadin._
-import net.fwbrasil.activate.crud.vaadin.util.VaadinConverters._
+import net.fwbrasil.activate.crud.vaadin.ActivateVaadinCrud
+import net.fwbrasil.activate.storage.memory.MemoryStorage
+import net.fwbrasil.activate.entity.Entity
 import java.util.Date
-import com.vaadin.terminal.UserError
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.radon.ref.RefListener
-import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.activate.query.OrderByCriteria
-import com.vaadin.event.FieldEvents._
-import com.vaadin.event.ShortcutAction
-import com.vaadin.event.ShortcutAction.KeyCode
-import com.vaadin.event.ShortcutAction.ModifierKey
-import com.vaadin.event.Action.Listener
+import net.fwbrasil.activate.ActivateContext
+import com.vaadin.Application
 
-class Pessoa extends Entity {
-
-	var nome: String = _
-	var sobrenome: String = _
-	var nomeMae: String = _
-	var nascimento: Date = _
+object mainContext extends ActivateContext {
+	val storage = new MemoryStorage
+	def contextName = "mainContext"
 }
+
+import mainContext._
+
+abstract class Pessoa(var nome: String) extends Entity
+class PessoaFisica(nome: String, var nomeMae: String) extends Pessoa(nome)
+class PessoaJuridica(nome: String, var diretor: PessoaFisica) extends Pessoa(nome)
 
 class Main extends Application {
 	def init = {
 		reinitializeContext
 		super.setTheme("runo")
 		setMainWindow(new CrudPessoa)
+
+		transactional {
+			val pessoa = new PessoaFisica("Fulano", "Maria")
+			pessoa.nome = "Fulano2"
+			println(pessoa.nome)
+		}
+
+		val q = query {
+			(pessoa: Pessoa) => where(pessoa.nome :== "Teste") select (pessoa)
+		}
+
+		transactional {
+			val result = q.execute
+			for (pessoa <- result)
+				println(pessoa.nome)
+		}
+
+		val q2 = query {
+			(empresa: PessoaJuridica, diretor: PessoaFisica) => where(empresa.diretor :== diretor) select (empresa, diretor)
+		}
+		val q3 = query {
+			(empresa: PessoaJuridica) => where(empresa.diretor.nome :== "Silva") select (empresa)
+		}
+
+		transactional {
+			for (pessoa <- all[Pessoa])
+				pessoa.delete
+		}
+
+		val transaction = new Transaction
+		transactional(transaction) {
+			new PessoaFisica("Teste", "Mae")
+		}
+		transaction.commit
+
+		transactional {
+			val pessoa = new PessoaFisica("Teste", "Mae")
+			transactional(nested) {
+				pessoa.nome = "Teste2"
+			}
+			println(pessoa.nome)
+		}
+
 	}
 }
 
-class CrudPessoa extends ActivateVaadinCrud[Pessoa](_.nome, _.nomeMae) {
-	def newEmptyEntity = new Pessoa
+class CrudPessoa extends ActivateVaadinCrud[PessoaFisica] {
+	def newEmptyEntity = new PessoaFisica("a", null)
+	override def orderByCriterias = List(_.nome)
 }

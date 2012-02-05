@@ -64,7 +64,6 @@ object QueryMocks {
 			case "[B" => Array[Byte]()
 			case other =>
 				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {
-					// TODO Bug!
 					null
 				} else
 					newInstance(clazz)

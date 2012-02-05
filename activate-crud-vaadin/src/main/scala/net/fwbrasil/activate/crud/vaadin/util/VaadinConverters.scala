@@ -2,6 +2,7 @@ package net.fwbrasil.activate.crud.vaadin.util
 
 import com.vaadin.ui._
 import com.vaadin.event.ItemClickEvent
+import com.vaadin.terminal.Sizeable
 
 object VaadinConverters {
 
@@ -20,6 +21,29 @@ object VaadinConverters {
 		}
 	}
 
+	case class SizeableDecorator[S <: Sizeable](s: S) {
+		def height(h: (Float, Int)) = {
+			s.setHeight(h._1, h._2)
+			s
+		}
+		def width(w: (Float, Int)) = {
+			s.setWidth(w._1, w._2)
+			s
+		}
+		def dim(h: (Float, Int), w: (Float, Int)) = {
+			height(h)
+			width(w)
+		}
+	}
+
+	case class SizeDecorator(n: Float) {
+		def px = (n, Sizeable.UNITS_PIXELS)
+		def percent = (n, Sizeable.UNITS_PERCENTAGE)
+		def per = percent
+	}
+
+	implicit def toSizeDecorator(n: Float) = SizeDecorator(n)
+	implicit def toSizeableDecorator[S <: Sizeable](s: S) = SizeableDecorator[S](s)
 	implicit def toLayoutDecorator(layout: Layout) = LayoutDecorator(layout)
 	implicit def toLayoutDecorator(component: Component) = {
 		val layout = new HorizontalLayout
