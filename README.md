@@ -29,7 +29,6 @@ Add necessary dependencies on Activate to your project:
 	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
 	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
 	libraryDependencies += "net.fwbrasil" %% "activate-prevayler" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-oracle" % "0.6"
 	libraryDependencies += "net.fwbrasil" %% "activate-jdbc" % "0.6"
 	libraryDependencies += "net.fwbrasil" %% "activate-mongo" % "0.6"
 
