@@ -1,30 +1,33 @@
+Activate Persistence Framework
+
 Introduction
-============
-
-Activate is an ORM (Object Relational Mapping), since it can be used with relational databases. 
-But it also can be used with Prevayler (Object Prevalence Mapping?) and will can be used with No-SQL databases (Object No-SQL Mapping?). 
-For now, the best denomination that I've found is "Pluggable Object Persistence". It persists objects, using pluggable storage systems.
-
-Activate also is a durable [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory). His core is a STM implementation called [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM").  STM gives to the framework:
-
-* A powerful mechanism to handle with transactions in memory, without needing to use transactional control from the storage (witch is absent in some No-SQL databases);
-* Atomic, isolated and consistent transactions with optimistic read and write collision detection in concurrent transactions, so you can use the entities without worrying about concurrency, commit and rollback problems;
-* In memory transaction propagation control, with nested transactions;
-
-The persistence of the objects is transparent, so just to use the entities inside transactions and the persistence will be achieved. Entities are lazy loaded and transparent activated (initialized) when it's necessary.
-Queries are type-safe and consistent with the running transaction, so entities created during the transaction are "queriable" to.
- 
-Dependency
 ==========
 
-SBT
+Activate is a framework to persist objects in Scala. Its a [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory) durable, with pluggable persistence.
+Its core is the [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM"), which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do optimistic concurrency control.
+The durability of transactions (persistence) is pluggable, and can use persistence in different paradigms such as relational (JDBC), prevalence (Prevayler) and non-relational (MongoDB).
 
-	val radonStm = "net.fwbrasil" %% "activate" % "0.0.1"
+Benefits
+==========
+
+The main benefits of the framework are:
+
+* Atomic, consistent, isolated and durable transactions. You can use entities without worrying about concurrency issues.
+* Entities are always consistent in memory and in the persistence layer. For example, if rollback occurs, entities in memory stays consistent.
+* Transaction propagation control, including nested transactions.
+* Transparent Persistence. Just use the entities in transactions and they are automatically persisted.
+* Entities are lazy loaded and initialized automatically when needed.
+* Queries are type-safe and consistent, even with objects created in the current transaction. Therefore, an entity created in the same transaction may be returned in a query.
+
+Artifacts
+===========
+
+Add dependency on Activate to your project:
+
+[SBT](http://code.google.com/p/simple-build-tool/ "SBT")
+
+	val activate = "net.fwbrasil" %% "activate" % "0.6"
 	val fwbrasil = "fwbrasil.net" at "http://fwbrasil.net/maven/"
-	
-Add this line to sbt project:
-
-	override def filterScalaJars = false
 
 ******************
 
@@ -32,45 +35,45 @@ Maven
 
 	<dependency>
     	<groupId>net.fwbrasil</groupId>
-	    <artifactId>activate_2.9.0</artifactId>
-    	<version>0.0.1</version>
+	    <artifactId>activate</artifactId>
+    	<version>0.6</version>
 	</dependency>
 	
 	<repository>
 		<id>fwbrasil</id>
 		<url>http://fwbrasil.net/maven/</url>
     </repository>
- 
-Getting Started
-===============
 
-Declare an ActivateContext instance with your storage:
+Use
+==========
+
+Initially, must be created the context of Activate. The context must be a singleton, so it makes sense to declare as "object":
 
 Prevayler
 
 	import net.fwbrasil.activate.ActivateContext
-	import net.fwbrasil.activate.storage.prevayler._
+	import net.fwbrasil.activate.storage.prevayler.PrevaylerMemoryStorage
 
 	object prevaylerContext extends ActivateContext {
 		def contextName = "prevaylerContext"
-		val storage = new PrevaylerMemoryStorage {}
+		val storage = new PrevaylerMemoryStorage
 	}
 
 Transient memory
 
 	import net.fwbrasil.activate.ActivateContext
-	import net.fwbrasil.activate.storage.memory._
-	
+	import net.fwbrasil.activate.storage.memory.MemoryStorage
+
 	object memoryContext extends ActivateContext {
 		def contextName = "memoryContext"
-		val storage = new MemoryStorage {}
+		val storage = new MemoryStorage
 	}
 
 Oracle
 
 	import net.fwbrasil.activate.ActivateContext
-	import net.fwbrasil.activate.storage.relational._
-	import net.fwbrasil.activate.serialization.javaSerializator
+	import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
+	import net.fwbrasil.activate.storage.relational.oracleDialect
 
 	object oracleContext extends ActivateContext {
 		def contextName = "oracleContext"
@@ -87,8 +90,8 @@ Oracle
 Mysql
 
 	import net.fwbrasil.activate.ActivateContext
-	import net.fwbrasil.activate.storage.relational._
-	import net.fwbrasil.activate.serialization.javaSerializator
+	import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
+	import net.fwbrasil.activate.storage.relational.mySqlDialect
 
 	object mysqlContext extends ActivateContext {
 		def contextName = "mysqlContext"
@@ -96,119 +99,134 @@ Mysql
 			val jdbcDriver = "com.mysql.jdbc.Driver"
 			val user = "root"
 			val password = "root"
-			val url = "jdbc:mysql://127.0.0.1/teste"
+			val url = "jdbc:mysql://127.0.0.1/test"
 			val dialect = mySqlDialect
-			val serializator = javaSerializator
 		}
 	}
 
-Import your context to use Activate:
+MongoDB
 
-	import prevaylerContext._
-	
-Extend "Entity" trait and declare attributes as Vars:
+	import net.fwbrasil.activate.ActivateContext
+	import net.fwbrasil.activate.storage.mongo.MongoStorage
 
-	class Person(val name: Var[String], val age: Var[Int]) extends Entity
-
-********************************************************
-
-IMPORTANT:
-
- * Make sure to use immutable values inside Vars
- * The framework supports only Vars declareds in entity constructor parameters.
- 
-********************************************************
-
-Use entities always inside transaction:
-
-	transacional {
-		val person = new Person("Test", 20)
-		val personNameOption = person.name.get
-		val personName = !person.name
-		person.name := "Test2"
-		person.name.put(Option("Test3"))
+	object mongoContext extends ActivateContext {
+		val storage = new MongoStorage {
+			override val host = "localhost"
+			override val port = 27017
+			override val db = "dbName"
+		}
 	}
 
-There are implicit conversions from values to Vars. You can get attribute value by using get or the unary ! and set attribute using := or put.
-It's not necessary to call a method like store to add the entity, just create and the entity will be persisted.
+It is important that the context name is unique, but you can have multiple contexts in the same VM.
 
-Create queries:
+To use the context, import it:
+
+	import prevaylerContext._
+
+Thus, the required classes like Entity and Query and will be in scope. An entity shall extend the trait "Entity":
+
+	abstract class Person(var name: String) extends Entity
+	class NauralPerson(name: String, var motherName: String) extends Person(name)
+	class LegalPerson(name: String, var director: NauralPerson) extends Person(name)
+
+You can declare the properties as val or var, where they are immutable or not.
+
+Use whenever entities within transactions:
+
+	transactional {
+		val person = new NauralPerson("John", "Marie")
+		person.name = "John2"
+		println(Person.name)
+	}
+
+It is not necessary to call a method like "store" or "save" to add the entity. Just create, use, and it will be persisted.
+
+Queries:
 
 	val q = query {
 		(person: Person) => where(person.name :== "Test") select(person)
 	}
 
-Available operators are :==, :<, :>, :<=, :>=, isNone, isSome, :|| and :&&.
+The query operators available are: ==, <,:>, <=,> =, isNone, isSome,: | | and: &&. Note that the queries can be made about abstract entities (abstract trait and class).
 
-Execute queries inside transaction:
+Perform queries within transactions:
 
-	transacional {
+	transactional {
 		val result = q.execute
-		for(person <- result)
-			println(!person.name)
+		for (person <- result)
+			println(person.name)
 	}
 
-There are alternative forms of query:
+There are alternative forms of consultation. With the allWhere can use a list of criteria.
 
 	transactional {
 		val personList1 = all[Person]
-		val personList2 = allWhere[Person](_.name :== "Test", _.age :> 10)
+		val personList2 = allWhere[NauralPerson](_.name :== "Test", _.motherName :== "Mother")
 	}
 
-You can use a list of criterias in allWhere.
+Queries using more than one entity or nested properties:
 
-Delete
+	val q2 = query {
+		(company: LegalPerson, director: NauralPerson) => where(company.director :== director) select (company, director)
+	}
+	val q3 = query {
+		(company: LegalPerson) => where(company.director.name :== "Doe") select(company)
+	}
+
+Note: Queries involving more than one entity are not supported by MongoStorage.
+
+To delete an entity:
 
 	transactional {
 		for(person <- all[Person])
 			person.delete
 	}
 
-Typically transactional blocks are controlled by the framework. However, it's possible to control a transaction as follows:
+Typically transactional blocks are controlled by the framework. But you can control the transaction as follows:
 
 	val transaction = new Transaction
 	transactional(transaction) {
-	    val person = new Person("Test", 20)
+		new NauralPerson("Test", "Mother")
 	}
 	transaction.commit
 
-You can define a transaction propagation:
+Defining the spread of the transaction:
 
 	transactional {
-	    val person = new Person("Test", 20)
-	    transactional(mandatory) {
-	        person.name := "Test2"
-	    }
-	    println(!person.name)
+		val person = new NauralPerson("Test", "Mother")
+		transactional(mandatory) {
+			person.name = "Test2"
+		}
+		println(person.name)
 	}
 
-Nested transactions are a type of propagation:
+Nested transactions are a type of spread:
 
 	transactional {
-	    val person = new Person("Test", 20)
-	    transactional(nested) {
-	        person.name := "Test2"
-	    }
-	    println(!person.name)
+		val person = new NauralPerson("Test", "Mother")
+		transactional(nested) {
+			person.name = "Test2"
+		}
+		println(person.name)
 	}
 
-The available propagations are based on EJB propagations:
+The spreads available are based on the EJB:
 
-* required
-* requiresNew
-* mandatory
-* notSupported
-* supports
-* never
-* nested
+* Required
+* RequiresNew
+* Mandatory
+* NotSupported
+* Supports
+* Never
+* Nested
 
-Database types
+Database
 ==============
 
-This is the mapping from Activate attributes and database types:
+This is the mapping between the types of attributes of entities and types of databases:
 
-Attribute     | Mysql       | Oracle
--------------|-------------|-------------
+Tipo         | Mysql       | Oracle
+=============|=============|=================
 Int          | INTEGER     | INTEGER
 Boolean      | BOOLEAN     | NUMBER(1)
 Char         | CHAR        | CHAR
@@ -219,18 +237,14 @@ BigDecimal   | DECIMAL     | NUMBER
 Date         | LONG        | TIMESTAMP
 Calendar     | LONG        | TIMESTAMP
 Array[Byte]  | BLOB        | BLOB
-Entity       | VARCHAR(36) | VARCHAR2(36)
+Entity       | VARCHAR(50) | VARCHAR2(50)
+Enumeration  | VARCHAR(20) | VARCHAR2(20)
 
-* Always add a column "ID" of type VARCHAR2(36) to your table entities.
-* The name of the table is the name of entity class.
-
-Limitations
-===========
-
-The framework isn't prepared to be used with parallel VMs, since all transacional control is in memory.
-Break this limitation is the current focus of the development.
+* Always add a column "ID" of type VARCHAR2 (50) tables of authorities.
+* The table name is the name of the entity class.
+* The type AbstractInstant (JodaTime) follows the mapemanento of type Date.
 
 License
 =======
 
-All code in this repository is licensed under the LGPL. See the LICENSE-LGPL file for more details.
+The code is licensed as LGPL.

@@ -4,7 +4,7 @@ Introdução
 ==========
 
 O Activate é um framework para persistência de objetos em Scala. Ele é um [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transacional Memory) durável, com persistência plugável. 
-Seu núcleo é o [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM"), que provê um poderoso o mecanismo de controle de transações em memória, análogo às transações dos bancos de dados, para controle de concorrência de memória compartilhada.
+Seu núcleo é o [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM"), que provê um poderoso o mecanismo de controle de transações em memória, análogo às transações dos bancos de dados, para controle de concorrência otimista.
 A durabilidade das transações (persistência) é plugável, sendo possível utilizar persistência em diferentes paradigmas como relacional (JDBC), prevalência (Prevayler) e não relacional (MongoDB).
 
 Benefícios
@@ -101,7 +101,6 @@ Mysql
 			val password = "root"
 			val url = "jdbc:mysql://127.0.0.1/test"
 			val dialect = mySqlDialect
-			val serializator = javaSerializator
 		}
 	}
 
@@ -158,14 +157,14 @@ Execute as consultas dentro de transações:
 			println(pessoa.nome)
 	}
 
-Existem formas alternativas de consulta:
+Existem formas alternativas de consulta. Com o allWhere possível utilizar uma lista de critérios.
 
 	transactional {
 		val pessoaList1 = all[Pessoa]
-		val pessoaList2 = allWhere[Pessoa](_.nome :== "Teste", _.idade :> 10)
+		val pessoaList2 = allWhere[PessoaFisica](_.nome :== "Teste", _.nomeMae :== "Mae")
 	}
 
-É possível utilizar uma lista de critérios no allWhere. Queries sobre mais de uma entidade ou com propriedades aninhadas:
+Queries utilizando mais de uma entidade ou com propriedades aninhadas:
 
 	val q2 = query {
 		(empresa: PessoaJuridica, diretor: PessoaFisica) => where(empresa.diretor :== diretor) select (empresa, diretor)
