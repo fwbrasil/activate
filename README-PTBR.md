@@ -102,9 +102,10 @@ MongoDB
 
 	object mongoContext extends ActivateContext {
 		val storage = new MongoStorage {
-			override val host = "localhost"
+			val host = "localhost"
 			override val port = 27017
-			override val db = "dbName"
+			val db = "dbName"
+			override val authentication = Option("user", "pass")
 		}
 	}
 

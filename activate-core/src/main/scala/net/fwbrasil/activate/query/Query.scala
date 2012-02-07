@@ -26,8 +26,9 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 
 	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): Query[S] =
 		runAndClearFrom {
-			f(mockEntity[E1],
-				mockEntity[E2])
+			val e1 = mockEntity[E1]
+			val e2 = mockEntity[E2](e1)
+			f(e1, e2)
 		}
 
 	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
@@ -66,8 +67,13 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
 		query(f).execute
 
-	private[this] def mockEntity[E <: Entity: Manifest]: E = {
-		val mockEntity = QueryMocks.mockEntity(erasureOf[E])
+	private[this] def mockEntity[E <: Entity: Manifest]: E =
+		mockEntity[E]()
+
+	private[this] def mockEntity[E <: Entity: Manifest](otherEntitySources: T forSome { type T <: Entity }*): E = {
+		var mockEntity = QueryMocks.mockEntity(erasureOf[E])
+		if (otherEntitySources.toSet.contains(mockEntity))
+			mockEntity = QueryMocks.mockEntityWithoutCache(erasureOf[E])
 		From.createAndRegisterEntitySource(erasureOf[E], mockEntity);
 		mockEntity
 	}
@@ -106,7 +112,7 @@ case class Query[S](from: From, where: Where, select: Select) {
 	def execute: List[S] = {
 		val context =
 			(for (src <- from.entitySources)
-				yield ActivateContext.contextFor(src.entityClass)).onlyOne
+				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
 		context.executeQuery(this)
 	}
 

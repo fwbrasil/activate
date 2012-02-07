@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.util.RichList._
 import org.joda.time.DateTime
 
 @RunWith(classOf[JUnitRunner])
@@ -271,6 +272,32 @@ class QuerySpecs extends ActivateTest {
 						step {
 							val a = all[ActivateTestEntity]
 							allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
+						}
+					}
+				})
+		}
+
+		"support queries about more than one entity" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					if (step.ctx.storage.supportComplexQueries) {
+						step {
+							newFullActivateTestEntity
+						}
+						step {
+							val (fullEntity, entityValue) =
+								(executeQuery {
+									(entity1: ActivateTestEntity, entity2: ActivateTestEntity) => where(entity1.entityValue :== entity2) select (entity1, entity2)
+								}).onlyOne
+							fullEntity.entityValue must beEqualTo(entityValue)
+						}
+						step {
+							val (fullEntity, traitAttribute) =
+								(executeQuery {
+									(entity1: ActivateTestEntity, traitAttribute: TraitAttribute) => where(entity1.traitValue1 :== traitAttribute) select (entity1, traitAttribute)
+								}).onlyOne
+							fullEntity.traitValue1 must beEqualTo(traitAttribute)
 						}
 					}
 				})

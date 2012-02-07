@@ -71,7 +71,10 @@ object QueryMocks {
 	}
 
 	def mockEntity[E <: Entity](clazz: Class[E]): E =
-		entityMockCache.getOrElseUpdate(clazz, mockEntity[E](clazz, null)).asInstanceOf[E]
+		entityMockCache.getOrElseUpdate(clazz, mockEntityWithoutCache[E](clazz)).asInstanceOf[E]
+
+	def mockEntityWithoutCache[E <: Entity](clazz: Class[E]): E =
+		mockEntity[E](clazz, null).asInstanceOf[E]
 
 	def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVarToQuery[_]): E = {
 		val concreteClass = EntityHelper.concreteClasses(entityClass).head
