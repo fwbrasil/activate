@@ -3,7 +3,7 @@ Activate Persistence Framework
 Introduction
 ==========
 
-Activate is a framework to persist objects in Scala. Its a [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory) durable, with pluggable persistence.
+Activate is a framework to persist objects in Scala. It is a [STM](http://en.wikipedia.org/wiki/Software_transactional_memory "STM") (Software Transactional Memory) durable, with pluggable persistence.
 Its core is the [RadonSTM](https://github.com/fwbrasil/radon-stm "RadonSTM"), which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do optimistic concurrency control.
 The durability of transactions (persistence) is pluggable, and can use persistence in different paradigms such as relational (JDBC), prevalence (Prevayler) and non-relational (MongoDB).
 
@@ -24,7 +24,7 @@ Artifacts
 
 Add necessary dependencies on Activate to your project:
 
-[SBT](https://github.com/harrah/xsbt/ "SBT")
+[xSBT](https://github.com/harrah/xsbt/ "xSBT")
 
 	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
 	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
@@ -34,6 +34,7 @@ Add necessary dependencies on Activate to your project:
 
 Direct download
 
+	
 	
 
 Use
@@ -138,7 +139,7 @@ Queries:
 		(person: Person) => where(person.name :== "Test") select(person)
 	}
 
-The query operators available are: ==, <,:>, <=,> =, isNone, isSome,: | | and: &&. Note that the queries can be made about abstract entities (abstract trait and class).
+The query operators available are: ==, <,:>, <=,> =, isNone, isSome,: | | and: &&. Note that the queries can be made about entities super classes (including abstract trait and class).
 
 Perform queries within transactions:
 
@@ -155,7 +156,7 @@ There are alternative forms of query. With the allWhere you can use a list of cr
 		val personList2 = allWhere[NauralPerson](_.name :== "Test", _.motherName :== "Mother")
 	}
 
-Queries using more than one entity or nested properties:
+Queries using more than one entity or with nested properties:
 
 	val q2 = query {
 		(company: LegalPerson, director: NauralPerson) => where(company.director :== director) select (company, director)
@@ -181,7 +182,7 @@ Typically transactional blocks are controlled by the framework. But you can cont
 	}
 	transaction.commit
 
-Defining the spread of the transaction:
+Defining the propagation of the transaction:
 
 	transactional {
 		val person = new NauralPerson("Test", "Mother")
@@ -191,7 +192,7 @@ Defining the spread of the transaction:
 		println(person.name)
 	}
 
-Nested transactions are a type of spread:
+Nested transactions are a type of propagation:
 
 	transactional {
 		val person = new NauralPerson("Test", "Mother")
@@ -201,7 +202,7 @@ Nested transactions are a type of spread:
 		println(person.name)
 	}
 
-The spreads available are based on the EJB:
+The propagation available are based on EJB:
 
 * Required
 * RequiresNew
@@ -234,7 +235,7 @@ Enumeration  | VARCHAR(20) | VARCHAR2(20)
 
 * Always add a column "ID" to entities.
 * The table name is the name of the entity class.
-* The type AbstractInstant (JodaTime) follows the mapemanento of type Date.
+* The type AbstractInstant (JodaTime) follows the same mapping of Date.
 
 License
 =======

@@ -24,7 +24,7 @@ Artefatos
 
 Adicione as dependências necessárias do Activate ao seu projeto:
 
-[SBT](https://github.com/harrah/xsbt/ "SBT")
+[xSBT](https://github.com/harrah/xsbt/ "xSBT")
 
 	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
 	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
@@ -138,7 +138,7 @@ Consultas:
 		(pessoa: Pessoa) => where(pessoa.nome :== "Teste") select(pessoa)
 	}
 
-Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNone, isSome, :|| and :&&. Observe que as queries podem ser feitas sobre entidades abstratas (trait e abstract class).
+Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNone, isSome, :|| and :&&. Observe que as queries podem ser feitas sobre super classes (incluindo trait e abstract class).
 
 Execute as consultas dentro de transações:
 
@@ -218,6 +218,7 @@ Este é o mapeamento entre os tipos dos atributos das entidades e os tipos dos b
 
 Tipo         | Mysql       | Oracle
 -------------|-------------|-----------------
+ID           | VARCHAR(50) | VARCHAR2(50)
 Int          | INTEGER     | INTEGER
 Boolean      | BOOLEAN     | NUMBER(1)
 Char         | CHAR        | CHAR
@@ -231,9 +232,9 @@ Array[Byte]  | BLOB        | BLOB
 Entity       | VARCHAR(50) | VARCHAR2(50)
 Enumeration  | VARCHAR(20) | VARCHAR2(20)
 
-* Sempre adicione uma coluna "ID" do tipo VARCHAR2(50) nas tabelas das entidades.
+* Sempre adicione uma coluna "ID" nas tabelas das entidades.
 * O nome da tabela é o nome da classe da entidade.
-* O tipo AbstractInstant (JodaTime) segue o mapemanento do tipo Date.
+* O tipo AbstractInstant (JodaTime) segue o mesmo mapemanento do tipo Date.
 
 Licença
 =======
