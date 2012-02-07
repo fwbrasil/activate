@@ -115,7 +115,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 		val ret = List[ActivateTestContext](
 			memoryContext,
 			prevaylerContext,
-			oracleContext,
+			//			oracleContext,
 			mysqlContext,
 			mongoContext)
 		ret.foreach(_.stop)
@@ -270,8 +270,10 @@ trait ActivateTest extends SpecificationWithJUnit {
 			def testTraitAttribute = attribute
 		}
 
+		abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
+
 		class ActivateTestEntity(
-				var dummy: Boolean = false,
+				dummy: Boolean = false,
 				var intValue: Int,
 				var booleanValue: Boolean,
 				var charValue: Char,
@@ -287,7 +289,7 @@ trait ActivateTest extends SpecificationWithJUnit {
 				var traitValue1: TraitAttribute,
 				var traitValue2: TraitAttribute,
 				var enumerationValue: EnumerationValue,
-				lazyValueValue: String) extends Entity {
+				lazyValueValue: String) extends ActivateTestDummyEntity(dummy) {
 			lazy val lazyValue: String = lazyValueValue
 		}
 

@@ -56,9 +56,12 @@ object Reflection {
 	}
 
 	def getStatic(obj: Class[_], fieldName: String) = {
-		val field = getDeclaredFieldsIncludingSuperClasses(obj).filter(_.getName() == fieldName).head
-		field.setAccessible(true)
-		field.get(obj)
+		val fieldOption = getDeclaredFieldsIncludingSuperClasses(obj).filter(_.getName() == fieldName).headOption
+		if (fieldOption.isDefined) {
+			val field = fieldOption.get
+			field.setAccessible(true)
+			field.get(obj)
+		} else null
 	}
 
 	def invoke(obj: Object, methodName: String, params: Object*) = {

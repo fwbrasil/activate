@@ -132,10 +132,11 @@ class EntityPropertyMetadata(
 		val varField: Field,
 		entityMethods: List[Method],
 		entityClass: Class[Entity],
-		varTypes: java.util.HashMap[String, Class[_]]) {
+		varTypes: Map[String, Class[_]]) {
 	val name = varField.getName
 	val propertyType =
-		varTypes.get(name)
+		varTypes.getOrElse(name, null)
+	require(propertyType != null)
 	if (propertyType == classOf[Enumeration#Value])
 		throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +
 			"Instead of \"type MyEnum = Value\", use " +
@@ -162,8 +163,18 @@ class EntityMetadata(
 		allFields.find(_.getName == "id").get
 	def isEntityProperty(varField: Field) =
 		varField.getName != "id" && allMethods.find(_.getName == varField.getName).nonEmpty
-	val varTypes =
-		Reflection.getStatic(entityClass, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]]
+	val varTypes = {
+		import scala.collection.JavaConversions._
+		var clazz: Class[_] = entityClass
+		var ret = Map[String, Class[_]]()
+		do {
+			val map = Reflection.getStatic(clazz, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]]
+			if (map != null)
+				ret ++= map
+			clazz = clazz.getSuperclass
+		} while (clazz != null)
+		ret
+	}
 	val propertiesMetadata =
 		for (varField <- varFields; if (isEntityProperty(varField)))
 			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)

@@ -108,7 +108,7 @@ object EntityEnhancer extends Logging {
 				})
 
 			for (c <- clazz.getConstructors) {
-				var replace = ""
+				var replace = "setInitialized();"
 				for ((field, typ) <- enhancedFieldsMap) {
 					if (field.getName == "id")
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
@@ -126,7 +126,7 @@ object EntityEnhancer extends Logging {
 
 			init.insertBefore(initBody)
 
-			//			clazz.writeFile;
+			clazz.writeFile;
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
