@@ -28,7 +28,7 @@ object EnumerationValue extends Enumeration {
 import EnumerationValue._
 
 //@RunWith(classOf[JUnitRunner])
-trait ActivateTest extends SpecificationWithJUnit {
+trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
 	trait StepExecutor {
 		def apply[A](step: => A): A

@@ -79,13 +79,15 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			val liveCache = context.liveCache
 
 			for ((entityId, changeSet) <- assignments) {
-				val entity = materializeEntity(entityId)
+				val entity = liveCache.materializeEntity(entityId)
+				entity.setInitialized
+				storage += (entity.id -> entity)
 				for ((varName, value) <- changeSet) {
 					val ref = entity.varNamed(varName).get
 					val entityValue = Marshaller.unmarshalling(value) match {
 						case value: EntityInstanceReferenceValue[_] =>
 							if (value.value.isDefined)
-								ref.setRefContent(Option(materializeEntity(value.value.get)))
+								ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
 							else
 								ref.setRefContent(None)
 						case other: EntityValue[_] =>
@@ -97,13 +99,6 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			for (delete <- deletes) {
 				storage -= delete
 				liveCache.delete(delete)
-			}
-
-			def materializeEntity(entityId: String) = {
-				val entity = liveCache.materializeEntity(entityId)
-				entity.setInitialized
-				storage += (entity.id -> entity)
-				entity
 			}
 
 		}

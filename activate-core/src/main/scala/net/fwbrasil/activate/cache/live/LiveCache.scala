@@ -133,6 +133,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				Set[S]()
 		val entities = entitySourceInstancesCombined(query.from)
 		val fromCache = executeQueryWithEntitySources(query, entities)
+		object invalid
 		val fromStorage = (for (line <- storage.fromStorage(query))
 			yield toTuple[S](for (column <- line)
 			yield column match {
@@ -140,11 +141,19 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				if (value.value == None)
 					null
 				else
-					materializeEntity(value.value.get)
+					materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
 			case other: EntityValue[_] =>
 				other.value.getOrElse(null)
 		}))
-		result ++= fromStorage
+		result ++= fromStorage.filter({
+			(row) =>
+				row match {
+					case row: Product =>
+						row.productIterator.find(_ == invalid).isEmpty
+					case other =>
+						other != invalid
+				}
+		})
 		result ++= fromCache
 		result
 	}
@@ -154,6 +163,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entityInstacesMap(entityClass).getOrElse(entityId, {
 			toCache(entityClass, () => createLazyEntity(entityClass, entityId))
 		})
+	}
+
+	def materializeEntityIfNotDeleted(entityId: String): Option[Entity] = {
+		val ret = materializeEntity(entityId)
+		if (ret.isDeleted)
+			None
+		else
+			Some(ret)
 	}
 
 	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
@@ -181,10 +198,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val list = query({ (e: Entity) =>
 			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValueRef(ref)).toList)
 		})(manifestClass(entity.niceClass)).execute
-		val tuple = list.head
-		val vars = entity.vars.toList
-		for (i <- 0 to vars.size - 1)
-			vars(i).setRefContent(Option(tuple.productElement(i)))
+		val row = list.headOption
+		if (row.isDefined) {
+			val tuple = row.get
+			val vars = entity.vars.toList
+			for (i <- 0 to vars.size - 1)
+				vars(i).setRefContent(Option(tuple.productElement(i)))
+		}
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[S] = {
