@@ -126,6 +126,23 @@ trait Entity extends Serializable with ValidEntity {
 	override def toString =
 		this.niceClass.getSimpleName + (if (initialized) "(" + vars.mkString(", ") + ")" else "(uninitialized id->" + id + ")")
 
+	protected def writeReplace(): AnyRef =
+		if (Entity.serializeUsingEvelope)
+			new EntitySerializationEnvelope(this)
+		else
+			this
+
+}
+
+object Entity {
+	var serializeUsingEvelope = true
+}
+
+class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
+	val id = entity.id
+	val context = entity.context
+	protected def readResolve(): Any =
+		context.liveCache.materializeEntity(id)
 }
 
 class EntityPropertyMetadata(

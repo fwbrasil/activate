@@ -107,16 +107,15 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 		List(
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx) //,
-			//			MultipleTransactionsWithReinitializeAndSnapshot(ctx)
-			).filter(_.accept(ctx))
+			MultipleTransactionsWithReinitialize(ctx),
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
 			memoryContext,
 			prevaylerContext,
 			//			oracleContext,
-			//			mysqlContext,
+			mysqlContext,
 			mongoContext)
 		ret.foreach(_.stop)
 		ret

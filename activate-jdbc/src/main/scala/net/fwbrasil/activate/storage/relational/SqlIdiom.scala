@@ -81,23 +81,23 @@ abstract class SqlIdiom {
 	def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
 		storageValue match {
 			case value: IntStorageValue =>
-				IntStorageValue(getValue(resultSet, resultSet.getInt(i)))(value.entityValue)
+				IntStorageValue(getValue(resultSet, resultSet.getInt(i)))
 			case value: BooleanStorageValue =>
-				BooleanStorageValue(getValue(resultSet, resultSet.getBoolean(i)))(value.entityValue)
+				BooleanStorageValue(getValue(resultSet, resultSet.getBoolean(i)))
 			case value: StringStorageValue =>
-				StringStorageValue(getValue(resultSet, resultSet.getString(i)))(value.entityValue)
+				StringStorageValue(getValue(resultSet, resultSet.getString(i)))
 			case value: FloatStorageValue =>
-				FloatStorageValue(getValue(resultSet, resultSet.getFloat(i)))(value.entityValue)
+				FloatStorageValue(getValue(resultSet, resultSet.getFloat(i)))
 			case value: DateStorageValue =>
-				DateStorageValue(getValue(resultSet, resultSet.getTimestamp(i)).map((t: Timestamp) => new Date(t.getTime)))(value.entityValue)
+				DateStorageValue(getValue(resultSet, resultSet.getTimestamp(i)).map((t: Timestamp) => new Date(t.getTime)))
 			case value: DoubleStorageValue =>
-				DoubleStorageValue(getValue(resultSet, resultSet.getDouble(i)))(value.entityValue)
+				DoubleStorageValue(getValue(resultSet, resultSet.getDouble(i)))
 			case value: BigDecimalStorageValue =>
-				BigDecimalStorageValue(getValue(resultSet, BigDecimal(resultSet.getBigDecimal(i))))(value.entityValue)
+				BigDecimalStorageValue(getValue(resultSet, BigDecimal(resultSet.getBigDecimal(i))))
 			case value: ByteArrayStorageValue =>
-				ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))(value.entityValue)
+				ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))
 			case value: ReferenceStorageValue =>
-				ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))(value.entityValue)
+				ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))
 		}
 	}
 
@@ -192,7 +192,7 @@ abstract class SqlIdiom {
 	def toSqlQuery[V](value: QueryEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: QueryEntityInstanceValue[Entity] =>
-				bind(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue[Entity](Option(value.entity))))
+				bind(StringStorageValue(Option(value.entityId)))
 			case value: QueryEntitySourcePropertyValue[v] =>
 				value.entitySource.name + "." + value.propertyPathNames.mkString(".")
 			case value: QueryEntitySourceValue[v] =>
@@ -257,7 +257,7 @@ object mySqlDialect extends SqlIdiom {
 	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue) = {
 		storageValue match {
 			case value: DateStorageValue =>
-				DateStorageValue(getValue(resultSet, resultSet.getLong(i)).map((t: Long) => new Date(t)))(value.entityValue)
+				DateStorageValue(getValue(resultSet, resultSet.getLong(i)).map((t: Long) => new Date(t)))
 			case other =>
 				super.getValue(resultSet, i, storageValue)
 		}

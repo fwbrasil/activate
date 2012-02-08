@@ -32,13 +32,12 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	}
 
 	def snapshot =
-		throw new UnsupportedOperationException("Prevayler snapshot not supported yiet.")
-	//		try {
-	//			PrevaylerMemoryStorage.restoring = true
-	//			prevayler.takeSnapshot
-	//		} finally {
-	//			PrevaylerMemoryStorage.restoring = false
-	//		}
+		try {
+			Entity.serializeUsingEvelope = false
+			prevayler.takeSnapshot
+		} finally {
+			Entity.serializeUsingEvelope = true
+		}
 
 	override def reinitialize =
 		initialize
@@ -74,7 +73,7 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			storage += (entity.id -> entity)
 			for ((varName, value) <- changeSet) {
 				val ref = entity.varNamed(varName).get
-				val entityValue = Marshaller.unmarshalling(value) match {
+				val entityValue = Marshaller.unmarshalling(value, ref.tval(None)) match {
 					case value: EntityInstanceReferenceValue[_] =>
 						if (value.value.isDefined)
 							ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))

@@ -5,10 +5,14 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.ValueContext
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.util.ManifestUtil.manifestClass
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 
 class QueryValue()
 
-class QuerySelectValue[V]() extends QueryValue
+abstract class QuerySelectValue[V]() extends QueryValue {
+	def entityValue: EntityValue[_]
+}
 
 trait QueryValueContext extends ValueContext {
 
@@ -68,10 +72,12 @@ abstract class QueryEntityValue[V]() extends QuerySelectValue[V]
 
 case class QueryEntityInstanceValue[E <: Entity](val entity: E) extends QueryEntityValue[E] {
 	def entityId = entity.id
+	override def entityValue = EntityInstanceEntityValue[E](Option(entity))(manifestClass[E](entity.getClass))
 	override def toString = entityId
 }
 
 case class QueryEntitySourceValue[V](val entitySource: EntitySource) extends QueryEntityValue[V] {
+	override def entityValue: EntityValue[_] = EntityInstanceEntityValue(None)(manifestClass(entitySource.entityClass))
 	override def toString = entitySource.name
 }
 
@@ -80,6 +86,7 @@ case class QueryEntitySourcePropertyValue[P](override val entitySource: EntitySo
 	def propertyPathNames =
 		for (prop <- propertyPathVars)
 			yield prop.name
+	override def entityValue: EntityValue[_] = lastVar.asInstanceOf[QueryMocks.FakeVarToQuery[_]].entityValueMock.asInstanceOf[EntityValue[_]]
 	override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
 }
 

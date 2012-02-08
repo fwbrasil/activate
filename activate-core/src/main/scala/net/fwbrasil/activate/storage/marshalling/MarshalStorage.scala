@@ -7,6 +7,8 @@ import net.fwbrasil.activate.util.RichList._
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
+import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
 
 trait MarshalStorage extends Storage {
 
@@ -39,16 +41,19 @@ trait MarshalStorage extends Storage {
 	}
 
 	private[this] def newPropertyMap(entity: Entity) =
-		MutableMap("id" -> (ReferenceStorageValue(Option(entity.id))(EntityInstanceEntityValue(Option(entity)))).asInstanceOf[StorageValue])
+		MutableMap("id" -> (ReferenceStorageValue(Option(entity.id))).asInstanceOf[StorageValue])
 
 	override def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
+		val entityValues =
+			for (value <- queryInstance.select.values)
+				yield value.entityValue
 		val expectedTypes =
-			(for (value <- queryInstance.select.values)
-				yield Marshaller.marshalling(value)).toList
+			(for (value <- entityValues)
+				yield marshalling(value)).toList
 		val result = query(queryInstance, expectedTypes)
 		(for (line <- result)
-			yield for (column <- line)
-			yield Marshaller.unmarshalling(column))
+			yield (for (i <- 0 until line.size)
+			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
 	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Map[Entity, Map[String, StorageValue]]): Unit

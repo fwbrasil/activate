@@ -33,41 +33,8 @@ import net.fwbrasil.activate.entity.EntityValue
 
 object Marshaller {
 
-	def marshalling(value: QuerySelectValue[_]): StorageValue =
-		value match {
-			case value: QueryEntityValue[_] =>
-				marshalling(value)
-			case value: SimpleValue[_] =>
-				marshalling(value)
-		}
-
-	def marshalling[V](value: QueryEntityValue[V]): StorageValue =
-		value match {
-			case value: QueryEntityInstanceValue[V] =>
-				marshalling(value)
-			case value: QueryEntitySourceValue[V] =>
-				marshalling(value)
-		}
-
-	def marshalling[V <: Entity: Manifest](value: QueryEntityInstanceValue[V]): StorageValue =
-		marshalling(EntityInstanceEntityValue[V](Option(value.entity)))
-
-	def marshalling[V](value: QueryEntitySourceValue[V]): StorageValue =
-		value match {
-			case value: QueryEntitySourcePropertyValue[V] =>
-				marshalling(value)
-			case value: QueryEntitySourceValue[V] =>
-				marshalling(EntityInstanceEntityValue(None)(manifestClass(value.entitySource.entityClass)))
-		}
-
-	def marshalling[P](value: QueryEntitySourcePropertyValue[P]): StorageValue =
-		marshalling(value.lastVar.asInstanceOf[QueryMocks.FakeVarToQuery[_]].entityValueMock)
-
-	def marshalling(value: SimpleValue[_]): StorageValue =
-		marshalling(value.entityValue)
-
-	def unmarshalling(storageValue: StorageValue): EntityValue[_] =
-		(storageValue, storageValue.entityValue) match {
+	def unmarshalling(storageValue: StorageValue, entityValue: EntityValue[_]): EntityValue[_] =
+		(storageValue, entityValue) match {
 			case (storageValue: IntStorageValue, entityValue: IntEntityValue) =>
 				IntEntityValue(storageValue.value)
 			case (storageValue: BooleanStorageValue, entityValue: BooleanEntityValue) =>

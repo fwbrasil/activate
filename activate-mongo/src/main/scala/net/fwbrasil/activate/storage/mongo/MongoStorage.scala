@@ -111,23 +111,23 @@ trait MongoStorage extends MarshalStorage {
 	def getValue(obj: DBObject, name: String, storageValue: StorageValue): StorageValue =
 		storageValue match {
 			case value: IntStorageValue =>
-				IntStorageValue(getValue[Int](obj, name))(value.entityValue)
+				IntStorageValue(getValue[Int](obj, name))
 			case value: BooleanStorageValue =>
-				BooleanStorageValue(getValue[Boolean](obj, name))(value.entityValue)
+				BooleanStorageValue(getValue[Boolean](obj, name))
 			case value: StringStorageValue =>
-				StringStorageValue(getValue[String](obj, name))(value.entityValue)
+				StringStorageValue(getValue[String](obj, name))
 			case value: FloatStorageValue =>
-				FloatStorageValue(getValue[Double](obj, name).map(_.floatValue))(value.entityValue)
+				FloatStorageValue(getValue[Double](obj, name).map(_.floatValue))
 			case value: DateStorageValue =>
-				DateStorageValue(getValue[Date](obj, name))(value.entityValue)
+				DateStorageValue(getValue[Date](obj, name))
 			case value: DoubleStorageValue =>
-				DoubleStorageValue(getValue[Double](obj, name))(value.entityValue)
+				DoubleStorageValue(getValue[Double](obj, name))
 			case value: BigDecimalStorageValue =>
-				BigDecimalStorageValue(getValue[Double](obj, name).map(BigDecimal(_)))(value.entityValue)
+				BigDecimalStorageValue(getValue[Double](obj, name).map(BigDecimal(_)))
 			case value: ByteArrayStorageValue =>
-				ByteArrayStorageValue(getValue[Array[Byte]](obj, name))(value.entityValue)
+				ByteArrayStorageValue(getValue[Array[Byte]](obj, name))
 			case value: ReferenceStorageValue =>
-				ReferenceStorageValue(getValue[String](obj, name))(value.entityValue)
+				ReferenceStorageValue(getValue[String](obj, name))
 		}
 
 	def getValue[T](obj: DBObject, name: String) =
@@ -192,7 +192,7 @@ trait MongoStorage extends MarshalStorage {
 			case value: SimpleValue[_] =>
 				getMongoValue(Marshaller.marshalling(value.entityValue))
 			case value: QueryEntityInstanceValue[_] =>
-				getMongoValue(StringStorageValue(Option(value.entityId))(EntityInstanceEntityValue(None)))
+				getMongoValue(StringStorageValue(Option(value.entityId)))
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria.")
 		}
