@@ -24,12 +24,7 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
 		factory.configurePrevalenceDirectory(name)
-		try {
-			PrevaylerMemoryStorage.restoring = true
-			prevayler = factory.create
-		} finally {
-			PrevaylerMemoryStorage.restoring = false
-		}
+		prevayler = factory.create
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 		for (entity <- prevalentSystem.values) {
 			context.liveCache.toCache(entity)
@@ -37,12 +32,13 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	}
 
 	def snapshot =
-		try {
-			PrevaylerMemoryStorage.restoring = true
-			prevayler.takeSnapshot
-		} finally {
-			PrevaylerMemoryStorage.restoring = false
-		}
+		throw new UnsupportedOperationException("Prevayler snapshot not supported yiet.")
+	//		try {
+	//			PrevaylerMemoryStorage.restoring = true
+	//			prevayler.takeSnapshot
+	//		} finally {
+	//			PrevaylerMemoryStorage.restoring = false
+	//		}
 
 	override def reinitialize =
 		initialize
@@ -66,40 +62,34 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 
 }
 
-object PrevaylerMemoryStorage {
-	var restoring = false
-
-}
-
 case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignments: Map[String, Map[String, StorageValue]], deletes: Set[String]) extends PrevaylerTransaction {
-	def executeOn(system: Object, date: java.util.Date) =
-		if (PrevaylerMemoryStorage.restoring) {
-			val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
+	def executeOn(system: Object, date: java.util.Date) = {
+		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 
-			val liveCache = context.liveCache
+		val liveCache = context.liveCache
 
-			for ((entityId, changeSet) <- assignments) {
-				val entity = liveCache.materializeEntity(entityId)
-				entity.setInitialized
-				storage += (entity.id -> entity)
-				for ((varName, value) <- changeSet) {
-					val ref = entity.varNamed(varName).get
-					val entityValue = Marshaller.unmarshalling(value) match {
-						case value: EntityInstanceReferenceValue[_] =>
-							if (value.value.isDefined)
-								ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
-							else
-								ref.setRefContent(None)
-						case other: EntityValue[_] =>
-							ref.setRefContent(other.value)
-					}
+		for ((entityId, changeSet) <- assignments) {
+			val entity = liveCache.materializeEntity(entityId)
+			entity.setInitialized
+			storage += (entity.id -> entity)
+			for ((varName, value) <- changeSet) {
+				val ref = entity.varNamed(varName).get
+				val entityValue = Marshaller.unmarshalling(value) match {
+					case value: EntityInstanceReferenceValue[_] =>
+						if (value.value.isDefined)
+							ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
+						else
+							ref.setRefContent(None)
+					case other: EntityValue[_] =>
+						ref.setRefContent(other.value)
 				}
 			}
-
-			for (delete <- deletes) {
-				storage -= delete
-				liveCache.delete(delete)
-			}
-
 		}
+
+		for (delete <- deletes) {
+			storage -= delete
+			liveCache.delete(delete)
+		}
+
+	}
 }
