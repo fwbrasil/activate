@@ -11,6 +11,8 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.entity.IdVar
+import net.fwbrasil.activate.util.uuid.UUIDUtil
 
 object QueryMocks {
 
@@ -35,6 +37,8 @@ object QueryMocks {
 			(EntityValue.tvalFunction(fakeValueClass))(None).asInstanceOf[EntityValue[P]]
 		var fakeValueClass: Class[_] = _
 		var originVar: FakeVarToQuery[_] = _
+		var fakeOuterEntityClass: Class[_] = _
+		override def outerEntityClass = fakeOuterEntityClass.asInstanceOf[Class[Entity]]
 		override def get: Option[P] = {
 			val value =
 				if (classOf[Entity].isAssignableFrom(fakeValueClass))
@@ -85,6 +89,7 @@ object QueryMocks {
 			val typ = propertyMetadata.propertyType
 			val field = propertyMetadata.varField
 			ref.fakeValueClass = typ
+			ref.fakeOuterEntityClass = entityClass
 			ref.originVar = originVar
 			set(ref, "name", field.getName())
 			set(ref, "outerEntity", entity)
@@ -92,9 +97,8 @@ object QueryMocks {
 		}
 		val idField = entityMetadata.idField
 		val ref = mockVar
-		val typ = classOf[String]
-		ref.fakeValueClass = typ
-		ref.originVar = originVar
+		ref.fakeValueClass = classOf[String]
+		ref.fakeOuterEntityClass = entityClass
 		set(ref, "name", "id")
 		set(ref, "outerEntity", entity)
 		idField.set(entity, ref)

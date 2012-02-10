@@ -140,7 +140,7 @@ Queries:
 		(person: Person) => where(person.name :== "Test") select(person)
 	}
 
-The query operators available are: ==, <,:>, <=,> =, isNone, isSome,: | | and: &&. Note that the queries can be made about entities super classes (including abstract trait and class).
+The query operators available are: ==, <,:>, <=,> =, isNull, isNotNull,: | | and: &&. Note that the queries can be made about entities super classes (including abstract trait and class).
 
 Perform queries within transactions:
 

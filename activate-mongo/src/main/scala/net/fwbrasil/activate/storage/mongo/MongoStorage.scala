@@ -173,9 +173,9 @@ trait MongoStorage extends MarshalStorage {
 			case criteria: SimpleOperatorCriteria =>
 				val property = queryEntityProperty(criteria.valueA)
 				val value = criteria.operator match {
-					case value: IsNone =>
+					case value: IsNull =>
 						null
-					case value: IsSome =>
+					case value: IsNotNull =>
 						val temp = new BasicDBObject
 						temp.put("$ne", null)
 						temp

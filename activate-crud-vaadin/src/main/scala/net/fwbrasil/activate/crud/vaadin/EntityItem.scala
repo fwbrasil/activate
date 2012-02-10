@@ -93,7 +93,7 @@ class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[
 		ListBuffer() ++ (
 			transactional(transaction) {
 				(query {
-					(entity: E) => where(entity.id isSome) select (entity.id) orderBy (orderByCriteriasForEntity(entity): _*)
+					(entity: E) => where(entity.id isNotNull) select (entity.id) orderBy (orderByCriteriasForEntity(entity): _*)
 				}).execute
 			})
 

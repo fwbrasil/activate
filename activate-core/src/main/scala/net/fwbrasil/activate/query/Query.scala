@@ -92,7 +92,7 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 		}.execute
 
 	def all[E <: Entity: Manifest] =
-		allWhere[E](_ isSome)
+		allWhere[E](_ isNotNull)
 
 	def byId[T <: Entity: Manifest](id: String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)

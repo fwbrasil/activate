@@ -5,14 +5,12 @@ import net.fwbrasil.activate.query.IsLessThan
 import net.fwbrasil.activate.query.QueryEntityValue
 import net.fwbrasil.activate.query.QueryValue
 import net.fwbrasil.activate.query.IsGreaterOrEqualTo
-import net.fwbrasil.activate.query.IsSome
 import net.fwbrasil.activate.query.QueryEntitySourceValue
 import net.fwbrasil.activate.query.EntitySource
 import net.fwbrasil.activate.query.QueryEntitySourcePropertyValue
 import net.fwbrasil.activate.query.IsEqualTo
 import net.fwbrasil.activate.query.QuerySelectValue
 import net.fwbrasil.activate.query.BooleanOperatorCriteria
-import net.fwbrasil.activate.query.IsNone
 import net.fwbrasil.activate.query.SimpleValue
 import net.fwbrasil.activate.query.CompositeOperatorCriteria
 import net.fwbrasil.activate.entity.EntityHelper
@@ -43,6 +41,8 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
 import scala.collection.mutable.{ HashMap => MutableHashMap }
+import net.fwbrasil.activate.query.IsNull
+import net.fwbrasil.activate.query.IsNotNull
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -301,9 +301,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
-			case operator: IsNone =>
+			case operator: IsNull =>
 				executeQueryValue(criteria.valueA) == null
-			case operator: IsSome =>
+			case operator: IsNotNull =>
 				executeQueryValue(criteria.valueA) != null
 		}
 

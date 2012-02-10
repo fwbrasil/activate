@@ -9,6 +9,7 @@ import net.fwbrasil.activate.util.CollectionUtil.combine
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.util.Reflection.deepCopyMapping
 import net.fwbrasil.activate.util.Reflection.findObject
+import net.fwbrasil.activate.util.RichList.toRichList
 import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
 import scala.collection.immutable.TreeSet
 
@@ -20,9 +21,9 @@ object QueryNormalizer {
 		cache.getOrElseUpdate(query, normalizeQuery(query)).asInstanceOf[List[Query[S]]]
 
 	def normalizeQuery[S](query: Query[S]): List[Query[_]] = {
-		val normalizedFrom = normalizeFrom(List(query))
-		val normalizedPropertyPath = normalizePropertyPath(normalizedFrom)
-		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedPropertyPath)
+		val normalizedPropertyPath = normalizePropertyPath(List(query))
+		val normalizedFrom = normalizeFrom(normalizedPropertyPath)
+		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
 		normalizedSelectWithOrderBy
 	}
 
@@ -55,6 +56,8 @@ object QueryNormalizer {
 				criteriaList ++= criterias
 				normalizeMap.put(nested, propValue)
 			}
+			for (entitySource <- entitySourceList)
+				normalizeMap.put(entitySource, entitySource)
 			var criteria = query.where.value
 			for (i <- 0 until criteriaList.size)
 				criteria = And(criteria) :&& criteriaList(i)

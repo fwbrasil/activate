@@ -232,9 +232,9 @@ abstract class SqlIdiom {
 				" and "
 			case value: Or =>
 				" or "
-			case value: IsNone =>
+			case value: IsNull =>
 				" is null "
-			case value: IsSome =>
+			case value: IsNotNull =>
 				" is not null "
 		}
 

@@ -64,33 +64,33 @@ class QuerySpecs extends ActivateTest {
 							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
-							_.intValue isSome,
-							_.booleanValue isSome,
-							_.charValue isSome,
-							_.stringValue isSome,
-							_.floatValue isSome,
-							_.doubleValue isSome,
-							_.bigDecimalValue isSome,
-							_.dateValue isSome,
-							_.calendarValue isSome,
-							_.byteArrayValue isSome,
-							_.entityValue isSome //,
-							//							_.enumerationValue isSome
+							_.intValue isNotNull,
+							_.booleanValue isNotNull,
+							_.charValue isNotNull,
+							_.stringValue isNotNull,
+							_.floatValue isNotNull,
+							_.doubleValue isNotNull,
+							_.bigDecimalValue isNotNull,
+							_.dateValue isNotNull,
+							_.calendarValue isNotNull,
+							_.byteArrayValue isNotNull,
+							_.entityValue isNotNull //,
+							//							_.enumerationValue isNotNull
 							).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
-							_.stringValue isNone,
-							_.bigDecimalValue isNone,
-							_.dateValue isNone,
-							_.calendarValue isNone,
-							_.entityValue isNone //,
-							//							_.enumerationValue isNone
+							_.stringValue isNull,
+							_.bigDecimalValue isNull,
+							_.dateValue isNull,
+							_.calendarValue isNull,
+							_.entityValue isNull //,
+							//							_.enumerationValue isNull
 							).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
-							_.entityValue isNone,
+							_.entityValue isNull,
 							_.charValue :== 'A' //, 
-							//							_.enumerationValue isNone
+							//							_.enumerationValue isNull
 							).headOption must beNone
 					}
 				})
@@ -114,11 +114,11 @@ class QuerySpecs extends ActivateTest {
 						}.execute.headOption must beNone
 
 						query {
-							(e: ActivateTestEntity) => where(e.stringValue isNone) select (e)
+							(e: ActivateTestEntity) => where(e.stringValue isNull) select (e)
 						}.execute.headOption must beSome
 
 						query {
-							(e: ActivateTestEntity) => where(e.stringValue isSome) select (e)
+							(e: ActivateTestEntity) => where(e.stringValue isNotNull) select (e)
 						}.execute.headOption must beSome
 					}
 				})
@@ -135,7 +135,7 @@ class QuerySpecs extends ActivateTest {
 					step {
 						query {
 							(e: ActivateTestEntity) =>
-								where((e.booleanValue :== true) :|| (e.booleanValue :== false) :|| (e.booleanValue isNone)) select (e)
+								where((e.booleanValue :== true) :|| (e.booleanValue :== false) :|| (e.booleanValue isNull)) select (e)
 						}.execute.size must beEqualTo(3)
 
 						query {
@@ -157,12 +157,12 @@ class QuerySpecs extends ActivateTest {
 					step {
 						query {
 							(e: ActivateTestEntity) =>
-								where((e.booleanValue :== true) :&& (e.booleanValue :== false) :&& (e.booleanValue isNone)) select (e)
+								where((e.booleanValue :== true) :&& (e.booleanValue :== false) :&& (e.booleanValue isNull)) select (e)
 						}.execute.size must beEqualTo(0)
 
 						query {
 							(e: ActivateTestEntity) =>
-								where((e.booleanValue isSome) :&& (e.stringValue isSome)) select (e)
+								where((e.booleanValue isNotNull) :&& (e.stringValue isNotNull)) select (e)
 						}.execute.size must beEqualTo(1)
 					}
 				})

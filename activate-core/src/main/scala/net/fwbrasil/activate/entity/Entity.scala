@@ -6,6 +6,7 @@ import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection.toRichClass
 import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -212,8 +213,10 @@ object EntityHelper {
 
 	def concreteClasses[E <: Entity](clazz: Class[E]) =
 		concreteEntityClasses.getOrElse(clazz, {
-			for ((hash, metadata) <- entitiesMetadatas; if (clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)))
-				yield metadata.entityClass
+			for (
+				(hash, metadata) <- entitiesMetadatas;
+				if ((clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)) && metadata.entityClass.isConcreteClass)
+			) yield metadata.entityClass
 		}).toList.asInstanceOf[List[Class[_ <: E]]]
 
 	def initialize = synchronized {

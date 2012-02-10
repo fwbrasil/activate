@@ -2,15 +2,6 @@ package net.fwbrasil.activate.util
 
 object CollectionUtil {
 
-	def flatten[T](l: List[T]): List[T] =
-		l match {
-			case (head: List[T]) :: Nil => flatten(head)
-			case (head: List[T]) :: tail => flatten(head) ::: flatten(tail)
-			case head :: Nil => List(head)
-			case head :: tail => head :: flatten(tail)
-			case Nil => Nil
-		}
-
 	def combine[T](lists: Seq[Seq[T]]) =
 		(if (lists.nonEmpty)
 			((lists.map(_.map(Seq(_))))

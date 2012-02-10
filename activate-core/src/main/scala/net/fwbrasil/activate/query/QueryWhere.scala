@@ -21,20 +21,20 @@ trait OperatorContext {
 	implicit def toIsLessThan[V <% QueryValue](value: V) = IsLessThan(value)
 	implicit def toIsGreaterOrEqualTo[V <% QueryValue](value: V) = IsGreaterOrEqualTo(value)
 	implicit def toIsLessOrEqualTo[V <% QueryValue](value: V) = IsLessOrEqualTo(value)
-	implicit def toIsNone[V <% QueryValue](value: V) = IsNone(value)
-	implicit def toIsSomel[V <% QueryValue](value: V) = IsSome(value)
+	implicit def toIsNull[V <% QueryValue](value: V) = IsNull(value)
+	implicit def toIsNotNull[V <% QueryValue](value: V) = IsNotNull(value)
 }
 
 class SimpleOperator() extends Operator
 class CompositeOperator() extends Operator
 
-case class IsNone(valueA: QueryValue) extends SimpleOperator {
-	def isNone = SimpleOperatorCriteria(valueA, this)
+case class IsNull(valueA: QueryValue) extends SimpleOperator {
+	def isNull = SimpleOperatorCriteria(valueA, this)
 	override def toString = "isNull"
 }
 
-case class IsSome(valueA: QueryValue) extends SimpleOperator {
-	def isSome = SimpleOperatorCriteria(valueA, this)
+case class IsNotNull(valueA: QueryValue) extends SimpleOperator {
+	def isNotNull = SimpleOperatorCriteria(valueA, this)
 	override def toString = "isNotNull"
 }
 

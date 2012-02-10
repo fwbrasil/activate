@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.Date
+import java.lang.reflect.Modifier
 
 object Reflection {
 
@@ -18,6 +19,12 @@ object Reflection {
 	}
 
 	implicit def toNiceObject[T](x: T) = new NiceObject(x)
+
+	class RichClass[T](clazz: Class[T]) {
+		def isConcreteClass = !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface
+	}
+
+	implicit def toRichClass[T](clazz: Class[T]) = new RichClass(clazz)
 
 	def newInstance[T](clazz: Class[T]): T =
 		objenesis.newInstance(clazz).asInstanceOf[T]
@@ -94,10 +101,7 @@ object Reflection {
 	def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: IdentityHashMap[A, B]): T = {
 		val substitute = map.get(obj.asInstanceOf[A])
 		if (substitute != null) {
-			val newMap = new IdentityHashMap[A, B]()
-			newMap.putAll(map)
-			newMap.remove(obj)
-			deepCopyMapping(substitute.asInstanceOf[T], newMap)
+			substitute.asInstanceOf[T]
 		} else
 			(obj match {
 				case seq: Seq[Any] =>

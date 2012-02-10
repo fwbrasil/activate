@@ -2,9 +2,10 @@ package net.fwbrasil.activate.query
 
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityHelper
 
 case class EntitySource(var entityClass: Class[E] forSome { type E <: Entity }, name: String) {
-	override def toString = name + ": " + entityClass.getSimpleName
+	override def toString = name + ": " + EntityHelper.getEntityName(entityClass)
 }
 
 case class From(entitySources: EntitySource*) {
