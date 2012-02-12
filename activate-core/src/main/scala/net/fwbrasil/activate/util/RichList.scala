@@ -12,12 +12,14 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 	def filterByType[A: Manifest, B](f: (T) => Class[_]): List[B] =
 		iterable.filter((elem) => erasureOf[A].isAssignableFrom(f(elem))).toList.asInstanceOf[List[B]]
 
-	def sortComparable[V](f: (T) => Comparable[V]) =
+	def sortComparable[V](f: (T) => Comparable[V]): List[T] =
 		list.sortWith((a: T, b: T) => f(a).compareTo(f(b).asInstanceOf[V]) < 0)
 
-	def sortIfComparable =
+	def sortIfComparable: List[T] =
 		if (classOf[Comparable[_]].isAssignableFrom(erasureOf[T]))
 			sortComparable[Any]((v: T) => v.asInstanceOf[Comparable[Any]])
+		else
+			iterable.toList
 
 	def randomElementOption =
 		if (iterable.nonEmpty)

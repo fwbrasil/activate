@@ -10,7 +10,7 @@ import net.fwbrasil.activate.util.Reflection.toRichClass
 import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import scala.collection.mutable.{ HashMap => MutableHashMap }
+import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
 
 trait Entity extends Serializable with ValidEntity {
 
@@ -125,7 +125,15 @@ trait Entity extends Serializable with ValidEntity {
 		context.liveCache.cachedInstance(this)
 
 	override def toString =
-		this.niceClass.getSimpleName + (if (initialized) "(" + vars.mkString(", ") + ")" else "(uninitialized id->" + id + ")")
+		EntityHelper.getEntityName(this.niceClass) + (
+			try {
+				if (Entity.toStringSeen(this))
+					"(loop id->" + id + ")"
+				else if (initialized)
+					"(" + vars.mkString(", ") + ")"
+				else
+					"(uninitialized id->" + id + ")"
+			} finally { Entity.toStringRemoveSeen(this) })
 
 	protected def writeReplace(): AnyRef =
 		if (Entity.serializeUsingEvelope)
@@ -137,6 +145,17 @@ trait Entity extends Serializable with ValidEntity {
 
 object Entity {
 	var serializeUsingEvelope = true
+	private[this] val _toStringLoopSeen = new ThreadLocal[MutableHashSet[Entity]]() {
+		override def initialValue = MutableHashSet[Entity]()
+	}
+	def toStringSeen(entity: Entity) = {
+		val set = _toStringLoopSeen.get
+		val ret = set.contains(entity)
+		set += entity
+		ret
+	}
+	def toStringRemoveSeen(entity: Entity) =
+		_toStringLoopSeen.get -= entity
 }
 
 class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {

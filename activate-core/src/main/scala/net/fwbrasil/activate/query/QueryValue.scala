@@ -21,8 +21,8 @@ trait QueryValueContext extends ValueContext {
 		val sourceOption = From.entitySourceFor(entity)
 		if (sourceOption != None)
 			new QueryEntitySourcePropertyValue[V](sourceOption.get, path: _*)
-		else
-			new SimpleValue[V](ref.get.get, ref.tval)
+		else new SimpleValue[V](ref.get.get, ref.tval)
+
 	}
 
 	private[activate] def propertyPath(ref: Var[_]) = {

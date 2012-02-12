@@ -4,11 +4,14 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.query._
+import net.fwbrasil.activate.entity.EntityHelper
 
 abstract class StorageStatement
 
 abstract class DmlStorageStatement(val entityClass: Class[_], val entityId: String, val propertyMap: Map[String, StorageValue])
-	extends StorageStatement
+		extends StorageStatement {
+	override def toString = this.getClass.getSimpleName + "(" + EntityHelper.getEntityName(entityClass) + ", " + entityId + ", " + propertyMap + ")"
+}
 
 case class InsertDmlStorageStatement(override val entityClass: Class[_], override val entityId: String, override val propertyMap: Map[String, StorageValue])
 	extends DmlStorageStatement(entityClass, entityId, propertyMap)

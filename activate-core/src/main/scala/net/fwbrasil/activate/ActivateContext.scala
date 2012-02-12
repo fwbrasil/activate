@@ -40,11 +40,11 @@ trait ActivateContext
 			storage.reinitialize
 		}
 
-	private[activate] def executeQuery[S](query: Query[S]): List[S] =
+	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] =
 		logInfo("executing query " + query.toString) {
 			(for (normalized <- QueryNormalizer.normalize(query)) yield {
 				logInfo("executing normalized query " + normalized.toString) {
-					QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized))
+					QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
 				}
 			}).flatten
 		}
@@ -75,11 +75,11 @@ trait ActivateContext
 		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
 		val deletes = MutableMap[Entity, MutableMap[Var[Any], EntityValue[Any]]]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
-			if (destroyed) {
+			if (destroyed)
 				if (ref.outerEntity.isPersisted)
-					deletes.getOrElseUpdate(ref.outerEntity, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
-			} else
-				assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
+					deletes.getOrElseUpdate(ref.outerEntity, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.tval(ref.refContent.value))
+				else
+					assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 		}
 		(assignments.toMap, deletes.mapValues(_.toMap).toMap)
 	}

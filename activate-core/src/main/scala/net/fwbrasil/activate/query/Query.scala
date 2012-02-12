@@ -104,17 +104,18 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 		else allWhere[T](_ :== id).headOption
 	}
 
-	private[activate] def executeQuery[S](query: Query[S]): List[S]
+	private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]
 
 }
 
 case class Query[S](from: From, where: Where, select: Select) {
-	def execute: List[S] = {
+	private[activate] def execute(iniatializing: Boolean): List[S] = {
 		val context =
 			(for (src <- from.entitySources)
 				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
-		context.executeQuery(this)
+		context.executeQuery(this, iniatializing)
 	}
+	def execute: List[S] = execute(false)
 
 	private[activate] def orderByClause: Option[OrderBy] = None
 

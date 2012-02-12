@@ -7,7 +7,9 @@ import net.fwbrasil.activate.util.RichList._
 
 object GraphUtil {
 
-	class DependencyTree[T: Manifest](values: scala.collection.Set[T]) {
+	class CyclicReferenceException extends IllegalStateException("Cyclic reference.")
+
+	class DependencyTree[T: Manifest](values: Set[T]) {
 
 		private[this] val nodeMap = MutableMap[T, Node[T]]()
 		private[this] val leaves = MutableSet[Node[T]]()
@@ -28,19 +30,22 @@ object GraphUtil {
 		private[this] def nodeFor(value: T) =
 			nodeMap.getOrElseUpdate(value, Node(value))
 		private[this] def throwCyclicReferenceException =
-			throw new IllegalStateException("Cyclic reference.")
+			throw new CyclicReferenceException
 
 		def resolve = {
-			if (roots.isEmpty && nodeMap.nonEmpty)
+			val r = roots
+			if (r.isEmpty && nodeMap.nonEmpty)
 				throwCyclicReferenceException
 
-			val r = roots.toList.sortIfComparable
 			val resolved = ListBuffer[Node[T]]()
-			for (node <- roots)
-				fDepResolve(node, resolved, MutableSet[Node[T]]())
+			val ordered = r.map(_.value).sortIfComparable.reverse
+			for (nodeValue <- ordered)
+				fDepResolve(nodeFor(nodeValue), resolved, MutableSet[Node[T]]())
 			val result =
 				for (node <- resolved)
 					yield node.value
+			if (result.toSet != values)
+				throwCyclicReferenceException
 			result.toList.reverse
 		}
 
@@ -49,7 +54,7 @@ object GraphUtil {
 			for (edge <- node.edges)
 				if (!resolved.contains(edge))
 					if (unresolved.contains(edge))
-						throw new IllegalStateException("Cyclic reference.")
+						throwCyclicReferenceException
 					else
 						fDepResolve(edge, resolved, unresolved)
 			resolved += node

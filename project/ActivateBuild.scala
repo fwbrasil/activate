@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.15.0-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.6"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.5-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
@@ -32,7 +32,11 @@ object ActivateBuild extends Build {
 	val junit = "junit" % "junit" % "4.4" % "test"
 	val specs2 = "org.specs2" %% "specs2" % "1.7" % "test"
 	val scalaz = "org.specs2" %% "specs2-scalaz-core" % "6.0.RC2" % "test"
-	// val objbd6 = "com.oracle" % "ojdbc6" % "11.1.0.7.0"
+	/* 
+		Install oracle in your local repo:
+		mvn install:install-file -Dfile={ORACLE_HOME}/jdbc/lib/ojdbc6.jar -Dpackaging=jar -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.1.0 
+	*/
+	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
@@ -54,7 +58,8 @@ object ActivateBuild extends Build {
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
   	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons",
-  	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/"
+  	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/",
+  	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
   	)
 
     lazy val activate = 
@@ -117,7 +122,7 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(junit, specs2, scalaz, mysql)
+		    	  Seq(junit, specs2, scalaz, mysql, objbd6)
 		    )
 		)
     
@@ -146,7 +151,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "0.6",
+    		version := "0.5-SNAPSHOT",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

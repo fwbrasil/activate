@@ -36,7 +36,7 @@ trait RelationalStorage extends MarshalStorage {
 		execute(sqls)
 	}
 
-	def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = {
+	def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
 		val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
 		val tree = new DependencyTree[DmlStorageStatement](statements)
 		for (insertA <- statements) {
@@ -47,8 +47,13 @@ trait RelationalStorage extends MarshalStorage {
 						tree.addDependency(entityInsertMap(entityIdB), insertA)
 				}
 		}
-		val roots = tree.roots
 		tree.resolve
+	} catch {
+		case e: CyclicReferenceException =>
+			"Let storage cry if necessary!"
+			statements.toList
+		case other =>
+			throw other
 	}
 
 	def execute(sqls: List[DmlStorageStatement]): Unit

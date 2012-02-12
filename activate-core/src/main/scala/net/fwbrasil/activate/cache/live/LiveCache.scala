@@ -125,7 +125,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
 
-	def executeQuery[S](query: Query[S]): Set[S] = {
+	def executeQuery[S](query: Query[S], iniatializing: Boolean): Set[S] = {
 		var result =
 			if (query.orderByClause.isDefined)
 				query.orderByClause.get.emptyOrderedSet[S]
@@ -140,6 +140,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			case value: EntityInstanceReferenceValue[_] =>
 				if (value.value == None)
 					null
+				else if (iniatializing)
+					materializeEntity(value.value.get)
 				else
 					materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
 			case other: EntityValue[_] =>
@@ -195,15 +197,19 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def initialize(entity: Entity) = {
+		val vars = entity.vars.toList
+		val varNames = vars.map(_.name)
 		val list = query({ (e: Entity) =>
-			where(toQueryValueEntity(e) :== entity.id) selectList ((for (ref <- e.vars) yield toQueryValueRef(ref)).toList)
-		})(manifestClass(entity.niceClass)).execute
+			where(toQueryValueEntity(e) :== entity.id) selectList ((for (name <- varNames) yield toQueryValueRef(e.varNamed(name).get)).toList)
+		})(manifestClass(entity.niceClass)).execute(true)
 		val row = list.headOption
 		if (row.isDefined) {
 			val tuple = row.get
-			val vars = entity.vars.toList
-			for (i <- 0 to vars.size - 1)
-				vars(i).setRefContent(Option(tuple.productElement(i)))
+			for (i <- 0 to vars.size - 1) {
+				val ref = vars(i)
+				val value = tuple.productElement(i)
+				ref.setRefContent(Option(value))
+			}
 		}
 	}
 

@@ -58,7 +58,7 @@ object QueryNormalizer {
 			}
 			for (entitySource <- entitySourceList)
 				normalizeMap.put(entitySource, entitySource)
-			var criteria = query.where.value
+			var criteria = deepCopyMapping(query.where.value, normalizeMap)
 			for (i <- 0 until criteriaList.size)
 				criteria = And(criteria) :&& criteriaList(i)
 			normalizeMap.put(query.where.value, criteria)
