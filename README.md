@@ -1,5 +1,8 @@
 Activate Persistence Framework
 
+
+[README-PTBR](https://github.com/fwbrasil/activate/blob/master/README-PTBR.md "README-PTBR") (README-PTBR)
+
 Introduction
 ==========
 
@@ -16,7 +19,7 @@ The main benefits of the framework are:
 * Entities are always consistent in memory and in the persistence layer. For example, if rollback occurs, entities in memory stays consistent.
 * Transaction propagation control, including nested transactions.
 * Transparent Persistence. Just use the entities in transactions and they are automatically persisted.
-* Entities are lazy loaded and initialized automatically when needed.
+* Entities are lazy loaded and initialized automatically when needed.	
 * Queries are type-safe and consistent, even with objects created in the current transaction. Therefore, an entity created in the same transaction may be returned in a query.
 
 Setup
@@ -28,7 +31,7 @@ Create a sbt launch script like this and put in system path:
 
 	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /location/of/sbt-launch.jar "$@"
 
-Remember to replace "location/of/sbt-launch.jar" with the actual location of sbt-launch.jar.
+Remember to replace "/location/of/sbt-launch.jar" with the actual location of sbt-launch.jar.
 You can also call this command line directly. Remember always to add "-noverify".
 
 Call sbt inside activate-example folder and create the eclipse project:

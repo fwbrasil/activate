@@ -22,18 +22,21 @@ Os principais benefícios do framework são:
 Artefatos
 ===========
 
-Adicione as dependências necessárias do Activate ao seu projeto:
+Baixe o xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") e o activate [example project](https://github.com/fwbrasil/activate-example/zipball/master "example project").
 
-[xSBT](https://github.com/harrah/xsbt/ "xSBT")
+Crie um script para o chamar o sbt como esse e coloque no path do sistema:
 
-	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
-	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-prevayler" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-jdbc" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-mongo" % "0.6"
+	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /location/of/sbt-launch.jar "$@"
 
-Download direto
+Lembre-se de substituir "/location/of/sbt-launch.jar" com o caminho do sbt-launch.jar baixado.
+Você pode também chamar essa linha de comando diretaente. Lembre-se de adicionar a opção "-noverify"
 
+Chame o sbt dentro da pasta activate-example e crie o projeto eclipse:
+
+	$ sbt
+	> eclipse
+
+Agora você pode importar o objeto no eclipse.
 	
 
 Utilização
