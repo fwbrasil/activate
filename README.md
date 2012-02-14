@@ -33,6 +33,8 @@ Create a sbt launch script like this and put in system path:
 Remember to replace "/location/of/sbt-launch.jar" with the actual location of sbt-launch.jar.
 You can also call this command line directly. Remember always to add "-noverify".
 
+Modify project/ActivateExampleBuild and com/example/foo/activateExampleContext to determine the storage. Memory storage is the default value.
+
 Call sbt inside activate-example folder and create the eclipse project:
 
 	$ sbt
