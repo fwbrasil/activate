@@ -106,6 +106,7 @@ MongoDB
 	import net.fwbrasil.activate.storage.mongo.MongoStorage
 
 	object mongoContext extends ActivateContext {
+		def contextName = "mongoContext"
 		val storage = new MongoStorage {
 			val host = "localhost"
 			override val port = 27017
