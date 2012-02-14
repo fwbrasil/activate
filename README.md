@@ -119,15 +119,15 @@ To use the context, import it:
 Thus, the required classes like Entity and Query and will be in scope. An entity shall extend the trait "Entity":
 
 	abstract class Person(var name: String) extends Entity
-	class NauralPerson(name: String, var motherName: String) extends Person(name)
-	class LegalPerson(name: String, var director: NauralPerson) extends Person(name)
+	class NaturalPerson(name: String, var motherName: String) extends Person(name)
+	class LegalPerson(name: String, var director: NaturalPerson) extends Person(name)
 
 You can declare the properties as val or var, where they are immutable or not.
 
 Use whenever entities within transactions:
 
 	transactional {
-		val person = new NauralPerson("John", "Marie")
+		val person = new NaturalPerson("John", "Marie")
 		person.name = "John2"
 		println(person.name)
 	}
@@ -154,13 +154,13 @@ There are alternative forms of query. With the allWhere you can use a list of cr
 
 	transactional {
 		val personList1 = all[Person]
-		val personList2 = allWhere[NauralPerson](_.name :== "Test", _.motherName :== "Mother")
+		val personList2 = allWhere[NaturalPerson](_.name :== "Test", _.motherName :== "Mother")
 	}
 
 Queries using more than one entity or with nested properties:
 
 	val q2 = query {
-		(company: LegalPerson, director: NauralPerson) => where(company.director :== director) select (company, director)
+		(company: LegalPerson, director: NaturalPerson) => where(company.director :== director) select (company, director)
 	}
 	val q3 = query {
 		(company: LegalPerson) => where(company.director.name :== "Doe") select(company)
@@ -179,14 +179,14 @@ Typically transactional blocks are controlled by the framework. But you can cont
 
 	val transaction = new Transaction
 	transactional(transaction) {
-		new NauralPerson("Test", "Mother")
+		new NaturalPerson("Test", "Mother")
 	}
 	transaction.commit
 
 Defining the propagation of the transaction:
 
 	transactional {
-		val person = new NauralPerson("Test", "Mother")
+		val person = new NaturalPerson("Test", "Mother")
 		transactional(mandatory) {
 			person.name = "Test2"
 		}
@@ -196,7 +196,7 @@ Defining the propagation of the transaction:
 Nested transactions are a type of propagation:
 
 	transactional {
-		val person = new NauralPerson("Test", "Mother")
+		val person = new NaturalPerson("Test", "Mother")
 		transactional(nested) {
 			person.name = "Test2"
 		}
