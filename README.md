@@ -19,23 +19,25 @@ The main benefits of the framework are:
 * Entities are lazy loaded and initialized automatically when needed.
 * Queries are type-safe and consistent, even with objects created in the current transaction. Therefore, an entity created in the same transaction may be returned in a query.
 
-Artifacts
+Setup
 ===========
 
-Add necessary dependencies on Activate to your project:
+Download xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar").
 
-[xSBT](https://github.com/harrah/xsbt/ "xSBT")
+Download activate [example project](https://github.com/fwbrasil/activate-example/zipball/master "example project")
 
-	resolvers += "fwbrasil.net" at "http://fwbrasil.net/maven/"
-	libraryDependencies += "net.fwbrasil" %% "activate-core" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-prevayler" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-jdbc" % "0.6"
-	libraryDependencies += "net.fwbrasil" %% "activate-mongo" % "0.6"
+Create a sbt launch script like this and put in system path:
 
-Direct download
+	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /usr/bin/sbt-launch.jar "$@"
 
-	
-	
+You can also call this command line directly. Remember always to add "-noverify".
+
+Call sbt inside activate-example folder and create the eclipse project:
+
+	$ sbt
+	> eclipse
+
+Now you can import into eclipse.
 
 Use
 ==========
