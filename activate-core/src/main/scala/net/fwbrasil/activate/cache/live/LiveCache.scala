@@ -95,7 +95,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def isQueriable(entity: Entity) =
-		entity.isInitialized && !entity.isDeleted
+		entity.isInitialized && !entity.isDeletedSnapshot
 
 	def fromCache[E <: Entity](entityClass: Class[E]) = {
 		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_)).toList
@@ -169,7 +169,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def materializeEntityIfNotDeleted(entityId: String): Option[Entity] = {
 		val ret = materializeEntity(entityId)
-		if (ret.isDeleted)
+		if (ret.isDeletedSnapshot)
 			None
 		else
 			Some(ret)
@@ -210,7 +210,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				val value = tuple.productElement(i)
 				ref.setRefContent(Option(value))
 			}
-		}
+		} else entity.delete
 	}
 
 	def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[S] = {

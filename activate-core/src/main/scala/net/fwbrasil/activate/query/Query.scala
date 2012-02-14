@@ -97,10 +97,12 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 	def byId[T <: Entity: Manifest](id: String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
-			if (fromLiveCache.get.isDeleted)
+			if (fromLiveCache.get.isDeletedSnapshot)
 				None
-			else
+			else {
+				fromLiveCache.get.initializeGraph
 				fromLiveCache
+			}
 		else allWhere[T](_ :== id).headOption
 	}
 

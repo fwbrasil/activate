@@ -85,9 +85,13 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			}
 		}
 
-		for (delete <- deletes) {
-			storage -= delete
-			liveCache.delete(delete)
+		for (entityId <- deletes) {
+			val entity = liveCache.materializeEntity(entityId)
+			storage -= entityId
+			liveCache.delete(entityId)
+			entity.setInitialized
+			for (ref <- entity.vars)
+				ref.destroyInternal
 		}
 
 	}

@@ -27,6 +27,14 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		super.destroy
 	}
 
+	override def isDestroyed: Boolean = doInitialized {
+		super.isDestroyed
+	}
+
+	private[activate] def isDestroyedSnapshot: Boolean = {
+		super.isDestroyed
+	}
+
 	private[this] def doInitialized[A](f: => A): A = {
 		if (outerEntity != null) outerEntity.initialize
 		f

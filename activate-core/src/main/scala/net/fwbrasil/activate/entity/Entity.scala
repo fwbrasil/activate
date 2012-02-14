@@ -24,7 +24,10 @@ trait Entity extends Serializable with ValidEntity {
 	def isDeleted =
 		vars.find(_.name != "id").get.isDestroyed
 
-	def isDirty =
+	private[activate] def isDeletedSnapshot =
+		vars.find(_.name != "id").get.isDestroyedSnapshot
+
+	private def isDirty =
 		vars.filter(_.name != "id").find(_.isDirty).isDefined
 
 	val id = {
@@ -68,12 +71,13 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def initializeGraph(seen: Set[Entity]): Unit =
 		this.synchronized {
 			initialize
-			for (ref <- varsOfTypeEntity)
-				if (ref.get.nonEmpty) {
-					val entity = ref.get.get
-					if (!seen.contains(entity))
-						entity.initializeGraph(seen + this)
-				}
+			if (!isDeletedSnapshot)
+				for (ref <- varsOfTypeEntity)
+					if (ref.get.nonEmpty) {
+						val entity = ref.get.get
+						if (!seen.contains(entity))
+							entity.initializeGraph(seen + this)
+					}
 		}
 
 	private[this] def varsOfTypeEntity =

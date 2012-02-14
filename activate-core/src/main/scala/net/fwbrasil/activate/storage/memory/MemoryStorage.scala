@@ -8,12 +8,8 @@ import scala.collection.mutable.{ HashMap => MutableHashMap }
 
 class MemoryStorage extends Storage {
 
-	var storage: MutableHashMap[String, Entity] = _
-
-	initialize
-
-	def initialize =
-		storage = new MutableHashMap[String, Entity] with java.io.Serializable with scala.collection.mutable.SynchronizedMap[String, Entity]
+	val storage: MutableHashMap[String, Entity] =
+		new MutableHashMap[String, Entity] with java.io.Serializable with scala.collection.mutable.SynchronizedMap[String, Entity]
 
 	override def reinitialize =
 		for ((id, entity) <- storage)
