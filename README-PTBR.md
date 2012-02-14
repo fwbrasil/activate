@@ -22,7 +22,7 @@ Os principais benefícios do framework são:
 Artefatos
 ===========
 
-Baixe o xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") e o activate [example project](https://github.com/fwbrasil/activate-example/zipball/master "example project").
+Baixe o xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") e o activate [example project](https://github.com/fwbrasil/activate-example/zipball/v0.6 "example project").
 
 Crie um script para o chamar o sbt como esse e coloque no path do sistema:
 
