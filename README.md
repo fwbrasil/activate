@@ -41,7 +41,7 @@ Call sbt inside activate-example folder and create the eclipse project:
 
 Now you can import into eclipse.
 
-Use
+Usage
 ==========
 
 Initially, must be created the context of Activate. The context must be a singleton, so it makes sense to declare as "object":
