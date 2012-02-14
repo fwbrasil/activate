@@ -22,14 +22,13 @@ The main benefits of the framework are:
 Setup
 ===========
 
-Download xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar").
-
-Download activate [example project](https://github.com/fwbrasil/activate-example/zipball/master "example project")
+Download xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") and activate [example project](https://github.com/fwbrasil/activate-example/zipball/master "example project").
 
 Create a sbt launch script like this and put in system path:
 
-	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /usr/bin/sbt-launch.jar "$@"
+	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /location/of/sbt-launch.jar "$@"
 
+Remember to replace "location/of/sbt-launch.jar" with the actual location of sbt-launch.jar.
 You can also call this command line directly. Remember always to add "-noverify".
 
 Call sbt inside activate-example folder and create the eclipse project:
