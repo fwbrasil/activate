@@ -1,7 +1,7 @@
 Activate Persistence Framework
 
 
-[README-PTBR](https://github.com/fwbrasil/activate/blob/master/README-PTBR.md "README-PTBR") (README-PTBR)
+[README-PTBR](https://github.com/fwbrasil/activate/blob/master/README-PTBR.md "README-PTBR")
 
 Introduction
 ==========

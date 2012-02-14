@@ -29,7 +29,7 @@ Crie um script para o chamar o sbt como esse e coloque no path do sistema:
 	java -XX:MaxPermSize=512m -Xmx512M -noverify -jar /location/of/sbt-launch.jar "$@"
 
 Lembre-se de substituir "/location/of/sbt-launch.jar" com o caminho do sbt-launch.jar baixado.
-Você pode também chamar essa linha de comando diretaente. Lembre-se de adicionar a opção "-noverify"
+Você pode também chamar essa linha de comando diretamente. Lembre-se de adicionar a opção "-noverify"
 
 Chame o sbt dentro da pasta activate-example e crie o projeto eclipse:
 
