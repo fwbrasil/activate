@@ -1,6 +1,7 @@
 package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
 
 class Operator() {
 	QueryMocks.clearFakeVarCalled
@@ -23,10 +24,19 @@ trait OperatorContext {
 	implicit def toIsLessOrEqualTo[V <% QueryValue](value: V) = IsLessOrEqualTo(value)
 	implicit def toIsNull[V <% QueryValue](value: V) = IsNull(value)
 	implicit def toIsNotNull[V <% QueryValue](value: V) = IsNotNull(value)
+	implicit def toMatcher[V <% QueryValue](value: V) = Matcher(value)
 }
 
 class SimpleOperator() extends Operator
 class CompositeOperator() extends Operator
+
+case class Matcher(valueA: QueryValue) extends CompositeOperator {
+	def like(valueB: String)(implicit f: Option[String] => EntityValue[String]) =
+		CompositeOperatorCriteria(valueA, this, SimpleValue(wildcardToRegex(valueB), f))
+	def regexp(valueB: String)(implicit f: Option[String] => EntityValue[String]) =
+		CompositeOperatorCriteria(valueA, this, SimpleValue(valueB, f))
+	override def toString = "matches"
+}
 
 case class IsNull(valueA: QueryValue) extends SimpleOperator {
 	def isNull = SimpleOperatorCriteria(valueA, this)

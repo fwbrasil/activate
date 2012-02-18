@@ -13,6 +13,7 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import javassist.expr.FieldAccess
+import javassist.bytecode.SignatureAttribute
 
 object EntityEnhancer extends Logging {
 
@@ -72,7 +73,7 @@ object EntityEnhancer extends Logging {
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
 		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
-			var enhancedFieldsMap = Map[CtField, CtClass]()
+			var enhancedFieldsMap = Map[CtField, (CtClass, Boolean)]()
 			val varClazz = classPool.get(varClassName);
 			val allFields = clazz.getDeclaredFields
 			val fieldsToEnhance = removeLazyValueValue(allFields.filter((field: CtField) => isCandidate(field)))
@@ -82,8 +83,16 @@ object EntityEnhancer extends Logging {
 				val enhancedField = new CtField(varClazz, name, clazz);
 				enhancedField.setModifiers(Modifier.PRIVATE)
 				clazz.addField(enhancedField)
-				val originalFieldType = originalField.getType
-				enhancedFieldsMap += (enhancedField -> originalFieldType)
+				val originalFieldTypeAndOptionFlag =
+					if (originalField.getType.getName != classOf[Option[_]].getName)
+						(originalField.getType, false)
+					else {
+						val att = originalField.getFieldInfo().getAttribute(SignatureAttribute.tag).asInstanceOf[SignatureAttribute]
+						val sig = att.getSignature
+						val className = sig.substring(15, sig.size - 3).replaceAll("/", ".")
+						(classPool.getCtClass(className), true)
+					}
+				enhancedFieldsMap += (enhancedField -> originalFieldTypeAndOptionFlag)
 			}
 
 			val hashMapClass = classPool.get(hashMapClassName)
@@ -97,11 +106,17 @@ object EntityEnhancer extends Logging {
 				new ExprEditor {
 					override def edit(fa: FieldAccess) = {
 						if (enhancedFieldsMap.contains(fa.getField)) {
+							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
 							if (fa.isWriter) {
-								val typ = enhancedFieldsMap.get(fa.getField).get
-								fa.replace("this." + fa.getFieldName + ".$colon$eq(" + box(typ) + ");")
+								if (optionFlag)
+									fa.replace("this." + fa.getFieldName + ".put(" + box(typ) + ");")
+								else
+									fa.replace("this." + fa.getFieldName + ".$colon$eq(" + box(typ) + ");")
 							} else if (fa.isReader) {
-								fa.replace("$_ = ($r) this." + fa.getFieldName + ".unary_$bang($$);")
+								if (optionFlag)
+									fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
+								else
+									fa.replace("$_ = ($r) this." + fa.getFieldName + ".unary_$bang($$);")
 							}
 						}
 					}
@@ -109,7 +124,7 @@ object EntityEnhancer extends Logging {
 
 			for (c <- clazz.getConstructors) {
 				var replace = "setInitialized();"
-				for ((field, typ) <- enhancedFieldsMap) {
+				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
 					if (field.getName == "id")
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
 					else
@@ -121,7 +136,7 @@ object EntityEnhancer extends Logging {
 			}
 
 			val initBody =
-				(for ((field, typ) <- enhancedFieldsMap)
+				(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
 					yield "varTypes.put(\"" + field.getName + "\", " + typ.getName + ".class)").mkString(";") + ";"
 
 			init.insertBefore(initBody)

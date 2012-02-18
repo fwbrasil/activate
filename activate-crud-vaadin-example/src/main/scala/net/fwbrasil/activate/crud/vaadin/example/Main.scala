@@ -27,6 +27,5 @@ class Main extends Application {
 }
 
 class CrudPessoaFisica extends ActivateVaadinCrud[PessoaFisica] {
-	def newEmptyEntity = new PessoaFisica("a", null)
 	override def orderByCriterias = List(_.nome)
 }

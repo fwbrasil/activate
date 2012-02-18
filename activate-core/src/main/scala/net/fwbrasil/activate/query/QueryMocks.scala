@@ -1,6 +1,7 @@
 package net.fwbrasil.activate.query
 
 import net.fwbrasil.activate.util.Reflection.newInstance
+import net.fwbrasil.activate.util.Reflection.materializeJodaInstant
 import net.fwbrasil.activate.util.Reflection.set
 import net.fwbrasil.activate.util.Reflection.get
 import net.fwbrasil.activate.util.uuid.UUIDUtil.generateUUID
@@ -13,6 +14,8 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.util.uuid.UUIDUtil
+import org.joda.time.base.AbstractInstant
+import java.util.Date
 
 object QueryMocks {
 
@@ -69,8 +72,9 @@ object QueryMocks {
 			case other =>
 				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {
 					null
-				} else
-					newInstance(clazz)
+				} else if (classOf[AbstractInstant].isAssignableFrom(clazz)) {
+					materializeJodaInstant(clazz, new Date)
+				} else newInstance(clazz)
 		}
 	}
 

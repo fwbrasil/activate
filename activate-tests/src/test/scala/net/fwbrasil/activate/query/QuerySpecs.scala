@@ -59,9 +59,9 @@ class QuerySpecs extends ActivateTest {
 							_.bigDecimalValue :== fullBigDecimalValue,
 							_.dateValue :== fullDateValue,
 							_.calendarValue :== fullCalendarValue,
-							_.entityValue :== fullEntityValue //,
+							_.entityValue :== fullEntityValue,
 							//							_.enumerationValue :== fullEnumerationValue
-							).size must beEqualTo(1)
+							_.optionValue :== fullOptionValue).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isNotNull,
@@ -74,9 +74,9 @@ class QuerySpecs extends ActivateTest {
 							_.dateValue isNotNull,
 							_.calendarValue isNotNull,
 							_.byteArrayValue isNotNull,
-							_.entityValue isNotNull //,
+							_.entityValue isNotNull,
 							//							_.enumerationValue isNotNull
-							).size must beEqualTo(1)
+							_.optionValue isNotNull).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNull,
@@ -120,6 +120,7 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) => where(e.stringValue isNotNull) select (e)
 						}.execute.headOption must beSome
+
 					}
 				})
 		}
@@ -303,5 +304,66 @@ class QuerySpecs extends ActivateTest {
 				})
 		}
 
+		"support like" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val entityId =
+						step {
+							newFullActivateTestEntity.id
+						}
+					def entity = byId[ActivateTestEntity](entityId).get
+					def testLike(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+						step {
+							entity.stringValue = stringThatMatch
+						}
+						step {
+							allWhere[ActivateTestEntity](_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
+						}
+						step {
+							entity.stringValue = stringThatNotMatch
+						}
+						step {
+							allWhere[ActivateTestEntity](_.stringValue like pattern).isEmpty must beTrue
+						}
+					}
+					testLike("test", "aaa", "te*")
+					testLike("test", "aaa", "te*t")
+					testLike("test", "aaa", "te?t")
+					testLike("test", "aaa", "????")
+				})
+		}
+		"support regexp" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val entityId =
+						step {
+							newFullActivateTestEntity.id
+						}
+					def entity = byId[ActivateTestEntity](entityId).get
+					def testRegexp(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+						step {
+							entity.stringValue = stringThatMatch
+						}
+						step {
+							allWhere[ActivateTestEntity](_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
+						}
+						step {
+							entity.stringValue = stringThatNotMatch
+						}
+						step {
+							allWhere[ActivateTestEntity](_.stringValue regexp pattern).isEmpty must beTrue
+						}
+					}
+					testRegexp("my-us3r_n4m3", "th1s1s-wayt00_l0ngt0beausername", "^[a-z0-9_-]{3,16}$")
+					testRegexp("myp4ssw0rd", "mypa$$w0rd", "^[a-z0-9_-]{6,18}$")
+					testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+					testRegexp("my-title-here", "my_title_here", "^[a-z0-9-]+$")
+					testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
+					//					testRegexp("http://net.tutsplus.com/about", "http://google.com/some/file!.html", "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$")
+					//					testRegexp("73.60.124.136", "256.60.124.136", "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
+				})
+		}
 	}
 }

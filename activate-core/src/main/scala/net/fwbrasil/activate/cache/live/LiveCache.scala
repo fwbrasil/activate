@@ -22,7 +22,9 @@ import net.fwbrasil.radon.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.query.QueryBooleanValue
 import net.fwbrasil.activate.query.QueryEntityInstanceValue
 import net.fwbrasil.activate.query.IsLessOrEqualTo
+import net.fwbrasil.activate.query.Matcher
 import net.fwbrasil.activate.util.CollectionUtil
+import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
 import net.fwbrasil.activate.query.IsGreaterThan
 import net.fwbrasil.activate.query.From
 import net.fwbrasil.activate.query.SimpleOperatorCriteria
@@ -281,6 +283,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				val b = executeQueryValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) <= 0
+			case operator: Matcher =>
+				val a = executeQueryValue(criteria.valueA)
+				val b = executeQueryValue(criteria.valueB).asInstanceOf[String]
+				(a != null && b != null) &&
+					a.toString.matches(b)
 		}
 
 	def compare(a: Any, b: Any) =

@@ -27,8 +27,25 @@ object EnumerationValue extends Enumeration {
 
 import EnumerationValue._
 
-//@RunWith(classOf[JUnitRunner])
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
+
+	def executors(ctx: ActivateTestContext): List[StepExecutor] =
+		List(
+			OneTransaction(ctx),
+			MultipleTransactions(ctx),
+			MultipleTransactionsWithReinitialize(ctx),
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+
+	def contexts = {
+		val ret = List[ActivateTestContext](
+			memoryContext,
+			prevaylerContext,
+			mongoContext,
+			//						oracleContext,
+			mysqlContext)
+		ret.foreach(_.stop)
+		ret
+	}
 
 	trait StepExecutor {
 		def apply[A](step: => A): A
@@ -103,24 +120,6 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			ctx.storage.isInstanceOf[PrevaylerMemoryStorage]
 	}
 
-	def executors(ctx: ActivateTestContext): List[StepExecutor] =
-		List(
-			OneTransaction(ctx),
-			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx),
-			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
-
-	def contexts = {
-		val ret = List[ActivateTestContext](
-			memoryContext,
-			prevaylerContext,
-			mongoContext,
-			oracleContext,
-			mysqlContext)
-		ret.foreach(_.stop)
-		ret
-	}
-
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 
 		for (ctx <- contexts) {
@@ -179,6 +178,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 		val emptyEntityValue = null
 		val emptyEnumerationValue = null
 		val emptyJodaInstantValue = null
+		val emptyOptionValue = None
 
 		val fullIntValue = 999
 		val fullBooleanValue = true
@@ -213,6 +213,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			})
 
 		val fullJodaInstantValue = new DateTime(78317811l)
+		val fullOptionValue = Some("string")
 
 		def setFullEntity(entity: ActivateTestEntity) = {
 			entity.intValue = fullIntValue
@@ -230,6 +231,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			entity.traitValue1 = fullTraitValue1
 			entity.traitValue2 = fullTraitValue2
 			entity.enumerationValue = fullEnumerationValue
+			entity.optionValue = fullOptionValue
 			entity
 		}
 
@@ -249,6 +251,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			entity.traitValue1 = emptyTraitValue1
 			entity.traitValue2 = emptyTraitValue2
 			entity.enumerationValue = emptyEnumerationValue
+			entity.optionValue = emptyOptionValue
 			entity
 		}
 
@@ -288,7 +291,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				var traitValue1: TraitAttribute,
 				var traitValue2: TraitAttribute,
 				var enumerationValue: EnumerationValue,
-				lazyValueValue: String) extends ActivateTestDummyEntity(dummy) {
+				lazyValueValue: String,
+				var optionValue: Option[String]) extends ActivateTestDummyEntity(dummy) {
 			lazy val lazyValue: String = lazyValueValue
 		}
 
@@ -307,7 +311,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			entityValue: ActivateTestEntity = fullEntityValue,
 			traitValue1: TraitAttribute = fullTraitValue1,
 			traitValue2: TraitAttribute = fullTraitValue2,
-			lazyValue: String = fullLazyValue) =
+			lazyValue: String = fullLazyValue,
+			optionValue: Option[String] = fullOptionValue) =
 
 			validateEmptyTestEntity(
 				entity,
@@ -325,7 +330,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				entityValue,
 				traitValue1,
 				traitValue2,
-				lazyValue)
+				lazyValue,
+				optionValue)
 
 		def validateEmptyTestEntity(entity: ActivateTestEntity = null,
 			intValue: Int = emptyIntValue,
@@ -342,7 +348,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			entityValue: ActivateTestEntity = emptyEntityValue,
 			traitValue1: TraitAttribute = emptyTraitValue1,
 			traitValue2: TraitAttribute = emptyTraitValue2,
-			lazyValue: String = emptyLazyValue) = {
+			lazyValue: String = emptyLazyValue,
+			optionValue: Option[String] = emptyOptionValue) = {
 
 			entity.intValue must beEqualTo(intValue)
 			entity.booleanValue must beEqualTo(booleanValue)
@@ -357,6 +364,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			entity.entityValue must beEqualTo(entityValue)
 			entity.traitValue1 must beEqualTo(traitValue1)
 			entity.traitValue2 must beEqualTo(traitValue2)
+			entity.optionValue must beEqualTo(optionValue)
 		}
 
 		def newTestEntity(
@@ -375,7 +383,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			traitValue1: TraitAttribute = emptyTraitValue1,
 			traitValue2: TraitAttribute = emptyTraitValue2,
 			enumerationValue: EnumerationValue = emptyEnumerationValue,
-			lazyValue: String = emptyLazyValue) = {
+			lazyValue: String = emptyLazyValue,
+			optionValue: Option[String] = emptyOptionValue) = {
 			new ActivateTestEntity(
 				intValue = intValue,
 				booleanValue = booleanValue,
@@ -392,7 +401,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				traitValue1 = traitValue1,
 				traitValue2 = traitValue2,
 				enumerationValue = enumerationValue,
-				lazyValueValue = lazyValue)
+				lazyValueValue = lazyValue,
+				optionValue = optionValue)
 		}
 	}
 

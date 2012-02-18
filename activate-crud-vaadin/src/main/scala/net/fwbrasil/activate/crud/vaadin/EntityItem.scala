@@ -89,7 +89,7 @@ class EntityContainer[E <: Entity](val orderByCriterias: (E) => OrderByCriteria[
 		for (criteria <- orderByCriterias)
 			yield criteria(entity)
 
-	var ids =
+	val ids =
 		ListBuffer() ++ (
 			transactional(transaction) {
 				(query {

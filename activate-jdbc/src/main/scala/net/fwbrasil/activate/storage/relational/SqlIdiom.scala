@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.storage.relational
 
-import java.util.regex._
+import java.util.regex.Pattern
 import net.fwbrasil.activate.query._
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
@@ -212,9 +212,13 @@ abstract class SqlIdiom {
 				toSqlQuery(value.valueA) + toSqlQuery(value.operator) + toSqlQuery(value.valueB)
 			case value: SimpleOperatorCriteria =>
 				toSqlQuery(value.valueA) + toSqlQuery(value.operator)
+			case CompositeOperatorCriteria(valueA: QueryValue, operator: Matcher, valueB: QueryValue) =>
+				toSqlQueryRegexp(toSqlQuery(valueA), toSqlQuery(valueB))
 			case value: CompositeOperatorCriteria =>
 				toSqlQuery(value.valueA) + toSqlQuery(value.operator) + toSqlQuery(value.valueB)
 		}
+
+	def toSqlQueryRegexp(value: String, regex: String): String
 
 	def toSqlQuery(value: Operator)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
@@ -271,6 +275,12 @@ object mySqlDialect extends SqlIdiom {
 				super.setValue(ps, i, storageValue)
 		}
 	}
+
+	def toSqlQueryRegexp(value: String, regex: String) =
+		value + " REGEXP " + regex
 }
 
-object oracleDialect extends SqlIdiom
+object oracleDialect extends SqlIdiom {
+	def toSqlQueryRegexp(value: String, regex: String) =
+		"REGEXP_LIKE(" + value + ", " + regex + ")"
+}

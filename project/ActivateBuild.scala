@@ -141,7 +141,7 @@ object ActivateBuild extends Build {
     	Project(
     	    id = "activate-crud-vaadin-example",
     	    base = file("activate-crud-vaadin-example"),
-    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc, activatePrevayler),
+    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc, activatePrevayler, activateMongo),
     	    settings = commonSettings ++ webSettings ++ Seq(
  	   	    	libraryDependencies ++= Seq(jettyWebApp, jettyPlus, servlet, mysql),
  	   	    	scanInterval := 1 

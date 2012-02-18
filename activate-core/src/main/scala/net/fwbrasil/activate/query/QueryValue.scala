@@ -51,12 +51,15 @@ trait QueryValueContext extends ValueContext {
 			new QueryEntityInstanceValue(entity)
 	}
 
-	implicit def toQueryValueEntityValue[V](value: V)(implicit m: Option[V] => EntityValue[V]): QuerySelectValue[V] = {
+	implicit def toQueryValueEntityValue[V](value: V)(implicit m: Option[V] => EntityValue[V]): QuerySelectValue[V] =
+		toQueryValueEntityValueOption(Option(value))
+
+	implicit def toQueryValueEntityValueOption[V](value: Option[V])(implicit m: Option[V] => EntityValue[V]): QuerySelectValue[V] = {
 		QueryMocks.lastFakeVarCalled match {
 			case Some(ref: V) =>
 				toQueryValueRef(ref)
 			case other =>
-				value match {
+				value.getOrElse(null.asInstanceOf[V]) match {
 					case entity: Entity =>
 						toQueryValueEntity(entity).asInstanceOf[QuerySelectValue[V]]
 					case value =>

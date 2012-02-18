@@ -4,66 +4,96 @@ import java.util.{ Date, Calendar }
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import org.joda.time.base.AbstractInstant
+import net.fwbrasil.activate.util.Reflection.getObject
 
-abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable
+abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable {
+	def emptyValue: V
+}
 
 case class IntEntityValue(override val value: Option[Int])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = 0
+}
 
 case class BooleanEntityValue(override val value: Option[Boolean])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = false
+}
 
 case class CharEntityValue(override val value: Option[Char])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = ' '
+}
 
 case class StringEntityValue(override val value: Option[String])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = ""
+}
 
 case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val value: Option[E])
 		extends EntityValue[E](value) {
 	def enumerationManifest = manifest[E]
 	def enumerationClass = erasureOf[E]
+	def enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+	def enumerationObject =
+		getObject[Enumeration](enumerationObjectClass)
+	def emptyValue = enumerationObject.values.head.asInstanceOf[E]
 }
 
 case class FloatEntityValue(override val value: Option[Float])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = 0f
+}
 
 case class DoubleEntityValue(override val value: Option[Double])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = 0d
+}
 
 case class BigDecimalEntityValue(override val value: Option[BigDecimal])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = null
+}
 
 case class DateEntityValue(override val value: Option[java.util.Date])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = null
+}
 
 case class CalendarEntityValue(override val value: Option[java.util.Calendar])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = null
+}
 
 case class JodaInstantEntityValue[I <: AbstractInstant: Manifest](override val value: Option[I])
 		extends EntityValue[I](value) {
 	def instantClass = erasureOf[I]
+	def emptyValue = null.asInstanceOf[I]
 }
 
 case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
-	extends EntityValue(value)
+		extends EntityValue(value) {
+	def emptyValue = null
+}
 
 case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
 		extends EntityValue[E](value) {
 	def entityManifest = manifest[E]
 	def entityClass = erasureOf[E]
+	def emptyValue = null.asInstanceOf[E]
 }
 
 case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[String])
 		extends EntityValue[String](value) {
 	def entityManifest = manifest[E]
 	def entityClass = erasureOf[E]
+	def emptyValue = null
 }
 
 object EntityValue extends ValueContext {
 
-	private[activate] def tvalFunction[T](clazz: Class[_]) =
-		(if (clazz == classOf[Int])
+	private[activate] def tvalFunctionOption[T](clazz: Class[_]) =
+		Option((if (clazz == classOf[Int])
 			(value: Option[Int]) => toIntEntityValueOption(value)
 		else if (clazz == classOf[Boolean])
 			(value: Option[Boolean]) => toBooleanEntityValueOption(value)
@@ -90,7 +120,10 @@ object EntityValue extends ValueContext {
 		else if (classOf[Entity].isAssignableFrom(clazz))
 			((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
 		else
-			throw new IllegalStateException("Invalid entity property type. " + clazz)).asInstanceOf[(Option[T]) => EntityValue[T]]
+			null).asInstanceOf[(Option[T]) => EntityValue[T]])
+
+	private[activate] def tvalFunction[T](clazz: Class[_]) =
+		tvalFunctionOption[T](clazz).getOrElse(throw new IllegalStateException("Invalid entity property type. " + clazz))
 
 }
 

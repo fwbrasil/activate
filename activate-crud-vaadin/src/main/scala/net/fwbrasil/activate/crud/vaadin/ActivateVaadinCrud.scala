@@ -1,29 +1,22 @@
 package net.fwbrasil.activate.crud.vaadin
 
-import com.vaadin.terminal.Sizeable
-import com.vaadin.Application
-import com.vaadin.ui._
-import com.vaadin.ui.Table.HeaderClickListener
-import com.vaadin.ui.Table.HeaderClickEvent
-import com.vaadin.event.ItemClickEvent
+import java.lang.reflect.Constructor
+
 import com.vaadin.data.Item
-import com.vaadin.terminal.ThemeResource
-import net.fwbrasil.activate.crud.vaadin._
+import com.vaadin.event.ItemClickEvent
+import com.vaadin.terminal.Sizeable
+import com.vaadin.ui._
+import java.lang.reflect.Constructor
 import net.fwbrasil.activate.crud.vaadin.util.VaadinConverters._
-import java.util.Date
-import com.vaadin.terminal.UserError
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.radon.ref.RefListener
-import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.activate.query.OrderByCriteria
-import com.vaadin.event.FieldEvents._
-import com.vaadin.event.ShortcutAction
-import com.vaadin.event.ShortcutAction.KeyCode
-import com.vaadin.event.ShortcutAction.ModifierKey
-import com.vaadin.event.Action.Listener
-import net.fwbrasil.radon.transaction.Transaction
+import net.fwbrasil.activate.crud.vaadin._
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.query.OrderByCriteria
+import net.fwbrasil.activate.util.ManifestUtil.erasureOf
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.radon.ref.RefListener
+import net.fwbrasil.radon.transaction.Transaction
+import net.fwbrasil.activate.entity.EntityValue
 
 abstract class ActivateVaadinCrud[E <: Entity](implicit context: ActivateContext, m: Manifest[E]) extends Window {
 
@@ -155,7 +148,38 @@ abstract class ActivateVaadinCrud[E <: Entity](implicit context: ActivateContext
 		transactional(transaction) {
 			newEmptyEntity
 		}
-	def newEmptyEntity: E
+
+	def entityClass =
+		erasureOf[E]
+
+	def tvalFunctionOption(clazz: Class[_]) =
+		EntityValue.tvalFunctionOption(clazz)
+
+	def typeParametersTval(constructor: Constructor[E]) =
+		for (typeParameter <- constructor.getParameterTypes)
+			yield tvalFunctionOption(typeParameter)
+
+	val entityConstructors =
+		entityClass.getConstructors.toList.asInstanceOf[List[Constructor[E]]]
+
+	val constructorsAndParameters =
+		for (constructor <- entityConstructors)
+			yield (constructor, typeParametersTval(constructor))
+
+	val validConstructorsAndParameters =
+		constructorsAndParameters.remove(_._2.find(_.isEmpty).nonEmpty).sortBy(_._2.size)
+
+	val entityConstructorAndParametersOption =
+		validConstructorsAndParameters.headOption
+
+	def newEmptyEntity: E = {
+		val option = entityConstructorAndParametersOption
+		val (constructor, paramsTval) = option.getOrElse(throw new IllegalStateException("Can't find a valid constructor."))
+		val params =
+			for (tvalOption <- paramsTval)
+				yield (tvalOption.get)(None).emptyValue.asInstanceOf[Object]
+		constructor.newInstance(params: _*)
+	}
 
 	setFormNewDataSource
 }

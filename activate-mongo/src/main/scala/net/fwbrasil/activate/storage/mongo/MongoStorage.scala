@@ -1,13 +1,13 @@
 package net.fwbrasil.activate.storage.mongo
 
 import net.fwbrasil.activate.storage.marshalling._
-import com.mongodb.Mongo;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBList;
-import com.mongodb.DBObject;
-import com.mongodb.DBCursor;
+import com.mongodb.Mongo
+import com.mongodb.DB
+import com.mongodb.DBCollection
+import com.mongodb.BasicDBObject
+import com.mongodb.BasicDBList
+import com.mongodb.DBObject
+import com.mongodb.DBCursor
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.query.Query
@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import net.fwbrasil.activate.query._
 import java.util.Date
 import net.fwbrasil.activate.entity._
+import java.util.regex.Pattern
 
 trait MongoStorage extends MarshalStorage {
 
@@ -48,7 +49,6 @@ trait MongoStorage extends MarshalStorage {
 				doc.put(name, getMongoValue(value))
 			doc.put("_id", entity.id)
 			coll(entity).insert(doc)
-			val ret = coll(entity).find()
 		}
 		for ((entity, properties) <- updateMap) {
 			val query = new BasicDBObject();
@@ -231,6 +231,8 @@ trait MongoStorage extends MarshalStorage {
 				"$lte"
 			case operator: IsLessThan =>
 				"$lt"
+			case operator: Matcher =>
+				"$regex"
 			case operator: IsEqualTo =>
 				throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
 		}
