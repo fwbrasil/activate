@@ -41,7 +41,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			memoryContext,
 			prevaylerContext,
 			mongoContext,
-			//						oracleContext,
+			oracleContext,
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
