@@ -35,7 +35,7 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		super.isDestroyed
 	}
 
-	private[this] def doInitialized[A](f: => A): A = {
+	protected def doInitialized[A](f: => A): A = {
 		if (outerEntity != null) outerEntity.initialize
 		f
 	}
@@ -48,19 +48,16 @@ class IdVar(outerEntity: Entity)
 
 	var id: String = _
 
-	override def getRequiredTransaction: Transaction = null
-
-	override def getTransaction: Option[Transaction] = None
-
 	override def put(value: Option[String]): Unit = {
 		id = value.getOrElse(null)
+		super.put(value)
 	}
 
 	override def get =
 		Option(id)
 
-	override def destroy: Unit = {
-
+	override protected def doInitialized[A](f: => A): A = {
+		f
 	}
 
 	override def toString = "id -> " + id

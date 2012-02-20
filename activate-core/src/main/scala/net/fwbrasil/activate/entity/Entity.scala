@@ -22,13 +22,13 @@ trait Entity extends Serializable with ValidEntity {
 		}
 
 	def isDeleted =
-		vars.find(_.name != "id").get.isDestroyed
+		vars.head.isDestroyed
 
 	private[activate] def isDeletedSnapshot =
-		vars.find(_.name != "id").get.isDestroyedSnapshot
+		vars.head.isDestroyedSnapshot
 
 	private def isDirty =
-		vars.filter(_.name != "id").find(_.isDirty).isDefined
+		vars.find(_.isDirty).isDefined
 
 	val id = {
 		val uuid = UUIDUtil.generateUUID

@@ -45,10 +45,10 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Map[Entity, Map[String, StorageValue]]): Unit = {
 		val inserts =
 			for ((entity, propertyMap) <- insertMap)
-				yield (entity.id -> propertyMap.filter(_._1 != "id"))
+				yield (entity.id -> propertyMap)
 		val updates =
 			for ((entity, propertyMap) <- updateMap)
-				yield (entity.id -> propertyMap.filter(_._1 != "id"))
+				yield (entity.id -> propertyMap)
 		val deletes =
 			deleteSet.keys.map(_.id)
 		prevayler.execute(PrevaylerMemoryStorageTransaction(context, inserts ++ updates, deletes.toSet))
@@ -71,7 +71,7 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 			val entity = liveCache.materializeEntity(entityId)
 			entity.setInitialized
 			storage += (entity.id -> entity)
-			for ((varName, value) <- changeSet) {
+			for ((varName, value) <- changeSet; if (varName != "id")) {
 				val ref = entity.varNamed(varName).get
 				val entityValue = Marshaller.unmarshalling(value, ref.tval(None)) match {
 					case value: EntityInstanceReferenceValue[_] =>

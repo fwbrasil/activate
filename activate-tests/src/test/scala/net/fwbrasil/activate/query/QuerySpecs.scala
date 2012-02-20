@@ -61,7 +61,8 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue :== fullCalendarValue,
 							_.entityValue :== fullEntityValue,
 							//							_.enumerationValue :== fullEnumerationValue
-							_.optionValue :== fullOptionValue).size must beEqualTo(1)
+							_.optionValue :== fullOptionValue,
+							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isNotNull,
@@ -76,16 +77,17 @@ class QuerySpecs extends ActivateTest {
 							_.byteArrayValue isNotNull,
 							_.entityValue isNotNull,
 							//							_.enumerationValue isNotNull
-							_.optionValue isNotNull).size must beEqualTo(1)
+							_.optionValue isNotNull,
+							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNull,
 							_.bigDecimalValue isNull,
 							_.dateValue isNull,
 							_.calendarValue isNull,
-							_.entityValue isNull //,
-							//							_.enumerationValue isNull
-							).size must beEqualTo(2)
+							_.entityValue isNull,
+							//							_.enumerationValue isNull,
+							_.entityWithoutAttributeValue isNull).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
 							_.entityValue isNull,
@@ -361,8 +363,6 @@ class QuerySpecs extends ActivateTest {
 					testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
 					testRegexp("my-title-here", "my_title_here", "^[a-z0-9-]+$")
 					testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
-					//					testRegexp("http://net.tutsplus.com/about", "http://google.com/some/file!.html", "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$")
-					//					testRegexp("73.60.124.136", "256.60.124.136", "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
 				})
 		}
 	}
