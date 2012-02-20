@@ -78,6 +78,22 @@ class CRUDSpecs extends ActivateTest {
 						}
 					})
 			}
+			"create, retreive and delete entity without attribute" in {
+				activateTest(
+					(step: StepExecutor) => {
+						import step.ctx._
+						val entityId =
+							step {
+								(new EntityWithoutAttribute).id
+							}
+						step {
+							byId[EntityWithoutAttribute](entityId).get.delete
+						}
+						step {
+							byId[EntityWithoutAttribute](entityId) must beNone
+						}
+					})
+			}
 
 		}
 	}
