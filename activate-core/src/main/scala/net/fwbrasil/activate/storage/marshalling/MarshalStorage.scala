@@ -5,27 +5,33 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.util.RichList._
 import scala.collection.mutable.{ Map => MutableMap }
+import scala.collection.JavaConversions._
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
 import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
+import java.util.IdentityHashMap
 
 trait MarshalStorage extends Storage {
 
-	override def toStorage(assignments: Map[Var[Any], EntityValue[Any]], deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]): Unit = {
+	override def toStorage(assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {
 
 		import Marshaller._
 
-		val insertMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
-		val updateMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
-		val deleteMap = MutableMap[Entity, MutableMap[String, StorageValue]]()
+		val insertMap = MutableMap[String, MutableMap[String, StorageValue]]()
+		val updateMap = MutableMap[String, MutableMap[String, StorageValue]]()
+		val deleteMap = MutableMap[String, MutableMap[String, StorageValue]]()
+		val entityMap = MutableMap[String, Entity]()
 
-		def propertyMap(map: MutableMap[Entity, MutableMap[String, StorageValue]], entity: Entity) =
-			map.getOrElseUpdate(entity, newPropertyMap(entity))
+		def propertyMap(map: MutableMap[String, MutableMap[String, StorageValue]], entity: Entity) = {
+			entityMap += (entity.id -> entity)
+			map.getOrElseUpdate(entity.id, newPropertyMap(entity))
+		}
 
-		for ((entity, properties) <- deletes)
-			propertyMap(deleteMap, entity) ++=
-				(for ((ref, value) <- properties) yield (ref.name -> marshalling(value)))
+		for ((entity, properties) <- deletes) {
+			val map = propertyMap(deleteMap, entity)
+			for ((ref, value) <- properties) map.put(ref.name, marshalling(value))
+		}
 
 		for ((ref, value) <- assignments) {
 			val entity = ref.outerEntity
@@ -37,7 +43,19 @@ trait MarshalStorage extends Storage {
 					propertyMap(updateMap, entity) += (propertyName -> marshalling(value))
 		}
 
-		store(insertMap.mapValues(_.toMap).toMap, updateMap.mapValues(_.toMap).toMap, deleteMap.mapValues(_.toMap).toMap)
+		val insertList =
+			for ((entityId, properties) <- insertMap.toList)
+				yield (entityMap(entityId), properties.toMap)
+
+		val updateList =
+			for ((entityId, properties) <- updateMap.toList)
+				yield (entityMap(entityId), properties.toMap)
+
+		val deleteList =
+			for ((entityId, properties) <- deleteMap.toList)
+				yield (entityMap(entityId), properties.toMap)
+
+		store(insertList, updateList, deleteList)
 	}
 
 	private[this] def newPropertyMap(entity: Entity) =
@@ -56,7 +74,7 @@ trait MarshalStorage extends Storage {
 			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
-	def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Map[Entity, Map[String, StorageValue]]): Unit
+	def store(insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 

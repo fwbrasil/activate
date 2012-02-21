@@ -17,6 +17,7 @@ import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.query.QueryNormalizer
 import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.entity.EntityValue
+import java.util.IdentityHashMap
 
 trait ActivateContext
 		extends EntityContext
@@ -62,26 +63,32 @@ trait ActivateContext
 		deleteFromLiveCache(deletes)
 	}
 
-	private[this] def setPersisted(assignments: Map[Var[Any], EntityValue[Any]]) =
+	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =
 		for ((ref, value) <- assignments)
 			yield ref.outerEntity.setPersisted
 
-	private[this] def deleteFromLiveCache(deletes: Map[Entity, Map[Var[Any], EntityValue[Any]]]) =
+	private[this] def deleteFromLiveCache(deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]) =
 		for ((entity, map) <- deletes)
 			liveCache.delete(entity)
 
-	private[this] def filterVars(pAssignments: Set[(Ref[Any], (Option[Any], Boolean))]) = {
-		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[Set[(Var[Any], (Option[Any], Boolean))]]
+	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
+		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[List[(Var[Any], (Option[Any], Boolean))]]
 		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
-		val deletes = MutableMap[Entity, MutableMap[Var[Any], EntityValue[Any]]]()
+		val deletes = MutableMap[String, MutableMap[Var[Any], EntityValue[Any]]]()
+		val entityMap = MutableMap[String, Entity]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
-				if (ref.outerEntity.isPersisted)
-					deletes.getOrElseUpdate(ref.outerEntity, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.tval(ref.refContent.value))
+				if (ref.outerEntity.isPersisted) {
+					deletes.getOrElseUpdate(ref.outerEntity.id, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.tval(ref.refContent.value))
+					entityMap += (ref.outerEntity.id -> ref.outerEntity)
+				}
 			} else
 				assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 		}
-		(assignments.toMap, deletes.mapValues(_.toMap).toMap)
+		val deleteList =
+			for ((entityId, properties) <- deletes.toList)
+				yield (entityMap(entityId), properties.toMap)
+		(assignments.toList, deleteList)
 	}
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =

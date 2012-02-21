@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.15.0-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.6"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.7-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
@@ -151,7 +151,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "0.6",
+    		version := "0.7-SNAPSHOT",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

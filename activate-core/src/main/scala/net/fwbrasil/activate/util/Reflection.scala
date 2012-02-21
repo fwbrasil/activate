@@ -9,6 +9,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.Date
 import java.lang.reflect.Modifier
+import net.fwbrasil.activate.entity.Entity
 
 object Reflection {
 
@@ -109,13 +110,17 @@ object Reflection {
 						yield deepCopyMapping(elem, map)
 				case obj: Enumeration#Value =>
 					obj
+				case obj: Entity =>
+					obj
 				case obj: Product =>
 					val values =
 						for (elem <- obj.productElements.toList)
 							yield deepCopyMapping(elem, map)
-					val constructor = obj.niceClass.getConstructors().headOption
-					if (constructor.isDefined) {
-						val newInstance = constructor.get.newInstance(values.asInstanceOf[Seq[Object]]: _*)
+					val constructors = obj.niceClass.getConstructors
+					val constructorOption = constructors.headOption
+					if (constructorOption.isDefined) {
+						val constructor = constructorOption.get
+						val newInstance = constructor.newInstance(values.asInstanceOf[Seq[Object]]: _*)
 						map.put(obj.asInstanceOf[A], newInstance.asInstanceOf[B])
 						newInstance
 					} else obj

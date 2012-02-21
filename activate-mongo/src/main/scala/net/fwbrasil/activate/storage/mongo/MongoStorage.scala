@@ -42,15 +42,15 @@ trait MongoStorage extends MarshalStorage {
 
 	override def supportComplexQueries = false
 
-	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteMap: Map[Entity, Map[String, StorageValue]]): Unit = {
-		for ((entity, properties) <- insertMap) {
+	override def store(insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+		for ((entity, properties) <- insertList) {
 			val doc = new BasicDBObject();
 			for ((name, value) <- properties; if (name != "id"))
 				doc.put(name, getMongoValue(value))
 			doc.put("_id", entity.id)
 			coll(entity).insert(doc)
 		}
-		for ((entity, properties) <- updateMap) {
+		for ((entity, properties) <- updateList) {
 			val query = new BasicDBObject();
 			query.put("_id", entity.id)
 			val update = new BasicDBObject();
@@ -58,7 +58,7 @@ trait MongoStorage extends MarshalStorage {
 				update.put(name, getMongoValue(value))
 			coll(entity).update(query, update)
 		}
-		for ((entity, properties) <- deleteMap) {
+		for ((entity, properties) <- deleteList) {
 			val query = new BasicDBObject();
 			query.put("_id", entity.id)
 			coll(entity).remove(query)

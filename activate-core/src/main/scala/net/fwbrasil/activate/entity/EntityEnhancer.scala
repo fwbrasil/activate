@@ -105,7 +105,14 @@ object EntityEnhancer extends Logging {
 			clazz.instrument(
 				new ExprEditor {
 					override def edit(fa: FieldAccess) = {
-						if (enhancedFieldsMap.contains(fa.getField)) {
+						val field =
+							try {
+								fa.getField
+							} catch {
+								case e: javassist.NotFoundException =>
+									null
+							}
+						if (field != null && enhancedFieldsMap.contains(field)) {
 							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
 							if (fa.isWriter) {
 								if (optionFlag)

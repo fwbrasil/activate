@@ -77,6 +77,7 @@ case class QueryEntityInstanceValue[E <: Entity](val entity: E) extends QueryEnt
 	def entityId = entity.id
 	override def entityValue = EntityInstanceEntityValue[E](Option(entity))(manifestClass[E](entity.getClass))
 	override def toString = entityId
+	override def hashCode = System.identityHashCode(this)
 }
 
 case class QueryEntitySourceValue[V](val entitySource: EntitySource) extends QueryEntityValue[V] {

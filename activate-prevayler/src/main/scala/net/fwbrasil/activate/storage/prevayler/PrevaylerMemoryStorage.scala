@@ -42,15 +42,16 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	override def reinitialize =
 		initialize
 
-	override def store(insertMap: Map[Entity, Map[String, StorageValue]], updateMap: Map[Entity, Map[String, StorageValue]], deleteSet: Map[Entity, Map[String, StorageValue]]): Unit = {
+	override def store(insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 		val inserts =
-			for ((entity, propertyMap) <- insertMap)
-				yield (entity.id -> propertyMap)
+			(for ((entity, propertyMap) <- insertList)
+				yield (entity.id -> propertyMap)).toMap
 		val updates =
-			for ((entity, propertyMap) <- updateMap)
-				yield (entity.id -> propertyMap)
+			(for ((entity, propertyMap) <- updateList)
+				yield (entity.id -> propertyMap)).toMap
 		val deletes =
-			deleteSet.keys.map(_.id)
+			for ((entity, propertyMap) <- deleteList)
+				yield entity.id
 		prevayler.execute(PrevaylerMemoryStorageTransaction(context, inserts ++ updates, deletes.toSet))
 	}
 

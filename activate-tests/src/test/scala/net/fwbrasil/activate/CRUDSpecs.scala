@@ -95,6 +95,23 @@ class CRUDSpecs extends ActivateTest {
 					})
 			}
 
+			"create, retreive and delete case class entity" in {
+				activateTest(
+					(step: StepExecutor) => {
+						import step.ctx._
+						val entityId =
+							step {
+								(new CaseClassEntity(fullStringValue, fullEntityValue, fullEntityWithoutAttributeValue)).id
+							}
+						step {
+							byId[CaseClassEntity](entityId).get.delete
+						}
+						step {
+							byId[CaseClassEntity](entityId) must beNone
+						}
+					})
+			}
+
 		}
 	}
 

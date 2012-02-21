@@ -62,7 +62,8 @@ class QuerySpecs extends ActivateTest {
 							_.entityValue :== fullEntityValue,
 							//							_.enumerationValue :== fullEnumerationValue
 							_.optionValue :== fullOptionValue,
-							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue).size must beEqualTo(1)
+							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
+							_.caseClassEntityValue :== fullCaseClassEntityValue).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.intValue isNotNull,
@@ -78,7 +79,8 @@ class QuerySpecs extends ActivateTest {
 							_.entityValue isNotNull,
 							//							_.enumerationValue isNotNull
 							_.optionValue isNotNull,
-							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue).size must beEqualTo(1)
+							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
+							_.caseClassEntityValue :== fullCaseClassEntityValue).size must beEqualTo(1)
 
 						allWhere[ActivateTestEntity](
 							_.stringValue isNull,
@@ -87,7 +89,8 @@ class QuerySpecs extends ActivateTest {
 							_.calendarValue isNull,
 							_.entityValue isNull,
 							//							_.enumerationValue isNull,
-							_.entityWithoutAttributeValue isNull).size must beEqualTo(2)
+							_.entityWithoutAttributeValue isNull,
+							_.caseClassEntityValue isNull).size must beEqualTo(2)
 
 						allWhere[ActivateTestEntity](
 							_.entityValue isNull,
