@@ -33,14 +33,16 @@ Create a sbt launch script like this and put in system path:
 Remember to replace "/location/of/sbt-launch.jar" with the actual location of sbt-launch.jar.
 You can also call this command line directly. Remember always to add "-noverify".
 
-Modify project/ActivateExampleBuild and com/example/foo/activateExampleContext to determine the storage. Memory storage is the default value.
+Modify project/ActivateExampleBuild.scala and com/example/foo/ActivateExampleContext.scala to determine the storage. Memory storage is the default value.
 
 Call sbt inside activate-example folder and create the eclipse project:
 
 	$ sbt
 	> eclipse
 
-Now you can import into eclipse.
+Now you can import into eclipse. It is necessary that the scala plugin is installed [http://scala-ide.org/] (http://scala-ide.org/ "http://scala-ide.org/").
+
+If you want to change the storage, simply change the two classes mentioned above, open the console and rebuild the project sbt eclipse with the same command ("eclipse").
 
 Usage
 ==========

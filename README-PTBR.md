@@ -31,15 +31,17 @@ Crie um script para o chamar o sbt como esse e coloque no path do sistema:
 Lembre-se de substituir "/location/of/sbt-launch.jar" com o caminho do sbt-launch.jar baixado.
 Você pode também chamar essa linha de comando diretamente. Lembre-se de adicionar a opção "-noverify"
 
-Modifique project/ActivateExampleBuild e com/example/foo/activateExampleContext para determinar o storage. Memory storage é o padrão.
+Modifique project/ActivateExampleBuild.scala e com/example/foo/ActivateExampleContext.scala para determinar o storage. Memory storage é o padrão.
 
 Chame o sbt dentro da pasta activate-example e crie o projeto eclipse:
 
 	$ sbt
 	> eclipse
 
-Agora você pode importar o objeto no eclipse.
-	
+Agora você pode importar o projeto no eclipse. É necessário que o plugin do scala esteja instalado [http://scala-ide.org/](http://scala-ide.org/ "http://scala-ide.org/").
+
+Caso deseje alterar o storage, basta alterar as duas classes citadas acima, abrir o console sbt e recriar o projeto eclipse com o mesmo comando ("eclipse").
+
 
 Utilização
 ==========
