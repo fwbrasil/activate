@@ -35,6 +35,16 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 		else
 			iterable.head
 
+	def emptyOrOne: Option[T] =
+		emptyOrOne("List has more than one element")
+
+	def emptyOrOne(msg: => String): Option[T] =
+		if (iterable.size == 0)
+			None
+		else if (iterable.size == 1)
+			Some(iterable.head)
+		else throw new IllegalStateException(msg)
+
 	def collect[R](func: (T) => R) =
 		for (elem <- iterable)
 			yield func(elem)

@@ -6,13 +6,15 @@ import net.fwbrasil.activate.entity.Entity
 import java.util.Date
 import net.fwbrasil.activate.ActivateContext
 import com.vaadin.Application
-
-object mainContext extends ActivateContext {
-	val storage = new MemoryStorage
-	def contextName = "mainContext"
-}
-
-import mainContext._
+import net.fwbrasil.thor._
+import net.fwbrasil.activate.crud.vaadin.EasyVaadinInterface
+import net.fwbrasil.thor.thorContext._
+//object mainContext extends ActivateContext {
+//	val storage = new MemoryStorage
+//	def contextName = "mainContext"
+//}
+//
+//import mainContext._
 
 abstract class Pessoa(var nome: String) extends Entity
 class PessoaFisica(nome: String, var nomeMae: String) extends Pessoa(nome)
@@ -22,7 +24,7 @@ class Main extends Application {
 	def init = {
 		reinitializeContext
 		super.setTheme("runo")
-		setMainWindow(new CrudPessoaFisica)
+		setMainWindow(new EasyVaadinInterface[JdbcConnection])
 	}
 }
 

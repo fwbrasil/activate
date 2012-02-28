@@ -21,6 +21,8 @@ object ActivateBuild extends Build {
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
+	val scalap = "org.scala-lang" % "scalap" % "2.9.1"
+	val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.9.1"
 	
 	/* Prevayler */
 	val prevayler = "org.prevayler" % "prevayler" % "2.3"
@@ -80,7 +82,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, googleCollections, dom4j, gson, servlet,
-		    	      grizzled, logbackClassic, jodaTime, jodaConvert)
+		    	      grizzled, logbackClassic, jodaTime, jodaConvert, scalap, scalaCompiler)
 		    )
 		)
 

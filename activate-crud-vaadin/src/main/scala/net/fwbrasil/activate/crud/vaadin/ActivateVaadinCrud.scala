@@ -18,7 +18,7 @@ import net.fwbrasil.radon.ref.RefListener
 import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.entity.EntityValue
 
-abstract class ActivateVaadinCrud[E <: Entity](implicit context: ActivateContext, m: Manifest[E]) extends Window {
+class ActivateVaadinCrud[E <: Entity](implicit context: ActivateContext, m: Manifest[E]) extends Window {
 
 	implicit val transaction = new Transaction
 

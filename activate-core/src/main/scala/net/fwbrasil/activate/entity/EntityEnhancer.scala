@@ -14,6 +14,9 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import javassist.expr.FieldAccess
 import javassist.bytecode.SignatureAttribute
+import javassist.bytecode.CodeAttribute
+import javassist.bytecode.LocalVariableAttribute
+import javassist.CtBehavior
 
 object EntityEnhancer extends Logging {
 

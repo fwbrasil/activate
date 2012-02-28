@@ -25,7 +25,9 @@ import com.vaadin.data.Item
 import com.vaadin.ui.DefaultFieldFactory
 import java.util.Collection
 import collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
+import net.fwbrasil.activate.easyInterface.Parameter
+import com.vaadin.data.util.AbstractProperty
 
 class TransactionalMethodProperty[E <: Entity](metadata: EntityPropertyMetadata, val entity: E)(implicit val transaction: Transaction)
 		extends MethodProperty[Object](metadata.propertyType.asInstanceOf[Class[Object]], entity, metadata.getter, metadata.setter) {

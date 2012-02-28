@@ -1,13 +1,12 @@
 
 package net.fwbrasil.activate.util
 
-import org.specs2.matcher.DataTables
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
-class CollectionUtilSpecs extends Specification with DataTables {
+class CollectionUtilSpecs extends Specification {
 
 	import CollectionUtil.{ combine, toTuple => toTupleUtil }
 
