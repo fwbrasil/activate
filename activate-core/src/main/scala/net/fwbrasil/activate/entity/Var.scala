@@ -40,7 +40,7 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		f
 	}
 
-	override def toString = name + " -> " + super.snapshot
+	override def toString = name + " -> " + get.getOrElse("")
 }
 
 class IdVar(outerEntity: Entity)

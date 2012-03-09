@@ -16,7 +16,7 @@ abstract class QuerySelectValue[V]() extends QueryValue {
 
 trait QueryValueContext extends ValueContext {
 
-	private[activate] def toQueryValueRef[V](ref: Var[V]): QuerySelectValue[V] = {
+	private[fwbrasil] def toQueryValueRef[V](ref: Var[V]): QuerySelectValue[V] = {
 		val (entity, path) = propertyPath(ref)
 		val sourceOption = From.entitySourceFor(entity)
 		if (sourceOption != None)

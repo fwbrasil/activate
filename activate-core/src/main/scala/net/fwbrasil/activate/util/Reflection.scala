@@ -16,12 +16,62 @@ import javassist.CtBehavior
 import net.fwbrasil.activate.entity.Entity
 import javassist.CtClass
 import javassist.CtPrimitiveType
+import org.reflections.util.ConfigurationBuilder
+import org.reflections.util.FilterBuilder
+import org.reflections.util.ClasspathHelper
+import org.reflections.scanners.SubTypesScanner
+import org.reflections.scanners.TypeAnnotationsScanner
+import org.reflections.scanners.Scanner
+import org.reflections.scanners.AbstractScanner
+import org.reflections.adapters.MetadataAdapter
 
 object Reflection {
 
 	val objenesis = new ObjenesisStd(false);
 	val classPool = ClassPool.getDefault
 	classPool.appendClassPath(new ClassClassPath(this.niceClass))
+
+	object stringConverter {
+		var converters = Map[Class[_], Function1[String, Any]]()
+		def converter[C: Manifest](f: (String) => C) =
+			converters += (ManifestUtil.erasureOf[C] -> f)
+		import RichList.toRichList
+		import java.lang.{ Integer => JInt, Boolean => JBoolean, Character => JChar, Float => JFloat, Double => JDouble }
+		converter[Int](JInt.parseInt(_))
+		converter[JInt](JInt.parseInt(_))
+		converter[Boolean](b => b != null && Boolean.box(JBoolean.parseBoolean(b)))
+		converter[JBoolean](b => b != null && Boolean.box(JBoolean.parseBoolean(b)))
+		converter[Char](toRichList(_).onlyOne)
+		converter[JChar](toRichList(_).onlyOne)
+		converter[String](_)
+		converter[Float](d => Float.box(JFloat.parseFloat(d)))
+		converter[JFloat](d => Float.box(JFloat.parseFloat(d)))
+		converter[Double](d => Double.box(JDouble.parseDouble(d)))
+		converter[JDouble](d => Double.box(JDouble.parseDouble(d)))
+		converter[BigDecimal](BigDecimal(_))
+		def convert(string: String, clazz: Class[_]) =
+			try {
+				val converter = converters.get(
+					if (clazz.isPrimitive)
+						getPrimitiveWrapper(clazz)
+					else clazz)
+				converter.map(_(string))
+			} catch {
+				case e => None
+			}
+	}
+
+	def getPrimitiveWrapper(clazz: Class[_]) =
+		clazz.getSimpleName match {
+			case "int" => classOf[Int]
+			case "long" => classOf[Long]
+			case "double" => classOf[Double]
+			case "float" => classOf[Float]
+			case "bool" => classOf[Boolean]
+			case "char" => classOf[Char]
+			case "byte" => classOf[Byte]
+			case "short" => classOf[Short]
+		}
 
 	class NiceObject[T](x: T) {
 		def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
@@ -122,6 +172,22 @@ object Reflection {
 	def getAllImplementorsNames(interfaceName: String) =
 		Set(new Reflections("").getStore.getSubTypesOf(interfaceName).toArray: _*).asInstanceOf[Set[String]]
 
+	def getAllPackageClasses(packageName: String) = {
+		var classes = Set[Class[_]]()
+		new Reflections(packageName, (new AbstractScanner {
+			def scan(cls: Object) = {
+				val className = getMetadataAdapter().asInstanceOf[MetadataAdapter[Object, Object, Object]].getClassName(cls);
+				if (!className.contains('$')) {
+					val clazz = Class.forName(className)
+					if (classOf[ScalaObject].isAssignableFrom(clazz))
+						classes += clazz
+				}
+
+			}
+		}));
+		classes
+	}
+
 	def findObject[R](obj: T forSome { type T <: Any })(f: (Any) => Boolean): Set[R] = {
 		(if (f(obj))
 			Set(obj)
@@ -202,10 +268,12 @@ object Reflection {
 		val ctMethod =
 			ctClass.getMethods.find(
 				m => m.getName == method.getName
-					&& m.getParameterTypes.map(_.getName).toList == method.getParameterTypes.map(_.getName).toList).get
-		val result = getParameterNamesAndTypes(ctMethod)
-		ctClass.freeze
-		result
+					&& m.getParameterTypes.map(_.getName).toList == method.getParameterTypes.map(_.getName).toList)
+		if (ctMethod.isDefined) {
+			val result = getParameterNamesAndTypes(ctMethod.get)
+			ctClass.freeze
+			result
+		} else List()
 	}
 
 	def getParameterNamesAndTypes(constructor: Constructor[_]): List[(String, Class[_])] = {

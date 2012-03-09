@@ -43,7 +43,7 @@ object ActivateBuild extends Build {
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
   	/* Vaadin */
-  	val vaadin = "com.vaadin" % "vaadin" % "6.7.3"
+  	val vaadin = "com.vaadin" % "vaadin" % "6.7.5"
   	
   	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
 	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
@@ -160,6 +160,7 @@ object ActivateBuild extends Build {
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
     	    organization := "net.fwbrasil",
     	    scalaVersion := "2.9.1",
-    	    resolvers ++= customResolvers
+    	    resolvers ++= customResolvers,
+    	    compileOrder := CompileOrder.JavaThenScala
     	)
 }

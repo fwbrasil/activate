@@ -119,7 +119,7 @@ trait Entity extends Serializable with ValidEntity {
 		ActivateContext.contextFor(this.niceClass)
 	}
 
-	private[activate] def varNamed(name: String) =
+	private[fwbrasil] def varNamed(name: String) =
 		varFieldsMap.get(name)
 
 	private[activate] def addToLiveCache =
@@ -128,15 +128,19 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def cachedInstance =
 		context.liveCache.cachedInstance(this)
 
+	protected def toStringVars =
+		vars
+
 	override def toString =
 		EntityHelper.getEntityName(this.niceClass) + (
 			try {
 				if (Entity.toStringSeen(this))
 					"(loop id->" + id + ")"
-				else if (initialized)
-					"(" + vars.mkString(", ") + ")"
-				else
-					"(uninitialized id->" + id + ")"
+				else context.transactional {
+					"(" + toStringVars.mkString(", ") + ")"
+				}
+				//				else
+				//					"(uninitialized id->" + id + ")"
 			} finally { Entity.toStringRemoveSeen(this) })
 
 	protected def writeReplace(): AnyRef =
