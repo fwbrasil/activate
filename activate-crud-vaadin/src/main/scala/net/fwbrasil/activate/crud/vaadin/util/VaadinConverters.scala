@@ -75,4 +75,14 @@ object VaadinConverters {
 	implicit def toItemClickListener(f: => Unit): ItemClickEvent.ItemClickListener =
 		toItemClickListener((e: ItemClickEvent) => f)
 
+	implicit def toMenuCommand(f: (MenuBar#MenuItem) => Unit): MenuBar.Command =
+		new MenuBar.Command {
+			override def menuSelected(selectedItem: MenuBar#MenuItem) = {
+				f(selectedItem)
+			}
+		}
+
+	implicit def toMenuCommand(f: => Unit): MenuBar.Command =
+		toMenuCommand((m: MenuBar#MenuItem) => f)
+
 }
