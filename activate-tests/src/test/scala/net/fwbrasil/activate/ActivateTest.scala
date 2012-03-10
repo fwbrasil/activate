@@ -41,6 +41,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			memoryContext,
 			prevaylerContext,
 			mongoContext,
+			postgresqlContext,
 			oracleContext,
 			mysqlContext)
 		ret.foreach(_.stop)
@@ -458,7 +459,6 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			val password = "ACTIVATE_TEST"
 			val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
 			val dialect = oracleDialect
-			val serializator = javaSerializator
 		}
 	}
 
@@ -469,7 +469,16 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			val password = ""
 			val url = "jdbc:mysql://127.0.0.1/ACTIVATE_TEST"
 			val dialect = mySqlDialect
-			val serializator = javaSerializator
+		}
+	}
+
+	object postgresqlContext extends ActivateTestContext {
+		val storage = new SimpleJdbcRelationalStorage {
+			val jdbcDriver = "org.postgresql.Driver"
+			val user = "postgres"
+			val password = "teste"
+			val url = "jdbc:postgresql://127.0.0.1/postgres"
+			val dialect = postgresqlDialect
 		}
 	}
 

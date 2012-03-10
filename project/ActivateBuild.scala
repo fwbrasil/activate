@@ -40,14 +40,9 @@ object ActivateBuild extends Build {
 	*/
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
+	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
-  	/* Vaadin */
-  	val vaadin = "com.vaadin" % "vaadin" % "6.7.5"
-  	
-  	val jettyWebApp = "org.eclipse.jetty" % "jetty-webapp" % "7.3.0.v20110203" % "container"
-	val jettyPlus = "org.eclipse.jetty" % "jetty-plus" % "7.3.0.v20110203" % "container"
-	
 	/* Mongo */
 	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.7.2"
   	
@@ -59,7 +54,6 @@ object ActivateBuild extends Build {
   	    "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
-  	    "vaadin-addons" at "http://maven.vaadin.com/vaadin-addons",
   	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/",
   	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
   	)
@@ -70,7 +64,7 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, 
-    		    activateTests, activateCrudVaadin, activateCrudVaadinExample),
+    		    activateTests),
     		settings = commonSettings
     	)
 
@@ -124,36 +118,14 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(junit, specs2, scalaz, mysql, objbd6)
+		    	  Seq(junit, specs2, scalaz, mysql, objbd6, postgresql)
 		    )
 		)
-    
-	lazy val activateCrudVaadin = 
-    	Project(
-    	    id = "activate-crud-vaadin",
-    	    base = file("activate-crud-vaadin"),
-    	    dependencies = Seq(activateCore),
-			settings = commonSettings ++ Seq(
-		      libraryDependencies ++= 
-		    	  Seq(vaadin)
-		    )
-    	)      
     	
-	lazy val activateCrudVaadinExample = 
-    	Project(
-    	    id = "activate-crud-vaadin-example",
-    	    base = file("activate-crud-vaadin-example"),
-    	    dependencies = Seq(activateCrudVaadin, activateCore, activateJdbc, activatePrevayler, activateMongo),
-    	    settings = commonSettings ++ webSettings ++ Seq(
- 	   	    	libraryDependencies ++= Seq(jettyWebApp, jettyPlus, servlet, mysql),
- 	   	    	scanInterval := 1 
- 	   	    )
-    	)
-		
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "0.7-SNAPSHOT",
+    		version := "0.7",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

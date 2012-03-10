@@ -51,14 +51,15 @@ trait MongoStorage extends MarshalStorage {
 			coll(entity).insert(doc)
 		}
 		for ((entity, properties) <- updateList) {
-			val query = new BasicDBObject()
+			val query = new BasicDBObject
 			query.put("_id", entity.id)
-			val update = new BasicDBObject();
+			val set = new BasicDBObject
 			for ((name, value) <- properties; if (name != "id")) {
-				val inner = new BasicDBObject()
-				inner.put(name, getMongoValue(value))
-				update.put("$set", inner)
+				val inner = new BasicDBObject
+				set.put(name, getMongoValue(value))
 			}
+			val update = new BasicDBObject
+			update.put("$set", set);
 			coll(entity).update(query, update)
 		}
 		for ((entity, properties) <- deleteList) {

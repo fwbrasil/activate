@@ -280,6 +280,11 @@ object mySqlDialect extends SqlIdiom {
 		value + " REGEXP " + regex
 }
 
+object postgresqlDialect extends SqlIdiom {
+	def toSqlQueryRegexp(value: String, regex: String) =
+		value + " ~ " + regex
+}
+
 object oracleDialect extends SqlIdiom {
 	def toSqlQueryRegexp(value: String, regex: String) =
 		"REGEXP_LIKE(" + value + ", " + regex + ")"
