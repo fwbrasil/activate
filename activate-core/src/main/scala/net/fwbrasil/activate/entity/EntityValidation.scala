@@ -32,10 +32,12 @@ case class PostCond[R](f: () => R) {
 
 case class Invariant(f: () => Boolean)
 
-trait ViolationException extends Exception
-case class InvariantViolationException(violations: String*) extends ViolationException
-case class PreCondidionViolationException(violations: String*) extends ViolationException
-case class PostCondidionViolationException(violations: String*) extends ViolationException
+class ViolationException(violations: String*) extends Exception {
+	override def toString = violations.toString
+}
+case class InvariantViolationException(violations: String*) extends ViolationException(violations: _*)
+case class PreCondidionViolationException(violations: String*) extends ViolationException(violations: _*)
+case class PostCondidionViolationException(violations: String*) extends ViolationException(violations: _*)
 
 trait ValidEntity {
 	this: Entity =>
