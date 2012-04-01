@@ -246,9 +246,9 @@ object EntityHelper {
 			) yield metadata.entityClass
 		}).toList.asInstanceOf[List[Class[_ <: E]]]
 
-	def initialize = synchronized {
+	def initialize(context: ActivateContext) = synchronized {
 		if (!initialized) {
-			for (entityClass <- EntityEnhancer.enhancedEntityClasses; if (!entityClass.isInterface()))
+			for (entityClass <- EntityEnhancer.enhancedEntityClasses(context); if (!entityClass.isInterface()))
 				if (!entityClass.isInterface()) {
 					val entityClassHashId = getEntityClassHashId(entityClass)
 					if (entitiesMetadatas.contains(entityClassHashId))

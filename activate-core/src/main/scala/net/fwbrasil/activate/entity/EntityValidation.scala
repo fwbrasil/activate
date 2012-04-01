@@ -87,7 +87,7 @@ trait ValidEntity {
 
 trait ValidEntityContext {
 
-	implicit def toNotNull(string: String) = NotNull(string)
+	implicit def toNotNull(obj: Any) = NotNull(obj)
 	case class NotNull(obj: Any) {
 		def notNull =
 			obj != null

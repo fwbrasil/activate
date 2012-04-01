@@ -12,7 +12,7 @@ object ActivateBuild extends Build {
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
-	val reflections = "org.reflections" % "reflections" % "0.9.5-RC2"  intransitive() 
+	val reflections = "org.reflections" % "reflections" % "0.9.5"  intransitive() 
 	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val dom4j = "dom4j" % "dom4j" % "1.6"
 	val gson = "com.google.code.gson" % "gson" % "1.4"
@@ -76,7 +76,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, googleCollections, dom4j, gson, servlet,
-		    	      grizzled, logbackClassic, jodaTime, jodaConvert, scalap, scalaCompiler)
+		    	      grizzled, logbackClassic, jodaTime, jodaConvert)
 		    )
 		)
 
@@ -126,12 +126,11 @@ object ActivateBuild extends Build {
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "0.8-SNAPSHOT",
+    		scalaVersion := "2.9.1",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
-    	    organization := "net.fwbrasil",
-    	    scalaVersion := "2.9.1",
     	    resolvers ++= customResolvers,
     	    compileOrder := CompileOrder.JavaThenScala
     	)

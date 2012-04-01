@@ -27,7 +27,7 @@ trait ActivateContext
 
 	info("Initializing context " + contextName)
 
-	EntityHelper.initialize
+	EntityHelper.initialize(this)
 
 	private[activate] val liveCache = new LiveCache(this)
 

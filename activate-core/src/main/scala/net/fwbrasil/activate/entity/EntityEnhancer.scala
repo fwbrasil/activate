@@ -17,6 +17,7 @@ import javassist.bytecode.SignatureAttribute
 import javassist.bytecode.CodeAttribute
 import javassist.bytecode.LocalVariableAttribute
 import javassist.CtBehavior
+import net.fwbrasil.activate.ActivateContext
 
 object EntityEnhancer extends Logging {
 
@@ -171,21 +172,29 @@ object EntityEnhancer extends Logging {
 		}
 	}
 
-	lazy val enhancedEntityClasses = {
-		verifyNoVerify
-		val entityClassNames = Reflection.getAllImplementorsNames(classOf[Entity].getName)
-		var enhancedEntityClasses = Set[CtClass]()
-		val classPool = ClassPool.getDefault
-		classPool.appendClassPath(new ClassClassPath(this.niceClass))
-		for (entityClassName <- entityClassNames)
-			enhancedEntityClasses ++= enhance(entityClassName, classPool)
-		val tree = new DependencyTree(enhancedEntityClasses)
-		for (enhancedEntityClass <- enhancedEntityClasses)
-			registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
-		val resolved = tree.resolve
-		for (enhancedEntityClass <- resolved)
-			yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]
+	private var _enhancedEntityClasses: Option[Set[Class[Entity]]] = None
 
+	def enhancedEntityClasses(context: ActivateContext) = synchronized {
+		if (_enhancedEntityClasses.isDefined)
+			_enhancedEntityClasses.get
+		else {
+			verifyNoVerify
+			val entityClassNames = Reflection.getAllImplementorsNames(context.getClass, classOf[Entity])
+			var enhancedEntityClasses = Set[CtClass]()
+			val classPool = ClassPool.getDefault
+			classPool.appendClassPath(new ClassClassPath(this.niceClass))
+			for (entityClassName <- entityClassNames)
+				enhancedEntityClasses ++= enhance(entityClassName, classPool)
+			val tree = new DependencyTree(enhancedEntityClasses)
+			for (enhancedEntityClass <- enhancedEntityClasses)
+				registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
+			val resolved = tree.resolve
+			val res =
+				(for (enhancedEntityClass <- resolved)
+					yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]).toSet
+			_enhancedEntityClasses = Some(res)
+			res
+		}
 	}
 
 }

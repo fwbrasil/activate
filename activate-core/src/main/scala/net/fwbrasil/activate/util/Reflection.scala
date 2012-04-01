@@ -169,8 +169,12 @@ object Reflection {
 		method.invoke(obj, params: _*)
 	}
 
-	def getAllImplementorsNames(interfaceName: String) =
-		Set(new Reflections("").getStore.getSubTypesOf(interfaceName).toArray: _*).asInstanceOf[Set[String]]
+	def getAllImplementorsNames(pontOfView: Class[_], interfaceClass: Class[_]) = {
+		val hints = Array[Object](pontOfView, interfaceClass)
+		val reflections = new Reflections(hints)
+		val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
+		Set(subtypes: _*).asInstanceOf[Set[String]]
+	}
 
 	def getAllPackageClasses(packageName: String) = {
 		var classes = Set[Class[_]]()
