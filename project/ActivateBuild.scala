@@ -17,7 +17,7 @@ object ActivateBuild extends Build {
 	val dom4j = "dom4j" % "dom4j" % "1.6"
 	val gson = "com.google.code.gson" % "gson" % "1.4"
 	val servlet = "javax.servlet" % "servlet-api" % "2.5"
-	val grizzled = "org.clapper" %% "grizzled-slf4j" % "0.6.6"
+	val grizzled = "org.clapper" % "grizzled-slf4j_2.9.1" % "0.6.6"
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
@@ -32,8 +32,7 @@ object ActivateBuild extends Build {
 	
 	/* Tests */
 	val junit = "junit" % "junit" % "4.4" % "test"
-	val specs2 = "org.specs2" %% "specs2" % "1.7" % "test"
-	val scalaz = "org.specs2" %% "specs2-scalaz-core" % "6.0.RC2" % "test"
+	val specs2 = "org.specs2" % "specs2_2.9.2-RC2" % "1.9" % "test"
 	/* 
 		Install oracle in your local repo:
 		mvn install:install-file -Dfile={ORACLE_HOME}/jdbc/lib/ojdbc6.jar -Dpackaging=jar -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0 
@@ -118,7 +117,7 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(junit, specs2, scalaz, mysql, objbd6, postgresql)
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql)
 		    )
 		)
     	
@@ -126,7 +125,7 @@ object ActivateBuild extends Build {
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "0.8-SNAPSHOT",
-    		scalaVersion := "2.9.1",
+    		scalaVersion := "2.9.2",
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

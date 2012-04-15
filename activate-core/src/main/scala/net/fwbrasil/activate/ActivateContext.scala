@@ -27,7 +27,7 @@ trait ActivateContext
 
 	info("Initializing context " + contextName)
 
-	EntityHelper.initialize(this)
+	EntityHelper.initialize(this.getClass)
 
 	private[activate] val liveCache = new LiveCache(this)
 
@@ -35,10 +35,16 @@ trait ActivateContext
 
 	val storage: Storage
 
+	protected def storageFor(entity: Entity) =
+		storage
+	
+	protected def storages =
+		List(storage)
+
 	def reinitializeContext =
 		logInfo("reinitializing context " + contextName) {
 			liveCache.reinitialize
-			storage.reinitialize
+			storages.foreach(_.reinitialize)
 		}
 
 	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] =
@@ -55,6 +61,10 @@ trait ActivateContext
 
 	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)
+
+	private[activate] def initializeGraphIfNecessary(entities: Seq[Entity]) {
+
+	}
 
 	override def makeDurable(transaction: Transaction) = {
 		val (assignments, deletes) = filterVars(transaction.refsAssignments)
