@@ -106,32 +106,39 @@ object EntityEnhancer extends Logging {
 
 			val init = clazz.makeClassInitializer()
 
-			clazz.instrument(
-				new ExprEditor {
-					override def edit(fa: FieldAccess) = {
-						val field =
-							try {
-								fa.getField
-							} catch {
-								case e: javassist.NotFoundException =>
-									null
-							}
-						if (field != null && enhancedFieldsMap.contains(field)) {
-							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-							if (fa.isWriter) {
-								if (optionFlag)
-									fa.replace("this." + fa.getFieldName + ".put(" + box(typ) + ");")
-								else
-									fa.replace("this." + fa.getFieldName + ".$colon$eq(" + box(typ) + ");")
-							} else if (fa.isReader) {
-								if (optionFlag)
-									fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
-								else
-									fa.replace("$_ = ($r) this." + fa.getFieldName + ".unary_$bang($$);")
+			try
+				clazz.instrument(
+					new ExprEditor {
+						override def edit(fa: FieldAccess) = {
+							val field =
+								try {
+									fa.getField
+								} catch {
+									case e: javassist.NotFoundException =>
+										null
+								}
+							if (field != null && enhancedFieldsMap.contains(field)) {
+								val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
+								if (fa.isWriter) {
+									if (optionFlag)
+										fa.replace("this." + fa.getFieldName + ".put(" + box(typ) + ");")
+									else
+										fa.replace("this." + fa.getFieldName + ".$colon$eq(" + box(typ) + ");")
+								} else if (fa.isReader) {
+									if (optionFlag)
+										fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
+									else
+										fa.replace("$_ = ($r) this." + fa.getFieldName + ".unary_$bang($$);")
+								}
 							}
 						}
-					}
-				})
+					})
+			catch {
+				case e: javassist.CannotCompileException =>
+					val toThrow = new IllegalStateException("Fail to enhance" + clazz.getName)
+					toThrow.initCause(e)
+					throw toThrow
+			}
 
 			for (c <- clazz.getConstructors) {
 				var replace = "setInitialized();"
