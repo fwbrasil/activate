@@ -30,6 +30,8 @@ import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.CalendarEntityValue
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.SerializableEntityValue
+import net.fwbrasil.activate.serialization.javaSerializator
 
 object Marshaller {
 
@@ -73,6 +75,8 @@ object Marshaller {
 				} else None
 				EnumerationEntityValue(None)
 			}
+			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
+				SerializableEntityValue[Serializable](storageValue.value.map(javaSerializator.fromSerialized[Serializable]))
 			case other =>
 				throw new IllegalStateException("Invalid storage value.")
 		}
@@ -107,6 +111,8 @@ object Marshaller {
 				ReferenceStorageValue(value.value)
 			case value: EnumerationEntityValue[_] =>
 				StringStorageValue(value.value.map(_.toString))
+			case value: SerializableEntityValue[_] =>
+				ByteArrayStorageValue(value.value.map(javaSerializator.toSerialized))
 		}
 
 }

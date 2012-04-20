@@ -10,14 +10,14 @@ class JavaSerializatorEvelope[T](val value: T) extends Serializable
 
 object javaSerializator extends Serializator {
 
-	def toSerialized[T: Manifest](value: T): Array[Byte] = {
+	def toSerialized[T](value: T): Array[Byte] = {
 		val envelope = new JavaSerializatorEvelope(value)
 		val baos = new ByteArrayOutputStream();
 		val oos = new ObjectOutputStream(baos);
 		oos.writeObject(envelope);
 		baos.toByteArray
 	}
-	def fromSerialized[T: Manifest](bytes: Array[Byte]): T = {
+	def fromSerialized[T](bytes: Array[Byte]): T = {
 		val bios = new ByteArrayInputStream(bytes);
 		val ois = new ObjectInputStream(bios);
 		val envelope = ois.readObject().asInstanceOf[JavaSerializatorEvelope[T]];

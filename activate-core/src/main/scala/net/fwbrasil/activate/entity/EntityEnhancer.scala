@@ -80,8 +80,8 @@ object EntityEnhancer extends Logging {
 			var enhancedFieldsMap = Map[CtField, (CtClass, Boolean)]()
 			val varClazz = classPool.get(varClassName);
 			val allFields = clazz.getDeclaredFields
-			val fieldsToEnhance = removeLazyValueValue(allFields.filter((field: CtField) => isCandidate(field)))
-			for (originalField <- fieldsToEnhance; if (isCandidate(originalField))) {
+			val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
+			for (originalField <- fieldsToEnhance) {
 				val name = originalField.getName
 				clazz.removeField(originalField)
 				val enhancedField = new CtField(varClazz, name, clazz);
@@ -135,7 +135,7 @@ object EntityEnhancer extends Logging {
 					})
 			catch {
 				case e: javassist.CannotCompileException =>
-					val toThrow = new IllegalStateException("Fail to enhance" + clazz.getName)
+					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
 					toThrow.initCause(e)
 					throw toThrow
 			}
@@ -159,7 +159,7 @@ object EntityEnhancer extends Logging {
 
 			init.insertBefore(initBody)
 
-			//			clazz.writeFile;
+			//			clazz.writeFile
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
