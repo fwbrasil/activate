@@ -1,0 +1,17 @@
+{
+ "organization":"net.fwbrasil",
+ "name":"activate",
+ "version":"0.8",
+ "description":"Pluggable object persistence in Scala",
+ "site":"https://github.com/fwbrasil/activate",
+ "tags":["persistence", "stm", "mongo", "prevayler", "oracle", "mysql", "postgresql"],
+ "docs":"https://github.com/fwbrasil/activate",
+ "licenses": [{
+   "name": "LGPL",
+   "url": "https://github.com/fwbrasil/activate/blob/master/LICENSE-LGPL"
+  }],
+ "resolvers": ["http://fwbrasil.net/maven/"],
+ "dependencies": [],
+ "scalas": ["2.9.2"],
+ "sbt": true
+}
