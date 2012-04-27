@@ -147,7 +147,7 @@ Consultas:
 		(pessoa: Pessoa) => where(pessoa.nome :== "Teste") select(pessoa)
 	}
 
-Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNull, isNotNull, :|| and :&&. Observe que as queries podem ser feitas sobre super classes (incluindo trait e abstract class).
+Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNull, isNotNull, :||, :&&, like and regexp. Observe que as queries podem ser feitas sobre super classes (incluindo trait e abstract class).
 
 Execute as consultas dentro de transações:
 
