@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.8-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.8"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "org.safehaus.jug" % "jug" % "2.0.0" classifier "lgpl"
@@ -34,8 +34,7 @@ object ActivateBuild extends Build {
 	val junit = "junit" % "junit" % "4.4" % "test"
 	val specs2 = "org.specs2" % "specs2_2.9.2-RC2" % "1.9" % "test"
 	/* 
-		Install oracle in your local repo:
-		mvn install:install-file -Dfile={ORACLE_HOME}/jdbc/lib/ojdbc6.jar -Dpackaging=jar -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0 
+		Install oracle in your local repo
 	*/
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
