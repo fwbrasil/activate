@@ -5,6 +5,7 @@ import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.query._
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.migration.MigrationAction
 
 abstract class StorageStatement
 
@@ -25,3 +26,4 @@ case class DeleteDmlStorageStatement(override val entityClass: Class[_], overrid
 case class QueryStorageStatement(query: Query[_])
 	extends StorageStatement
 
+case class DdlStorageStatement(val action: StorageMigrationAction) extends StorageStatement

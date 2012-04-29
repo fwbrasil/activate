@@ -18,6 +18,16 @@ import java.sql.Timestamp
 import java.sql.ResultSet
 import java.util.Date
 import java.util.Calendar
+import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.CreateTable
+import net.fwbrasil.activate.migration.RenameTable
+import net.fwbrasil.activate.migration.RemoveTable
+import net.fwbrasil.activate.migration.AddColumn
+import net.fwbrasil.activate.migration.RenameColumn
+import net.fwbrasil.activate.migration.RemoveColumn
+import net.fwbrasil.activate.migration.AddIndex
+import net.fwbrasil.activate.migration.RemoveIndex
+import net.fwbrasil.activate.migration.Column
 
 case class SqlStatement(statement: String, binds: Map[String, StorageValue]) {
 
@@ -101,7 +111,7 @@ abstract class SqlIdiom {
 		}
 	}
 
-	def toSqlStatement(statement: DmlStorageStatement): SqlStatement = {
+	def toSqlStatement(statement: StorageStatement): SqlStatement = {
 		statement match {
 			case insert: InsertDmlStorageStatement =>
 				SqlStatement(
@@ -122,58 +132,65 @@ abstract class SqlIdiom {
 					"DELETE FROM " + toTableName(delete.entityClass) +
 						" WHERE ID = '" + delete.entityId + "'",
 					delete.propertyMap)
+			case ddl: DdlStorageStatement =>
+				toSqlDdl(ddl)
 		}
 	}
 
-	def toSqlQuery(statement: QueryStorageStatement): SqlStatement =
-		toSqlQuery(statement.query)
+	def toSqlDdl(storageValue: StorageValue): String
 
-	def toSqlQuery(query: Query[_]): SqlStatement = {
+	def toSqlDdl(column: StorageColumn): String =
+		"	" + column.name + " " + toSqlDdl(column.storageValue)
+
+	def toSqlDml(statement: QueryStorageStatement): SqlStatement =
+		toSqlDml(statement.query)
+
+	def toSqlDml(query: Query[_]): SqlStatement = {
 		implicit val binds = MutableMap[StorageValue, String]()
 
-		SqlStatement("SELECT DISTINCT " + toSqlQuery(query.select) +
-			" FROM " + toSqlQuery(query.from) + " WHERE " + toSqlQuery(query.where) + toSqlQueryOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
+		SqlStatement("SELECT DISTINCT " + toSqlDml(query.select) +
+			" FROM " + toSqlDml(query.from) + " WHERE " + toSqlDml(query.where) + toSqlDmlOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
 	}
 
-	def toSqlQuery(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
 		(for (value <- select.values)
-			yield toSqlQuerySelect(value)).mkString(", ");
+			yield toSqlDmlSelect(value)).mkString(", ");
 
-	def toSqlQueryOrderBy(orderBy: Option[OrderBy])(implicit binds: MutableMap[StorageValue, String]): String = {
+	def toSqlDmlOrderBy(orderBy: Option[OrderBy])(implicit binds: MutableMap[StorageValue, String]): String = {
 		if (orderBy.isDefined)
-			" ORDER BY " + toSqlQuery(orderBy.get.criterias: _*)
+			" ORDER BY " + toSqlDml(orderBy.get.criterias: _*)
 		else ""
 	}
 
-	def toSqlQuery(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =
 		(for (criteria <- criterias)
-			yield toSqlQuery(criteria)).mkString(", ")
+			yield toSqlDml(criteria)).mkString(", ")
 
-	def toSqlQuery(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
-		toSqlQuery(criteria.value) + " " + (
+	def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
+		toSqlDml(criteria.value) + " " + (
 			if (criteria.direction ==
 				orderByAscendingDirection)
 				"asc"
 			else
 				"desc")
 
-	def toSqlQuery(value: QueryValue)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: QueryValue)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: QueryBooleanValue =>
-				toSqlQuery(value)
+				toSqlDml(value)
 			case value: QuerySelectValue[_] =>
-				toSqlQuerySelect(value)
+				toSqlDmlSelect(value)
 		}
 
-	def toSqlQuerySelect(value: QuerySelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDmlSelect(value: QuerySelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: QueryEntityValue[_] =>
-				toSqlQuery(value)
+				toSqlDml(value)
 			case value: SimpleValue[_] =>
-				toSqlQuery(value)
+				toSqlDml(value)
 		}
 
-	def toSqlQuery(value: SimpleValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: SimpleValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
 		value.anyValue match {
 			case null =>
 				"is null"
@@ -181,15 +198,15 @@ abstract class SqlIdiom {
 				bind(Marshaller.marshalling(value.entityValue))
 		}
 
-	def toSqlQuery(value: QueryBooleanValue)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: QueryBooleanValue)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: SimpleQueryBooleanValue =>
 				bind(Marshaller.marshalling(value.entityValue))
 			case value: Criteria =>
-				toSqlQuery(value)
+				toSqlDml(value)
 		}
 
-	def toSqlQuery[V](value: QueryEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml[V](value: QueryEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: QueryEntityInstanceValue[Entity] =>
 				bind(StringStorageValue(Option(value.entityId)))
@@ -199,28 +216,28 @@ abstract class SqlIdiom {
 				value.entitySource.name + ".id"
 		}
 
-	def toSqlQuery(value: From)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: From)(implicit binds: MutableMap[StorageValue, String]): String =
 		(for (source <- value.entitySources)
 			yield toTableName(source.entityClass) + " " + source.name).mkString(", ")
 
-	def toSqlQuery(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
-		toSqlQuery(value.value)
+	def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
+		toSqlDml(value.value)
 
-	def toSqlQuery(value: Criteria)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: Criteria)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: BooleanOperatorCriteria =>
-				toSqlQuery(value.valueA) + toSqlQuery(value.operator) + toSqlQuery(value.valueB)
+				toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB)
 			case value: SimpleOperatorCriteria =>
-				toSqlQuery(value.valueA) + toSqlQuery(value.operator)
+				toSqlDml(value.valueA) + toSqlDml(value.operator)
 			case CompositeOperatorCriteria(valueA: QueryValue, operator: Matcher, valueB: QueryValue) =>
-				toSqlQueryRegexp(toSqlQuery(valueA), toSqlQuery(valueB))
+				toSqlDmlRegexp(toSqlDml(valueA), toSqlDml(valueB))
 			case value: CompositeOperatorCriteria =>
-				toSqlQuery(value.valueA) + toSqlQuery(value.operator) + toSqlQuery(value.valueB)
+				toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB)
 		}
 
-	def toSqlQueryRegexp(value: String, regex: String): String
+	def toSqlDmlRegexp(value: String, regex: String): String
 
-	def toSqlQuery(value: Operator)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: Operator)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
 			case value: IsEqualTo =>
 				" = "
@@ -254,6 +271,46 @@ abstract class SqlIdiom {
 	def toTableName(entityClass: Class[_]): String =
 		EntityHelper.getEntityName(entityClass)
 
+	def toSqlDdl(statement: DdlStorageStatement): SqlStatement = {
+		statement.action match {
+			case StorageCreateTable(tableName, columns) =>
+				SqlStatement(
+					"CREATE TABLE " + tableName + "(\n" +
+						"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
+						columns.map(toSqlDdl).mkString(", \n") +
+						")",
+					Map())
+			case StorageRenameTable(oldName, newName) =>
+				SqlStatement(
+					"RENAME TABLE " + oldName + " TO " + newName,
+					Map())
+			case StorageRemoveTable(name) =>
+				SqlStatement(
+					"DROP TABLE " + name,
+					Map())
+			case StorageAddColumn(tableName, column) =>
+				SqlStatement(
+					"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column),
+					Map())
+			case StorageRenameColumn(tableName, oldName, column) =>
+				SqlStatement(
+					"ALTER TABLE " + tableName + " CHANGE " + oldName + " " + toSqlDdl(column),
+					Map())
+			case StorageRemoveColumn(tableName, name) =>
+				SqlStatement(
+					"ALTER TABLE " + tableName + " DROP COLUMN " + name,
+					Map())
+			case StorageAddIndex(tableName, columnName, indexName) =>
+				SqlStatement(
+					"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")",
+					Map())
+			case StorageRemoveIndex(tableName, name) =>
+				SqlStatement(
+					"DROP INDEX " + name + " ON " + tableName,
+					Map())
+		}
+	}
+
 }
 
 object mySqlDialect extends SqlIdiom {
@@ -276,16 +333,119 @@ object mySqlDialect extends SqlIdiom {
 		}
 	}
 
-	def toSqlQueryRegexp(value: String, regex: String) =
+	def toSqlDmlRegexp(value: String, regex: String) =
 		value + " REGEXP " + regex
+
+	override def toSqlDdl(storageValue: StorageValue): String =
+		storageValue match {
+			case value: IntStorageValue =>
+				"INTEGER"
+			case value: BooleanStorageValue =>
+				"BOOLEAN"
+			case value: StringStorageValue =>
+				"VARCHAR(200)"
+			case value: FloatStorageValue =>
+				"DOUBLE"
+			case value: DateStorageValue =>
+				"LONG"
+			case value: DoubleStorageValue =>
+				"DOUBLE"
+			case value: BigDecimalStorageValue =>
+				"DECIMAL"
+			case value: ByteArrayStorageValue =>
+				"BLOB"
+			case value: ReferenceStorageValue =>
+				"VARCHAR(200)"
+		}
 }
 
 object postgresqlDialect extends SqlIdiom {
-	def toSqlQueryRegexp(value: String, regex: String) =
+	def toSqlDmlRegexp(value: String, regex: String) =
 		value + " ~ " + regex
+
+	override def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
+		statement.action match {
+			case StorageRenameColumn(tableName, oldName, column) =>
+				SqlStatement(
+					"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name,
+					Map())
+			case StorageRemoveIndex(tableName, name) =>
+				SqlStatement(
+					"DROP INDEX " + name,
+					Map())
+			case StorageRenameTable(oldName, newName) =>
+				SqlStatement(
+					"ALTER TABLE " + oldName + " RENAME TO " + newName,
+					Map())
+			case other =>
+				super.toSqlDdl(statement)
+		}
+
+	override def toSqlDdl(storageValue: StorageValue): String =
+		storageValue match {
+			case value: IntStorageValue =>
+				"INTEGER"
+			case value: BooleanStorageValue =>
+				"BOOLEAN"
+			case value: StringStorageValue =>
+				"VARCHAR(200)"
+			case value: FloatStorageValue =>
+				"DOUBLE PRECISION"
+			case value: DateStorageValue =>
+				"TIMESTAMP"
+			case value: DoubleStorageValue =>
+				"DOUBLE PRECISION"
+			case value: BigDecimalStorageValue =>
+				"DECIMAL"
+			case value: ByteArrayStorageValue =>
+				"BYTEA"
+			case value: ReferenceStorageValue =>
+				"VARCHAR(200)"
+		}
 }
 
 object oracleDialect extends SqlIdiom {
-	def toSqlQueryRegexp(value: String, regex: String) =
+	def toSqlDmlRegexp(value: String, regex: String) =
 		"REGEXP_LIKE(" + value + ", " + regex + ")"
+
+	override def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
+		statement.action match {
+			case StorageRenameColumn(tableName, oldName, column) =>
+				SqlStatement(
+					"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name,
+					Map())
+			case StorageRemoveIndex(tableName, name) =>
+				SqlStatement(
+					"DROP INDEX " + name,
+					Map())
+			case StorageRenameTable(oldName, newName) =>
+				SqlStatement(
+					"ALTER TABLE " + oldName + " RENAME TO " + newName,
+					Map())
+			case other =>
+				super.toSqlDdl(statement)
+		}
+
+	override def toSqlDdl(storageValue: StorageValue): String =
+		storageValue match {
+			case value: IntStorageValue =>
+				"INTEGER"
+			case value: BooleanStorageValue =>
+				"NUMBER(1)"
+			case value: StringStorageValue =>
+				"VARCHAR2(200)"
+			case value: FloatStorageValue =>
+				"DOUBLE PRECISION"
+			case value: DateStorageValue =>
+				"TIMESTAMP"
+			case value: DoubleStorageValue =>
+				"DOUBLE PRECISION"
+			case value: BigDecimalStorageValue =>
+				"DECIMAL"
+			case value: ByteArrayStorageValue =>
+				"BLOB"
+			case value: ReferenceStorageValue =>
+				"VARCHAR2(200)"
+		}
+
 }

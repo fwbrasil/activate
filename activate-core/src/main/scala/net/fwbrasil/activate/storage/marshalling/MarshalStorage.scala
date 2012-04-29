@@ -11,6 +11,7 @@ import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
 import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
 import java.util.IdentityHashMap
+import net.fwbrasil.activate.migration.MigrationAction
 
 trait MarshalStorage extends Storage {
 
@@ -23,10 +24,10 @@ trait MarshalStorage extends Storage {
 		val deleteMap = MutableMap[String, MutableMap[String, StorageValue]]()
 		val entityMap = MutableMap[String, Entity]()
 
-		def propertyMap(map: MutableMap[String, MutableMap[String, StorageValue]], entity: Entity) = {
-			entityMap += (entity.id -> entity)
-			map.getOrElseUpdate(entity.id, newPropertyMap(entity))
-		}
+			def propertyMap(map: MutableMap[String, MutableMap[String, StorageValue]], entity: Entity) = {
+				entityMap += (entity.id -> entity)
+				map.getOrElseUpdate(entity.id, newPropertyMap(entity))
+			}
 
 		for ((entity, properties) <- deletes) {
 			val map = propertyMap(deleteMap, entity)
@@ -78,4 +79,10 @@ trait MarshalStorage extends Storage {
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 
+	override def migrate(action: MigrationAction): Unit =
+		migrateStorage(Marshaller.marshalling(action))
+
+	def migrateStorage(action: StorageMigrationAction): Unit = {}
+
 }
+

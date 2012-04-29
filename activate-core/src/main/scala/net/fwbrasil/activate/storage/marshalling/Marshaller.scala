@@ -32,6 +32,17 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.SerializableEntityValue
 import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.CreateTable
+import net.fwbrasil.activate.migration.RenameTable
+import net.fwbrasil.activate.migration.RenameColumn
+import net.fwbrasil.activate.migration.RemoveTable
+import net.fwbrasil.activate.migration.RemoveColumn
+import net.fwbrasil.activate.migration.RemoveIndex
+import net.fwbrasil.activate.migration.AddColumn
+import net.fwbrasil.activate.migration.AddIndex
+import net.fwbrasil.activate.migration.Column
+import net.fwbrasil.activate.migration.CustomScriptAction
 
 object Marshaller {
 
@@ -115,4 +126,41 @@ object Marshaller {
 				ByteArrayStorageValue(value.value.map(javaSerializator.toSerialized))
 		}
 
+	def marshalling(action: MigrationAction): StorageMigrationAction =
+		action match {
+			case CreateTable(migration, number, tableName, columns) =>
+				StorageCreateTable(tableName, marshalling(columns))
+			case RenameTable(migration, number, oldName, newName) =>
+				StorageRenameTable(oldName, newName)
+			case RemoveTable(migration, number, name) =>
+				StorageRemoveTable(name)
+			case AddColumn(migration, number, tableName, column) =>
+				StorageAddColumn(tableName, marshalling(column))
+			case RenameColumn(migration, number, tableName, oldName, column) =>
+				StorageRenameColumn(tableName, oldName, marshalling(column))
+			case RemoveColumn(migration, number, tableName, name) =>
+				StorageRemoveColumn(tableName, name)
+			case AddIndex(migration, number, tableName, columnName, indexName) =>
+				StorageAddIndex(tableName, columnName, indexName)
+			case RemoveIndex(migration, number, tableName, name) =>
+				StorageRemoveIndex(tableName, name)
+		}
+
+	def marshalling(columns: List[Column[_]]): List[StorageColumn] =
+		columns.map(marshalling)
+
+	def marshalling(column: Column[_]): StorageColumn =
+		StorageColumn(column.name, marshalling(column.emptyEntityValue))
 }
+
+case class StorageColumn(name: String, storageValue: StorageValue)
+
+sealed trait StorageMigrationAction
+case class StorageCreateTable(tableName: String, columns: List[StorageColumn]) extends StorageMigrationAction
+case class StorageRenameTable(oldName: String, newName: String) extends StorageMigrationAction
+case class StorageRemoveTable(name: String) extends StorageMigrationAction
+case class StorageAddColumn(tableName: String, column: StorageColumn) extends StorageMigrationAction
+case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn) extends StorageMigrationAction
+case class StorageRemoveColumn(tableName: String, name: String) extends StorageMigrationAction
+case class StorageAddIndex(tableName: String, columnName: String, indexName: String) extends StorageMigrationAction
+case class StorageRemoveIndex(tableName: String, name: String) extends StorageMigrationAction

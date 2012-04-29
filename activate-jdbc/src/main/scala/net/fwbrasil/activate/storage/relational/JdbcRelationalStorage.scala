@@ -21,7 +21,7 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 
 	def getConnection: Connection
 
-	override def execute(storageStatements: List[DmlStorageStatement]) = {
+	override def executeStatements(storageStatements: List[StorageStatement]) = {
 		val sqlStatements =
 			for (storageStatement <- storageStatements)
 				yield dialect.toSqlStatement(storageStatement)
@@ -43,7 +43,7 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		stmt.close
 	}
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
-		executeQuery(dialect.toSqlQuery(QueryStorageStatement(queryInstance)), expectedTypes)
+		executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance)), expectedTypes)
 
 	def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		val stmt = createPreparedStatement(sqlStatement, getConnection, false)
@@ -76,6 +76,7 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		}
 		ps
 	}
+
 }
 
 trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage {

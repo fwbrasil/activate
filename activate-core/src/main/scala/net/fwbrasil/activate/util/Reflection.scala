@@ -131,8 +131,8 @@ object Reflection {
 	def getInstanceFieldsGetterAndSetter(clazz: Class[_]) = {
 		val variables = getInstanceFields(clazz)
 		val methods = getInstanceMethods(clazz)
-		def find(name: String) =
-			methods.find(_.getName == name)
+			def find(name: String) =
+				methods.find(_.getName == name)
 		(for (variable <- variables)
 			yield (variable, find(variable.getName), find(variable.getName + "_$eq"))).toList
 	}
@@ -175,6 +175,9 @@ object Reflection {
 		val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
 		Set(subtypes: _*).asInstanceOf[Set[String]]
 	}
+
+	def getAllImplementors(pontOfView: Class[_], interfaceClass: Class[_]) =
+		getAllImplementorsNames(pontOfView, interfaceClass).map(Class.forName)
 
 	def getAllPackageClasses(packageName: String) = {
 		var classes = Set[Class[_]]()
@@ -300,9 +303,9 @@ object Reflection {
 
 	def getParameterNamesAndTypes(ctBehavior: CtBehavior): List[(String, Class[_])] = {
 		val types = ctBehavior.getParameterTypes
-		def default =
-			(for (i <- 0 until types.length)
-				yield ("$" + i, getClass(types(i))))
+			def default =
+				(for (i <- 0 until types.length)
+					yield ("$" + i, getClass(types(i))))
 		if (types.length > 0) {
 			val codeAttribute = ctBehavior.getMethodInfo.getCodeAttribute;
 			val locals = codeAttribute.getAttribute(LocalVariableAttribute.tag).asInstanceOf[LocalVariableAttribute]

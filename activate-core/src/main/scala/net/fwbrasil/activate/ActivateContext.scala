@@ -18,6 +18,7 @@ import net.fwbrasil.activate.query.QueryNormalizer
 import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.entity.EntityValue
 import java.util.IdentityHashMap
+import net.fwbrasil.activate.migration.MigrationAction
 
 trait ActivateContext
 		extends EntityContext
@@ -37,7 +38,7 @@ trait ActivateContext
 
 	protected def storageFor(entity: Entity) =
 		storage
-	
+
 	protected def storages =
 		List(storage)
 
@@ -103,6 +104,9 @@ trait ActivateContext
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		true
+
+	protected[activate] def execute(action: MigrationAction) =
+		storage.migrate(action)
 
 	override def toString = "ActivateContext: " + name
 

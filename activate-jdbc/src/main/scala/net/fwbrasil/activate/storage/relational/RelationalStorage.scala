@@ -10,6 +10,8 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.util.GraphUtil._
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
 
 trait RelationalStorage extends MarshalStorage {
 
@@ -33,7 +35,7 @@ trait RelationalStorage extends MarshalStorage {
 
 		val sqls = insertsResolved ::: updates.toList ::: deletesResolved
 
-		execute(sqls)
+		executeStatements(sqls)
 	}
 
 	def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
@@ -56,6 +58,9 @@ trait RelationalStorage extends MarshalStorage {
 			throw other
 	}
 
-	def execute(sqls: List[DmlStorageStatement]): Unit
+	override def migrateStorage(action: StorageMigrationAction): Unit =
+		executeStatements(List(DdlStorageStatement(action)))
+
+	def executeStatements(sqls: List[StorageStatement]): Unit
 
 }
