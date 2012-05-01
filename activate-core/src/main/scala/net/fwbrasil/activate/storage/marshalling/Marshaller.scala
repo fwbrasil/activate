@@ -138,7 +138,7 @@ object Marshaller {
 			case action: RenameTable =>
 				StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
 			case action: RemoveTable =>
-				StorageRemoveTable(action.name, action.onlyIfExists)
+				StorageRemoveTable(action.name, action.onlyIfExists, action.isCascade)
 			case action: AddColumn =>
 				StorageAddColumn(action.tableName, marshalling(action.column), action.onlyIfNotExists)
 			case action: RenameColumn =>
@@ -163,7 +163,7 @@ case class StorageColumn(name: String, storageValue: StorageValue)
 sealed trait StorageMigrationAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends StorageMigrationAction
 case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends StorageMigrationAction
-case class StorageRemoveTable(name: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends StorageMigrationAction
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends StorageMigrationAction
 case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn, ifExists: Boolean) extends StorageMigrationAction
 case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction

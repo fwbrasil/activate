@@ -392,8 +392,8 @@ object mySqlDialect extends SqlIdiom {
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
 				"RENAME TABLE " + oldName + " TO " + newName
-			case StorageRemoveTable(name, ifExists) =>
-				"DROP TABLE " + name
+			case StorageRemoveTable(name, ifExists, isCascade) =>
+				"DROP TABLE " + name + (if (isCascade) " CASCADE" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
 				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
@@ -460,13 +460,13 @@ object postgresqlDialect extends SqlIdiom {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + tableName + "(\n" +
-					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
+					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
 					columns.map(toSqlDdl).mkString(", \n") +
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
 				"ALTER TABLE " + oldName + " RENAME TO " + newName
-			case StorageRemoveTable(name, ifExists) =>
-				"DROP TABLE " + name
+			case StorageRemoveTable(name, ifExists, isCascade) =>
+				"DROP TABLE " + name + (if (isCascade) " CASCADE" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
 				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
@@ -510,25 +510,32 @@ object oracleDialect extends SqlIdiom {
 		"REGEXP_LIKE(" + value + ", " + regex + ")"
 
 	override def findTableStatement(tableName: String) =
-		"SELECT COUNT(1) FROM USER_TABLES WHERE TABLE_NAME = '" + tableName.toUpperCase + "'"
+		"SELECT COUNT(1) " +
+			"  FROM USER_TABLES " +
+			" WHERE TABLE_NAME = '" + tableName.toUpperCase + "'"
 
 	override def findTableColumnStatement(tableName: String, columnName: String) =
-		"SELECT COUNT(1) FROM USER_COLUMNS WHERE TABLE_NAME = '" + tableName.toUpperCase + "' AND COLUMN " + columnName.toUpperCase
+		"SELECT COUNT(1) " +
+			"  FROM USER_TAB_COLUMNS " +
+			" WHERE TABLE_NAME = '" + tableName.toUpperCase + "' " +
+			"   AND COLUMN_NAME = '" + columnName.toUpperCase + "'"
 
 	override def findIndexStatement(tableName: String, indexName: String) =
-		"SELECT COUNT(1) FROM USER_INDEXES WHERE INDEX_NAME = '" + indexName.toUpperCase + "'"
+		"SELECT COUNT(1) " +
+			"  FROM USER_INDEXES " +
+			" WHERE INDEX_NAME = '" + indexName.toUpperCase + "'"
 
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + tableName + "(\n" +
-					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
+					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
 					columns.map(toSqlDdl).mkString(", \n") +
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
 				"ALTER TABLE " + oldName + " RENAME TO " + newName
-			case StorageRemoveTable(tableName, ifExists) =>
-				"DROP TABLE " + tableName
+			case StorageRemoveTable(name, ifExists, isCascade) =>
+				"DROP TABLE " + name + (if (isCascade) " CASCADE constraints" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
 				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>

@@ -41,11 +41,11 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
-			//			memoryContext,
-			//			prevaylerContext,
-			//			mongoContext,
-			//			postgresqlContext,
-			//			oracleContext,
+			memoryContext,
+			prevaylerContext,
+			mongoContext,
+			postgresqlContext,
+			oracleContext,
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret

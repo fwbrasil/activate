@@ -33,7 +33,7 @@ class EntitySpecs extends ActivateTest {
 					}
 					step {
 						for (entity <- all[ActivateTestEntity]) {
-							entity.vars.toSet.size must beEqualTo(22)
+							entity.vars.toSet.size must beEqualTo(23)
 						}
 					}
 				})
@@ -49,6 +49,7 @@ class EntitySpecs extends ActivateTest {
 					step {
 						for (entity <- all[ActivateTestEntity]) {
 							entity.intValue must beEqualTo(entity.varNamed("intValue").get.unary_!.asInstanceOf[Any])
+							entity.longValue must beEqualTo(entity.varNamed("longValue").get.unary_!.asInstanceOf[Any])
 							entity.booleanValue must beEqualTo(entity.varNamed("booleanValue").get.unary_!.asInstanceOf[Any])
 							entity.charValue must beEqualTo(entity.varNamed("charValue").get.unary_!.asInstanceOf[Any])
 							entity.stringValue must beEqualTo(entity.varNamed("stringValue").get.unary_!.asInstanceOf[Any])
