@@ -73,6 +73,8 @@ trait MongoStorage extends MarshalStorage {
 		value match {
 			case value: IntStorageValue =>
 				value.value.map(_.intValue).getOrElse(null)
+			case value: LongStorageValue =>
+				value.value.map(_.longValue).getOrElse(null)
 			case value: BooleanStorageValue =>
 				value.value.map(_.booleanValue).getOrElse(null)
 			case value: StringStorageValue =>

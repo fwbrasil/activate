@@ -19,12 +19,14 @@ import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.entity.EntityValue
 import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.Migration
 
 trait ActivateContext
 		extends EntityContext
 		with QueryContext
 		with NamedSingletonSerializable
-		with Logging {
+		with Logging
+		with DelayedInit {
 
 	info("Initializing context " + contextName)
 
@@ -107,6 +109,17 @@ trait ActivateContext
 
 	protected[activate] def execute(action: MigrationAction) =
 		storage.migrate(action)
+
+	protected[activate] def runMigration =
+		Migration.update(this)
+
+	protected lazy val runMigrationAtStartup = true
+
+	def delayedInit(x: => Unit): Unit = {
+		x
+		if (runMigrationAtStartup)
+			runMigration
+	}
 
 	override def toString = "ActivateContext: " + name
 

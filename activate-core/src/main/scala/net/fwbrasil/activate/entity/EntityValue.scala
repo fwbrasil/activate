@@ -15,6 +15,11 @@ case class IntEntityValue(override val value: Option[Int])
 	def emptyValue = 0
 }
 
+case class LongEntityValue(override val value: Option[Long])
+		extends EntityValue(value) {
+	def emptyValue = 0l
+}
+
 case class BooleanEntityValue(override val value: Option[Boolean])
 		extends EntityValue(value) {
 	def emptyValue = false
@@ -100,6 +105,8 @@ object EntityValue extends ValueContext {
 	private[activate] def tvalFunctionOption[T](clazz: Class[_]) =
 		Option((if (clazz == classOf[Int])
 			(value: Option[Int]) => toIntEntityValueOption(value)
+		else if (clazz == classOf[Long])
+			(value: Option[Long]) => toLongEntityValueOption(value)
 		else if (clazz == classOf[Boolean])
 			(value: Option[Boolean]) => toBooleanEntityValueOption(value)
 		else if (clazz == classOf[Char])
@@ -138,6 +145,8 @@ trait ValueContext {
 
 	implicit def toIntEntityValue(value: Int) =
 		toIntEntityValueOption(Option(value))
+	implicit def toLongEntityValue(value: Long) =
+		toLongEntityValueOption(Option(value))
 	implicit def toBooleanEntityValue(value: Boolean) =
 		toBooleanEntityValueOption(Option(value))
 	implicit def toCharEntityValue(value: Char) =
@@ -167,6 +176,8 @@ trait ValueContext {
 
 	implicit def toIntEntityValueOption(value: Option[Int]) =
 		IntEntityValue(value)
+	implicit def toLongEntityValueOption(value: Option[Long]) =
+		LongEntityValue(value)
 	implicit def toBooleanEntityValueOption(value: Option[Boolean]) =
 		BooleanEntityValue(value)
 	implicit def toCharEntityValueOption(value: Option[Char]) =

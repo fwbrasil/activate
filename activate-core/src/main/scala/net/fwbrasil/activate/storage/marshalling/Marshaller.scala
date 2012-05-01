@@ -21,6 +21,7 @@ import net.fwbrasil.activate.query.QuerySelectValue
 import net.fwbrasil.activate.query.SimpleValue
 import net.fwbrasil.activate.entity.StringEntityValue
 import net.fwbrasil.activate.entity.IntEntityValue
+import net.fwbrasil.activate.entity.LongEntityValue
 import net.fwbrasil.activate.entity.BooleanEntityValue
 import net.fwbrasil.activate.query.QueryMocks
 import net.fwbrasil.activate.entity.ByteArrayEntityValue
@@ -50,6 +51,8 @@ object Marshaller {
 		(storageValue, entityValue) match {
 			case (storageValue: IntStorageValue, entityValue: IntEntityValue) =>
 				IntEntityValue(storageValue.value)
+			case (storageValue: LongStorageValue, entityValue: LongEntityValue) =>
+				LongEntityValue(storageValue.value)
 			case (storageValue: BooleanStorageValue, entityValue: BooleanEntityValue) =>
 				BooleanEntityValue(storageValue.value)
 			case (storageValue: StringStorageValue, entityValue: CharEntityValue) =>
@@ -96,6 +99,8 @@ object Marshaller {
 		entityValue match {
 			case value: IntEntityValue =>
 				IntStorageValue(value.value)
+			case value: LongEntityValue =>
+				LongStorageValue(value.value)
 			case value: BooleanEntityValue =>
 				BooleanStorageValue(value.value)
 			case value: CharEntityValue =>
@@ -128,22 +133,22 @@ object Marshaller {
 
 	def marshalling(action: MigrationAction): StorageMigrationAction =
 		action match {
-			case CreateTable(migration, number, tableName, columns) =>
-				StorageCreateTable(tableName, marshalling(columns))
-			case RenameTable(migration, number, oldName, newName) =>
-				StorageRenameTable(oldName, newName)
-			case RemoveTable(migration, number, name) =>
-				StorageRemoveTable(name)
-			case AddColumn(migration, number, tableName, column) =>
-				StorageAddColumn(tableName, marshalling(column))
-			case RenameColumn(migration, number, tableName, oldName, column) =>
-				StorageRenameColumn(tableName, oldName, marshalling(column))
-			case RemoveColumn(migration, number, tableName, name) =>
-				StorageRemoveColumn(tableName, name)
-			case AddIndex(migration, number, tableName, columnName, indexName) =>
-				StorageAddIndex(tableName, columnName, indexName)
-			case RemoveIndex(migration, number, tableName, name) =>
-				StorageRemoveIndex(tableName, name)
+			case action: CreateTable =>
+				StorageCreateTable(action.tableName, marshalling(action.columns), action.onlyIfNotExists)
+			case action: RenameTable =>
+				StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
+			case action: RemoveTable =>
+				StorageRemoveTable(action.name, action.onlyIfExists)
+			case action: AddColumn =>
+				StorageAddColumn(action.tableName, marshalling(action.column), action.onlyIfNotExists)
+			case action: RenameColumn =>
+				StorageRenameColumn(action.tableName, action.oldName, marshalling(action.column), action.onlyIfExists)
+			case action: RemoveColumn =>
+				StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
+			case action: AddIndex =>
+				StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
+			case action: RemoveIndex =>
+				StorageRemoveIndex(action.tableName, action.name, action.onlyIfExists)
 		}
 
 	def marshalling(columns: List[Column[_]]): List[StorageColumn] =
@@ -156,11 +161,11 @@ object Marshaller {
 case class StorageColumn(name: String, storageValue: StorageValue)
 
 sealed trait StorageMigrationAction
-case class StorageCreateTable(tableName: String, columns: List[StorageColumn]) extends StorageMigrationAction
-case class StorageRenameTable(oldName: String, newName: String) extends StorageMigrationAction
-case class StorageRemoveTable(name: String) extends StorageMigrationAction
-case class StorageAddColumn(tableName: String, column: StorageColumn) extends StorageMigrationAction
-case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn) extends StorageMigrationAction
-case class StorageRemoveColumn(tableName: String, name: String) extends StorageMigrationAction
-case class StorageAddIndex(tableName: String, columnName: String, indexName: String) extends StorageMigrationAction
-case class StorageRemoveIndex(tableName: String, name: String) extends StorageMigrationAction
+case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends StorageMigrationAction
+case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveTable(name: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends StorageMigrationAction
+case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn, ifExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveIndex(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction

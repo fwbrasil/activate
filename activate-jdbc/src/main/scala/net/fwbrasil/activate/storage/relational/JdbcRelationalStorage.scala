@@ -37,11 +37,23 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		}
 	}
 
-	def execute(sqlStatement: SqlStatement, connection: Connection) = {
-		val stmt = createPreparedStatement(sqlStatement, connection, true)
-		stmt.executeUpdate
-		stmt.close
-	}
+	private def satisfyRestriction(statement: SqlStatement, connection: Connection) =
+		statement.restrictionQuery.map(tuple => {
+			val (query, expected) = tuple
+			val stmt = connection.prepareStatement(query)
+			val resultSet = stmt.executeQuery
+			resultSet.next
+			val result = resultSet.getInt(1)
+			result == expected
+		}).getOrElse(true)
+
+	def execute(sqlStatement: SqlStatement, connection: Connection) =
+		if (satisfyRestriction(sqlStatement, connection)) {
+			val stmt = createPreparedStatement(sqlStatement, connection, true)
+			stmt.executeUpdate
+			stmt.close
+		}
+
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance)), expectedTypes)
 

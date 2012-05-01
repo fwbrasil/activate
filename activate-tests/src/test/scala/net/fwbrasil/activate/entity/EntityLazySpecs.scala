@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.ActivateTestContext
 
 @RunWith(classOf[JUnitRunner])
 class EntityLazySpecs extends ActivateTest {

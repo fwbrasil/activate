@@ -29,7 +29,16 @@ import net.fwbrasil.activate.migration.AddIndex
 import net.fwbrasil.activate.migration.RemoveIndex
 import net.fwbrasil.activate.migration.Column
 
-case class SqlStatement(statement: String, binds: Map[String, StorageValue]) {
+class SqlStatement(val statement: String, val binds: Map[String, StorageValue], val restrictionQuery: Option[(String, Int)]) {
+
+	def this(statement: String, restrictionQuery: Option[(String, Int)]) =
+		this(statement, Map(), restrictionQuery)
+
+	def this(statement: String) =
+		this(statement, Map(), None)
+
+	def this(statement: String, binds: Map[String, StorageValue]) =
+		this(statement, binds, None)
 
 	// TODO Fazer em 3 linhas!
 	def toIndexedBind = {
@@ -61,6 +70,8 @@ abstract class SqlIdiom {
 		storageValue match {
 			case value: IntStorageValue =>
 				setValue(ps, (v: Int) => ps.setInt(i, v), i, value.value, Types.INTEGER)
+			case value: LongStorageValue =>
+				setValue(ps, (v: Long) => ps.setLong(i, v), i, value.value, Types.DECIMAL)
 			case value: BooleanStorageValue =>
 				setValue(ps, (v: Boolean) => ps.setBoolean(i, v), i, value.value, Types.BIT)
 			case value: StringStorageValue =>
@@ -74,7 +85,7 @@ abstract class SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				setValue(ps, (v: BigDecimal) => ps.setBigDecimal(i, v.bigDecimal), i, value.value, Types.BIGINT)
 			case value: ByteArrayStorageValue =>
-				setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BLOB)
+				setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BINARY)
 			case value: ReferenceStorageValue =>
 				setValue(ps, (v: String) => ps.setString(i, v), i, value.value, Types.VARCHAR)
 		}
@@ -92,6 +103,8 @@ abstract class SqlIdiom {
 		storageValue match {
 			case value: IntStorageValue =>
 				IntStorageValue(getValue(resultSet, resultSet.getInt(i)))
+			case value: LongStorageValue =>
+				LongStorageValue(getValue(resultSet, resultSet.getLong(i)))
 			case value: BooleanStorageValue =>
 				BooleanStorageValue(getValue(resultSet, resultSet.getBoolean(i)))
 			case value: StringStorageValue =>
@@ -114,21 +127,21 @@ abstract class SqlIdiom {
 	def toSqlStatement(statement: StorageStatement): SqlStatement = {
 		statement match {
 			case insert: InsertDmlStorageStatement =>
-				SqlStatement(
+				new SqlStatement(
 					"INSERT INTO " + toTableName(insert.entityClass) +
 						" (" + insert.propertyMap.keys.mkString(", ") + ") " +
 						" VALUES (:" + insert.propertyMap.keys.mkString(", :") + ")",
 					insert.propertyMap)
 
 			case update: UpdateDmlStorageStatement =>
-				SqlStatement(
+				new SqlStatement(
 					"UPDATE " + toTableName(update.entityClass) +
 						" SET " + (for (key <- update.propertyMap.keys) yield key + " = :" + key).mkString(", ") +
 						" WHERE ID = :id",
 					update.propertyMap)
 
 			case delete: DeleteDmlStorageStatement =>
-				SqlStatement(
+				new SqlStatement(
 					"DELETE FROM " + toTableName(delete.entityClass) +
 						" WHERE ID = '" + delete.entityId + "'",
 					delete.propertyMap)
@@ -147,8 +160,7 @@ abstract class SqlIdiom {
 
 	def toSqlDml(query: Query[_]): SqlStatement = {
 		implicit val binds = MutableMap[StorageValue, String]()
-
-		SqlStatement("SELECT DISTINCT " + toSqlDml(query.select) +
+		new SqlStatement("SELECT DISTINCT " + toSqlDml(query.select) +
 			" FROM " + toSqlDml(query.from) + " WHERE " + toSqlDml(query.where) + toSqlDmlOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
 	}
 
@@ -271,46 +283,61 @@ abstract class SqlIdiom {
 	def toTableName(entityClass: Class[_]): String =
 		EntityHelper.getEntityName(entityClass)
 
-	def toSqlDdl(statement: DdlStorageStatement): SqlStatement = {
-		statement.action match {
-			case StorageCreateTable(tableName, columns) =>
-				SqlStatement(
-					"CREATE TABLE " + tableName + "(\n" +
-						"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
-						columns.map(toSqlDdl).mkString(", \n") +
-						")",
-					Map())
-			case StorageRenameTable(oldName, newName) =>
-				SqlStatement(
-					"RENAME TABLE " + oldName + " TO " + newName,
-					Map())
-			case StorageRemoveTable(name) =>
-				SqlStatement(
-					"DROP TABLE " + name,
-					Map())
-			case StorageAddColumn(tableName, column) =>
-				SqlStatement(
-					"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column),
-					Map())
-			case StorageRenameColumn(tableName, oldName, column) =>
-				SqlStatement(
-					"ALTER TABLE " + tableName + " CHANGE " + oldName + " " + toSqlDdl(column),
-					Map())
-			case StorageRemoveColumn(tableName, name) =>
-				SqlStatement(
-					"ALTER TABLE " + tableName + " DROP COLUMN " + name,
-					Map())
-			case StorageAddIndex(tableName, columnName, indexName) =>
-				SqlStatement(
-					"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")",
-					Map())
-			case StorageRemoveIndex(tableName, name) =>
-				SqlStatement(
-					"DROP INDEX " + name + " ON " + tableName,
-					Map())
-		}
-	}
+	def toSqlDdl(statement: StorageMigrationAction): String
 
+	def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
+		statement.action match {
+			case action: StorageCreateTable =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists))
+			case action: StorageRenameTable =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findTableStatement(action.oldName), action.ifExists))
+			case action: StorageRemoveTable =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findTableStatement(action.name), action.ifExists))
+			case action: StorageAddColumn =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists))
+			case action: StorageRenameColumn =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifExists))
+			case action: StorageRemoveColumn =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists))
+			case action: StorageAddIndex =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists))
+			case action: StorageRemoveIndex =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists))
+		}
+
+	def findTableStatement(tableName: String): String
+
+	def findTableColumnStatement(tableName: String, columnName: String): String
+
+	def findIndexStatement(tableName: String, indexName: String): String
+
+	def ifExistsRestriction(statement: String, boolean: Boolean) =
+		if (boolean)
+			Option(statement, 1)
+		else
+			None
+
+	def ifNotExistsRestriction(statement: String, boolean: Boolean) =
+		if (boolean)
+			Option(statement, 0)
+		else
+			None
 }
 
 object mySqlDialect extends SqlIdiom {
@@ -336,10 +363,56 @@ object mySqlDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
 		value + " REGEXP " + regex
 
+	override def findTableStatement(tableName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.TABLES " +
+			" WHERE TABLE_SCHEMA = (SELECT DATABASE()) " +
+			"   AND TABLE_NAME = '" + tableName + "'"
+
+	override def findTableColumnStatement(tableName: String, columnName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.COLUMNS " +
+			" WHERE TABLE_SCHEMA = (SELECT DATABASE()) " +
+			"   AND TABLE_NAME = '" + tableName + "'" +
+			"   AND COLUMN_NAME = '" + columnName + "'"
+
+	override def findIndexStatement(tableName: String, indexName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.STATISTICS " +
+			" WHERE TABLE_SCHEMA = (SELECT DATABASE()) " +
+			"   AND TABLE_NAME = '" + tableName + "'" +
+			"   AND INDEX_NAME = '" + indexName + "'"
+
+	override def toSqlDdl(action: StorageMigrationAction): String = {
+		action match {
+			case StorageCreateTable(tableName, columns, ifNotExists) =>
+				"CREATE TABLE " + tableName + "(\n" +
+					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+					columns.map(toSqlDdl).mkString(", \n") +
+					")"
+			case StorageRenameTable(oldName, newName, ifExists) =>
+				"RENAME TABLE " + oldName + " TO " + newName
+			case StorageRemoveTable(name, ifExists) =>
+				"DROP TABLE " + name
+			case StorageAddColumn(tableName, column, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+				"ALTER TABLE " + tableName + " CHANGE " + oldName + " " + toSqlDdl(column)
+			case StorageRemoveColumn(tableName, name, ifExists) =>
+				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
+				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			case StorageRemoveIndex(tableName, name, ifExists) =>
+				"DROP INDEX " + name + " ON " + tableName
+		}
+	}
+
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
 				"INTEGER"
+			case value: LongStorageValue =>
+				"BIGINT"
 			case value: BooleanStorageValue =>
 				"BOOLEAN"
 			case value: StringStorageValue =>
@@ -363,28 +436,56 @@ object postgresqlDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
 		value + " ~ " + regex
 
-	override def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
-		statement.action match {
-			case StorageRenameColumn(tableName, oldName, column) =>
-				SqlStatement(
-					"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name,
-					Map())
-			case StorageRemoveIndex(tableName, name) =>
-				SqlStatement(
-					"DROP INDEX " + name,
-					Map())
-			case StorageRenameTable(oldName, newName) =>
-				SqlStatement(
-					"ALTER TABLE " + oldName + " RENAME TO " + newName,
-					Map())
-			case other =>
-				super.toSqlDdl(statement)
+	override def findTableStatement(tableName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.TABLES " +
+			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'"
+
+	override def findTableColumnStatement(tableName: String, columnName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.COLUMNS " +
+			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
+			"   AND COLUMN_NAME = '" + columnName.toLowerCase + "'"
+
+	override def findIndexStatement(tableName: String, indexName: String) =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.STATISTICS " +
+			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
+			"   AND INDEX_NAME = '" + indexName.toLowerCase + "'"
+
+	override def toSqlDdl(action: StorageMigrationAction): String = {
+		action match {
+			case StorageCreateTable(tableName, columns, ifNotExists) =>
+				"CREATE TABLE " + tableName + "(\n" +
+					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
+					columns.map(toSqlDdl).mkString(", \n") +
+					")"
+			case StorageRenameTable(oldName, newName, ifExists) =>
+				"ALTER TABLE " + oldName + " RENAME TO " + newName
+			case StorageRemoveTable(name, ifExists) =>
+				"DROP TABLE " + name
+			case StorageAddColumn(tableName, column, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+				"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name
+			case StorageRemoveColumn(tableName, name, ifExists) =>
+				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
+				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			case StorageRemoveIndex(tableName, name, ifExists) =>
+				"DROP INDEX " + name
 		}
+	}
 
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
 				"INTEGER"
+			case value: LongStorageValue =>
+				"DECIMAL"
 			case value: BooleanStorageValue =>
 				"BOOLEAN"
 			case value: StringStorageValue =>
@@ -408,28 +509,45 @@ object oracleDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
 		"REGEXP_LIKE(" + value + ", " + regex + ")"
 
-	override def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
-		statement.action match {
-			case StorageRenameColumn(tableName, oldName, column) =>
-				SqlStatement(
-					"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name,
-					Map())
-			case StorageRemoveIndex(tableName, name) =>
-				SqlStatement(
-					"DROP INDEX " + name,
-					Map())
-			case StorageRenameTable(oldName, newName) =>
-				SqlStatement(
-					"ALTER TABLE " + oldName + " RENAME TO " + newName,
-					Map())
-			case other =>
-				super.toSqlDdl(statement)
+	override def findTableStatement(tableName: String) =
+		"SELECT COUNT(1) FROM USER_TABLES WHERE TABLE_NAME = '" + tableName.toUpperCase + "'"
+
+	override def findTableColumnStatement(tableName: String, columnName: String) =
+		"SELECT COUNT(1) FROM USER_COLUMNS WHERE TABLE_NAME = '" + tableName.toUpperCase + "' AND COLUMN " + columnName.toUpperCase
+
+	override def findIndexStatement(tableName: String, indexName: String) =
+		"SELECT COUNT(1) FROM USER_INDEXES WHERE INDEX_NAME = '" + indexName.toUpperCase + "'"
+
+	override def toSqlDdl(action: StorageMigrationAction): String = {
+		action match {
+			case StorageCreateTable(tableName, columns, ifNotExists) =>
+				"CREATE TABLE " + tableName + "(\n" +
+					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY,\n" +
+					columns.map(toSqlDdl).mkString(", \n") +
+					")"
+			case StorageRenameTable(oldName, newName, ifExists) =>
+				"ALTER TABLE " + oldName + " RENAME TO " + newName
+			case StorageRemoveTable(tableName, ifExists) =>
+				"DROP TABLE " + tableName
+			case StorageAddColumn(tableName, column, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+				"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name
+			case StorageRemoveColumn(tableName, name, ifExists) =>
+				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
+				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			case StorageRemoveIndex(tableName, name, ifExists) =>
+				"DROP INDEX " + name
 		}
+	}
 
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
 				"INTEGER"
+			case value: LongStorageValue =>
+				"DECIMAL"
 			case value: BooleanStorageValue =>
 				"NUMBER(1)"
 			case value: StringStorageValue =>

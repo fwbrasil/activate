@@ -238,6 +238,9 @@ object EntityHelper {
 
 	var initialized = false
 
+	def metadatas =
+		entitiesMetadatas.values.toList
+
 	def concreteClasses[E <: Entity](clazz: Class[E]) =
 		concreteEntityClasses.getOrElse(clazz, {
 			for (

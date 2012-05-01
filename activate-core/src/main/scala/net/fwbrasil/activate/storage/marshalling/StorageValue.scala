@@ -8,6 +8,9 @@ abstract class StorageValue(val value: Option[_]) extends Serializable
 case class IntStorageValue(override val value: Option[Int])
 	extends StorageValue(value)
 
+case class LongStorageValue(override val value: Option[Long])
+	extends StorageValue(value)
+
 case class BooleanStorageValue(override val value: Option[Boolean])
 	extends StorageValue(value)
 
