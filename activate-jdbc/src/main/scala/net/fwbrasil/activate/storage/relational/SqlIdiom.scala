@@ -220,7 +220,7 @@ abstract class SqlIdiom {
 
 	def toSqlDml[V](value: QueryEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
-			case value: QueryEntityInstanceValue[Entity] =>
+			case value: QueryEntityInstanceValue[_] =>
 				bind(StringStorageValue(Option(value.entityId)))
 			case value: QueryEntitySourcePropertyValue[v] =>
 				value.entitySource.name + "." + value.propertyPathNames.mkString(".")

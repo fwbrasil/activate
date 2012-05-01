@@ -121,9 +121,9 @@ object Marshaller {
 				DateStorageValue(value.value.map(_.getTime))
 			case value: ByteArrayEntityValue =>
 				ByteArrayStorageValue(value.value)
-			case value: EntityInstanceEntityValue[Entity] =>
+			case value: EntityInstanceEntityValue[_] =>
 				ReferenceStorageValue(value.value.map(_.id))
-			case value: EntityInstanceReferenceValue[Entity] =>
+			case value: EntityInstanceReferenceValue[_] =>
 				ReferenceStorageValue(value.value)
 			case value: EnumerationEntityValue[_] =>
 				StringStorageValue(value.value.map(_.toString))

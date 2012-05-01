@@ -200,11 +200,11 @@ object Reflection {
 			Set(obj)
 		else
 			obj match {
-				case seq: Seq[Any] =>
+				case seq: Seq[_] =>
 					(for (value <- seq)
 						yield findObject(value)(f)).flatten.toSet
 				case obj: Product =>
-					(for (elem <- obj.productElements.toList)
+					(for (elem <- obj.productIterator.toList)
 						yield findObject(elem)(f)).flatten.toSet
 				case other =>
 					Set()
@@ -218,7 +218,7 @@ object Reflection {
 			substitute.asInstanceOf[T]
 		} else
 			(obj match {
-				case seq: Seq[Any] =>
+				case seq: Seq[_] =>
 					for (elem <- seq; if (elem != Nil))
 						yield deepCopyMapping(elem, map)
 				case obj: Enumeration#Value =>
@@ -227,7 +227,7 @@ object Reflection {
 					obj
 				case obj: Product =>
 					val values =
-						for (elem <- obj.productElements.toList)
+						for (elem <- obj.productIterator.toList)
 							yield deepCopyMapping(elem, map)
 					val constructors = obj.niceClass.getConstructors
 					val constructorOption = constructors.headOption
