@@ -82,7 +82,7 @@ trait MarshalStorage extends Storage {
 	override def migrate(action: MigrationAction): Unit =
 		migrateStorage(Marshaller.marshalling(action))
 
-	def migrateStorage(action: StorageMigrationAction): Unit = {}
+	def migrateStorage(action: StorageMigrationAction): Unit
 
 }
 

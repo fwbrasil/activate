@@ -17,6 +17,6 @@ trait Storage {
 	def reinitialize = {
 
 	}
-	def migrate(action: MigrationAction): Unit = {}
+	def migrate(action: MigrationAction): Unit
 
 }

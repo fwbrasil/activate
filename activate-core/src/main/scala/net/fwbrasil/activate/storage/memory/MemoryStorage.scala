@@ -5,6 +5,8 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
 import scala.collection.mutable.{ HashMap => MutableHashMap }
+import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.migration.MigrationAction
 
 class MemoryStorage extends Storage {
 
@@ -20,6 +22,8 @@ class MemoryStorage extends Storage {
 	}
 
 	override def isMemoryStorage = true
+
+	override def migrate(action: MigrationAction): Unit = {}
 
 }
 

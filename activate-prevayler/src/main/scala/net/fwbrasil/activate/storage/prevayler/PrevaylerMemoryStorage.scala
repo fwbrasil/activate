@@ -7,8 +7,9 @@ import net.fwbrasil.activate.entity.{ EntityValue, Entity, Var, EntityInstanceRe
 import net.fwbrasil.radon.transaction.Transaction
 import org.prevayler.{ Transaction => PrevaylerTransaction, PrevaylerFactory, Prevayler }
 import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
+import net.fwbrasil.activate.util.Logging
 
-class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MarshalStorage {
+class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
 
 	var prevayler: Prevayler = _
 
@@ -57,6 +58,9 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		List()
+
+	override def migrateStorage(action: StorageMigrationAction): Unit =
+		logWarn("PrevaylerStorage ignores Migration actions (only customScritps are executed)") {}
 
 	override def isMemoryStorage = true
 
