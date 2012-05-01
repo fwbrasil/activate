@@ -1,5 +1,11 @@
 package net.fwbrasil.activate.util
 
+import net.fwbrasil.scala.Tuple23
+import net.fwbrasil.scala.Tuple27
+import net.fwbrasil.scala.Tuple24
+import net.fwbrasil.scala.Tuple25
+import net.fwbrasil.scala.Tuple26
+
 object CollectionUtil {
 
 	def combine[T](lists: Seq[Seq[T]]) =
@@ -55,6 +61,16 @@ object CollectionUtil {
 				Tuple21(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20))
 			case 22 =>
 				Tuple22(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21))
+			case 23 =>
+				new Tuple23(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22))
+			case 24 =>
+				new Tuple24(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23))
+			case 25 =>
+				new Tuple25(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24))
+			case 26 =>
+				new Tuple26(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24), seq(25))
+			case 27 =>
+				new Tuple27(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24), seq(25), seq(26))
 			case other =>
 				throw new IllegalStateException("Seq has too many itens to be a tuple!")
 		}).asInstanceOf[T]

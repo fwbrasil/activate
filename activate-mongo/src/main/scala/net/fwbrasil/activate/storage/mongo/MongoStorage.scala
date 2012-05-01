@@ -42,7 +42,11 @@ trait MongoStorage extends MarshalStorage {
 
 	override def supportComplexQueries = false
 
-	override def store(insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+	override def store(
+		insertList: List[(Entity, Map[String, StorageValue])],
+		updateList: List[(Entity, Map[String, StorageValue])],
+		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+
 		for ((entity, properties) <- insertList) {
 			val doc = new BasicDBObject();
 			for ((name, value) <- properties; if (name != "id"))
@@ -97,7 +101,10 @@ trait MongoStorage extends MarshalStorage {
 		coll(entity.niceClass)
 
 	private[this] def coll(entityClass: Class[_]): DBCollection =
-		mongoDB.getCollection(getEntityName(entityClass))
+		coll(getEntityName(entityClass))
+
+	private[this] def coll(entityName: String): DBCollection =
+		mongoDB.getCollection(entityName)
 
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		if (queryInstance.from.entitySources.size != 1)
@@ -118,6 +125,8 @@ trait MongoStorage extends MarshalStorage {
 		storageValue match {
 			case value: IntStorageValue =>
 				IntStorageValue(getValue[Int](obj, name))
+			case value: LongStorageValue =>
+				LongStorageValue(getValue[Long](obj, name))
 			case value: BooleanStorageValue =>
 				BooleanStorageValue(getValue[Boolean](obj, name))
 			case value: StringStorageValue =>
@@ -241,6 +250,38 @@ trait MongoStorage extends MarshalStorage {
 				"$regex"
 			case operator: IsEqualTo =>
 				throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
+		}
+
+	override def migrateStorage(action: StorageMigrationAction): Unit =
+		action match {
+			case action: StorageCreateTable =>
+				coll(action.tableName)
+			case action: StorageRenameTable =>
+				coll(action.oldName).rename(action.newName)
+			case action: StorageRemoveTable =>
+				coll(action.name).drop
+			case action: StorageAddColumn =>
+			// Do nothing!
+			case action: StorageRenameColumn =>
+				val update = new BasicDBObject
+				val updateInner = new BasicDBObject
+				updateInner.put(action.oldName, action.column.name)
+				update.put("$rename", updateInner)
+				coll(action.tableName).update(new BasicDBObject, update)
+			case action: StorageRemoveColumn =>
+				val update = new BasicDBObject
+				val updateInner = new BasicDBObject
+				updateInner.put(action.name, 1)
+				update.put("$unset", updateInner)
+				coll(action.tableName).update(new BasicDBObject, update)
+			case action: StorageAddIndex =>
+				val obj = new BasicDBObject
+				obj.put(action.columnName, 1)
+				coll(action.tableName).ensureIndex(obj)
+			case action: StorageRemoveIndex =>
+				val obj = new BasicDBObject
+				obj.put(action.columnName, 1)
+				coll(action.tableName).dropIndex(obj)
 		}
 
 }

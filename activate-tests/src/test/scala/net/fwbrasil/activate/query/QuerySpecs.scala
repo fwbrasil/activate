@@ -51,6 +51,7 @@ class QuerySpecs extends ActivateTest {
 					step {
 						allWhere[ActivateTestEntity](
 							_.intValue :== fullIntValue,
+							_.longValue :== fullLongValue,
 							_.booleanValue :== fullBooleanValue,
 							_.charValue :== fullCharValue,
 							_.stringValue :== fullStringValue,
@@ -67,6 +68,7 @@ class QuerySpecs extends ActivateTest {
 
 						allWhere[ActivateTestEntity](
 							_.intValue isNotNull,
+							_.longValue isNotNull,
 							_.booleanValue isNotNull,
 							_.charValue isNotNull,
 							_.stringValue isNotNull,
@@ -201,6 +203,16 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :> fullIntValue) select (e)
+						}.execute.size must beEqualTo(0)
+
+						query {
+							(e: ActivateTestEntity) =>
+								where(e.longValue :< fullLongValue) select (e)
+						}.execute.size must beEqualTo(2)
+
+						query {
+							(e: ActivateTestEntity) =>
+								where(e.longValue :> fullLongValue) select (e)
 						}.execute.size must beEqualTo(0)
 					}
 				})

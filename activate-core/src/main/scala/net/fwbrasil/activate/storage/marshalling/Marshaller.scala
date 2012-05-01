@@ -148,7 +148,7 @@ object Marshaller {
 			case action: AddIndex =>
 				StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
 			case action: RemoveIndex =>
-				StorageRemoveIndex(action.tableName, action.name, action.onlyIfExists)
+				StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
 		}
 
 	def marshalling(columns: List[Column[_]]): List[StorageColumn] =
@@ -168,4 +168,4 @@ case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExist
 case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn, ifExists: Boolean) extends StorageMigrationAction
 case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction
 case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean) extends StorageMigrationAction
-case class StorageRemoveIndex(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveIndex(tableName: String, columnName: String, name: String, ifExists: Boolean) extends StorageMigrationAction

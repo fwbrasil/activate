@@ -402,7 +402,7 @@ object mySqlDialect extends SqlIdiom {
 				"ALTER TABLE " + tableName + " DROP COLUMN " + name
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
-			case StorageRemoveIndex(tableName, name, ifExists) =>
+			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name + " ON " + tableName
 		}
 	}
@@ -475,7 +475,7 @@ object postgresqlDialect extends SqlIdiom {
 				"ALTER TABLE " + tableName + " DROP COLUMN " + name
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
-			case StorageRemoveIndex(tableName, name, ifExists) =>
+			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name
 		}
 	}
@@ -537,7 +537,7 @@ object oracleDialect extends SqlIdiom {
 				"ALTER TABLE " + tableName + " DROP COLUMN " + name
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
-			case StorageRemoveIndex(tableName, name, ifExists) =>
+			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name
 		}
 	}
