@@ -186,7 +186,7 @@ object EntityEnhancer extends Logging {
 			_enhancedEntityClasses.get
 		else {
 			verifyNoVerify
-			val entityClassNames = Reflection.getAllImplementorsNames(referenceClass: Class[_], classOf[Entity])
+			val entityClassNames = Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
 			var enhancedEntityClasses = Set[CtClass]()
 			val classPool = ClassPool.getDefault
 			classPool.appendClassPath(new ClassClassPath(this.niceClass))

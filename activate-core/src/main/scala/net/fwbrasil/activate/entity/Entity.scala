@@ -174,6 +174,7 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
 }
 
 class EntityPropertyMetadata(
+		val entityMetadata: EntityMetadata,
 		val varField: Field,
 		entityMethods: List[Method],
 		entityClass: Class[Entity],
@@ -188,6 +189,7 @@ class EntityPropertyMetadata(
 			"\"case class MyEnum(name: String) extends Val(name)\"")
 	val getter = entityMethods.find(_.getName == name).get
 	val setter = entityMethods.find(_.getName == name + "_$eq").getOrElse(null)
+	EntityValue.tvalFunctionOption(propertyType).getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
 	varField.setAccessible(true)
 	getter.setAccessible(true)
 	override def toString = "Property: " + name
@@ -222,7 +224,7 @@ class EntityMetadata(
 	}
 	val propertiesMetadata =
 		(for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)).sortBy(_.name)
+			yield new EntityPropertyMetadata(this, varField, allMethods, entityClass, varTypes)).sortBy(_.name)
 	allMethods.foreach(_.setAccessible(true))
 	allFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name
