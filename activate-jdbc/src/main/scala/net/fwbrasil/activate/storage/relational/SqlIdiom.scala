@@ -1,3 +1,4 @@
+
 package net.fwbrasil.activate.storage.relational
 
 import java.util.regex.Pattern
@@ -319,6 +320,14 @@ abstract class SqlIdiom {
 				new SqlStatement(
 					toSqlDdl(action),
 					ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists))
+			case action: StorageAddReference =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists))
+			case action: StorageRemoveReference =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists))
 		}
 
 	def findTableStatement(tableName: String): String
@@ -326,6 +335,8 @@ abstract class SqlIdiom {
 	def findTableColumnStatement(tableName: String, columnName: String): String
 
 	def findIndexStatement(tableName: String, indexName: String): String
+
+	def findConstraintStatement(tableName: String, constraintName: String): String
 
 	def ifExistsRestriction(statement: String, boolean: Boolean) =
 		if (boolean)
@@ -383,6 +394,13 @@ object mySqlDialect extends SqlIdiom {
 			"   AND TABLE_NAME = '" + tableName + "'" +
 			"   AND INDEX_NAME = '" + indexName + "'"
 
+	override def findConstraintStatement(tableName: String, constraintName: String): String =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
+			" WHERE TABLE_SCHEMA = (SELECT DATABASE()) " +
+			"   AND TABLE_NAME = '" + tableName + "'" +
+			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
@@ -404,6 +422,10 @@ object mySqlDialect extends SqlIdiom {
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name + " ON " + tableName
+			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
 		}
 	}
 
@@ -456,6 +478,13 @@ object postgresqlDialect extends SqlIdiom {
 			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
 			"   AND INDEX_NAME = '" + indexName.toLowerCase + "'"
 
+	override def findConstraintStatement(tableName: String, constraintName: String): String =
+		"SELECT COUNT(1) " +
+			"  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
+			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
+			"   AND CONSTRAINT_NAME = '" + constraintName.toLowerCase + "'"
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
@@ -477,6 +506,10 @@ object postgresqlDialect extends SqlIdiom {
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name
+			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
 		}
 	}
 
@@ -525,6 +558,12 @@ object oracleDialect extends SqlIdiom {
 			"  FROM USER_INDEXES " +
 			" WHERE INDEX_NAME = '" + indexName.toUpperCase + "'"
 
+	override def findConstraintStatement(tableName: String, constraintName: String): String =
+		"SELECT COUNT(1) " +
+			"  FROM USER_CONSTRAINTS " +
+			" WHERE TABLE_NAME = '" + tableName + "'" +
+			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
@@ -546,6 +585,10 @@ object oracleDialect extends SqlIdiom {
 				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
 				"DROP INDEX " + name
+			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
 		}
 	}
 

@@ -23,6 +23,8 @@ import net.fwbrasil.activate.query._
 import java.util.Date
 import net.fwbrasil.activate.entity._
 import java.util.regex.Pattern
+import net.fwbrasil.activate.migration.AddReference
+import net.fwbrasil.activate.migration.RemoveReference
 
 trait MongoStorage extends MarshalStorage {
 
@@ -282,6 +284,10 @@ trait MongoStorage extends MarshalStorage {
 				val obj = new BasicDBObject
 				obj.put(action.columnName, 1)
 				coll(action.tableName).dropIndex(obj)
+			case action: StorageAddReference =>
+			// Do nothing!
+			case action: StorageRemoveReference =>
+			// Do nothing!
 		}
 
 }

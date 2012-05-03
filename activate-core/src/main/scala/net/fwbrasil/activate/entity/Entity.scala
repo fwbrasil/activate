@@ -221,8 +221,8 @@ class EntityMetadata(
 		ret
 	}
 	val propertiesMetadata =
-		for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)
+		(for (varField <- varFields; if (isEntityProperty(varField)))
+			yield new EntityPropertyMetadata(varField, allMethods, entityClass, varTypes)).sortBy(_.name)
 	allMethods.foreach(_.setAccessible(true))
 	allFields.foreach(_.setAccessible(true))
 	override def toString = "Entity metadata for " + name
@@ -239,7 +239,7 @@ object EntityHelper {
 	var initialized = false
 
 	def metadatas =
-		entitiesMetadatas.values.toList
+		entitiesMetadatas.values.toList.sortBy(_.name)
 
 	def concreteClasses[E <: Entity](clazz: Class[E]) =
 		concreteEntityClasses.getOrElse(clazz, {

@@ -44,6 +44,8 @@ import net.fwbrasil.activate.migration.AddColumn
 import net.fwbrasil.activate.migration.AddIndex
 import net.fwbrasil.activate.migration.Column
 import net.fwbrasil.activate.migration.CustomScriptAction
+import net.fwbrasil.activate.migration.AddReference
+import net.fwbrasil.activate.migration.RemoveReference
 
 object Marshaller {
 
@@ -149,6 +151,10 @@ object Marshaller {
 				StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
 			case action: RemoveIndex =>
 				StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
+			case action: AddReference =>
+				StorageAddReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfNotExists)
+			case action: RemoveReference =>
+				StorageRemoveReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfExists)
 		}
 
 	def marshalling(columns: List[Column[_]]): List[StorageColumn] =
@@ -169,3 +175,5 @@ case class StorageRenameColumn(tableName: String, oldName: String, column: Stora
 case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends StorageMigrationAction
 case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean) extends StorageMigrationAction
 case class StorageRemoveIndex(tableName: String, columnName: String, name: String, ifExists: Boolean) extends StorageMigrationAction
+case class StorageAddReference(tableName: String, columnName: String, referencedTable: String, constraintName: String, ifNotExists: Boolean) extends StorageMigrationAction
+case class StorageRemoveReference(tableName: String, columnName: String, referencedTable: String, constraintName: String, ifExists: Boolean) extends StorageMigrationAction
