@@ -154,7 +154,9 @@ abstract class SqlIdiom {
 	def toSqlDdl(storageValue: StorageValue): String
 
 	def toSqlDdl(column: StorageColumn): String =
-		"	" + column.name + " " + toSqlDdl(column.storageValue)
+		"	" + escape(column.name) + " " + toSqlDdl(column.storageValue)
+
+	def escape(string: String): String
 
 	def toSqlDml(statement: QueryStorageStatement): SqlStatement =
 		toSqlDml(statement.query)
@@ -401,31 +403,34 @@ object mySqlDialect extends SqlIdiom {
 			"   AND TABLE_NAME = '" + tableName + "'" +
 			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
 
+	override def escape(string: String) =
+		"`" + string + "`"
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
-				"CREATE TABLE " + tableName + "(\n" +
+				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
 					columns.map(toSqlDdl).mkString(", \n") +
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
-				"RENAME TABLE " + oldName + " TO " + newName
+				"RENAME TABLE " + escape(oldName) + " TO " + escape(newName)
 			case StorageRemoveTable(name, ifExists, isCascade) =>
-				"DROP TABLE " + name + (if (isCascade) " CASCADE" else "")
+				"DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+				"ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
-				"ALTER TABLE " + tableName + " CHANGE " + oldName + " " + toSqlDdl(column)
+				"ALTER TABLE " + escape(tableName) + " CHANGE " + escape(oldName) + " " + toSqlDdl(column)
 			case StorageRemoveColumn(tableName, name, ifExists) =>
-				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+				"ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
-				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+				"CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-				"DROP INDEX " + name + " ON " + tableName
+				"DROP INDEX " + escape(name) + " ON " + escape(tableName)
 			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
 			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
+				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
 		}
 	}
 
@@ -485,31 +490,35 @@ object postgresqlDialect extends SqlIdiom {
 			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
 			"   AND CONSTRAINT_NAME = '" + constraintName.toLowerCase + "'"
 
+	override def escape(string: String) =
+		"\"" + string.toLowerCase + "\""
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
-				"CREATE TABLE " + tableName + "(\n" +
+				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
 					columns.map(toSqlDdl).mkString(", \n") +
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
-				"ALTER TABLE " + oldName + " RENAME TO " + newName
+				"ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
 			case StorageRemoveTable(name, ifExists, isCascade) =>
-				"DROP TABLE " + name + (if (isCascade) " CASCADE" else "")
+				println("DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else ""))
+				"DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+				"ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
-				"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name
+				"ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
 			case StorageRemoveColumn(tableName, name, ifExists) =>
-				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+				"ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
-				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+				"CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-				"DROP INDEX " + name
+				"DROP INDEX " + escape(name)
 			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
 			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
+				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
 		}
 	}
 
@@ -564,31 +573,34 @@ object oracleDialect extends SqlIdiom {
 			" WHERE TABLE_NAME = '" + tableName + "'" +
 			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
 
+	override def escape(string: String) =
+		"\"" + string.toUpperCase + "\""
+
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
-				"CREATE TABLE " + tableName + "(\n" +
+				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(StringStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
 					columns.map(toSqlDdl).mkString(", \n") +
 					")"
 			case StorageRenameTable(oldName, newName, ifExists) =>
-				"ALTER TABLE " + oldName + " RENAME TO " + newName
+				"ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
 			case StorageRemoveTable(name, ifExists, isCascade) =>
-				"DROP TABLE " + name + (if (isCascade) " CASCADE constraints" else "")
+				"DROP TABLE " + escape(name) + (if (isCascade) " CASCADE constraints" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD " + toSqlDdl(column)
+				"ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
 			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
-				"ALTER TABLE " + tableName + " RENAME COLUMN " + oldName + " TO " + column.name
+				"ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
 			case StorageRemoveColumn(tableName, name, ifExists) =>
-				"ALTER TABLE " + tableName + " DROP COLUMN " + name
+				"ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
 			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
-				"CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+				"CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
 			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-				"DROP INDEX " + name
+				"DROP INDEX " + escape(name)
 			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " ADD CONSTRAINT " + constraintName + " FOREIGN KEY (" + columnName + ") REFERENCES " + referencedTable + "(id)"
+				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
 			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + tableName + " DROP CONSTRAINT " + constraintName
+				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
 		}
 	}
 
