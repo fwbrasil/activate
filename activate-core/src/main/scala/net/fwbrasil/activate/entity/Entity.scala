@@ -189,7 +189,9 @@ class EntityPropertyMetadata(
 			"\"case class MyEnum(name: String) extends Val(name)\"")
 	val getter = entityMethods.find(_.getName == name).get
 	val setter = entityMethods.find(_.getName == name + "_$eq").getOrElse(null)
-	EntityValue.tvalFunctionOption(propertyType).getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
+	val tval =
+		EntityValue.tvalFunctionOption[Any](propertyType)
+			.getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
 	varField.setAccessible(true)
 	getter.setAccessible(true)
 	override def toString = "Property: " + name
