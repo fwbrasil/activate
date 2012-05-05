@@ -10,7 +10,7 @@ import com.mongodb.DBObject
 import com.mongodb.DBCursor
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.entity.Entity
@@ -19,13 +19,35 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.JavaConversions._
-import net.fwbrasil.activate.query._
 import java.util.Date
 import net.fwbrasil.activate.entity._
 import java.util.regex.Pattern
 import net.fwbrasil.activate.migration.AddReference
 import net.fwbrasil.activate.migration.RemoveReference
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.statement.IsLessThan
+import net.fwbrasil.activate.statement.CompositeOperator
+import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.StatementEntityInstanceValue
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.BooleanOperatorCriteria
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.statement.CompositeOperatorCriteria
+import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.IsLessOrEqualTo
+import net.fwbrasil.activate.statement.IsNotNull
+import net.fwbrasil.activate.statement.IsNull
+import net.fwbrasil.activate.statement.IsGreaterThan
+import net.fwbrasil.activate.statement.SimpleOperatorCriteria
+import net.fwbrasil.activate.statement.And
+import net.fwbrasil.activate.statement.Or
+import net.fwbrasil.activate.statement.Matcher
+import net.fwbrasil.activate.statement.StatementBooleanValue
+import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
+import net.fwbrasil.activate.statement.StatementSelectValue
 
 trait MongoStorage extends MarshalStorage {
 
@@ -151,16 +173,16 @@ trait MongoStorage extends MarshalStorage {
 	def getValue[T](obj: DBObject, name: String) =
 		Option(obj.get(name).asInstanceOf[T])
 
-	def query(values: QuerySelectValue[_]*): Seq[String] =
+	def query(values: StatementSelectValue[_]*): Seq[String] =
 		for (value <- values)
 			yield value match {
-			case value: QueryEntitySourcePropertyValue[_] =>
+			case value: StatementEntitySourcePropertyValue[_] =>
 				val name = value.propertyPathNames.onlyOne
 				if (name == "id")
 					"_id"
 				else
 					name
-			case value: QueryEntitySourceValue[_] =>
+			case value: StatementEntitySourceValue[_] =>
 				"_id"
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage supports only entity properties inside select clause.")
@@ -203,33 +225,33 @@ trait MongoStorage extends MarshalStorage {
 		}
 	}
 
-	def query(value: QueryValue): Any =
+	def query(value: StatementValue): Any =
 		value match {
-			case value: SimpleQueryBooleanValue =>
+			case value: SimpleStatementBooleanValue =>
 				getMongoValue(Marshaller.marshalling(value.value))
 			case value: SimpleValue[_] =>
 				getMongoValue(Marshaller.marshalling(value.entityValue))
-			case value: QueryEntityInstanceValue[_] =>
+			case value: StatementEntityInstanceValue[_] =>
 				getMongoValue(StringStorageValue(Option(value.entityId)))
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria.")
 		}
 
-	def query(value: QueryBooleanValue): DBObject =
+	def query(value: StatementBooleanValue): DBObject =
 		value match {
 			case value: Criteria =>
 				query(value)
-			case value: SimpleQueryBooleanValue =>
+			case value: SimpleStatementBooleanValue =>
 				val list = new BasicDBList
 				list.add(value.value.toString)
 				list
 		}
 
-	def queryEntityProperty(value: QueryValue): String =
+	def queryEntityProperty(value: StatementValue): String =
 		value match {
-			case value: QueryEntitySourcePropertyValue[_] =>
+			case value: StatementEntitySourcePropertyValue[_] =>
 				value.propertyPathNames.onlyOne
-			case value: QueryEntitySourceValue[_] =>
+			case value: StatementEntitySourceValue[_] =>
 				"_id"
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage supports only entity properties on the left side of a criteria.")

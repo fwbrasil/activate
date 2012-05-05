@@ -1,7 +1,10 @@
-package net.fwbrasil.activate.query
+package net.fwbrasil.activate.statement.query
 
 import org.joda.time.base.AbstractInstant
 import scala.collection.immutable.TreeSet
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.StatementSelectValue
 
 trait OrderedQueryContext {
 
@@ -9,10 +12,10 @@ trait OrderedQueryContext {
 		def compare(x: A, y: A) = x.toDate.compareTo(y.toDate)
 	}
 
-	implicit def toOrderByCriteria[T](value: T)(implicit tval: (T) => QuerySelectValue[T], ordering: Ordering[T]) =
+	implicit def toOrderByCriteria[T](value: T)(implicit tval: (T) => StatementSelectValue[T], ordering: Ordering[T]) =
 		OrderByCriteria[T](value, orderByAscendingDirection, ordering)
 
-	implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (T) => QuerySelectValue[T], ordering: Ordering[T]) =
+	implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (T) => StatementSelectValue[T], ordering: Ordering[T]) =
 		OrderByDirectionWrapper[T](value)
 
 	implicit def toOrderByWrapper[S](query: Query[S]) =
@@ -74,14 +77,14 @@ case object orderByDescendingDirection extends OrderByDirection {
 	override def toString = "desc"
 }
 
-case class OrderByDirectionWrapper[T](value: QuerySelectValue[T])(implicit ordering: Ordering[T]) {
+case class OrderByDirectionWrapper[T](value: StatementSelectValue[T])(implicit ordering: Ordering[T]) {
 	def asc =
 		OrderByCriteria[T](value, orderByAscendingDirection, ordering)
 	def desc =
 		OrderByCriteria[T](value, orderByDescendingDirection, ordering)
 }
 
-case class OrderByCriteria[T](value: QuerySelectValue[T], direction: OrderByDirection, _ordering: Ordering[T]) {
+case class OrderByCriteria[T](value: StatementSelectValue[T], direction: OrderByDirection, _ordering: Ordering[T]) {
 	def ordering =
 		if (direction == orderByAscendingDirection)
 			_ordering

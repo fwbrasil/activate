@@ -1,38 +1,38 @@
 package net.fwbrasil.activate.cache.live
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.query.IsLessThan
-import net.fwbrasil.activate.query.QueryEntityValue
-import net.fwbrasil.activate.query.QueryValue
-import net.fwbrasil.activate.query.IsGreaterOrEqualTo
-import net.fwbrasil.activate.query.QueryEntitySourceValue
-import net.fwbrasil.activate.query.EntitySource
-import net.fwbrasil.activate.query.QueryEntitySourcePropertyValue
-import net.fwbrasil.activate.query.IsEqualTo
-import net.fwbrasil.activate.query.QuerySelectValue
-import net.fwbrasil.activate.query.BooleanOperatorCriteria
-import net.fwbrasil.activate.query.SimpleValue
-import net.fwbrasil.activate.query.CompositeOperatorCriteria
+import net.fwbrasil.activate.statement.IsLessThan
+import net.fwbrasil.activate.statement.StatementEntityValue
+import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.EntitySource
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.BooleanOperatorCriteria
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.radon.util.Lockable
-import net.fwbrasil.activate.query.Criteria
-import net.fwbrasil.activate.query.SimpleQueryBooleanValue
+import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
 import net.fwbrasil.radon.util.ReferenceWeakKeyMap
-import net.fwbrasil.activate.query.QueryBooleanValue
-import net.fwbrasil.activate.query.QueryEntityInstanceValue
-import net.fwbrasil.activate.query.IsLessOrEqualTo
-import net.fwbrasil.activate.query.Matcher
+import net.fwbrasil.activate.statement.StatementBooleanValue
+import net.fwbrasil.activate.statement.StatementEntityInstanceValue
+import net.fwbrasil.activate.statement.IsLessOrEqualTo
+import net.fwbrasil.activate.statement.Matcher
 import net.fwbrasil.activate.util.CollectionUtil
 import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
-import net.fwbrasil.activate.query.IsGreaterThan
-import net.fwbrasil.activate.query.From
-import net.fwbrasil.activate.query.SimpleOperatorCriteria
-import net.fwbrasil.activate.query.And
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.IsGreaterThan
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.SimpleOperatorCriteria
+import net.fwbrasil.activate.statement.And
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.util.Logging
 import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.query.Or
+import net.fwbrasil.activate.statement.Or
 import net.fwbrasil.radon.util.ReferenceWeakValueMap
 import java.util.Arrays.{ equals => arrayEquals }
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
@@ -43,8 +43,8 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
 import scala.collection.mutable.{ HashMap => MutableHashMap }
-import net.fwbrasil.activate.query.IsNull
-import net.fwbrasil.activate.query.IsNotNull
+import net.fwbrasil.activate.statement.IsNull
+import net.fwbrasil.activate.statement.IsNotNull
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -197,7 +197,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val varNames = vars.map(_.name)
 		if (varNames != List("id")) {
 			val list = query({ (e: Entity) =>
-				where(toQueryValueEntity(e) :== entity.id) selectList ((for (name <- varNames) yield toQueryValueRef(e.varNamed(name).get)).toList)
+				where(toStatementValueEntity(e) :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name).get)).toList)
 			})(manifestClass(entity.niceClass)).execute(true)
 			val row = list.headOption
 			if (row.isDefined) {
@@ -236,10 +236,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			List[S]()
 	}
 
-	def executeSelect[S](values: QuerySelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): S = {
+	def executeSelect[S](values: StatementSelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): S = {
 		val list = ListBuffer[Any]()
 		for (value <- values)
-			list += executeQuerySelectValue(value)
+			list += executeStatementSelectValue(value)
 		CollectionUtil.toTuple(list)
 	}
 
@@ -256,32 +256,32 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: IsEqualTo =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB)
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB)
 				equals(a, b)
 			case operator: IsGreaterThan =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB)
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) > 0
 			case operator: IsLessThan =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB)
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) < 0
 			case operator: IsGreaterOrEqualTo =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB)
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) >= 0
 			case operator: IsLessOrEqualTo =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB)
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) <= 0
 			case operator: Matcher =>
-				val a = executeQueryValue(criteria.valueA)
-				val b = executeQueryValue(criteria.valueB).asInstanceOf[String]
+				val a = executeStatementValue(criteria.valueA)
+				val b = executeStatementValue(criteria.valueB).asInstanceOf[String]
 				(a != null && b != null) &&
 					a.toString.matches(b)
 		}
@@ -311,60 +311,60 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: IsNull =>
-				executeQueryValue(criteria.valueA) == null
+				executeStatementValue(criteria.valueA) == null
 			case operator: IsNotNull =>
-				executeQueryValue(criteria.valueA) != null
+				executeStatementValue(criteria.valueA) != null
 		}
 
 	def executeBooleanOperatorCriteria(criteria: BooleanOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		criteria.operator match {
 			case operator: And =>
-				executeQueryBooleanValue(criteria.valueA) && executeQueryBooleanValue(criteria.valueB)
+				executeStatementBooleanValue(criteria.valueA) && executeStatementBooleanValue(criteria.valueB)
 			case operator: Or =>
-				executeQueryBooleanValue(criteria.valueA) || executeQueryBooleanValue(criteria.valueB)
+				executeStatementBooleanValue(criteria.valueA) || executeStatementBooleanValue(criteria.valueB)
 		}
 
-	def executeQueryBooleanValue(value: QueryBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+	def executeStatementBooleanValue(value: StatementBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
 		value match {
-			case value: SimpleQueryBooleanValue =>
+			case value: SimpleStatementBooleanValue =>
 				value.value
 			case value: Criteria =>
 				executeCriteria(value)
 		}
 
-	def executeQueryValue(value: QueryValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+	def executeStatementValue(value: StatementValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
 			case value: Criteria =>
 				executeCriteria(value)
-			case value: QueryBooleanValue =>
-				executeQueryBooleanValue(value)
-			case value: QuerySelectValue[_] =>
-				executeQuerySelectValue(value)
+			case value: StatementBooleanValue =>
+				executeStatementBooleanValue(value)
+			case value: StatementSelectValue[_] =>
+				executeStatementSelectValue(value)
 
 		}
 
-	def executeQuerySelectValue(value: QuerySelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+	def executeStatementSelectValue(value: StatementSelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
-			case value: QueryEntityValue[_] =>
-				executeQueryEntityValue(value)
+			case value: StatementEntityValue[_] =>
+				executeStatementEntityValue(value)
 			case value: SimpleValue[_] =>
 				value.anyValue
 		}
 
-	def executeQueryEntityValue(value: QueryEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+	def executeStatementEntityValue(value: StatementEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
 		value match {
-			case value: QueryEntityInstanceValue[_] =>
+			case value: StatementEntityInstanceValue[_] =>
 				value.entity
-			case value: QueryEntitySourceValue[_] =>
-				executeQueryEntitySourceValue(value)
+			case value: StatementEntitySourceValue[_] =>
+				executeStatementEntitySourceValue(value)
 		}
 
-	def executeQueryEntitySourceValue(value: QueryEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any = {
+	def executeStatementEntitySourceValue(value: StatementEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any = {
 		val entity = entitySourceInstancesMap.get(value.entitySource).get
 		value match {
-			case value: QueryEntitySourcePropertyValue[_] =>
+			case value: StatementEntitySourcePropertyValue[_] =>
 				entityPropertyPathRef(entity, value.propertyPathVars.toList)
-			case value: QueryEntitySourceValue[_] =>
+			case value: StatementEntitySourceValue[_] =>
 				entity
 		}
 	}

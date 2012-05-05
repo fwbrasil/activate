@@ -1,15 +1,20 @@
-package net.fwbrasil.activate.query
+package net.fwbrasil.activate.statement.query
 
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
-import From.runAndClearFrom
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
+import net.fwbrasil.activate.statement.StatementMocks
+import net.fwbrasil.activate.statement.StatementContext
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.From.runAndClearFrom
+import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.activate.statement.StatementSelectValue
 
-trait QueryContext extends QueryValueContext with OperatorContext with OrderedQueryContext {
-
-	private[activate] val liveCache: LiveCache
+trait QueryContext extends StatementContext with OrderedQueryContext {
 
 	private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
 		runAndClearFrom {
@@ -67,20 +72,6 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
 		query(f).execute
 
-	private[this] def mockEntity[E <: Entity: Manifest]: E =
-		mockEntity[E]()
-
-	private[this] def mockEntity[E <: Entity: Manifest](otherEntitySources: T forSome { type T <: Entity }*): E = {
-		var mockEntity = QueryMocks.mockEntity(erasureOf[E])
-		if (otherEntitySources.toSet.contains(mockEntity))
-			mockEntity = QueryMocks.mockEntityWithoutCache(erasureOf[E])
-		From.createAndRegisterEntitySource(erasureOf[E], mockEntity);
-		mockEntity
-	}
-
-	def where(value: Criteria) =
-		Where(value)
-
 	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		query { (entity: E) =>
 			where({
@@ -110,7 +101,7 @@ trait QueryContext extends QueryValueContext with OperatorContext with OrderedQu
 
 }
 
-case class Query[S](from: From, where: Where, select: Select) {
+case class Query[S](from: From, where: Where, select: Select) extends Statement(from, where) {
 	private[activate] def execute(iniatializing: Boolean): List[S] = {
 		val context =
 			(for (src <- from.entitySources)
@@ -124,7 +115,7 @@ case class Query[S](from: From, where: Where, select: Select) {
 	override def toString = from + " => where" + where + " select " + select + ""
 }
 
-case class Select(values: QuerySelectValue[_]*) {
+case class Select(values: StatementSelectValue[_]*) {
 	override def toString = "(" + values.mkString(", ") + ")"
 }
 

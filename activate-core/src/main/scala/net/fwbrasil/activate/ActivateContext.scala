@@ -4,17 +4,17 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityContext
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.EntityHelper
-import net.fwbrasil.activate.query.QueryContext
+import net.fwbrasil.activate.statement.query.QueryContext
 import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.activate.query.QueryNormalizer
+import net.fwbrasil.activate.statement.query.QueryNormalizer
 import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.entity.EntityValue
 import java.util.IdentityHashMap

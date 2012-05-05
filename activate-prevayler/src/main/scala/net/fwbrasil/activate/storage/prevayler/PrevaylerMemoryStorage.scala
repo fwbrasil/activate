@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.storage.prevayler
 
 import net.fwbrasil.activate.storage.marshalling._
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.{ EntityValue, Entity, Var, EntityInstanceReferenceValue }
 import net.fwbrasil.radon.transaction.Transaction

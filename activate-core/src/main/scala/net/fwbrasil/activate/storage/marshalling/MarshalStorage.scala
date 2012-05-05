@@ -7,7 +7,7 @@ import net.fwbrasil.activate.util.RichList._
 import scala.collection.mutable.{ Map => MutableMap }
 import scala.collection.JavaConversions._
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
 import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
 import java.util.IdentityHashMap

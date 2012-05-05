@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.storage.relational
 
 import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import java.util.Date
 import java.sql.Connection
 import java.sql.ResultSet

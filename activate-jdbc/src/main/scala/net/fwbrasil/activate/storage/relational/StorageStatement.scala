@@ -3,7 +3,7 @@ package net.fwbrasil.activate.storage.relational
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
-import net.fwbrasil.activate.query._
+import net.fwbrasil.activate.statement.query._
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.migration.MigrationAction
 

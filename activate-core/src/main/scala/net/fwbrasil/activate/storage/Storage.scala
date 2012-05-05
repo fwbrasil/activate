@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.storage
 
 import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.migration.MigrationAction

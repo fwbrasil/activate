@@ -7,7 +7,7 @@ import net.fwbrasil.activate.entity.Entity
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
 import net.fwbrasil.activate.migration.MigrationAction
-import net.fwbrasil.activate.query.Query
+import net.fwbrasil.activate.statement.query.Query
 
 class MemoryStorage extends Storage {
 

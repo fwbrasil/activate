@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.query
+package net.fwbrasil.activate.statement.query
 
 import java.util.IdentityHashMap
 import scala.collection.mutable.HashMap
@@ -12,6 +12,13 @@ import net.fwbrasil.activate.util.Reflection.findObject
 import net.fwbrasil.activate.util.RichList.toRichList
 import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
 import scala.collection.immutable.TreeSet
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.EntitySource
+import net.fwbrasil.activate.statement.And
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
 
 object QueryNormalizer {
 
@@ -33,14 +40,14 @@ object QueryNormalizer {
 
 	def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
 		var count = 0
-		def nextNumber = {
-			count += 1
-			count
-		}
-		val nestedProperties = findObject[QueryEntitySourcePropertyValue[_]](query) {
+			def nextNumber = {
+				count += 1
+				count
+			}
+		val nestedProperties = findObject[StatementEntitySourcePropertyValue[_]](query) {
 			(obj: Any) =>
 				obj match {
-					case obj: QueryEntitySourcePropertyValue[_] =>
+					case obj: StatementEntitySourcePropertyValue[_] =>
 						obj.propertyPathVars.size > 1
 					case other =>
 						false
@@ -68,7 +75,7 @@ object QueryNormalizer {
 			List(query)
 	}
 
-	def normalizePropertyPath(nested: QueryEntitySourcePropertyValue[_], nextNumber: => Int) = {
+	def normalizePropertyPath(nested: StatementEntitySourcePropertyValue[_], nextNumber: => Int) = {
 		val entitySources = ListBuffer[EntitySource](nested.entitySource)
 		val criterias = ListBuffer[Criteria]()
 		for (i <- 0 until nested.propertyPathVars.size) {
@@ -79,12 +86,12 @@ object QueryNormalizer {
 				} else
 					nested.entitySource
 			if (i != 0) {
-				criterias += (IsEqualTo(QueryEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== QueryEntitySourceValue(entitySource))
+				criterias += (IsEqualTo(StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== StatementEntitySourceValue(entitySource))
 				entitySources += entitySource
 			}
 		}
 		val propValue =
-			QueryEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
+			StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
 		(entitySources, criterias, propValue)
 	}
 

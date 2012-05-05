@@ -1,8 +1,7 @@
-
 package net.fwbrasil.activate.storage.relational
 
 import java.util.regex.Pattern
-import net.fwbrasil.activate.query._
+import net.fwbrasil.activate.statement.query._
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityValue
@@ -29,6 +28,32 @@ import net.fwbrasil.activate.migration.RemoveColumn
 import net.fwbrasil.activate.migration.AddIndex
 import net.fwbrasil.activate.migration.RemoveIndex
 import net.fwbrasil.activate.migration.Column
+import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.IsLessThan
+import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.BooleanOperatorCriteria
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.statement.CompositeOperatorCriteria
+import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.IsLessOrEqualTo
+import net.fwbrasil.activate.statement.IsNotNull
+import net.fwbrasil.activate.statement.IsNull
+import net.fwbrasil.activate.statement.IsGreaterThan
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.SimpleOperatorCriteria
+import net.fwbrasil.activate.statement.Operator
+import net.fwbrasil.activate.statement.And
+import net.fwbrasil.activate.statement.Or
+import net.fwbrasil.activate.statement.Matcher
+import net.fwbrasil.activate.statement.StatementEntityValue
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.StatementEntityInstanceValue
+import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
+import net.fwbrasil.activate.statement.StatementBooleanValue
+import net.fwbrasil.activate.statement.StatementSelectValue
 
 class SqlStatement(val statement: String, val binds: Map[String, StorageValue], val restrictionQuery: Option[(String, Int)]) {
 
@@ -201,17 +226,17 @@ abstract class SqlIdiom {
 			else
 				"desc")
 
-	def toSqlDml(value: QueryValue)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: StatementValue)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
-			case value: QueryBooleanValue =>
+			case value: StatementBooleanValue =>
 				toSqlDml(value)
-			case value: QuerySelectValue[_] =>
+			case value: StatementSelectValue[_] =>
 				toSqlDmlSelect(value)
 		}
 
-	def toSqlDmlSelect(value: QuerySelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDmlSelect(value: StatementSelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
-			case value: QueryEntityValue[_] =>
+			case value: StatementEntityValue[_] =>
 				toSqlDml(value)
 			case value: SimpleValue[_] =>
 				toSqlDml(value)
@@ -225,21 +250,21 @@ abstract class SqlIdiom {
 				bind(Marshaller.marshalling(value.entityValue))
 		}
 
-	def toSqlDml(value: QueryBooleanValue)(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml(value: StatementBooleanValue)(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
-			case value: SimpleQueryBooleanValue =>
+			case value: SimpleStatementBooleanValue =>
 				bind(Marshaller.marshalling(value.entityValue))
 			case value: Criteria =>
 				toSqlDml(value)
 		}
 
-	def toSqlDml[V](value: QueryEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
+	def toSqlDml[V](value: StatementEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
 		value match {
-			case value: QueryEntityInstanceValue[_] =>
+			case value: StatementEntityInstanceValue[_] =>
 				bind(StringStorageValue(Option(value.entityId)))
-			case value: QueryEntitySourcePropertyValue[v] =>
+			case value: StatementEntitySourcePropertyValue[v] =>
 				value.entitySource.name + "." + value.propertyPathNames.mkString(".")
-			case value: QueryEntitySourceValue[v] =>
+			case value: StatementEntitySourceValue[v] =>
 				value.entitySource.name + ".id"
 		}
 
@@ -256,7 +281,7 @@ abstract class SqlIdiom {
 				toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB)
 			case value: SimpleOperatorCriteria =>
 				toSqlDml(value.valueA) + toSqlDml(value.operator)
-			case CompositeOperatorCriteria(valueA: QueryValue, operator: Matcher, valueB: QueryValue) =>
+			case CompositeOperatorCriteria(valueA: StatementValue, operator: Matcher, valueB: StatementValue) =>
 				toSqlDmlRegexp(toSqlDml(valueA), toSqlDml(valueB))
 			case value: CompositeOperatorCriteria =>
 				toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB)
