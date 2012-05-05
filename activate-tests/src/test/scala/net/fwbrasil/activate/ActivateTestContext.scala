@@ -41,7 +41,7 @@ abstract class ActivateTestMigration(
 
 object prevaylerContext extends ActivateTestContext {
 	val storage = new PrevaylerMemoryStorage {
-		override lazy val name = "test/PrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
+		override lazy val name = "testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
 	}
 }
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
