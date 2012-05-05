@@ -1,0 +1,18 @@
+<net.fwbrasil.activate.query.QuerySpecs-stats timestamp="1336049496551"><stats expectations="13" examples="13" successes="13" time="58534"></stats></net.fwbrasil.activate.query.QuerySpecs-stats>
+<net.fwbrasil.activate.query.QuerySpecs-stats timestamp="1336080719695"><stats expectations="13" examples="13" successes="13" time="21701"></stats></net.fwbrasil.activate.query.QuerySpecs-stats>
+<net.fwbrasil.activate.query.QuerySpecs-results timestamp="1336081068653"><result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:15)" id="-1603185277"><stats expectations="1" examples="1" errors="1" time="13315"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:30)" id="-1852832304"><stats expectations="1" examples="1" errors="1" time="12436"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:43)" id="-661264137"><stats expectations="1" examples="1" errors="1" time="11716"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:106)" id="-1472624245"><stats expectations="1" examples="1" errors="1" time="3465"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:135)" id="-1811635820"><stats expectations="1" examples="1" errors="1" time="11614"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:157)" id="-326149050"><stats expectations="1" examples="1" errors="1" time="2828"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:179)" id="1624302784"><stats expectations="1" examples="1" errors="1" time="1584"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:221)" id="-1330368230"><stats expectations="1" examples="1" errors="1" time="3343"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:268)" id="1368393104"><stats expectations="1" examples="1" errors="1" time="1967"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:282)" id="1778661069"><stats expectations="1" examples="1" errors="1" time="1124"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:298)" id="-1549529713"><stats expectations="1" examples="1" errors="1" time="7351"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:324)" id="-1602901688"><stats expectations="1" examples="1" errors="1" time="6127"></stats></result>
+<result location="net.fwbrasil.activate.query.QuerySpecs (QuerySpecs.scala:353)" id="1672702586"><stats expectations="1" examples="1" errors="1" time="3559"></stats></result>
+</net.fwbrasil.activate.query.QuerySpecs-results>
+<net.fwbrasil.activate.query.QuerySpecs-stats timestamp="1336081068658"><stats expectations="13" examples="13" errors="13" time="22444"><trend><stats errors="13" successes="-13" time="22444"></stats></trend></stats></net.fwbrasil.activate.query.QuerySpecs-stats>
+<net.fwbrasil.activate.query.QuerySpecs-stats timestamp="1336082994364"><stats expectations="13" examples="13" successes="13" time="129369"><trend><stats errors="-13" successes="13" time="129369"></stats></trend></stats></net.fwbrasil.activate.query.QuerySpecs-stats>

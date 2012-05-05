@@ -9,8 +9,7 @@ import net.fwbrasil.activate.migration.MigrationAction
 trait Storage {
 
 	def toStorage(assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit
-	def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
-		List()
+	def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
 	def isMemoryStorage = false
 	def supportComplexQueries = true

@@ -24,7 +24,7 @@ object Migration {
 		import ctx._
 		@MigrationBootstrap
 		class StorageVersionMigration extends Migration {
-			val timestamp = 1l
+			val timestamp = 0l
 			val name = "Initial database setup (StorageVersion)"
 			val developers = List("fwbrasil")
 			def up = {
@@ -325,10 +325,10 @@ case class CannotRevertMigration(action: Action) extends Exception
 
 abstract class Migration(implicit val context: ActivateContext) {
 
-	val timestamp: Long
-	val name: String
-	val developers: List[String]
-	var number: Int = -1
+	def timestamp: Long
+	def name: String
+	def developers: List[String]
+	private var number: Int = -1
 	def nextNumber = {
 		number += 1
 		number

@@ -3,6 +3,7 @@ import Keys._
 import com.github.siasia._
 import WebPlugin._
 import PluginKeys._
+import ScctPlugin._
 
 object ActivateBuild extends Build {
   	
@@ -121,7 +122,7 @@ object ActivateBuild extends Build {
 		)
     	
     def commonSettings = 
-    	Defaults.defaultSettings ++ Seq(
+    	Defaults.defaultSettings ++ ScctPlugin.scctSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "0.9-SNAPSHOT",
     		scalaVersion := "2.9.2",

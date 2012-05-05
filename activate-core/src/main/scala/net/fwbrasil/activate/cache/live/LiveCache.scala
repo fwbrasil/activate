@@ -68,12 +68,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def contains[E <: Entity](entity: E) =
 		entityInstacesMap(entity.niceClass).contains(entity.id)
 
-	def cachedInstance[E <: Entity](entity: E): Unit =
-		entityInstacesMap(entity.niceClass).getOrElse(entity.id, {
-			toCache(entity)
-			entity
-		})
-
 	def delete(entity: Entity): Unit =
 		delete(entity.id)
 

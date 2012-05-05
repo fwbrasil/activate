@@ -7,6 +7,7 @@ import net.fwbrasil.activate.entity.Entity
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
 import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.query.Query
 
 class MemoryStorage extends Storage {
 
@@ -20,6 +21,8 @@ class MemoryStorage extends Storage {
 	override def toStorage(assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {
 		MemoryStorage.toStorage(storage, assignments, deletes)
 	}
+	override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
+		List()
 
 	override def isMemoryStorage = true
 

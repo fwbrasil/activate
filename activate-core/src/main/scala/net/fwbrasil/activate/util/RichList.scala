@@ -26,6 +26,9 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 			Option(list(Random.nextInt(list.size)))
 		else None
 
+	def randomize =
+		(for (elem <- iterable) yield (Random.nextInt, elem)).toList.sortBy(_._1).map(_._2)
+
 	def onlyOne: T =
 		onlyOne("List hasn't one element.")
 

@@ -1,0 +1,16 @@
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336049463239"><stats expectations="3" examples="3" successes="3" time="25212"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336049471477"><stats expectations="3" examples="3" successes="3" time="34652"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336080709411"><stats expectations="3" examples="3" successes="3" time="8796"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336080715917"><stats expectations="3" examples="3" successes="3" time="5412"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-results timestamp="1336081034627"><result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:19)" id="-279369198"><stats expectations="1" examples="1" errors="1" time="3855"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:41)" id="1020880199"><stats expectations="1" examples="1" errors="1" time="4023"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:59)" id="1792800920"><stats expectations="1" examples="1" errors="1" time="4188"></stats></result>
+</net.fwbrasil.activate.entity.EntityLazySpecs-results>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336081034640"><stats expectations="3" examples="3" errors="3" time="4247"><trend><stats errors="3" successes="-3" time="4247"></stats></trend></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-results timestamp="1336081043843"><result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:19)" id="-279369198"><stats expectations="1" examples="1" errors="1" time="8469"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:41)" id="1020880199"><stats expectations="1" examples="1" errors="1" time="15386"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntityLazySpecs (EntityLazySpecs.scala:59)" id="1792800920"><stats expectations="1" examples="1" errors="1" time="18368"></stats></result>
+</net.fwbrasil.activate.entity.EntityLazySpecs-results>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336081043848"><stats expectations="3" examples="3" errors="3" time="18405"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336082912540"><stats expectations="3" examples="3" successes="3" time="44912"><trend><stats errors="-3" successes="3" time="44912"></stats></trend></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>
+<net.fwbrasil.activate.entity.EntityLazySpecs-stats timestamp="1336082967021"><stats expectations="3" examples="3" successes="3" time="5312"></stats></net.fwbrasil.activate.entity.EntityLazySpecs-stats>

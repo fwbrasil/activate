@@ -1,0 +1,16 @@
+[0m[[0mdebug[0m] [0mOther repositories:[0m
+[0m[[0mdebug[0m] [0m	SshRepository(fwbrasil.net repo,SshConnection(Some(PasswordAuthentication(maven,None)),Some(fwbrasil.net),Some(8080)),sbt.Patterns@7ed98aaf,Some(0644))[0m
+[0m[[0mdebug[0m] [0mDefault repositories:[0m
+[0m[[0mdebug[0m] [0m	Raw(ProjectResolver(inter-project, mapped: ))[0m
+[0m[[0mdebug[0m] [0m	FileRepository(local,FileConfiguration(true,None),sbt.Patterns@40767cf2)[0m
+[0m[[0mdebug[0m] [0m	snapshots: http://scala-tools.org/repo-snapshots[0m
+[0m[[0mdebug[0m] [0m	releases: http://scala-tools.org/repo-releases[0m
+[0m[[0mdebug[0m] [0m	Maven: http://repo1.maven.org/maven2/[0m
+[0m[[0mdebug[0m] [0m	www.mvnsearch.org: http://www.mvnsearch.org/maven2/[0m
+[0m[[0mdebug[0m] [0m	fwbrasil.net: http://fwbrasil.net/maven/[0m
+[0m[[0mdebug[0m] [0m	reflections: http://reflections.googlecode.com/svn/repo[0m
+[0m[[0mdebug[0m] [0m	ibiblio: http://mirrors.ibiblio.org/pub/mirrors/maven2/[0m
+[0m[[0mdebug[0m] [0m	Local Maven Repository: file:///Users/fwbrasil/.m2/repository[0m
+[0m[[0mdebug[0m] [0m	public: http://repo1.maven.org/maven2/[0m
+[0m[[0mdebug[0m] [0m	Scala-Tools Maven2 Repository: http://scala-tools.org/repo-releases[0m
+[0m[[0mdebug[0m] [0mUsing inline dependencies specified in Scala.[0m

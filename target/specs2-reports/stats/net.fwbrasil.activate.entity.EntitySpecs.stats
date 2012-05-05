@@ -1,0 +1,15 @@
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336049487525"><stats expectations="3" examples="3" successes="3" time="14727"></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336049490186"><stats expectations="3" examples="3" successes="3" time="17631"></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336080710461"><stats expectations="3" examples="3" successes="3" time="9882"></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-results timestamp="1336081045974"><result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:13)" id="-1548536820"><stats expectations="1" examples="1" errors="1" time="635"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:27)" id="-582197187"><stats expectations="1" examples="1" errors="1" time="1255"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:42)" id="-1330635248"><stats expectations="1" examples="1" errors="1" time="1929"></stats></result>
+</net.fwbrasil.activate.entity.EntitySpecs-results>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336081045976"><stats expectations="3" examples="3" errors="3" time="1994"><trend><stats errors="3" successes="-3" time="1994"></stats></trend></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-results timestamp="1336081048842"><result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:13)" id="-1548536820"><stats expectations="1" examples="1" errors="1" time="13302"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:27)" id="-582197187"><stats expectations="1" examples="1" errors="1" time="12720"></stats></result>
+<result location="net.fwbrasil.activate.entity.EntitySpecs (EntitySpecs.scala:42)" id="-1330635248"><stats expectations="1" examples="1" errors="1" time="12255"></stats></result>
+</net.fwbrasil.activate.entity.EntitySpecs-results>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336081048845"><stats expectations="3" examples="3" errors="3" time="13305"></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336082959851"><stats expectations="3" examples="3" successes="3" time="47255"><trend><stats errors="-3" successes="3" time="47255"></stats></trend></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>
+<net.fwbrasil.activate.entity.EntitySpecs-stats timestamp="1336082973621"><stats expectations="3" examples="3" successes="3" time="13726"></stats></net.fwbrasil.activate.entity.EntitySpecs-stats>

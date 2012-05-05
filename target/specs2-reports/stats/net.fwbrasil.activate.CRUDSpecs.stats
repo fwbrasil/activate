@@ -1,0 +1,20 @@
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336049472735"><stats expectations="5" examples="5" successes="5" time="34859"></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336049483302"><stats expectations="5" examples="5" successes="5" time="19732"></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336080714315"><stats expectations="5" examples="5" successes="5" time="16332"></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336080717657"><stats expectations="5" examples="5" successes="5" time="8181"></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-results timestamp="1336081046551"><result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:12)" id="-926437743"><stats expectations="1" examples="1" errors="1" time="18032"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:28)" id="-713294220"><stats expectations="1" examples="1" errors="1" time="15273"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:51)" id="394210147"><stats expectations="1" examples="1" errors="1" time="17384"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:81)" id="20122599"><stats expectations="1" examples="1" errors="1" time="18265"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:98)" id="-952262437"><stats expectations="1" examples="1" errors="1" time="5804"></stats></result>
+</net.fwbrasil.activate.CRUDSpecs-results>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336081046553"><stats expectations="5" examples="5" errors="5" time="21116"><trend><stats errors="5" successes="-5" time="21116"></stats></trend></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-results timestamp="1336081046979"><result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:12)" id="-926437743"><stats expectations="1" examples="1" errors="1" time="16114"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:28)" id="-713294220"><stats expectations="1" examples="1" errors="1" time="14252"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:51)" id="394210147"><stats expectations="1" examples="1" errors="1" time="12976"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:81)" id="20122599"><stats expectations="1" examples="1" errors="1" time="18645"></stats></result>
+<result location="net.fwbrasil.activate.CRUDSpecs (CRUDSpecs.scala:98)" id="-952262437"><stats expectations="1" examples="1" errors="1" time="8521"></stats></result>
+</net.fwbrasil.activate.CRUDSpecs-results>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336081046983"><stats expectations="5" examples="5" errors="5" time="21546"></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336082961181"><stats expectations="5" examples="5" successes="5" time="93557"><trend><stats errors="-5" successes="5" time="93557"></stats></trend></stats></net.fwbrasil.activate.CRUDSpecs-stats>
+<net.fwbrasil.activate.CRUDSpecs-stats timestamp="1336082962370"><stats expectations="5" examples="5" successes="5" time="94391"></stats></net.fwbrasil.activate.CRUDSpecs-stats>

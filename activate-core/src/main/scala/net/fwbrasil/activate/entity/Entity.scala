@@ -27,9 +27,6 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def isDeletedSnapshot =
 		vars.head.isDestroyedSnapshot
 
-	private def isDirty =
-		vars.find(_.isDirty).isDefined
-
 	val id = {
 		val uuid = UUIDUtil.generateUUID
 		val classId = EntityHelper.getEntityClassHashId(this.niceClass)
@@ -124,9 +121,6 @@ trait Entity extends Serializable with ValidEntity {
 
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this)
-
-	private[activate] def cachedInstance =
-		context.liveCache.cachedInstance(this)
 
 	protected def toStringVars =
 		vars
