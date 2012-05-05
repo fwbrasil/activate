@@ -25,6 +25,7 @@ import net.fwbrasil.activate.entity._
 import java.util.regex.Pattern
 import net.fwbrasil.activate.migration.AddReference
 import net.fwbrasil.activate.migration.RemoveReference
+import net.fwbrasil.activate.storage.StorageFactory
 
 trait MongoStorage extends MarshalStorage {
 
@@ -290,4 +291,14 @@ trait MongoStorage extends MarshalStorage {
 			// Do nothing!
 		}
 
+}
+
+object MongoStorageFactory extends StorageFactory {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+		new MongoStorage {
+			override val host = properties("host")
+			override val port = Integer.parseInt(properties("port"))
+			override val db = properties("db")
+		}
+	}
 }

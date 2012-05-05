@@ -33,6 +33,8 @@ trait ActivateContext
 	EntityHelper.initialize(this.getClass)
 
 	private[activate] val liveCache = new LiveCache(this)
+	private[activate] val properties =
+		new ActivateProperties(None, "activate")
 
 	implicit val context = this
 

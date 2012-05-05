@@ -5,6 +5,11 @@ import net.fwbrasil.activate.query.Query
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.ActivateProperties
+import net.fwbrasil.activate.ActivateProperties
 
 trait Storage {
 
@@ -18,4 +23,21 @@ trait Storage {
 	}
 	def migrate(action: MigrationAction): Unit
 
+}
+
+trait StorageFactory {
+	def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage
+}
+
+object StorageFactory {
+	def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
+		import scala.collection.JavaConversions._
+		val properties =
+			new ActivateProperties(Option(context.properties), "storage")
+		val factoryClassName =
+			properties.getProperty(name, "factory")
+		val storageFactory =
+			Reflection.getCompanionObject[StorageFactory](Class.forName(factoryClassName)).get
+		storageFactory.buildStorage(properties.childProperties(name))
+	}
 }

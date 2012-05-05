@@ -2,7 +2,6 @@ package net.fwbrasil.activate.storage.relational
 
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.query.Query
-
 import java.util.Date
 import java.sql.Connection
 import java.sql.ResultSet
@@ -11,9 +10,12 @@ import net.fwbrasil.activate.serialization.Serializator
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
+import javax.naming.InitialContext
+import javax.sql.DataSource
 import java.sql.Types
+import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.ActivateContext
 
 trait JdbcRelationalStorage extends RelationalStorage with Logging {
 
@@ -109,6 +111,18 @@ trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage {
 		connection
 }
 
+object SimpleJdbcRelationalStorageFactory extends StorageFactory {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+		new SimpleJdbcRelationalStorage {
+			val jdbcDriver = properties("jdbcDriver")
+			val url = properties("url")
+			val user = properties("user")
+			val password = properties("password")
+			val dialect = SqlIdiom.dialect(properties("dialect"))
+		}
+	}
+}
+
 trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 
 	val dataSourceName: String
@@ -119,5 +133,14 @@ trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 		val con = dataSource.getConnection
 		con.setAutoCommit(false)
 		con
+	}
+}
+
+object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+		new DataSourceJdbcRelationalStorage {
+			val dataSourceName = properties("dataSourceName")
+			val dialect = SqlIdiom.dialect(properties("dialect"))
+		}
 	}
 }

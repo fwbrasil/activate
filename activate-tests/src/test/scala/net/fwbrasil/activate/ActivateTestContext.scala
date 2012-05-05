@@ -14,6 +14,8 @@ import net.fwbrasil.activate.storage.relational.oracleDialect
 import java.sql.Blob
 import oracle.sql.BLOB
 import java.sql.Date
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
 
 abstract class ActivateTestMigration(
 	implicit val ctx: ActivateContext)
@@ -63,13 +65,13 @@ object oracleContext extends ActivateTestContext {
 class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
 
 object mysqlContext extends ActivateTestContext {
-	val storage = new SimpleJdbcRelationalStorage {
-		val jdbcDriver = "com.mysql.jdbc.Driver"
-		val user = "root"
-		val password = ""
-		val url = "jdbc:mysql://127.0.0.1/ACTIVATE_TEST"
-		val dialect = mySqlDialect
-	}
+	System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorageFactory")
+	System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
+	System.getProperties.put("activate.storage.mysql.user", "root")
+	System.getProperties.put("activate.storage.mysql.password", "")
+	System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/ACTIVATE_TEST")
+	System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
+	val storage = StorageFactory.fromSystemProperties("mysql")
 }
 class MysqlActivateTestMigration
 		extends Migration()(mysqlContext) {

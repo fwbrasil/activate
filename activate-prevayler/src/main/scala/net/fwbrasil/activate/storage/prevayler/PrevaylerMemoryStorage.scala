@@ -8,6 +8,8 @@ import net.fwbrasil.radon.transaction.Transaction
 import org.prevayler.{ Transaction => PrevaylerTransaction, PrevaylerFactory, Prevayler }
 import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
 
 class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
 
@@ -99,5 +101,13 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 				ref.destroyInternal
 		}
 
+	}
+}
+
+object PrevaylerMemoryStorageFactory extends StorageFactory {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+		new PrevaylerMemoryStorage {
+			override lazy val name = properties("name")
+		}
 	}
 }

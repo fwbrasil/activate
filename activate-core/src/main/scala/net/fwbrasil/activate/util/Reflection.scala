@@ -246,7 +246,7 @@ object Reflection {
 		clazz.getField("MODULE$").get(clazz).asInstanceOf[T]
 	}
 
-	def getCompanionObject(clazz: Class[_]) = {
+	def getCompanionObject[T](clazz: Class[_]) = {
 		val companionClassOption =
 			try {
 				Option(Class.forName(clazz.getName + "$"))
@@ -254,7 +254,7 @@ object Reflection {
 				case e: ClassNotFoundException =>
 					None
 			}
-		companionClassOption.map(_.getField("MODULE$").get(clazz))
+		companionClassOption.map(_.getField("MODULE$").get(clazz)).asInstanceOf[Option[T]]
 	}
 
 	def materializeJodaInstant(clazz: Class[_], date: Date): AbstractInstant = {

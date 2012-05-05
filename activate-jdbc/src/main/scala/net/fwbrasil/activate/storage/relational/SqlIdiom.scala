@@ -59,6 +59,18 @@ class SqlStatement(val statement: String, val binds: Map[String, StorageValue], 
 
 }
 
+object SqlIdiom {
+	def dialect(name: String) =
+		name match {
+			case "oracleDialect" =>
+				oracleDialect
+			case "mySqlDialect" =>
+				mySqlDialect
+			case "postgresqlDialect" =>
+				postgresqlDialect
+		}
+}
+
 abstract class SqlIdiom {
 
 	protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
