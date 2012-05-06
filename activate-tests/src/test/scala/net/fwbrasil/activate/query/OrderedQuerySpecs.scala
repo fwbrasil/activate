@@ -22,7 +22,7 @@ class OrderedQuerySpecs extends ActivateTest {
 						import Random._
 							def randomCalendar = {
 								val calendar = Calendar.getInstance
-								calendar.setTimeInMillis(nextLong)
+								calendar.setTimeInMillis(nextInt)
 								calendar
 							}
 						for (i <- 0 until 30)
@@ -32,8 +32,8 @@ class OrderedQuerySpecs extends ActivateTest {
 								floatValue = nextFloat,
 								doubleValue = nextDouble,
 								bigDecimalValue = BigDecimal(nextInt),
-								dateValue = new Date(nextLong),
-								jodaInstantValue = new DateTime(nextLong),
+								dateValue = new Date(nextInt),
+								jodaInstantValue = new DateTime(nextInt),
 								calendarValue = randomCalendar,
 								stringValue = nextFloat.toString)
 					}

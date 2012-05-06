@@ -49,7 +49,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
-		List(mysqlContext)
+		//		List(mysqlContext)
 	}
 
 	trait StepExecutor {
