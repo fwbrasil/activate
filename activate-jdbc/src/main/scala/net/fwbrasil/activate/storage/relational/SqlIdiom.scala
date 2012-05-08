@@ -380,7 +380,7 @@ abstract class SqlIdiom {
 		statement.statement match {
 			case update: MassUpdateStatement =>
 				new SqlStatement(
-					"UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + " WHERE " + toSqlDml(update.where),
+					removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + " WHERE " + toSqlDml(update.where), update.from),
 					(Map() ++ binds) map { _.swap })
 			case delete: MassDeleteStatement =>
 				new SqlStatement(

@@ -75,9 +75,8 @@ trait ActivateContext
 			}).flatten
 		}
 
-	// Não preciso me preocupar com concorrência aqui, dado que a transação só pode estar em uma thread
 	private[activate] def currentTransactionStatements =
-		statementsForTransaction(transactionManager.getRequiredActiveTransaction)
+		transactionManager.getActiveTransaction.map(statementsForTransaction).getOrElse(ListBuffer())
 
 	private def statementsForTransaction(transaction: Transaction) =
 		transactionStatements.getOrElseUpdate(transaction, ListBuffer())

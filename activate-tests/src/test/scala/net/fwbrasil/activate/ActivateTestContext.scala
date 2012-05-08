@@ -34,8 +34,8 @@ abstract class ActivateTestMigration(
 		createTableForAllEntities
 			.ifNotExists
 
-		createReferencesForAllEntities
-			.ifNotExists
+		//		createReferencesForAllEntities
+		//			.ifNotExists
 
 		createInexistentColumnsForAllEntities
 	}
