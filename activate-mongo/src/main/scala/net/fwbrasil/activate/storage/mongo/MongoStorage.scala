@@ -48,6 +48,11 @@ import net.fwbrasil.activate.statement.StatementBooleanValue
 import net.fwbrasil.activate.statement.StatementValue
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
 import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 
 trait MongoStorage extends MarshalStorage {
 
@@ -68,10 +73,25 @@ trait MongoStorage extends MarshalStorage {
 	override def supportComplexQueries = false
 
 	override def store(
+		statements: List[MassModificationStatement],
 		insertList: List[(Entity, Map[String, StorageValue])],
 		updateList: List[(Entity, Map[String, StorageValue])],
 		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
+		for (statement <- statements) {
+			val (coll, where) = collectionAndWhere(statement.from, statement.where)
+			statement match {
+				case update: MassUpdateStatement =>
+					val set = new BasicDBObject
+					for (assignment <- update.assignments)
+						set.put(mongoStatementSelectValue(assignment.assignee), getMongoValue(assignment.value))
+					val mongoUpdate = new BasicDBObject
+					mongoUpdate.put("$set", set);
+					coll.updateMulti(where, mongoUpdate)
+				case delete: MassDeleteStatement =>
+					coll.remove(where)
+			}
+		}
 		for ((entity, properties) <- insertList) {
 			val doc = new BasicDBObject();
 			for ((name, value) <- properties; if (name != "id"))
@@ -132,15 +152,14 @@ trait MongoStorage extends MarshalStorage {
 		mongoDB.getCollection(entityName)
 
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
-		if (queryInstance.from.entitySources.size != 1)
-			throw new UnsupportedOperationException("Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
-		val entitySource = queryInstance.from.entitySources.onlyOne
-		val where = query(queryInstance.where.value)
+		val from = queryInstance.from
+		val (coll, where) = collectionAndWhere(from, queryInstance.where)
 		val selectValues = query(queryInstance.select.values: _*)
 		val select = new BasicDBObject
 		for (value <- selectValues)
 			select.put(value, 1)
-		val ret = coll(entitySource.entityClass).find(where, select)
+		val entitySource = queryInstance.from.entitySources.onlyOne
+		val ret = coll.find(where, select)
 		val rows = ret.toArray
 		(for (row <- rows) yield (for (i <- 0 until selectValues.size)
 			yield getValue(row, selectValues(i), expectedTypes(i))).toList).toList
@@ -175,7 +194,10 @@ trait MongoStorage extends MarshalStorage {
 
 	def query(values: StatementSelectValue[_]*): Seq[String] =
 		for (value <- values)
-			yield value match {
+			yield mongoStatementSelectValue(value)
+
+	def mongoStatementSelectValue(value: StatementSelectValue[_]) =
+		value match {
 			case value: StatementEntitySourcePropertyValue[_] =>
 				val name = value.propertyPathNames.onlyOne
 				if (name == "id")
@@ -200,7 +222,7 @@ trait MongoStorage extends MarshalStorage {
 				obj
 			case criteria: CompositeOperatorCriteria =>
 				val property = queryEntityProperty(criteria.valueA)
-				val value = query(criteria.valueB)
+				val value = getMongoValue(criteria.valueB)
 				if (criteria.operator.isInstanceOf[IsEqualTo])
 					obj.put(property, value)
 				else {
@@ -225,7 +247,7 @@ trait MongoStorage extends MarshalStorage {
 		}
 	}
 
-	def query(value: StatementValue): Any =
+	def getMongoValue(value: StatementValue): Any =
 		value match {
 			case value: SimpleStatementBooleanValue =>
 				getMongoValue(Marshaller.marshalling(value.value))
@@ -250,7 +272,11 @@ trait MongoStorage extends MarshalStorage {
 	def queryEntityProperty(value: StatementValue): String =
 		value match {
 			case value: StatementEntitySourcePropertyValue[_] =>
-				value.propertyPathNames.onlyOne
+				val name = value.propertyPathNames.onlyOne
+				if (name == "id")
+					"_id"
+				else
+					name
 			case value: StatementEntitySourceValue[_] =>
 				"_id"
 			case other =>
@@ -312,6 +338,13 @@ trait MongoStorage extends MarshalStorage {
 			case action: StorageRemoveReference =>
 			// Do nothing!
 		}
+
+	private def collectionAndWhere(from: From, where: Where) = {
+		val mongoWhere = query(where.value)
+		val entitySource = from.entitySources.onlyOne("Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
+		val mongoCollection = coll(entitySource.entityClass)
+		(mongoCollection, mongoWhere)
+	}
 
 }
 

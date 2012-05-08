@@ -77,9 +77,7 @@ trait MarshalStorage extends Storage {
 			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
-	def store(insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit = {}
-
-	def store(statements: List[MassModificationStatement], insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit = {}
+	def store(statements: List[MassModificationStatement], insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 

@@ -26,6 +26,24 @@ class MassDeleteSpecs extends ActivateTest {
 					}
 				})
 		}
+		"delete specific entity" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val id =
+						step {
+							newEmptyActivateTestEntity.id
+						}
+					step {
+						step.ctx.delete {
+							(entity: ActivateTestEntity) => where(entity.id :== id)
+						}.execute
+					}
+					step {
+						all[ActivateTestEntity] must beEmpty
+					}
+				})
+		}
 		"update entities in memory" in {
 			activateTest(
 				(step: StepExecutor) => {
@@ -41,6 +59,24 @@ class MassDeleteSpecs extends ActivateTest {
 					}
 					step {
 						all[ActivateTestEntity].map(_.intValue) must beEmpty
+					}
+				})
+		}
+		"update specific entities in memory" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val ids = step {
+						(1 to 10).map(i => newEmptyActivateTestEntity)
+					}
+					step {
+						all[ActivateTestEntity].foreach(_.toString) // Just load entities
+						step.ctx.delete {
+							(entity: ActivateTestEntity) => where(entity.id :== ids.head)
+						}.execute
+					}
+					step {
+						all[ActivateTestEntity].size must beEqualTo(9)
 					}
 				})
 		}
@@ -60,6 +96,25 @@ class MassDeleteSpecs extends ActivateTest {
 					}
 					step {
 						all[ActivateTestEntity].map(_.intValue) must beEmpty
+					}
+				})
+		}
+		"update specific entities partially in memory" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val ids =
+						step {
+							(1 to 10).map(i => newEmptyActivateTestEntity.id)
+						}
+					step {
+						byId[ActivateTestEntity](ids.last).toString // Just load entity
+						step.ctx.delete {
+							(entity: ActivateTestEntity) => where(entity.id :== ids.last)
+						}.execute
+					}
+					step {
+						all[ActivateTestEntity].size must beEqualTo(9)
 					}
 				})
 		}
