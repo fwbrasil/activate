@@ -1,12 +1,10 @@
-package net.fwbrasil.activate.query
+package net.fwbrasil.activate.statement.query
 
 import java.util.Date
-import org.specs2.mutable._
-import org.junit.runner._
-import org.specs2.runner._
+import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.activate.util.RichList._
-import org.joda.time.DateTime
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {

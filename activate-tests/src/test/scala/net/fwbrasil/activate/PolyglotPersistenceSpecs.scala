@@ -2,7 +2,7 @@ package net.fwbrasil.activate
 import net.fwbrasil.activate.storage.memory.MemoryStorage
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.storage.mongo.MongoStorage
-import net.fwbrasil.activate.storage.prevayler.PrevaylerMemoryStorage
+import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 
 class Teste extends Entity
 
@@ -15,7 +15,7 @@ object PolyglorPersistenceTestContext extends PolyglotActivateContext {
 	}
 
 	val prevaylerStorage =
-		new PrevaylerMemoryStorage
+		new PrevaylerStorage
 
 	entity[Teste](prevaylerStorage)
 

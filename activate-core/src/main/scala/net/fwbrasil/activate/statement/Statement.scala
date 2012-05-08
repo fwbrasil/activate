@@ -27,7 +27,6 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
 }
 
-abstract class Statement(from: From, where: Where) {
+abstract class Statement(val from: From, val where: Where) {
 	override def toString = from + " => where" + where
 }
-

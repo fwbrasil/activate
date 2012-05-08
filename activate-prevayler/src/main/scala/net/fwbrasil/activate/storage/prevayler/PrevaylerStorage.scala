@@ -10,8 +10,9 @@ import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
-class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
+class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
 
 	var prevayler: Prevayler = _
 
@@ -45,7 +46,8 @@ class PrevaylerMemoryStorage(implicit val context: ActivateContext) extends Mars
 	override def reinitialize =
 		initialize
 
-	override def store(insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+	override def store(statements: List[MassModificationStatement], insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+		// Just ignore statements!
 		val inserts =
 			(for ((entity, propertyMap) <- insertList)
 				yield (entity.id -> propertyMap)).toMap
@@ -106,7 +108,7 @@ case class PrevaylerMemoryStorageTransaction(context: ActivateContext, assignmen
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {
 	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
-		new PrevaylerMemoryStorage {
+		new PrevaylerStorage {
 			override lazy val name = properties("name")
 		}
 	}

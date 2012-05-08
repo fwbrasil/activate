@@ -12,10 +12,18 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.migration.MigrationAction
 import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait RelationalStorage extends MarshalStorage {
 
-	override def store(insertList: List[(Entity, Map[String, StorageValue])], updateList: List[(Entity, Map[String, StorageValue])], deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+	override def store(
+		statementList: List[MassModificationStatement],
+		insertList: List[(Entity, Map[String, StorageValue])],
+		updateList: List[(Entity, Map[String, StorageValue])],
+		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+
+		val statements =
+			statementList.map(ModifyStorageStatement(_))
 
 		val inserts =
 			for ((entity, propertyMap) <- insertList)
@@ -33,7 +41,7 @@ trait RelationalStorage extends MarshalStorage {
 
 		val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
-		val sqls = insertsResolved ::: updates.toList ::: deletesResolved
+		val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
 
 		executeStatements(sqls)
 	}

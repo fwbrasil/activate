@@ -49,7 +49,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
-		//		List(mysqlContext)
+		List(mysqlContext)
 	}
 
 	trait StepExecutor {
@@ -117,12 +117,12 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				transactional {
 					s
 				}
-			ctx.storage.asInstanceOf[PrevaylerMemoryStorage].snapshot
+			ctx.storage.asInstanceOf[PrevaylerStorage].snapshot
 			reinitializeContext
 			ret
 		}
 		override def accept(ctx: ActivateTestContext) =
-			ctx.storage.isInstanceOf[PrevaylerMemoryStorage]
+			ctx.storage.isInstanceOf[PrevaylerStorage]
 	}
 
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {

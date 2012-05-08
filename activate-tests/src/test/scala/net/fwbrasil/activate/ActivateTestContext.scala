@@ -9,7 +9,7 @@ import net.fwbrasil.activate.storage.relational.postgresqlDialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.memory.MemoryStorage
 import net.fwbrasil.activate.storage.mongo.MongoStorage
-import net.fwbrasil.activate.storage.prevayler.PrevaylerMemoryStorage
+import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 import net.fwbrasil.activate.storage.relational.oracleDialect
 import java.sql.Blob
 import oracle.sql.BLOB
@@ -42,7 +42,7 @@ abstract class ActivateTestMigration(
 }
 
 object prevaylerContext extends ActivateTestContext {
-	val storage = new PrevaylerMemoryStorage {
+	val storage = new PrevaylerStorage {
 		override lazy val name = "testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
 	}
 }

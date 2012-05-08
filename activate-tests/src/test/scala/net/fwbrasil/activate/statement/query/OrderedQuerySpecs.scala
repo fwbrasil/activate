@@ -1,14 +1,16 @@
-package net.fwbrasil.activate.query
+package net.fwbrasil.activate.statement.query
 
-import java.util.Date
-import org.specs2.mutable._
-import org.junit.runner._
-import org.specs2.runner._
-import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.activate.util.RichList._
-import org.joda.time.DateTime
-import scala.util.Random
 import java.util.Calendar
+import java.util.Date
+import net.fwbrasil.activate.util.RichList.toRichList
+import net.fwbrasil.activate.ActivateTest
+import org.joda.time.DateTime
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
+import scala.util.Random.nextDouble
+import scala.util.Random.nextFloat
+import scala.util.Random.nextInt
+import scala.util.Random.nextLong
 
 @RunWith(classOf[JUnitRunner])
 class OrderedQuerySpecs extends ActivateTest {
@@ -19,7 +21,6 @@ class OrderedQuerySpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					step {
-						import Random._
 							def randomCalendar = {
 								val calendar = Calendar.getInstance
 								calendar.setTimeInMillis(nextInt)

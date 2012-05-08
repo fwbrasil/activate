@@ -20,10 +20,20 @@ import net.fwbrasil.activate.entity.EntityValue
 import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.MigrationAction
 import net.fwbrasil.activate.migration.Migration
+import net.fwbrasil.radon.util.ReferenceWeakKeyMap
+import net.fwbrasil.activate.statement.Statement
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.statement.mass.MassUpdateContext
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.mass.MassDeleteContext
 
 trait ActivateContext
 		extends EntityContext
 		with QueryContext
+		with MassUpdateContext
+		with MassDeleteContext
 		with NamedSingletonSerializable
 		with Logging
 		with DelayedInit {
@@ -35,6 +45,9 @@ trait ActivateContext
 	private[activate] val liveCache = new LiveCache(this)
 	private[activate] val properties =
 		new ActivateProperties(None, "activate")
+
+	private val transactionStatements =
+		ReferenceWeakKeyMap[Transaction, ListBuffer[MassModificationStatement]]()
 
 	implicit val context = this
 
@@ -49,6 +62,7 @@ trait ActivateContext
 	def reinitializeContext =
 		logInfo("reinitializing context " + contextName) {
 			liveCache.reinitialize
+			transactionStatements.clear
 			storages.foreach(_.reinitialize)
 		}
 
@@ -60,6 +74,18 @@ trait ActivateContext
 				}
 			}).flatten
 		}
+
+	// Não preciso me preocupar com concorrência aqui, dado que a transação só pode estar em uma thread
+	private[activate] def currentTransactionStatements =
+		statementsForTransaction(transactionManager.getRequiredActiveTransaction)
+
+	private def statementsForTransaction(transaction: Transaction) =
+		transactionStatements.getOrElseUpdate(transaction, ListBuffer())
+
+	private[activate] def executeMassModification(statement: MassModificationStatement) = {
+		liveCache.executeMassModification(statement)
+		currentTransactionStatements += statement
+	}
 
 	private[activate] def name = contextName
 	def contextName: String
@@ -73,9 +99,11 @@ trait ActivateContext
 
 	override def makeDurable(transaction: Transaction) = {
 		val (assignments, deletes) = filterVars(transaction.refsAssignments)
-		storage.toStorage(assignments, deletes)
+		val statements = statementsForTransaction(transaction)
+		storage.toStorage(statements.toList, assignments, deletes)
 		setPersisted(assignments)
 		deleteFromLiveCache(deletes)
+		statementsForTransaction(transaction).clear
 	}
 
 	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =

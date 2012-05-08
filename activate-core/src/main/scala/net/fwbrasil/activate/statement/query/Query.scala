@@ -101,7 +101,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 }
 
-case class Query[S](from: From, where: Where, select: Select) extends Statement(from, where) {
+case class Query[S](override val from: From, override val where: Where, select: Select) extends Statement(from, where) {
 	private[activate] def execute(iniatializing: Boolean): List[S] = {
 		val context =
 			(for (src <- from.entitySources)

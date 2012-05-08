@@ -10,10 +10,12 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.ActivateProperties
 import net.fwbrasil.activate.ActivateProperties
+import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait Storage {
 
-	def toStorage(assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit
+	def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {}
 	def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
 	def isMemoryStorage = false

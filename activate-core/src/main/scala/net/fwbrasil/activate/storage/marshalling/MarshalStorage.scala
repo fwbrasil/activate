@@ -12,10 +12,12 @@ import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
 import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
 import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait MarshalStorage extends Storage {
 
-	override def toStorage(assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {
+	override def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {
 
 		import Marshaller._
 
@@ -56,7 +58,7 @@ trait MarshalStorage extends Storage {
 			for ((entityId, properties) <- deleteMap.toList)
 				yield (entityMap(entityId), properties.toMap)
 
-		store(insertList, updateList, deleteList)
+		store(statements, insertList, updateList, deleteList)
 	}
 
 	private[this] def newPropertyMap(entity: Entity) =
@@ -75,7 +77,9 @@ trait MarshalStorage extends Storage {
 			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
-	def store(insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit
+	def store(insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit = {}
+
+	def store(statements: List[MassModificationStatement], insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit = {}
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 

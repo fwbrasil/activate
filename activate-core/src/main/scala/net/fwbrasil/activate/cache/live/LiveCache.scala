@@ -42,9 +42,17 @@ import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
+import net.fwbrasil.activate.util.RichList._
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.statement.IsNull
 import net.fwbrasil.activate.statement.IsNotNull
+import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.radon.transaction.TransactionManager
+import net.fwbrasil.activate.statement.mass.UpdateAssignment
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -54,6 +62,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	val cache =
 		new MutableHashMap[Class[_ <: Entity], ReferenceWeakValueMap[String, _ <: Entity] with Lockable] with Lockable
+
+	val transactionStatements =
+		ReferenceWeakValueMap[Transaction, Statement]()
 
 	def reinitialize =
 		logInfo("live cache reinitialize") {
@@ -120,6 +131,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			}
 		}
 	}.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
+
+	def executeMassModification(statement: MassModificationStatement) = {
+		val entities = entitySourceInstancesCombined(statement.from)
+		executeMassModificationWithEntitySources(statement, entities)
+	}
 
 	def executeQuery[S](query: Query[S], iniatializing: Boolean): Set[S] = {
 		var result =
@@ -188,8 +204,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			entity.setPersisted
 			entity.setNotInitialized
 			entity.invariants
-			entity
 		}
+		for (statement <- context.currentTransactionStatements)
+			if (statement.from.entitySources.onlyOne.entityClass == entityClass) {
+				val entities = List(List(entity))
+				executeMassModificationWithEntitySources(statement, entities)
+			}
+		entity
 	}
 
 	def initialize(entity: Entity) = {
@@ -218,6 +239,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		result.toList
 	}
 
+	def executeMassModificationWithEntitySources[S](statement: MassModificationStatement, entitySourcesInstancesCombined: List[List[Entity]]) =
+		for (entitySourcesInstances <- entitySourcesInstancesCombined)
+			executeMassModificationWithEntitySourcesMap(statement, entitySourceInstancesMap(statement.from, entitySourcesInstances))
+
 	def entitySourceInstancesMap(from: From, entitySourcesInstances: List[Entity]) = {
 		var result = Map[EntitySource, Entity]()
 		var i = 0
@@ -236,11 +261,37 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			List[S]()
 	}
 
+	def executeMassModificationWithEntitySourcesMap[S](statement: MassModificationStatement, entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
+		val satisfyWhere = executeCriteria(statement.where.value)(entitySourceInstancesMap)
+		if (satisfyWhere)
+			statement match {
+				case update: MassUpdateStatement =>
+					executeUpdateAssignment(update.assignments: _*)(entitySourceInstancesMap)
+				case delete: MassDeleteStatement =>
+					entitySourceInstancesMap.values.foreach(_.delete)
+			}
+	}
+
 	def executeSelect[S](values: StatementSelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): S = {
 		val list = ListBuffer[Any]()
 		for (value <- values)
 			list += executeStatementSelectValue(value)
 		CollectionUtil.toTuple(list)
+	}
+
+	def executeUpdateAssignment[S](updateAssignments: UpdateAssignment*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
+		for (assignment <- updateAssignments) {
+			val valueToSet = executeStatementValue(assignment.value)
+			assignment.assignee match {
+				case prop: StatementEntitySourcePropertyValue[_] =>
+					val ref = prop.propertyPathVars.onlyOne("Update statement does not support nested properties")
+					val entity = entitySourceInstancesMap.values.onlyOne("Update statement does not support nested properties")
+					val entityRef = entity.varNamed(ref.name).get
+					entityRef := valueToSet
+				case other =>
+					throw new IllegalStateException("An update statement should have a entity property in the left side.")
+			}
+		}
 	}
 
 	def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =

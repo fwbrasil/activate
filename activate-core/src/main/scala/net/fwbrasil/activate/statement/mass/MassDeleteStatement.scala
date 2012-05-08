@@ -1,0 +1,37 @@
+package net.fwbrasil.activate.statement.mass
+
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.activate.statement.StatementContext
+
+trait MassDeleteContext extends StatementContext {
+	implicit def toDelete(where: Where) =
+		MassDeleteStatement(From.from, where)
+	import From._
+	def delete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): MassDeleteStatement =
+		runAndClearFrom {
+			f(mockEntity[E1])
+		}
+
+}
+
+case class MassDeleteStatement(override val from: From, override val where: Where)
+		extends MassModificationStatement(from, where) {
+
+	def execute: Unit = {
+		val context =
+			(for (src <- from.entitySources)
+				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
+		context.executeMassModification(this)
+	}
+
+	override def toString = from + " => where" + where
+}

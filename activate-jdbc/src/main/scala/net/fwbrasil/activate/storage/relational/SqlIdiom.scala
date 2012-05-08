@@ -54,6 +54,10 @@ import net.fwbrasil.activate.statement.StatementEntityInstanceValue
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
 import net.fwbrasil.activate.statement.StatementBooleanValue
 import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.mass.UpdateAssignment
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.util.RichList._
 
 class SqlStatement(val statement: String, val binds: Map[String, StorageValue], val restrictionQuery: Option[(String, Int)]) {
 
@@ -185,6 +189,8 @@ abstract class SqlIdiom {
 					delete.propertyMap)
 			case ddl: DdlStorageStatement =>
 				toSqlDdl(ddl)
+			case modify: ModifyStorageStatement =>
+				toSqlModify(modify)
 		}
 	}
 
@@ -368,6 +374,35 @@ abstract class SqlIdiom {
 					toSqlDdl(action),
 					ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists))
 		}
+
+	def toSqlModify(statement: ModifyStorageStatement) = {
+		implicit val binds = MutableMap[StorageValue, String]()
+		statement.statement match {
+			case update: MassUpdateStatement =>
+				new SqlStatement(
+					"UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + " WHERE " + toSqlDml(update.where),
+					(Map() ++ binds) map { _.swap })
+			case delete: MassDeleteStatement =>
+				new SqlStatement(
+					removeAlias("DELETE FROM " + toSqlDml(delete.from) + " WHERE " + toSqlDml(delete.where), delete.from),
+					(Map() ++ binds) map { _.swap })
+		}
+	}
+
+	private def removeAlias(sql: String, from: From) = {
+		var result = sql
+		for (entitySource <- from.entitySources) {
+			result = result.replaceAll(entitySource.name + ".", "")
+			result = result.replaceAll(entitySource.name, "")
+		}
+		result
+	}
+
+	def toSqlDml(assignments: List[UpdateAssignment])(implicit binds: MutableMap[StorageValue, String]): String =
+		assignments.map(toSqlDml).mkString(", ")
+
+	def toSqlDml(assignment: UpdateAssignment)(implicit binds: MutableMap[StorageValue, String]): String =
+		toSqlDml(assignment.assignee) + " = " + toSqlDml(assignment.value)
 
 	def findTableStatement(tableName: String): String
 
