@@ -4,13 +4,17 @@ import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
-		extends Ref[T](None)(_outerEntity.context)
+class Var[T](value: Option[T], val isMutable: Boolean, val _valueClass: Class[_], val name: String, _outerEntity: Entity)
+		extends Ref[T](value)(_outerEntity.context)
 		with java.io.Serializable {
 
+	def this(isMutable: Boolean, _valueClass: Class[_], name: String, _outerEntity: Entity) =
+		this(None, isMutable, _valueClass, name, _outerEntity)
+
 	val outerEntity = _outerEntity
-	val tval = EntityValue.tvalFunction[T](_valueClass)
+	lazy val tval = EntityValue.tvalFunction[T](_valueClass)
 	def toEntityPropertyValue(value: T) = tval(Option(value))
 	def outerEntityClass = outerEntity.niceClass
 	def valueClass = _valueClass
@@ -43,18 +47,27 @@ class Var[T](val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 	override def toString = name + " -> " + get.getOrElse("")
 }
 
+object IdVar {
+	def generateId(outerEntity: Entity) = {
+		val uuid = UUIDUtil.generateUUID
+		val classId = EntityHelper.getEntityClassHashId(outerEntity.getClass)
+		uuid + "-" + classId
+	}
+}
+
 class IdVar(outerEntity: Entity)
-		extends Var[String](classOf[String], "id", outerEntity) {
+		extends Var[String](Option(IdVar.generateId(outerEntity)), false, classOf[String], "id", outerEntity) {
 
 	var id: String = _
 
-	override def put(value: Option[String]): Unit = {
-		id = value.getOrElse(null)
-		super.put(value)
-	}
+	override def get = Option(id).orElse(throw new IllegalStateException("empty id"))
 
-	override def get =
-		Option(id)
+	override def put(value: Option[String]): Unit = {
+		if (value != null && value.nonEmpty && id == null) {
+			super.put(value)
+			id = value.get
+		}
+	}
 
 	override protected def doInitialized[A](f: => A): A = {
 		f

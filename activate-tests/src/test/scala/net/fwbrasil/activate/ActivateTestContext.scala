@@ -16,6 +16,7 @@ import oracle.sql.BLOB
 import java.sql.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.util.Reflection
 
 abstract class ActivateTestMigration(
 	implicit val ctx: ActivateContext)
@@ -138,6 +139,10 @@ trait ActivateTestContext extends ActivateContext {
 		running
 
 	override protected lazy val runMigrationAtStartup = false
+
+	override protected[activate] def entityMaterialized(entity: Entity) =
+		if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
+			Reflection.set(entity, "$outer", this)
 
 	val emptyIntValue = 0
 	val emptyLongValue = 0l
@@ -275,9 +280,10 @@ trait ActivateTestContext extends ActivateContext {
 	class EntityWithoutAttribute extends Entity
 
 	case class CaseClassEntity(
-		var stringValue: String,
-		var entityValue: ActivateTestEntity,
-		var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity
+			var stringValue: String,
+			var entityValue: ActivateTestEntity,
+			var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
+	}
 
 	abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 
@@ -307,6 +313,8 @@ trait ActivateTestContext extends ActivateContext {
 			var caseClassEntityValue: CaseClassEntity,
 			var serializableEntityValue: DummySeriablizable) extends ActivateTestDummyEntity(dummy) {
 		lazy val lazyValue: String = lazyValueValue
+
+		def caseClassList = EntityList[CaseClassEntity].mappedBy(_.entityValue)
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,

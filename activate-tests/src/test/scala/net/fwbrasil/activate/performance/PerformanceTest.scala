@@ -8,11 +8,10 @@ import scala.collection.mutable.ListBuffer
 import org.prevayler.Query
 
 object PerformanceTestMain extends App {
-	new PerformanceTest(400, 1,
+	new PerformanceTest(50000, 2,
 		Map(
-			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject) //,
-			//			"ActivatePrevayler" -> (() => new ActivatePerformanceTestSubjectPrevayler)
-			))
+			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject),
+			"ActivatePrevayler" -> (() => new ActivatePerformanceTestSubjectPrevayler)))
 }
 
 class PerformanceTest(val entities: Long, threads: Int, val subjects: Map[String, Function0[PerformanceTestSubject]]) {

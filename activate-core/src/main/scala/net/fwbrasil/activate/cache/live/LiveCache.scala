@@ -53,6 +53,7 @@ import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.util.Reflection
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -194,24 +195,28 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 				val typ = propertyMetadata.propertyType
 				val field = propertyMetadata.varField
-				val ref = new Var(typ, field.getName, entity)
+				val ref = new Var(None, propertyMetadata.isMutable, typ, field.getName, entity)
 				field.set(entity, ref)
 			}
 			val idField = entityMetadata.idField
 			val ref = new IdVar(entity)
 			idField.set(entity, ref)
-			ref := entityId
+			Reflection.set(ref, "id", entityId)
 			entity.setPersisted
 			entity.setNotInitialized
-			entity.invariants
 		}
+		Reflection.set(entity, "implicitEntity", entity)
+		executePendingMassStatements(entity)
+		context.entityMaterialized(entity)
+		entity
+	}
+
+	def executePendingMassStatements(entity: Entity) =
 		for (statement <- context.currentTransactionStatements)
-			if (statement.from.entitySources.onlyOne.entityClass == entityClass) {
+			if (statement.from.entitySources.onlyOne.entityClass == entity.getClass) {
 				val entities = List(List(entity))
 				executeMassModificationWithEntitySources(statement, entities)
 			}
-		entity
-	}
 
 	def initialize(entity: Entity) = {
 		val vars = entity.vars.toList

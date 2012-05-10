@@ -1,18 +1,19 @@
 package net.fwbrasil.activate.statement.query
 
-import net.fwbrasil.activate.util.RichList._
-import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.util.ManifestUtil.erasureOf
-import net.fwbrasil.activate.statement.StatementMocks
-import net.fwbrasil.activate.statement.StatementContext
-import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.From.runAndClearFrom
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.statement.From
-import net.fwbrasil.activate.statement.From.runAndClearFrom
 import net.fwbrasil.activate.statement.Statement
+import net.fwbrasil.activate.statement.StatementContext
 import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.util.ManifestUtil.erasureOf
+import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.statement.StatementMocks
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
 
@@ -72,7 +73,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
 		query(f).execute
 
-	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+	def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		query { (entity: E) =>
 			where({
 				var criteria = criterias(0)(entity)
@@ -80,7 +81,10 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 					criteria = criteria :&& criterias(i)(entity)
 				criteria
 			}) select (entity)
-		}.execute
+		}
+
+	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+		allWhereQuery[E](criterias: _*).execute
 
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isNotNull)
@@ -99,6 +103,44 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 	private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]
 
+	class EntityList[A <: Entity: Manifest, B <: Entity: Manifest] private[activate] (ownerEntity: A, f: (B) => A) extends Iterable[B] {
+		private val mappedByVarName = {
+			val mock = StatementMocks.mockEntity(erasureOf[B])
+			f(mock)
+			val ref = StatementMocks.lastFakeVarCalled.getOrElse(throw new IllegalStateException("Invalid mappedBy"))
+			ref.name
+		}
+		def iterator =
+			allWhere[B](b => f(b) :== ownerEntity).iterator
+		private def mappedByVar(b: B) =
+			b.varNamed(mappedByVarName).get
+		def add(b: B) = {
+			mappedByVar(b) := ownerEntity
+		}
+		def +(b: B) =
+			add(b)
+		def ++(list: Iterable[B]) =
+			list.foreach(add)
+		def remove(b: B) = {
+			mappedByVar(b).put(None)
+		}
+		def -(b: B) =
+			remove(b)
+		def --(list: Iterable[B]) =
+			list.foreach(remove)
+	}
+
+	class YouShouldCallMappedBy[B <: Entity: Manifest] {
+		def mappedBy[A <: Entity](f: (B) => A)(implicit implicitEntity: A) = {
+			new EntityList[A, B](implicitEntity, f)(manifestClass(implicitEntity.getClass), manifest[B])
+
+		}
+	}
+
+	object EntityList {
+		def apply[E <: Entity: Manifest] =
+			new YouShouldCallMappedBy[E]
+	}
 }
 
 case class Query[S](override val from: From, override val where: Where, select: Select) extends Statement(from, where) {

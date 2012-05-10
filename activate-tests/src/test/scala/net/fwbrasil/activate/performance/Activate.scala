@@ -3,6 +3,7 @@ package net.fwbrasil.activate.performance
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
+import net.fwbrasil.activate.storage.memory.MemoryStorage
 
 class ActivateTestSubjectEntity(var string: String)
 	extends PerformanceTestSubjectEntity with Entity
@@ -23,8 +24,8 @@ class ActivatePerformanceTestSubject(val fContext: () => ActivateContext) extend
 }
 
 class PrevaylerContext extends ActivateContext {
-	val storage = new PrevaylerStorage {
-		override lazy val name = System.currentTimeMillis.toString
+	val storage = new MemoryStorage {
+		//		override lazy val name = System.currentTimeMillis.toString
 	}
 	def contextName = "prevaylerContext"
 }

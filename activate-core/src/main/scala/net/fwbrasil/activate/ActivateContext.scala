@@ -15,7 +15,7 @@ import net.fwbrasil.activate.serialization.NamedSingletonSerializable
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.statement.query.QueryNormalizer
-import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
+import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet, HashMap => MutableHashMap }
 import net.fwbrasil.activate.entity.EntityValue
 import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.MigrationAction
@@ -28,6 +28,7 @@ import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.statement.mass.MassUpdateContext
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteContext
+import scala.collection.mutable.SynchronizedMap
 
 trait ActivateContext
 		extends EntityContext
@@ -150,15 +151,22 @@ trait ActivateContext
 			runMigration
 	}
 
+	protected[activate] def entityMaterialized(entity: Entity) = {}
+
 	override def toString = "ActivateContext: " + name
 
 }
 
 object ActivateContext {
 
-	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
-		instancesOf[ActivateContext]
-			.filter(_.acceptEntity(entityClass))
-			.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context.")
+	private[activate] val contextCache =
+		new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
+
+	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) = {
+		contextCache.getOrElseUpdate(entityClass,
+			instancesOf[ActivateContext]
+				.filter(_.acceptEntity(entityClass))
+				.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context."))
+	}
 
 }

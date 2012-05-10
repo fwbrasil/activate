@@ -12,7 +12,9 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
 
-trait Entity extends Serializable with ValidEntity {
+trait Entity extends Serializable {
+
+	implicit val implicitEntity = this: this.type
 
 	def delete =
 		if (!isDeleted) {
@@ -27,11 +29,7 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def isDeletedSnapshot =
 		vars.head.isDestroyedSnapshot
 
-	val id = {
-		val uuid = UUIDUtil.generateUUID
-		val classId = EntityHelper.getEntityClassHashId(this.niceClass)
-		uuid + "-" + classId
-	}
+	val id: String = null
 
 	private[this] var persistedflag = false
 	private[this] var initialized = true
@@ -183,6 +181,8 @@ class EntityPropertyMetadata(
 			"\"case class MyEnum(name: String) extends Val(name)\"")
 	val getter = entityMethods.find(_.getName == name).get
 	val setter = entityMethods.find(_.getName == name + "_$eq").getOrElse(null)
+	val isMutable =
+		setter != null
 	val tval =
 		EntityValue.tvalFunctionOption[Any](propertyType)
 			.getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
@@ -198,8 +198,6 @@ class EntityMetadata(
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
 	val allMethods =
 		Reflection.getDeclaredMethodsIncludingSuperClasses(entityClass)
-	val invariantMethods =
-		allMethods.filter((method: Method) => method.getReturnType == classOf[Invariant] && method.getName != "invariant")
 	val varFields =
 		allFields.filter((field: Field) => classOf[Var[_]] == field.getType)
 	val idField =
@@ -284,7 +282,7 @@ object EntityHelper {
 
 }
 
-trait EntityContext extends ValueContext with TransactionContext with ValidEntityContext {
+trait EntityContext extends ValueContext with TransactionContext {
 
 	type Entity = net.fwbrasil.activate.entity.Entity
 	type EntityName = net.fwbrasil.activate.entity.EntityName

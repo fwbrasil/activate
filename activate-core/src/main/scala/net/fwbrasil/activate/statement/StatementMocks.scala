@@ -34,7 +34,7 @@ object StatementMocks {
 	}
 
 	class FakeVar[P]
-			extends Var[P](null, null, null) {
+			extends Var[P](None, true, null, null, null) {
 
 		def entityValueMock =
 			(EntityValue.tvalFunction(fakeValueClass))(None).asInstanceOf[EntityValue[P]]

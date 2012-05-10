@@ -49,7 +49,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
-		//		List(mongoContext)
+		List(postgresqlContext)
 	}
 
 	trait StepExecutor {
@@ -129,6 +129,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
 		for (ctx <- contexts) {
 			import ctx._
+			ActivateContext.contextCache.clear
 			start
 			runMigration
 				def clear = transactional {

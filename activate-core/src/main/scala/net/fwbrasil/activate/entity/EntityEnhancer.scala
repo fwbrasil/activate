@@ -56,7 +56,7 @@ object EntityEnhancer extends Logging {
 		validEntityFields.filter((name: String) => field.getName == name).nonEmpty
 
 	def isCandidate(field: CtField) =
-		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && field.getType.getSimpleName != "EntityList" && field.getName != "implicitEntity"
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -141,16 +141,19 @@ object EntityEnhancer extends Logging {
 			}
 
 			for (c <- clazz.getConstructors) {
-				var replace = "setInitialized();"
+
+				var replace =
+					"setInitialized();"
 				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
 					if (field.getName == "id")
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
-					else
-						replace += "this." + field.getName + " = new " + varClassName + "(" + typ.getName + ".class, \"" + field.getName + "\", this);"
+					else {
+						val isMutable = Modifier.isFinal(field.getModifiers)
+						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName + "\", this);"
+					}
 				}
 				c.insertBefore(replace)
 				c.insertAfter("addToLiveCache();")
-				c.insertAfter("validate();")
 			}
 
 			val initBody =
