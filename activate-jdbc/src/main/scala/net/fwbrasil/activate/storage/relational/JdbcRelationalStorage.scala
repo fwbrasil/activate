@@ -1,20 +1,16 @@
 package net.fwbrasil.activate.storage.relational
 
-import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.statement.query.Query
-import java.util.Date
 import java.sql.Connection
-import java.sql.ResultSet
 import java.sql.DriverManager
-import net.fwbrasil.activate.serialization.Serializator
-import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.storage.marshalling._
+import java.sql.ResultSet
+
 import javax.naming.InitialContext
 import javax.sql.DataSource
-import java.sql.Types
-import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
 
 trait JdbcRelationalStorage extends RelationalStorage with Logging {
@@ -25,12 +21,13 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 
 	override def executeStatements(storageStatements: List[StorageStatement]) = {
 		val sqlStatements =
-			for (storageStatement <- storageStatements)
-				yield dialect.toSqlStatement(storageStatement)
+			storageStatements.map(dialect.toSqlStatement)
+		val batchStatements =
+			BatchSqlStatement.group(sqlStatements)
 		val connection = getConnection
 		try {
-			for (sqlStatement <- sqlStatements)
-				execute(sqlStatement, connection)
+			for (batchStatement <- batchStatements)
+				execute(batchStatement, connection)
 			connection.commit
 		} catch {
 			case ex =>
@@ -39,8 +36,8 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		}
 	}
 
-	private def satisfyRestriction(statement: SqlStatement, connection: Connection) =
-		statement.restrictionQuery.map(tuple => {
+	private def satisfyRestriction(jdbcStatement: JdbcStatement, connection: Connection) =
+		jdbcStatement.restrictionQuery.map(tuple => {
 			val (query, expected) = tuple
 			val stmt = connection.prepareStatement(query)
 			val resultSet = stmt.executeQuery
@@ -49,10 +46,10 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 			result == expected
 		}).getOrElse(true)
 
-	def execute(sqlStatement: SqlStatement, connection: Connection) =
-		if (satisfyRestriction(sqlStatement, connection)) {
-			val stmt = createPreparedStatement(sqlStatement, connection, true)
-			stmt.executeUpdate
+	def execute(jdbcStatement: JdbcStatement, connection: Connection) =
+		if (satisfyRestriction(jdbcStatement, connection)) {
+			val stmt = createPreparedStatement(jdbcStatement, connection, true)
+			stmt.executeBatch
 			stmt.close
 		}
 
@@ -75,18 +72,20 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		result
 	}
 
-	def createPreparedStatement(sqlStatement: SqlStatement, connection: Connection, isDml: Boolean) = {
-		val (statement, binds) = sqlStatement.toIndexedBind
-		info("Prepared statement: " + statement)
+	def createPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, isDml: Boolean) = {
+		val (statement, bindsList) = jdbcStatement.toIndexedBind
 		val ps =
 			if (isDml)
 				connection.prepareStatement(statement)
 			else
 				connection.prepareStatement(statement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
-		var i = 1
-		for (bindValue <- binds) {
-			dialect.setValue(ps, i, bindValue)
-			i += 1
+		for (binds <- bindsList) {
+			var i = 1
+			for (bindValue <- binds) {
+				dialect.setValue(ps, i, bindValue)
+				i += 1
+			}
+			ps.addBatch
 		}
 		ps
 	}

@@ -110,28 +110,31 @@ trait ActivateContext
 		for ((ref, value) <- assignments)
 			yield ref.outerEntity.setPersisted
 
-	private[this] def deleteFromLiveCache(deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]) =
+	private[this] def deleteFromLiveCache(deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) =
 		for ((entity, map) <- deletes)
 			liveCache.delete(entity)
 
 	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
-		val varAssignments = pAssignments.filter(_._1.isInstanceOf[Var[_]]).asInstanceOf[List[(Var[Any], (Option[Any], Boolean))]]
-		val assignments = MutableMap[Var[Any], EntityValue[Any]]()
-		val deletes = MutableMap[String, MutableMap[Var[Any], EntityValue[Any]]]()
-		val entityMap = MutableMap[String, Entity]()
+		// Assume that all assignments are of Vars for performance reasons (could be Ref)
+		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], (Option[Any], Boolean))]]
+		val assignments = new IdentityHashMap[Var[Any], EntityValue[Any]]()
+		val deletes = new IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]()
 		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
 			if (destroyed) {
 				if (ref.outerEntity.isPersisted) {
-					deletes.getOrElseUpdate(ref.outerEntity.id, MutableMap[Var[Any], EntityValue[Any]]()) += Tuple2(ref, ref.tval(ref.refContent.value))
-					entityMap += (ref.outerEntity.id -> ref.outerEntity)
+					val propertiesMap =
+						Option(deletes.get(ref.outerEntity)).getOrElse {
+							val map = new IdentityHashMap[Var[Any], EntityValue[Any]]()
+							deletes.put(ref.outerEntity, map)
+							map
+						}
+					propertiesMap.put(ref, ref.tval(ref.refContent.value))
 				}
 			} else
-				assignments += Tuple2(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
+				assignments.put(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
 		}
-		val deleteList =
-			for ((entityId, properties) <- deletes.toList)
-				yield (entityMap(entityId), properties.toMap)
-		(assignments.toList, deleteList)
+		import scala.collection.JavaConversions._
+		(assignments.toList, deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
 	}
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
@@ -168,5 +171,8 @@ object ActivateContext {
 				.filter(_.acceptEntity(entityClass))
 				.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context."))
 	}
+
+	def clearContextCache =
+		contextCache.clear
 
 }

@@ -15,7 +15,7 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait Storage {
 
-	def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {}
+	def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
 	def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
 	def isMemoryStorage = false

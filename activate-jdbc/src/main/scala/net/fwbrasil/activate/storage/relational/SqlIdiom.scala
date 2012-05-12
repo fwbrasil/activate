@@ -59,7 +59,35 @@ import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.util.RichList._
 
-class SqlStatement(val statement: String, val binds: Map[String, StorageValue], val restrictionQuery: Option[(String, Int)]) {
+trait JdbcStatement {
+	val statement: String
+	val restrictionQuery: Option[(String, Int)]
+	val bindsList: List[Map[String, StorageValue]]
+
+	def toIndexedBind = {
+		val pattern = Pattern.compile("(:[a-zA-Z]*[0-9]*)")
+		var matcher = pattern.matcher(statement)
+		var result = statement
+		matcher.matches
+		val columns = ListBuffer[String]()
+		while (matcher.find) {
+			val group = matcher.group
+			result = matcher.replaceFirst("?")
+			matcher = pattern.matcher(result)
+			columns += group.substring(1)
+		}
+		val valuesList =
+			for (binds <- bindsList)
+				yield columns.map(binds(_))
+		(result, valuesList)
+	}
+}
+
+class SqlStatement(
+	val statement: String,
+	val binds: Map[String, StorageValue],
+	val restrictionQuery: Option[(String, Int)])
+		extends JdbcStatement {
 
 	def this(statement: String, restrictionQuery: Option[(String, Int)]) =
 		this(statement, Map(), restrictionQuery)
@@ -70,22 +98,22 @@ class SqlStatement(val statement: String, val binds: Map[String, StorageValue], 
 	def this(statement: String, binds: Map[String, StorageValue]) =
 		this(statement, binds, None)
 
-	// TODO Fazer em 3 linhas!
-	def toIndexedBind = {
-		val pattern = Pattern.compile("(:[a-zA-Z]*[0-9]*)")
-		var matcher = pattern.matcher(statement)
-		val values = new ListBuffer[StorageValue]()
-		var result = statement
-		matcher.matches
-		while (matcher.find) {
-			val group = matcher.group
-			result = matcher.replaceFirst("?")
-			matcher = pattern.matcher(result)
-			values += binds(group.substring(1))
-		}
-		(result, values)
-	}
+	val bindsList = List(binds)
 
+}
+
+class BatchSqlStatement(
+	val statement: String,
+	val bindsList: List[Map[String, StorageValue]],
+	val restrictionQuery: Option[(String, Int)])
+		extends JdbcStatement
+
+object BatchSqlStatement {
+	def group(sqlStatements: List[SqlStatement]) = {
+		val grouped = sqlStatements.groupBy(s => (s.statement, s.restrictionQuery))
+		for (((statement, restrictionQuery), sqlStatements) <- grouped)
+			yield new BatchSqlStatement(statement, sqlStatements.map(_.binds), restrictionQuery)
+	}
 }
 
 object SqlIdiom {

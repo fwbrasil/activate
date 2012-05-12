@@ -17,7 +17,10 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait MarshalStorage extends Storage {
 
-	override def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, Map[Var[Any], EntityValue[Any]])]): Unit = {
+	override def toStorage(
+		statements: List[MassModificationStatement],
+		assignments: List[(Var[Any], EntityValue[Any])],
+		deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
 
 		import Marshaller._
 
