@@ -85,7 +85,8 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 				dialect.setValue(ps, i, bindValue)
 				i += 1
 			}
-			ps.addBatch
+			if (isDml)
+				ps.addBatch
 		}
 		ps
 	}

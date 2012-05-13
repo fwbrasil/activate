@@ -257,6 +257,14 @@ object Reflection {
 		companionClassOption.map(_.getField("MODULE$").get(clazz)).asInstanceOf[Option[T]]
 	}
 
+	def getModule[T](clazz: Class[_]) =
+		(try
+			Option(clazz.getField("MODULE$").get(clazz))
+		catch {
+			case e: NoSuchFieldException =>
+				None
+		}).asInstanceOf[Option[T]]
+
 	def materializeJodaInstant(clazz: Class[_], date: Date): AbstractInstant = {
 		val constructors = clazz.getDeclaredConstructors()
 		val constructor = constructors.find((c: Constructor[_]) => {

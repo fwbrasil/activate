@@ -25,7 +25,9 @@ object ActivateBuild extends Build {
 	val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.9.1"
 	
 	/* Prevayler */
-	val prevayler = "org.prevayler" % "prevayler" % "2.3"
+	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
+	val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.5"
+	val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.5"
 	
 	/* Cassandra */
 	val cassandra = "org.apache.cassandra" % "cassandra-thrift" % "1.0.6"
@@ -85,7 +87,7 @@ object ActivateBuild extends Build {
 			dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(prevayler)
+		    	  Seq(prevaylerCore, prevaylerFactory, prevaylerXStream)
 		    )
 		)
                            

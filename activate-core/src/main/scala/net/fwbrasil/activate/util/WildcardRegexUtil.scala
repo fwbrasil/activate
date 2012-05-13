@@ -30,4 +30,6 @@ object WildcardRegexUtil {
 		s.append('$')
 		s.toString
 	}
+	def matchesWildcard(string: String, wildcard: String) =
+		wildcardToRegex(wildcard).matches(string)
 }
