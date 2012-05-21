@@ -22,10 +22,11 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			f(mockEntity[E1])
 		}
 
-	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] =
+	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] = {
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}
+	}
 
 	def executeQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
 		query(f).execute
@@ -80,7 +81,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 				for (i <- 1 until criterias.size)
 					criteria = criteria :&& criterias(i)(entity)
 				criteria
-			}) select (entity)
+			}).select(entity)
 		}
 
 	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =

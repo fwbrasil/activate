@@ -33,7 +33,6 @@ import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.util.Logging
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.statement.Or
-import net.fwbrasil.radon.util.ReferenceWeakValueMap
 import java.util.Arrays.{ equals => arrayEquals }
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
@@ -54,6 +53,7 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.radon.util.ReferenceSoftValueMap
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -62,10 +62,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	import context._
 
 	val cache =
-		new MutableHashMap[Class[_ <: Entity], ReferenceWeakValueMap[String, _ <: Entity] with Lockable] with Lockable
+		new MutableHashMap[Class[_ <: Entity], ReferenceSoftValueMap[String, _ <: Entity] with Lockable] with Lockable
 
 	val transactionStatements =
-		ReferenceWeakValueMap[Transaction, Statement]()
+		ReferenceSoftValueMap[Transaction, Statement]()
 
 	def reinitialize =
 		logInfo("live cache reinitialize") {
@@ -114,10 +114,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entities
 	}
 
-	def entityInstacesMap[E <: Entity: Manifest]: ReferenceWeakValueMap[String, E] with Lockable =
+	def entityInstacesMap[E <: Entity: Manifest]: ReferenceSoftValueMap[String, E] with Lockable =
 		entityInstacesMap(manifestToClass(manifest[E]))
 
-	def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceWeakValueMap[String, E] with Lockable = {
+	def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceSoftValueMap[String, E] with Lockable = {
 		val mapOption =
 			cache.doWithReadLock {
 				cache.get(entityClass)
@@ -126,12 +126,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			mapOption.get
 		else {
 			cache.doWithWriteLock {
-				val entitiesMap = new ReferenceWeakValueMap[String, E] with Lockable
+				val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
 				cache += (entityClass -> entitiesMap)
 				entitiesMap
 			}
 		}
-	}.asInstanceOf[ReferenceWeakValueMap[String, E] with Lockable]
+	}.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
 
 	def executeMassModification(statement: MassModificationStatement) = {
 		val entities = entitySourceInstancesCombined(statement.from)

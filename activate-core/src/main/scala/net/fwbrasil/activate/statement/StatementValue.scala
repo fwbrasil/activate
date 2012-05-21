@@ -51,24 +51,31 @@ trait StatementValueContext extends ValueContext {
 			new StatementEntityInstanceValue(entity)
 	}
 
-	implicit def toStatementValueEntityValue[V](value: V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
-		toStatementValueEntityValueOption(Option(value))
+	def bind[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
+		new BindValue[V](() => value, m)
 
-	implicit def toStatementValueEntityValueOption[V](value: Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] = {
+	implicit def toStatementValueEntityValue[V](value: V): StatementSelectValue[V] =
 		StatementMocks.lastFakeVarCalled match {
 			case Some(ref: Var[_]) =>
 				toStatementValueRef(ref)
 			case other =>
-				value.getOrElse(null.asInstanceOf[V]) match {
+				value match {
 					case entity: Entity =>
 						toStatementValueEntity(entity).asInstanceOf[StatementSelectValue[V]]
 					case value =>
-						new SimpleValue[V](value, m)
-
+						new SimpleValue[V](value.asInstanceOf[V], null)
 				}
 		}
-	}
 
+}
+
+object A {
+	abstract class FunnyValue[V](value: V) {
+		def print =
+			value.toString
+	}
+	implicit def funnyValue[V](value: => V): FunnyValue[V] = new FunnyValue(value) {}
+	def m[F <: FunnyValue[_]](f: F) = {}
 }
 
 abstract class StatementEntityValue[V]() extends StatementSelectValue[V]
@@ -95,6 +102,13 @@ case class StatementEntitySourcePropertyValue[P](override val entitySource: Enti
 }
 
 case class SimpleValue[V](val anyValue: V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue[V] {
+	require(anyValue != null)
+	def entityValue: EntityValue[V] = f(Option(anyValue))
+	override def toString = anyValue.toString
+}
+
+case class BindValue[V](val fAnyValue: () => V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue[V] {
+	def anyValue = fAnyValue()
 	require(anyValue != null)
 	def entityValue: EntityValue[V] = f(Option(anyValue))
 	override def toString = anyValue.toString

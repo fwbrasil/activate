@@ -68,13 +68,9 @@ trait ActivateContext
 		}
 
 	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] =
-		logInfo("executing query " + query.toString) {
-			(for (normalized <- QueryNormalizer.normalize(query)) yield {
-				logInfo("executing normalized query " + normalized.toString) {
-					QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
-				}
-			}).flatten
-		}
+		(for (normalized <- QueryNormalizer.normalize(query)) yield {
+			QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
+		}).flatten
 
 	private[activate] def currentTransactionStatements =
 		transactionManager.getActiveTransaction.map(statementsForTransaction).getOrElse(ListBuffer())
