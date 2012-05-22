@@ -6,10 +6,57 @@ import From.runAndClearFrom
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
+import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.statement.query.Query
+import java.lang.reflect.Field
+import scala.collection.mutable.Stack
+import java.lang.reflect.Modifier
 
 trait StatementContext extends StatementValueContext with OperatorContext {
 
 	private[activate] val liveCache: LiveCache
+
+	// Use Any instead of Function1,2,3... There isn't a generic Function trait
+	val cache = MutableMap[Class[_], (List[Field], Stack[(Any, Any)])]()
+
+	protected def executeStatementWithCache[S <: Statement, R](f: Any, produce: () => S, execute: (S) => R): R = {
+		val (fields, stack) =
+			cache.synchronized {
+				cache.getOrElseUpdate(f.getClass.asInstanceOf[Class[_]], {
+					val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
+					fields.foreach(_.setAccessible(true))
+					(fields, new Stack[(Any, Any)]())
+				})
+			}
+		val fromCacheOption =
+			stack.synchronized {
+				if (stack.isEmpty)
+					None
+				else {
+					val (function, statement) = stack.pop
+					Some(function, statement.asInstanceOf[S])
+				}
+			}
+		val (function, statement) =
+			if (fromCacheOption.isDefined) {
+				val (function, statement) = fromCacheOption.get
+				for (field <- fields)
+					field.set(function, field.get(f))
+				(function, statement)
+			} else {
+				val statement =
+					runAndClearFrom {
+						produce()
+					}
+				(f, statement)
+			}
+		try
+			execute(statement)
+		finally
+			stack.synchronized {
+				stack.push((function, statement))
+			}
+	}
 
 	protected def mockEntity[E <: Entity: Manifest]: E =
 		mockEntity[E]()

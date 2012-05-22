@@ -128,7 +128,7 @@ object EntityEnhancer extends Logging {
 									if (optionFlag)
 										fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
 									else
-										fa.replace("$_ = ($r) this." + fa.getFieldName + ".unary_$bang($$);")
+										fa.replace("$_ = ($r) this." + fa.getFieldName + ".getValue($$);")
 								}
 							}
 						}

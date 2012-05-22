@@ -13,7 +13,7 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.StatementContext
 
 trait MassUpdateContext extends StatementContext {
-	implicit def toUpdateAssignee[T](value: T)(implicit tval: (T) => StatementSelectValue[T]) =
+	implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T]) =
 		UpdateAssigneeDecorator(tval(value))
 	implicit def toWhereDecorator(where: Where) =
 		WhereUpdateDecorator(where)
@@ -31,7 +31,7 @@ case class WhereUpdateDecorator(where: Where) {
 }
 
 case class UpdateAssigneeDecorator(assignee: StatementSelectValue[_]) {
-	def :=[T](value: T)(implicit tval: (T) => StatementValue) =
+	def :=[T](value: T)(implicit tval: (=> T) => StatementValue) =
 		UpdateAssignment(assignee, tval(value))
 }
 case class UpdateAssignment(assignee: StatementSelectValue[_], value: StatementValue) {

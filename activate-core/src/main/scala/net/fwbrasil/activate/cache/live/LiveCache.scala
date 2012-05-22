@@ -222,8 +222,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val vars = entity.vars.toList
 		val varNames = vars.map(_.name)
 		if (varNames != List("id")) {
-			val list = query({ (e: Entity) =>
-				where(toStatementValueEntity(e) :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name).get)).toList)
+			val list = produceQuery({ (e: Entity) =>
+				where(e :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name).get)).toList)
 			})(manifestClass(entity.niceClass)).execute(true)
 			val row = list.headOption
 			if (row.isDefined) {
@@ -249,13 +249,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			executeMassModificationWithEntitySourcesMap(statement, entitySourceInstancesMap(statement.from, entitySourcesInstances))
 
 	def entitySourceInstancesMap(from: From, entitySourcesInstances: List[Entity]) = {
-		var result = Map[EntitySource, Entity]()
+		val result = ListBuffer[(EntitySource, Entity)]()
 		var i = 0
 		for (entitySourceInstance <- entitySourcesInstances) {
 			result += (from.entitySources(i) -> entitySourceInstance)
 			i += 1
 		}
-		result
+		result.toMap
 	}
 
 	def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[S] = {
@@ -353,7 +353,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				case (a: Array[Byte], b: Array[Byte]) =>
 					arrayEquals(a, b)
 				case (a, b) =>
-					valueForEquals(a).equals(valueForEquals(b))
+					val valueA = valueForEquals(a)
+					val valueB = valueForEquals(b)
+					valueA.equals(valueB)
 			}
 
 	def valueForEquals(a: Any) =
@@ -447,7 +449,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			case None =>
 				null
 			case someRef: Some[Var[_]] =>
-				!someRef.get
+				someRef.get.getValue
 		}).asInstanceOf[T]
 
 	def entitySourceInstancesCombined(from: From) =

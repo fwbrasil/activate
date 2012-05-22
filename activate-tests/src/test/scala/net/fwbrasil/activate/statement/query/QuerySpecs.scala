@@ -113,19 +113,19 @@ class QuerySpecs extends ActivateTest {
 						val value = true
 						query {
 							(e: ActivateTestEntity) => where(e.booleanValue :== value) select (e)
-						}.execute.headOption must beSome
+						}.headOption must beSome
 
 						query {
 							(e: ActivateTestEntity) => where(e.stringValue :== "hhh") select (e)
-						}.execute.headOption must beNone
+						}.headOption must beNone
 
 						query {
 							(e: ActivateTestEntity) => where(e.stringValue isNull) select (e)
-						}.execute.headOption must beSome
+						}.headOption must beSome
 
 						query {
 							(e: ActivateTestEntity) => where(e.stringValue isNotNull) select (e)
-						}.execute.headOption must beSome
+						}.headOption must beSome
 
 					}
 				})
@@ -143,12 +143,12 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) =>
 								where((e.booleanValue :== true) :|| (e.booleanValue :== false) :|| (e.booleanValue isNull)) select (e)
-						}.execute.size must beEqualTo(3)
+						}.size must beEqualTo(3)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where((e.booleanValue :== true) :|| (e.charValue :== fullCharValue)) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 					}
 				})
 		}
@@ -165,12 +165,12 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) =>
 								where((e.booleanValue :== true) :&& (e.booleanValue :== false) :&& (e.booleanValue isNull)) select (e)
-						}.execute.size must beEqualTo(0)
+						}.size must beEqualTo(0)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where((e.booleanValue isNotNull) :&& (e.stringValue isNotNull)) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 					}
 				})
 		}
@@ -187,32 +187,32 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.dateValue :< new Date) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.dateValue :> new Date) select (e)
-						}.execute.size must beEqualTo(0)
+						}.size must beEqualTo(0)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :< fullIntValue) select (e)
-						}.execute.size must beEqualTo(2)
+						}.size must beEqualTo(2)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :> fullIntValue) select (e)
-						}.execute.size must beEqualTo(0)
+						}.size must beEqualTo(0)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.longValue :< fullLongValue) select (e)
-						}.execute.size must beEqualTo(2)
+						}.size must beEqualTo(2)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.longValue :> fullLongValue) select (e)
-						}.execute.size must beEqualTo(0)
+						}.size must beEqualTo(0)
 					}
 				})
 		}
@@ -229,37 +229,37 @@ class QuerySpecs extends ActivateTest {
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.dateValue :<= fullDateValue) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.dateValue :>= fullDateValue) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.dateValue :>= new Date) select (e)
-						}.execute.size must beEqualTo(0)
+						}.size must beEqualTo(0)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :>= fullIntValue) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :<= fullIntValue) select (e)
-						}.execute.size must beEqualTo(3)
+						}.size must beEqualTo(3)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :<= emptyIntValue) select (e)
-						}.execute.size must beEqualTo(2)
+						}.size must beEqualTo(2)
 
 						query {
 							(e: ActivateTestEntity) =>
 								where(e.intValue :>= fullIntValue) select (e)
-						}.execute.size must beEqualTo(1)
+						}.size must beEqualTo(1)
 					}
 				})
 		}
@@ -304,14 +304,14 @@ class QuerySpecs extends ActivateTest {
 						}
 						step {
 							val (fullEntity, entityValue) =
-								(executeQuery {
+								(query {
 									(entity1: ActivateTestEntity, entity2: ActivateTestEntity) => where(entity1.entityValue :== entity2) select (entity1, entity2)
 								}).onlyOne
 							fullEntity.entityValue must beEqualTo(entityValue)
 						}
 						step {
 							val (fullEntity, traitAttribute) =
-								(executeQuery {
+								(query {
 									(entity1: ActivateTestEntity, traitAttribute: TraitAttribute) => where(entity1.traitValue1 :== traitAttribute) select (entity1, traitAttribute)
 								}).onlyOne
 							fullEntity.traitValue1 must beEqualTo(traitAttribute)

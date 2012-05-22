@@ -31,9 +31,9 @@ trait Entity extends Serializable {
 
 	val id: String = null
 
-	private[this] var persistedflag = false
-	private[this] var initialized = true
-	private[this] var initializing = false
+	private var persistedflag = false
+	private var initialized = true
+	private var initializing = false
 
 	private[activate] def setPersisted =
 		persistedflag = true
@@ -51,14 +51,15 @@ trait Entity extends Serializable {
 		initialized
 
 	private[activate] def initialize =
-		this.synchronized {
-			if (!initializing && !initialized && id != null) {
-				initializing = true
-				context.initialize(this)
-				initialized = true
-				initializing = false
+		if (!initializing && !initialized && id != null) // Performance!
+			this.synchronized {
+				if (!initializing && !initialized && id != null) {
+					initializing = true
+					context.initialize(this)
+					initialized = true
+					initializing = false
+				}
 			}
-		}
 
 	private[activate] def initializeGraph: Unit =
 		initializeGraph(Set())

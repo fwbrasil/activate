@@ -41,47 +41,47 @@ class OrderedQuerySpecs extends ActivateTest {
 						def entities =
 							all[ActivateTestEntity].toList
 					step {
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.intValue)
 						} must beEqualTo(entities.sortBy(_.intValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.longValue)
 						} must beEqualTo(entities.sortBy(_.longValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.floatValue)
 						} must beEqualTo(entities.sortBy(_.floatValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.doubleValue)
 						} must beEqualTo(entities.sortBy(_.doubleValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue)
 						} must beEqualTo(entities.sortBy(_.bigDecimalValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.dateValue)
 						} must beEqualTo(entities.sortBy(_.dateValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue)
 						} must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.calendarValue)
 						} must beEqualTo(entities.sortBy(_.calendarValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue)
 						} must beEqualTo(entities.sortBy(_.stringValue))
@@ -89,47 +89,47 @@ class OrderedQuerySpecs extends ActivateTest {
 					}
 
 					step {
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.intValue asc)
 						} must beEqualTo(entities.sortBy(_.intValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.longValue asc)
 						} must beEqualTo(entities.sortBy(_.longValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.floatValue asc)
 						} must beEqualTo(entities.sortBy(_.floatValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.doubleValue asc)
 						} must beEqualTo(entities.sortBy(_.doubleValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue asc)
 						} must beEqualTo(entities.sortBy(_.bigDecimalValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.dateValue asc)
 						} must beEqualTo(entities.sortBy(_.dateValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue asc)
 						} must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.calendarValue asc)
 						} must beEqualTo(entities.sortBy(_.calendarValue))
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue asc)
 						} must beEqualTo(entities.sortBy(_.stringValue))
@@ -137,47 +137,47 @@ class OrderedQuerySpecs extends ActivateTest {
 					}
 
 					step {
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.intValue desc)
 						} must beEqualTo(entities.sortBy(_.intValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.longValue desc)
 						} must beEqualTo(entities.sortBy(_.longValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.floatValue desc)
 						} must beEqualTo(entities.sortBy(_.floatValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.doubleValue desc)
 						} must beEqualTo(entities.sortBy(_.doubleValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue desc)
 						} must beEqualTo(entities.sortBy(_.bigDecimalValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.dateValue desc)
 						} must beEqualTo(entities.sortBy(_.dateValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue desc)
 						} must beEqualTo(entities.sortBy(_.jodaInstantValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.calendarValue desc)
 						} must beEqualTo(entities.sortBy(_.calendarValue).reverse)
 
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue desc)
 						} must beEqualTo(entities.sortBy(_.stringValue).reverse)
@@ -193,12 +193,12 @@ class OrderedQuerySpecs extends ActivateTest {
 					import step.ctx._
 					step {
 						val a =
-							executeQuery {
+							query {
 								(entity: ActivateTestEntity) =>
 									where(entity isNotNull) select (entity)
 							}
 						val b =
-							executeQuery {
+							query {
 								(entity: ActivateTestEntity) =>
 									where(entity isNotNull) select (entity) orderBy ()
 							}
@@ -216,12 +216,12 @@ class OrderedQuerySpecs extends ActivateTest {
 					}
 					step {
 						val a =
-							executeQuery {
+							query {
 								(entity: ActivateTestEntity) =>
 									where(entity isNotNull) select (entity)
 							}
 						val b =
-							executeQuery {
+							query {
 								(entity: ActivateTestEntity) =>
 									where(entity isNotNull) select (entity) orderBy ()
 							}
@@ -244,7 +244,7 @@ class OrderedQuerySpecs extends ActivateTest {
 						}
 					}
 					step {
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.intValue, entity.longValue)
 						}.map(entity => (entity.intValue, entity.longValue)).toList must beEqualTo(expected)
@@ -262,7 +262,7 @@ class OrderedQuerySpecs extends ActivateTest {
 							newEmptyActivateTestEntity.stringValue = v)
 					}
 					step {
-						executeQuery {
+						query {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue)
 						}.toList.map(_.stringValue) must beEqualTo(expected)

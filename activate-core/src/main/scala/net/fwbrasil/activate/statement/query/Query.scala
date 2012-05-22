@@ -14,6 +14,10 @@ import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.statement.StatementMocks
+import scala.collection.mutable.{ Map => MutableMap }
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
+import scala.collection.mutable.Stack
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
 
@@ -22,36 +26,35 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			f(mockEntity[E1])
 		}
 
-	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] = {
+	private[activate] def produceQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] =
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}
-	}
 
-	def executeQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
-		query(f).execute
+	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
+		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
 
-	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): Query[S] =
+	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): Query[S] =
 		runAndClearFrom {
 			val e1 = mockEntity[E1]
 			val e2 = mockEntity[E2](e1)
 			f(e1, e2)
 		}
 
-	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
-		query(f).execute
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
+		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
 
-	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): Query[S] =
+	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): Query[S] =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2],
 				mockEntity[E3])
 		}
 
-	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
-		query(f).execute
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
+		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
 
-	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): Query[S] =
+	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): Query[S] =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2],
@@ -59,10 +62,10 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 				mockEntity[E4])
 		}
 
-	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
-		query(f).execute
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
+		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
 
-	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): Query[S] =
+	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): Query[S] =
 		runAndClearFrom {
 			f(mockEntity[E1],
 				mockEntity[E2],
@@ -71,11 +74,11 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 				mockEntity[E5])
 		}
 
-	def executeQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
-		query(f).execute
+	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
+		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
 
-	def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
-		query { (entity: E) =>
+	private def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+		produceQuery { (entity: E) =>
 			where({
 				var criteria = criterias(0)(entity)
 				for (i <- 1 until criterias.size)
@@ -90,7 +93,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isNotNull)
 
-	def byId[T <: Entity: Manifest](id: String): Option[T] = {
+	def byId[T <: Entity: Manifest](id: => String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
 			if (fromLiveCache.get.isDeletedSnapshot)

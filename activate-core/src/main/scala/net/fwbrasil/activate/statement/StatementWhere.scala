@@ -19,60 +19,60 @@ case class SimpleStatementBooleanValue(value: Boolean)(implicit val tval: Boolea
 trait OperatorContext {
 	implicit def toAnd(value: StatementBooleanValue) = And(value)
 	implicit def toOr(value: StatementBooleanValue) = Or(value)
-	implicit def toIsEqualTo[V <% StatementValue](value: V) = IsEqualTo(value)
-	implicit def toIsGreaterThan[V <% StatementValue](value: V) = IsGreaterThan(value)
-	implicit def toIsLessThan[V <% StatementValue](value: V) = IsLessThan(value)
-	implicit def toIsGreaterOrEqualTo[V <% StatementValue](value: V) = IsGreaterOrEqualTo(value)
-	implicit def toIsLessOrEqualTo[V <% StatementValue](value: V) = IsLessOrEqualTo(value)
-	implicit def toIsNull[V <% StatementValue](value: V) = IsNull(value)
-	implicit def toIsNotNull[V <% StatementValue](value: V) = IsNotNull(value)
-	implicit def toMatcher[V <% StatementValue](value: V) = Matcher(value)
+	implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsEqualTo(value)
+	implicit def toIsGreaterThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterThan(value)
+	implicit def toIsLessThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessThan(value)
+	implicit def toIsGreaterOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterOrEqualTo(value)
+	implicit def toIsLessOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessOrEqualTo(value)
+	implicit def toIsNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNull(value)
+	implicit def toIsNotNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNotNull(value)
+	implicit def toMatcher[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = Matcher(value)
 }
 
 class SimpleOperator() extends Operator
 class CompositeOperator() extends Operator
 
-case class Matcher(valueA: StatementValue) extends CompositeOperator {
-	def like(valueB: String)(implicit f: Option[String] => EntityValue[String]) =
-		CompositeOperatorCriteria(valueA, this, SimpleValue(wildcardToRegex(valueB), f))
-	def regexp(valueB: String)(implicit f: Option[String] => EntityValue[String]) =
-		CompositeOperatorCriteria(valueA, this, SimpleValue(valueB, f))
+case class Matcher(valueA: StatementSelectValue[_]) extends CompositeOperator {
+	def like(valueB: => String)(implicit f: Option[String] => EntityValue[String]) =
+		CompositeOperatorCriteria(valueA, this, SimpleValue(() => wildcardToRegex(valueB), f))
+	def regexp(valueB: => String)(implicit f: Option[String] => EntityValue[String]) =
+		CompositeOperatorCriteria(valueA, this, SimpleValue(() => valueB, f))
 	override def toString = "matches"
 }
 
-case class IsNull(valueA: StatementValue) extends SimpleOperator {
+case class IsNull(valueA: StatementSelectValue[_]) extends SimpleOperator {
 	def isNull = SimpleOperatorCriteria(valueA, this)
 	override def toString = "isNull"
 }
 
-case class IsNotNull(valueA: StatementValue) extends SimpleOperator {
+case class IsNotNull(valueA: StatementSelectValue[_]) extends SimpleOperator {
 	def isNotNull = SimpleOperatorCriteria(valueA, this)
 	override def toString = "isNotNull"
 }
 
-case class IsEqualTo(valueA: StatementValue) extends CompositeOperator {
+case class IsEqualTo(valueA: StatementSelectValue[_]) extends CompositeOperator {
 	def :==(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":=="
 }
 
 class ComparationOperator() extends CompositeOperator
 
-case class IsGreaterThan(valueA: StatementValue) extends ComparationOperator {
+case class IsGreaterThan(valueA: StatementSelectValue[_]) extends ComparationOperator {
 	def :>(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":>"
 }
 
-case class IsLessThan(valueA: StatementValue) extends ComparationOperator {
+case class IsLessThan(valueA: StatementSelectValue[_]) extends ComparationOperator {
 	def :<(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":<"
 }
 
-case class IsGreaterOrEqualTo(valueA: StatementValue) extends ComparationOperator {
+case class IsGreaterOrEqualTo(valueA: StatementSelectValue[_]) extends ComparationOperator {
 	def :>=(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":>="
 }
 
-case class IsLessOrEqualTo(valueA: StatementValue) extends ComparationOperator {
+case class IsLessOrEqualTo(valueA: StatementSelectValue[_]) extends ComparationOperator {
 	def :<=(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":<="
 }
@@ -107,19 +107,19 @@ case class Where(value: Criteria) {
 			this,
 			Select(list: _*))
 
-	def select[T1](tuple: T1)(implicit tval1: (T1) => StatementSelectValue[T1]) =
+	def select[T1](tuple: T1)(implicit tval1: (=> T1) => StatementSelectValue[T1]) =
 		Query[T1](From.from,
 			this,
 			Select(tuple))
 
-	def select[T1, T2](value1: T1, value2: T2)(implicit tval1: (T1) => StatementSelectValue[T1], tval2: (T2) => StatementSelectValue[T2]) =
+	def select[T1, T2](value1: T1, value2: T2)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2]) =
 		Query[Tuple2[T1, T2]](
 			From.from,
 			this,
 			Select(tval1(value1),
 				tval2(value2)))
 
-	def select[T1, T2, T3](value1: T1, value2: T2, value3: T3)(implicit tval1: (T1) => StatementSelectValue[T1], tval2: (T2) => StatementSelectValue[T2], tval3: (T3) => StatementSelectValue[T3]) =
+	def select[T1, T2, T3](value1: T1, value2: T2, value3: T3)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3]) =
 		Query[Tuple3[T1, T2, T3]](
 			From.from,
 			this,
@@ -127,7 +127,7 @@ case class Where(value: Criteria) {
 				tval2(value2),
 				tval3(value3)))
 
-	def select[T1, T2, T3, T4](value1: T1, value2: T2, value3: T3, value4: T4)(implicit tval1: (T1) => StatementSelectValue[T1], tval2: (T2) => StatementSelectValue[T2], tval3: (T3) => StatementSelectValue[T3], tval4: (T4) => StatementSelectValue[T4]) =
+	def select[T1, T2, T3, T4](value1: T1, value2: T2, value3: T3, value4: T4)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3], tval4: (=> T4) => StatementSelectValue[T4]) =
 		Query[Tuple4[T1, T2, T3, T4]](
 			From.from,
 			this,

@@ -12,10 +12,10 @@ trait OrderedQueryContext {
 		def compare(x: A, y: A) = x.toDate.compareTo(y.toDate)
 	}
 
-	implicit def toOrderByCriteria[T](value: T)(implicit tval: (T) => StatementSelectValue[T], ordering: Ordering[T]) =
+	implicit def toOrderByCriteria[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T], ordering: Ordering[T]) =
 		OrderByCriteria[T](value, orderByAscendingDirection, ordering)
 
-	implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (T) => StatementSelectValue[T], ordering: Ordering[T]) =
+	implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T], ordering: Ordering[T]) =
 		OrderByDirectionWrapper[T](value)
 
 	implicit def toOrderByWrapper[S](query: Query[S]) =

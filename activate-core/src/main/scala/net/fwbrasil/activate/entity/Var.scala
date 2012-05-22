@@ -23,6 +23,10 @@ class Var[T](value: Option[T], val isMutable: Boolean, val _valueClass: Class[_]
 		super.get
 	}
 
+	// Better performance than use Source.!
+	def getValue() =
+		get.getOrElse(null.asInstanceOf[T])
+
 	override def put(value: Option[T]): Unit = doInitialized {
 		super.put(value)
 	}
