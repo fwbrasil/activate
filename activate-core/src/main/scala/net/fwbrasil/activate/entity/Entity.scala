@@ -11,6 +11,7 @@ import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
+import java.util.IdentityHashMap
 
 trait Entity extends Serializable {
 
@@ -25,6 +26,9 @@ trait Entity extends Serializable {
 
 	def isDeleted =
 		vars.head.isDestroyed
+
+	def isDirty =
+		vars.find(_.isDirty).isDefined
 
 	private[activate] def isDeletedSnapshot =
 		vars.head.isDestroyedSnapshot
@@ -89,14 +93,17 @@ trait Entity extends Serializable {
 		entityMetadata.varFields
 
 	@transient
-	private[this] var varFieldsMapCache: Map[String, Var[Any]] = _
+	private[this] var varFieldsMapCache: IdentityHashMap[String, Var[Any]] = _
 
-	private[this] def buildVarFieldsMap =
-		(for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
+	private[this] def buildVarFieldsMap = {
+		val res = new IdentityHashMap[String, Var[Any]]()
+		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
 			yield if (ref.name == null)
 			throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
 		else
-			(ref.name -> ref)).toMap
+			res.put(ref.name, ref)
+		res
+	}
 
 	private[this] def varFieldsMap = {
 		if (varFieldsMapCache == null) {
@@ -105,8 +112,10 @@ trait Entity extends Serializable {
 		varFieldsMapCache
 	}
 
-	private[activate] def vars =
-		varFieldsMap.values
+	private[activate] def vars = {
+		import scala.collection.JavaConversions._
+		varFieldsMap.values.toList
+	}
 
 	private[activate] def context: ActivateContext =
 		_context
@@ -116,7 +125,7 @@ trait Entity extends Serializable {
 	}
 
 	private[fwbrasil] def varNamed(name: String) =
-		varFieldsMap.get(name)
+		Option(varFieldsMap.get(name))
 
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this)

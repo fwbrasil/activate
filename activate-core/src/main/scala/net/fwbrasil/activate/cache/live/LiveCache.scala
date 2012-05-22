@@ -102,11 +102,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		}
 	}
 
-	def isQueriable(entity: Entity) =
-		entity.isInitialized && !entity.isDeletedSnapshot
+	def isQueriable(entity: Entity, isMassModification: Boolean) =
+		entity.isInitialized && !entity.isDeletedSnapshot && (isMassModification || storage.isMemoryStorage || !entity.isPersisted || entity.isDirty)
 
-	def fromCache[E <: Entity](entityClass: Class[E]) = {
-		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_)).toList
+	def fromCache[E <: Entity](entityClass: Class[E], isMassModification: Boolean) = {
+		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_, isMassModification)).toList
 		if (!storage.isMemoryStorage)
 			for (entity <- entities)
 				if (!entity.isPersisted)
@@ -134,7 +134,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
 
 	def executeMassModification(statement: MassModificationStatement) = {
-		val entities = entitySourceInstancesCombined(statement.from)
+		val entities = entitySourceInstancesCombined(true, statement.from)
 		executeMassModificationWithEntitySources(statement, entities)
 	}
 
@@ -144,7 +144,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				query.orderByClause.get.emptyOrderedSet[S]
 			else
 				Set[S]()
-		val entities = entitySourceInstancesCombined(query.from)
+		val entities = entitySourceInstancesCombined(false, query.from)
 		val fromCache = executeQueryWithEntitySources(query, entities)
 		object invalid
 		val fromStorage = (for (line <- storage.fromStorage(query))
@@ -452,11 +452,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				someRef.get.getValue
 		}).asInstanceOf[T]
 
-	def entitySourceInstancesCombined(from: From) =
-		CollectionUtil.combine(entitySourceInstances(from.entitySources: _*))
+	def entitySourceInstancesCombined(isMassModification: Boolean, from: From) =
+		CollectionUtil.combine(entitySourceInstances(isMassModification, from.entitySources: _*))
 
-	def entitySourceInstances(entitySources: EntitySource*) =
+	def entitySourceInstances(isMassModification: Boolean, entitySources: EntitySource*) =
 		for (entitySource <- entitySources)
-			yield fromCache(entitySource.entityClass)
+			yield fromCache(entitySource.entityClass, isMassModification)
 
 }

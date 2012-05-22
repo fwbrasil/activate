@@ -53,6 +53,8 @@ import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import scala.collection.mutable.ListBuffer
+import java.util.IdentityHashMap
 
 trait MongoStorage extends MarshalStorage {
 
@@ -86,33 +88,37 @@ trait MongoStorage extends MarshalStorage {
 					for (assignment <- update.assignments)
 						set.put(mongoStatementSelectValue(assignment.assignee), getMongoValue(assignment.value))
 					val mongoUpdate = new BasicDBObject
-					mongoUpdate.put("$set", set);
+					mongoUpdate.put("$set", set)
 					coll.updateMulti(where, mongoUpdate)
 				case delete: MassDeleteStatement =>
 					coll.remove(where)
 			}
 		}
+		val insertMap = new IdentityHashMap[Class[_], ListBuffer[BasicDBObject]]()
 		for ((entity, properties) <- insertList) {
-			val doc = new BasicDBObject();
-			for ((name, value) <- properties; if (name != "id"))
+			val doc = new BasicDBObject()
+			for ((name, value) <- properties if (name != "id"))
 				doc.put(name, getMongoValue(value))
 			doc.put("_id", entity.id)
-			coll(entity).insert(doc)
+			insertMap.getOrElseUpdate(entity.getClass, ListBuffer()) += doc
+		}
+		for (entityClass <- insertMap.keys) {
+			coll(entityClass).insert(insertMap(entityClass))
 		}
 		for ((entity, properties) <- updateList) {
 			val query = new BasicDBObject
 			query.put("_id", entity.id)
 			val set = new BasicDBObject
-			for ((name, value) <- properties; if (name != "id")) {
+			for ((name, value) <- properties if (name != "id")) {
 				val inner = new BasicDBObject
 				set.put(name, getMongoValue(value))
 			}
 			val update = new BasicDBObject
-			update.put("$set", set);
+			update.put("$set", set)
 			coll(entity).update(query, update)
 		}
 		for ((entity, properties) <- deleteList) {
-			val query = new BasicDBObject();
+			val query = new BasicDBObject()
 			query.put("_id", entity.id)
 			coll(entity).remove(query)
 		}

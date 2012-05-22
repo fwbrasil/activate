@@ -26,6 +26,8 @@ class Var[T](value: Option[T], val isMutable: Boolean, val _valueClass: Class[_]
 	// Better performance than use Source.!
 	def getValue() =
 		get.getOrElse(null.asInstanceOf[T])
+	def putValue(value: T) =
+		put(Option(value))
 
 	override def put(value: Option[T]): Unit = doInitialized {
 		super.put(value)
@@ -64,7 +66,8 @@ class IdVar(outerEntity: Entity)
 
 	var id: String = _
 
-	override def get = Option(id).orElse(throw new IllegalStateException("empty id"))
+	override def get =
+		Some(id)
 
 	override def put(value: Option[String]): Unit = {
 		if (value != null && value.nonEmpty && id == null) {

@@ -123,7 +123,7 @@ object EntityEnhancer extends Logging {
 									if (optionFlag)
 										fa.replace("this." + fa.getFieldName + ".put(" + box(typ) + ");")
 									else
-										fa.replace("this." + fa.getFieldName + ".$colon$eq(" + box(typ) + ");")
+										fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ) + ");")
 								} else if (fa.isReader) {
 									if (optionFlag)
 										fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
