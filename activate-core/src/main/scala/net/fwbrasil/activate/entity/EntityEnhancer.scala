@@ -149,7 +149,7 @@ object EntityEnhancer extends Logging {
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
 					else {
 						val isMutable = Modifier.isFinal(field.getModifiers)
-						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName + "\", this);"
+						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);"
 					}
 				}
 				c.insertBefore(replace)
@@ -158,7 +158,7 @@ object EntityEnhancer extends Logging {
 
 			val initBody =
 				(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
-					yield "varTypes.put(\"" + field.getName + "\", " + typ.getName + ".class)").mkString(";") + ";"
+					yield "varTypes.put(\"" + field.getName.split('$').last + "\", " + typ.getName + ".class)").mkString(";") + ";"
 
 			init.insertBefore(initBody)
 

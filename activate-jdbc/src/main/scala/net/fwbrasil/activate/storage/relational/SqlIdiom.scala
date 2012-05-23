@@ -199,14 +199,14 @@ abstract class SqlIdiom {
 			case insert: InsertDmlStorageStatement =>
 				new SqlStatement(
 					"INSERT INTO " + toTableName(insert.entityClass) +
-						" (" + insert.propertyMap.keys.mkString(", ") + ") " +
+						" (" + insert.propertyMap.keys.toList.map(escape).mkString(", ") + ") " +
 						" VALUES (:" + insert.propertyMap.keys.mkString(", :") + ")",
 					insert.propertyMap)
 
 			case update: UpdateDmlStorageStatement =>
 				new SqlStatement(
 					"UPDATE " + toTableName(update.entityClass) +
-						" SET " + (for (key <- update.propertyMap.keys) yield key + " = :" + key).mkString(", ") +
+						" SET " + (for (key <- update.propertyMap.keys) yield escape(key) + " = :" + key).mkString(", ") +
 						" WHERE ID = :id",
 					update.propertyMap)
 
@@ -355,7 +355,7 @@ abstract class SqlIdiom {
 		}
 
 	def toTableName(entityClass: Class[_]): String =
-		EntityHelper.getEntityName(entityClass)
+		escape(EntityHelper.getEntityName(entityClass))
 
 	def toSqlDdl(statement: StorageMigrationAction): String
 

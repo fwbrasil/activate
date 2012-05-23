@@ -10,8 +10,7 @@ import net.fwbrasil.activate.util.Reflection.toRichClass
 import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
-import java.util.IdentityHashMap
+import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 
 trait Entity extends Serializable {
 
@@ -93,10 +92,10 @@ trait Entity extends Serializable {
 		entityMetadata.varFields
 
 	@transient
-	private[this] var varFieldsMapCache: IdentityHashMap[String, Var[Any]] = _
+	private[this] var varFieldsMapCache: MutableMap[String, Var[Any]] = _
 
 	private[this] def buildVarFieldsMap = {
-		val res = new IdentityHashMap[String, Var[Any]]()
+		val res = MutableMap[String, Var[Any]]()
 		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
 			yield if (ref.name == null)
 			throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
@@ -112,20 +111,17 @@ trait Entity extends Serializable {
 		varFieldsMapCache
 	}
 
-	private[activate] def vars = {
-		import scala.collection.JavaConversions._
-		varFieldsMap.values.toList
-	}
+	private[activate] def vars =
+		varFieldsMap.values
 
 	private[activate] def context: ActivateContext =
 		_context
 
-	private[this] lazy val _context = {
+	private[this] lazy val _context =
 		ActivateContext.contextFor(this.niceClass)
-	}
 
 	private[fwbrasil] def varNamed(name: String) =
-		Option(varFieldsMap.get(name))
+		varFieldsMap.get(name)
 
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this)
@@ -181,7 +177,8 @@ class EntityPropertyMetadata(
 		entityMethods: List[Method],
 		entityClass: Class[Entity],
 		varTypes: Map[String, Class[_]]) {
-	val name = varField.getName
+	val javaName = varField.getName
+	val name = javaName.split('$').last
 	val propertyType =
 		varTypes.getOrElse(name, null)
 	require(propertyType != null)
@@ -189,8 +186,8 @@ class EntityPropertyMetadata(
 		throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +
 			"Instead of \"type MyEnum = Value\", use " +
 			"\"case class MyEnum(name: String) extends Val(name)\"")
-	val getter = entityMethods.find(_.getName == name).get
-	val setter = entityMethods.find(_.getName == name + "_$eq").getOrElse(null)
+	val getter = entityMethods.find(_.getName == javaName).get
+	val setter = entityMethods.find(_.getName == javaName + "_$eq").getOrElse(null)
 	val isMutable =
 		setter != null
 	val tval =
@@ -237,10 +234,10 @@ class EntityMetadata(
 object EntityHelper {
 
 	private[this] val entitiesMetadatas =
-		MutableHashMap[String, EntityMetadata]()
+		MutableMap[String, EntityMetadata]()
 
 	private[this] val concreteEntityClasses =
-		MutableHashMap[Class[_ <: Entity], List[Class[Entity]]]()
+		MutableMap[Class[_ <: Entity], List[Class[Entity]]]()
 
 	var initialized = false
 
