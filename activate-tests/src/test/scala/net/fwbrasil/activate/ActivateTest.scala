@@ -34,11 +34,10 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
 	def executors(ctx: ActivateTestContext): List[StepExecutor] =
 		List(
-			//			OneTransaction(ctx),
-			//			MultipleTransactions(ctx),
-			MultipleTransactionsWithReinitialize(ctx) //,
-			//			MultipleTransactionsWithReinitializeAndSnapshot(ctx)
-			).filter(_.accept(ctx))
+			OneTransaction(ctx),
+			MultipleTransactions(ctx),
+			MultipleTransactionsWithReinitialize(ctx),
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
 	def contexts = {
 		val ret = List[ActivateTestContext](
@@ -50,7 +49,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret.filter(_ != oracleContext)
-		List(prevaylerContext)
+		//		List(prevaylerContext)
 	}
 
 	trait StepExecutor {

@@ -65,7 +65,7 @@ trait JdbcStatement {
 	val bindsList: List[Map[String, StorageValue]]
 
 	def toIndexedBind = {
-		val pattern = Pattern.compile("(:[a-zA-Z]*[0-9]*)")
+		val pattern = Pattern.compile("(:[a-zA-Z0-9_]*)")
 		var matcher = pattern.matcher(statement)
 		var result = statement
 		matcher.matches

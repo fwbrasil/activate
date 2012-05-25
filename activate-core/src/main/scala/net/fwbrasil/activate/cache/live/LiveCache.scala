@@ -126,9 +126,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			mapOption.get
 		else {
 			cache.doWithWriteLock {
-				val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
-				cache += (entityClass -> entitiesMap)
-				entitiesMap
+				cache.get(entityClass).getOrElse {
+					val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
+					cache += (entityClass -> entitiesMap)
+					entitiesMap
+				}
 			}
 		}
 	}.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
