@@ -151,17 +151,24 @@ trait Entity extends Serializable {
 
 object Entity {
 	var serializeUsingEvelope = true
-	private[this] val _toStringLoopSeen = new ThreadLocal[MutableHashSet[Entity]]() {
-		override def initialValue = MutableHashSet[Entity]()
-	}
+	@transient
+	private[this] var _toStringLoopSeen: ThreadLocal[MutableHashSet[Entity]] = _
+	private def toStringLoopSeen =
+		synchronized {
+			if (_toStringLoopSeen == null)
+				_toStringLoopSeen = new ThreadLocal[MutableHashSet[Entity]]() {
+					override def initialValue = MutableHashSet[Entity]()
+				}
+			_toStringLoopSeen
+		}
 	def toStringSeen(entity: Entity) = {
-		val set = _toStringLoopSeen.get
+		val set = toStringLoopSeen.get
 		val ret = set.contains(entity)
 		set += entity
 		ret
 	}
 	def toStringRemoveSeen(entity: Entity) =
-		_toStringLoopSeen.get -= entity
+		toStringLoopSeen.get -= entity
 }
 
 class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {

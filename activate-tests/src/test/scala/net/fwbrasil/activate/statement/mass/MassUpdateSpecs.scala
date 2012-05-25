@@ -20,7 +20,7 @@ class MassUpdateSpecs extends ActivateTest {
 					step {
 						update {
 							(entity: ActivateTestEntity) => where(entity isNotNull) set (entity.intValue := newValue)
-						}.execute
+						}
 					}
 					step {
 						all[ActivateTestEntity].map(_.intValue).toList.distinct must beEqualTo(List(newValue))
@@ -38,7 +38,7 @@ class MassUpdateSpecs extends ActivateTest {
 					step {
 						update {
 							(entity: ActivateTestEntity) => where(entity.id :== id) set (entity.intValue := newValue)
-						}.execute
+						}
 					}
 					step {
 						byId[ActivateTestEntity](id).map(_.intValue).toList.distinct must beEqualTo(List(newValue))
@@ -57,7 +57,7 @@ class MassUpdateSpecs extends ActivateTest {
 						all[ActivateTestEntity].foreach(_.toString) // Just load entities
 						update {
 							(entity: ActivateTestEntity) => where(entity isNotNull) set (entity.intValue := newValue)
-						}.execute
+						}
 					}
 					step {
 						all[ActivateTestEntity].map(_.intValue).toList.distinct must beEqualTo(List(newValue))
@@ -78,10 +78,28 @@ class MassUpdateSpecs extends ActivateTest {
 						byId[ActivateTestEntity](ids.last).toString // Just load entity
 						update {
 							(entity: ActivateTestEntity) => where(entity isNotNull) set (entity.intValue := newValue)
-						}.execute
+						}
 					}
 					step {
 						all[ActivateTestEntity].map(_.intValue).toList.distinct must beEqualTo(List(newValue))
+					}
+				})
+		}
+		"normalize update statement from" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						new TraitAttribute1("a")
+						new TraitAttribute2("b")
+					}
+					step {
+						step.ctx.update {
+							(entity: TraitAttribute) => where(entity isNotNull) set (entity.attribute := "c")
+						}
+					}
+					step {
+						all[TraitAttribute].map(_.attribute).toSet must beEqualTo(Set("c"))
 					}
 				})
 		}

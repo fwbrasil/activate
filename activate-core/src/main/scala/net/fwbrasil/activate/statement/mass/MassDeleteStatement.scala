@@ -16,10 +16,12 @@ trait MassDeleteContext extends StatementContext {
 	implicit def toDelete(where: Where) =
 		MassDeleteStatement(From.from, where)
 	import From._
-	def delete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): MassDeleteStatement =
+	def produceDelete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): MassDeleteStatement =
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}
+	def delete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): Unit =
+		executeStatementWithCache[MassDeleteStatement, Unit](f, () => produceDelete(f), (delete: MassDeleteStatement) => delete.execute)
 
 }
 

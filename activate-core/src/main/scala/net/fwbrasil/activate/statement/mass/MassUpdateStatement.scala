@@ -18,10 +18,12 @@ trait MassUpdateContext extends StatementContext {
 	implicit def toWhereDecorator(where: Where) =
 		WhereUpdateDecorator(where)
 	import From._
-	def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
+	def produceUpdate[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}
+	def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): Unit =
+		executeStatementWithCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
 
 }
 
@@ -31,7 +33,7 @@ case class WhereUpdateDecorator(where: Where) {
 }
 
 case class UpdateAssigneeDecorator(assignee: StatementSelectValue[_]) {
-	def :=[T](value: T)(implicit tval: (=> T) => StatementValue) =
+	def :=[T](value: => T)(implicit tval: (=> T) => StatementValue) =
 		UpdateAssignment(assignee, tval(value))
 }
 case class UpdateAssignment(assignee: StatementSelectValue[_], value: StatementValue) {

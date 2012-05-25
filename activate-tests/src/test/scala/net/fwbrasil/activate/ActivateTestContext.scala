@@ -155,7 +155,7 @@ trait ActivateTestContext extends ActivateContext {
 	val emptyBigDecimalValue = null
 	val emptyDateValue = null
 	val emptyCalendarValue = null
-	def emptyTraitValue1 = null
+	val emptyTraitValue1 = null
 	val emptyTraitValue2 = null
 	val emptyByteArrayValue = null
 	val emptyEntityValue = null

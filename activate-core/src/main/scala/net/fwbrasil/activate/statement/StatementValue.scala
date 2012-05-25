@@ -53,7 +53,11 @@ trait StatementValueContext extends ValueContext {
 	}
 
 	implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
-		toStatementValueEntityValueOption(Option(value))
+		toStatementValueEntityValueOption(
+			if (value.isInstanceOf[Option[_]])
+				value.asInstanceOf[Option[V]]
+			else
+				Option(value))
 
 	implicit def toStatementValueEntityValueOption[V](value: => Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
 		StatementMocks.lastFakeVarCalled match {
@@ -106,7 +110,10 @@ case class StatementEntitySourcePropertyValue[P](override val entitySource: Enti
 
 case class SimpleValue[V](val fAnyValue: () => V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue[V] {
 	def anyValue = fAnyValue()
-	require(anyValue != null)
+	//	require(anyValue != null)
 	def entityValue: EntityValue[V] = f(Option(anyValue))
-	override def toString = anyValue.toString
+	override def toString =
+		if (anyValue == null)
+			"null"
+		else anyValue.toString
 }

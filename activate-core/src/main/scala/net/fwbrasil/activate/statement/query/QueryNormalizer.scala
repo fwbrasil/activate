@@ -19,15 +19,11 @@ import net.fwbrasil.activate.statement.And
 import net.fwbrasil.activate.statement.IsEqualTo
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementNormalizer
 
-object QueryNormalizer {
+object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
-	val cache = new HashMap[Query[_], List[Query[_]]]() with SynchronizedMap[Query[_], List[Query[_]]]
-
-	def normalize[S](query: Query[S]): List[Query[S]] =
-		cache.getOrElseUpdate(query, normalizeQuery(query)).asInstanceOf[List[Query[S]]]
-
-	def normalizeQuery[S](query: Query[S]): List[Query[_]] = {
+	def normalizeStatement(query: Query[_]): List[Query[_]] = {
 		val normalizedPropertyPath = normalizePropertyPath(List(query))
 		val normalizedFrom = normalizeFrom(normalizedPropertyPath)
 		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
@@ -93,26 +89,6 @@ object QueryNormalizer {
 		val propValue =
 			StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
 		(entitySources, criterias, propValue)
-	}
-
-	def normalizeFrom[S](queryList: List[Query[S]]): List[Query[S]] =
-		(for (query <- queryList)
-			yield normalizeFrom(query)).flatten
-
-	def normalizeFrom[S](query: Query[S]): List[Query[S]] = {
-		val concreteClasses =
-			(for (entitySource <- query.from.entitySources)
-				yield EntityHelper.concreteClasses(entitySource.entityClass).toSeq).toSeq
-		val combined = combine(concreteClasses)
-		val originalSources = query.from.entitySources
-		val fromMaps =
-			for (classes <- combined) yield {
-				val fromMap = new IdentityHashMap[Any, Any]()
-				for (i <- 0 until classes.size)
-					fromMap.put(originalSources(i), EntitySource(classes(i), originalSources(i).name))
-				fromMap
-			}
-		for (fromMap <- fromMaps) yield deepCopyMapping(query, fromMap)
 	}
 
 	def normalizeSelectWithOrderBy[S](queryList: List[Query[S]]): List[Query[_]] =

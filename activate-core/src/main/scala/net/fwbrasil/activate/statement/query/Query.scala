@@ -26,7 +26,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			f(mockEntity[E1])
 		}
 
-	private[activate] def produceQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] =
+	def produceQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Query[S] =
 		runAndClearFrom {
 			f(mockEntity[E1])
 		}

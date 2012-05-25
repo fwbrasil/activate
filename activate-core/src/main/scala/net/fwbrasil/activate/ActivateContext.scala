@@ -29,6 +29,7 @@ import net.fwbrasil.activate.statement.mass.MassUpdateContext
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteContext
 import scala.collection.mutable.SynchronizedMap
+import net.fwbrasil.activate.statement.mass.MassModificationStatementNormalizer
 
 trait ActivateContext
 		extends EntityContext
@@ -68,7 +69,7 @@ trait ActivateContext
 		}
 
 	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] =
-		(for (normalized <- QueryNormalizer.normalize(query)) yield {
+		(for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
 			QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
 		}).flatten
 
@@ -78,10 +79,11 @@ trait ActivateContext
 	private def statementsForTransaction(transaction: Transaction) =
 		transactionStatements.getOrElseUpdate(transaction, ListBuffer())
 
-	private[activate] def executeMassModification(statement: MassModificationStatement) = {
-		liveCache.executeMassModification(statement)
-		currentTransactionStatements += statement
-	}
+	private[activate] def executeMassModification(statement: MassModificationStatement) =
+		for (normalized <- MassModificationStatementNormalizer.normalize[MassModificationStatement](statement)) {
+			liveCache.executeMassModification(normalized)
+			currentTransactionStatements += normalized
+		}
 
 	private[activate] def name = contextName
 	def contextName: String
