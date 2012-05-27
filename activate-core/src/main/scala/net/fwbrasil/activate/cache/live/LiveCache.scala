@@ -173,6 +173,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		})
 		result ++= fromCache
 		result
+
 	}
 
 	def materializeEntity(entityId: String): Entity = {

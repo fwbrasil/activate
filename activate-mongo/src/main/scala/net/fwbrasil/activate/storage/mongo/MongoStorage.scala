@@ -262,7 +262,7 @@ trait MongoStorage extends MarshalStorage {
 			case value: StatementEntityInstanceValue[_] =>
 				getMongoValue(StringStorageValue(Option(value.entityId)))
 			case other =>
-				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria.")
+				throw new UnsupportedOperationException("Mongo storage accept only simple values in the left side of a criteria (no joins).")
 		}
 
 	def query(value: StatementBooleanValue): DBObject =

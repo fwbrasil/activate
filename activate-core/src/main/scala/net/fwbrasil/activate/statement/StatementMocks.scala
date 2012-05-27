@@ -21,17 +21,19 @@ object StatementMocks {
 
 	val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
 
-	var _lastFakeVarCalled: Option[Var[_]] = None
+	var _lastFakeVarCalled =
+		new ThreadLocal[Option[Var[_]]] {
+			override def initialValue = None
+		}
 
 	def lastFakeVarCalled = {
-		val last = _lastFakeVarCalled
+		val last = _lastFakeVarCalled.get
 		clearFakeVarCalled
 		last
 	}
 
-	def clearFakeVarCalled = {
-		_lastFakeVarCalled = None
-	}
+	def clearFakeVarCalled =
+		_lastFakeVarCalled.set(None)
 
 	class FakeVar[P]
 			extends Var[P](None, true, null, null, null) {
@@ -48,7 +50,7 @@ object StatementMocks {
 					mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
 				else
 					mock(fakeValueClass)
-			_lastFakeVarCalled = Some(this)
+			_lastFakeVarCalled.set(Some(this))
 			Option(value.asInstanceOf[P])
 		}
 		override def put(value: Option[P]): Unit = {
