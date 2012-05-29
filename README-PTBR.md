@@ -143,19 +143,18 @@ Não é necessário chamar um método como "store" ou "save" para adicionar a en
 
 Consultas:
 
-	val q = query {
-		(pessoa: Pessoa) => where(pessoa.nome :== "Teste") select(pessoa)
-	}
-
-Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNull, isNotNull, :||, :&&, like and regexp. Observe que as queries podem ser feitas sobre super classes (incluindo trait e abstract class).
-
 Execute as consultas dentro de transações:
 
 	transactional {
-		val result = q.execute
-		for (pessoa <- result)
-			println(pessoa.nome)
+		val result = 
+			query {
+				(person: Person) => where(person.name :== "Test") select(person)
+			}
+		for (person <- result)
+			println(person.name)
 	}
+
+Os operadores de consulta disponíveis são :==, :<, :>, :<=, :>=, isNull, isNotNull, :||, :&&, like and regexp. Observe que as queries podem ser feitas sobre super classes (incluindo trait e abstract class).
 
 Existem formas alternativas de consulta. Com o allWhere possível utilizar uma lista de critérios.
 

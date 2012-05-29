@@ -144,19 +144,18 @@ It is not necessary to call a method like "store" or "save" to add the entity. J
 
 Queries:
 
-	val q = query {
-		(person: Person) => where(person.name :== "Test") select(person)
-	}
-
-The query operators available are :==, :<, :>, :<=, :>=, isNull, isNotNull, :||, :&&, like and regexp. Note that the queries can be made about entities super classes (including abstract trait and class).
-
 Perform queries within transactions:
 
 	transactional {
-		val result = q.execute
+		val result = 
+			query {
+				(person: Person) => where(person.name :== "Test") select(person)
+			}
 		for (person <- result)
 			println(person.name)
 	}
+	
+The query operators available are :==, :<, :>, :<=, :>=, isNull, isNotNull, :||, :&&, like and regexp. Note that the queries can be made about entities super classes (including abstract trait and class).
 
 There are alternative forms of query. With the allWhere you can use a list of criterias.
 
