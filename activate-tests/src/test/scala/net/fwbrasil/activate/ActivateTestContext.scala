@@ -53,16 +53,16 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
-object oracleContext extends ActivateTestContext {
-	val storage = new SimpleJdbcRelationalStorage {
-		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-		val user = "ACTIVATE_TEST"
-		val password = "ACTIVATE_TEST"
-		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
-		val dialect = oracleDialect
-	}
-}
-class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
+//object oracleContext extends ActivateTestContext {
+//	val storage = new SimpleJdbcRelationalStorage {
+//		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
+//		val user = "ACTIVATE_TEST"
+//		val password = "ACTIVATE_TEST"
+//		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
+//		val dialect = oracleDialect
+//	}
+//}
+//class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
 
 object mysqlContext extends ActivateTestContext {
 	System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorageFactory")
