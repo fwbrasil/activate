@@ -38,7 +38,7 @@ object ActivateBuild extends Build {
 	/* 
 		Install oracle in your local repo
 	*/
-	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
+	/*val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"*/
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
@@ -118,7 +118,7 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql)
+		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql)
 		    )
 		)
     	
