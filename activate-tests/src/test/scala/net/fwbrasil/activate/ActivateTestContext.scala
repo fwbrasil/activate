@@ -12,7 +12,6 @@ import net.fwbrasil.activate.storage.mongo.MongoStorage
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 import net.fwbrasil.activate.storage.relational.oracleDialect
 import java.sql.Blob
-import oracle.sql.BLOB
 import java.sql.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
