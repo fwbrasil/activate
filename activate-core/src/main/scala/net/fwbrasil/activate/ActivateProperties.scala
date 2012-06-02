@@ -24,11 +24,10 @@ class ActivateProperties(parent: Option[ActivateProperties], prefix: String) {
 	def fullPath(path: String*) =
 		(basePath ++ path.toList).mkString(".")
 
-	def getPropertyOption(path: String*) =
-		systemProperties.get(fullPath(path: _*))
-
-	def getProperty(path: String*) =
-		getPropertyOption(path: _*).get
+	def getProperty(path: String*) = {
+		val property = fullPath(path: _*)
+		systemProperties.getOrElse(property, throw new IllegalStateException("Cant find property " + property))
+	}
 
 	def childProperties(path: String*) = {
 		val base = fullPath(path: _*) + "."

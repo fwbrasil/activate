@@ -14,7 +14,7 @@ import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 
 trait Entity extends Serializable {
 
-	implicit val implicitEntity = this: this.type
+	protected implicit val implicitEntity = this: this.type
 
 	def delete =
 		if (!isDeleted) {
@@ -250,6 +250,9 @@ object EntityHelper {
 
 	def metadatas =
 		entitiesMetadatas.values.toList.sortBy(_.name)
+
+	def allConcreteEntityClasses =
+		concreteEntityClasses.values.flatten.toSet
 
 	def concreteClasses[E <: Entity](clazz: Class[E]) =
 		concreteEntityClasses.getOrElse(clazz, {

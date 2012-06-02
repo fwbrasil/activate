@@ -56,7 +56,7 @@ object EntityEnhancer extends Logging {
 		validEntityFields.filter((name: String) => field.getName == name).nonEmpty
 
 	def isCandidate(field: CtField) =
-		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && field.getType.getSimpleName != "EntityList" && field.getName != "implicitEntity"
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && field.getType.getSimpleName != "EntityList" && field.getName.split('$').last != "implicitEntity"
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"

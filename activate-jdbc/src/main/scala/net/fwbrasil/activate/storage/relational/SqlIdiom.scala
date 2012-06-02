@@ -234,7 +234,7 @@ abstract class SqlIdiom {
 
 	def toSqlDml(query: Query[_]): SqlStatement = {
 		implicit val binds = MutableMap[StorageValue, String]()
-		new SqlStatement("SELECT DISTINCT " + toSqlDml(query.select) +
+		new SqlStatement("SELECT " + toSqlDml(query.select) +
 			" FROM " + toSqlDml(query.from) + " WHERE " + toSqlDml(query.where) + toSqlDmlOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
 	}
 
@@ -297,9 +297,9 @@ abstract class SqlIdiom {
 			case value: StatementEntityInstanceValue[_] =>
 				bind(StringStorageValue(Option(value.entityId)))
 			case value: StatementEntitySourcePropertyValue[v] =>
-				value.entitySource.name + "." + value.propertyPathNames.mkString(".")
+				escape(value.entitySource.name) + "." + escape(value.propertyPathNames.mkString("."))
 			case value: StatementEntitySourceValue[v] =>
-				value.entitySource.name + ".id"
+				escape(value.entitySource.name) + ".id"
 		}
 
 	def toSqlDml(value: From)(implicit binds: MutableMap[StorageValue, String]): String =
@@ -429,8 +429,18 @@ abstract class SqlIdiom {
 	def toSqlDml(assignments: List[UpdateAssignment])(implicit binds: MutableMap[StorageValue, String]): String =
 		assignments.map(toSqlDml).mkString(", ")
 
-	def toSqlDml(assignment: UpdateAssignment)(implicit binds: MutableMap[StorageValue, String]): String =
-		toSqlDml(assignment.assignee) + " = " + toSqlDml(assignment.value)
+	def toSqlDml(assignment: UpdateAssignment)(implicit binds: MutableMap[StorageValue, String]): String = {
+		val value = assignment.value match {
+			case value: SimpleValue[_] =>
+				if (value.anyValue == null)
+					"null"
+				else
+					toSqlDml(value)
+			case other =>
+				toSqlDml(other)
+		}
+		toSqlDml(assignment.assignee) + " = " + value
+	}
 
 	def findTableStatement(tableName: String): String
 
@@ -674,7 +684,7 @@ object oracleDialect extends SqlIdiom {
 			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
 
 	override def escape(string: String) =
-		"\"" + string.toUpperCase + "\""
+		"\"" + string.toUpperCase.substring(0, string.length.min(30)) + "\""
 
 	override def toSqlDdl(action: StorageMigrationAction): String = {
 		action match {

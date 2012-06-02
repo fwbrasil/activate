@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "0.9"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
@@ -21,20 +21,15 @@ object ActivateBuild extends Build {
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
-	val scalap = "org.scala-lang" % "scalap" % "2.9.1"
-	val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.9.1"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
 	val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.5"
 	val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.5"
 	
-	/* Cassandra */
-	val cassandra = "org.apache.cassandra" % "cassandra-thrift" % "1.0.6"
-	
 	/* Tests */
 	val junit = "junit" % "junit" % "4.4" % "test"
-	val specs2 = "org.specs2" % "specs2_2.9.2-RC2" % "1.9" % "test"
+	val specs2 = "org.specs2" %% "specs2" % "1.9" % "test"
 	/* 
 		Install oracle in your local repo
 	*/
@@ -125,8 +120,9 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "0.9",
+    		version := "1.0-SNAPSHOT",
     		scalaVersion := "2.9.2",
+    		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
