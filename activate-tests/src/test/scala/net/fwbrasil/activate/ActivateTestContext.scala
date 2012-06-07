@@ -4,13 +4,13 @@ import net.fwbrasil.activate.EnumerationValue._
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
-import net.fwbrasil.activate.storage.relational.mySqlDialect
-import net.fwbrasil.activate.storage.relational.postgresqlDialect
+import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
+import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.memory.MemoryStorage
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
-import net.fwbrasil.activate.storage.relational.oracleDialect
+import net.fwbrasil.activate.storage.relational.idiom.oracleDialect
 import java.sql.Blob
 import java.sql.Date
 import net.fwbrasil.activate.storage.Storage

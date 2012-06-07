@@ -12,7 +12,7 @@ object ActivateBuild extends Build {
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
-	val reflections = "org.reflections" % "reflections" % "0.9.5"  intransitive() 
+	val reflections = "org.reflections" % "reflections" % "0.9.8" 
 	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val dom4j = "dom4j" % "dom4j" % "1.6"
 	val gson = "com.google.code.gson" % "gson" % "1.4"

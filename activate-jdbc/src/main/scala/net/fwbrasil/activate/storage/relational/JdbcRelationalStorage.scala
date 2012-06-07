@@ -3,7 +3,6 @@ package net.fwbrasil.activate.storage.relational
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
-
 import javax.naming.InitialContext
 import javax.sql.DataSource
 import net.fwbrasil.activate.statement.query.Query
@@ -12,6 +11,7 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 
 trait JdbcRelationalStorage extends RelationalStorage with Logging {
 

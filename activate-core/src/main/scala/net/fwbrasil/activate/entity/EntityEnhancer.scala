@@ -202,9 +202,10 @@ object EntityEnhancer extends Logging {
 			for (enhancedEntityClass <- enhancedEntityClasses)
 				registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
 			val resolved = tree.resolve
+			val classLoader = classOf[Entity].getClassLoader
 			val res =
 				(for (enhancedEntityClass <- resolved)
-					yield enhancedEntityClass.toClass.asInstanceOf[Class[Entity]]).toSet
+					yield enhancedEntityClass.toClass(classLoader).asInstanceOf[Class[Entity]]).toSet
 			_enhancedEntityClasses = Some(res)
 			res
 		}

@@ -31,48 +31,6 @@ object Reflection {
 	val classPool = ClassPool.getDefault
 	classPool.appendClassPath(new ClassClassPath(this.niceClass))
 
-	object stringConverter {
-		var converters = Map[Class[_], Function1[String, Any]]()
-		def converter[C: Manifest](f: (String) => C) =
-			converters += (ManifestUtil.erasureOf[C] -> f)
-		import RichList.toRichList
-		import java.lang.{ Integer => JInt, Boolean => JBoolean, Character => JChar, Float => JFloat, Double => JDouble }
-		converter[Int](JInt.parseInt(_))
-		converter[JInt](JInt.parseInt(_))
-		converter[Boolean](b => b != null && Boolean.box(JBoolean.parseBoolean(b)))
-		converter[JBoolean](b => b != null && Boolean.box(JBoolean.parseBoolean(b)))
-		converter[Char](toRichList(_).onlyOne)
-		converter[JChar](toRichList(_).onlyOne)
-		converter[String](_)
-		converter[Float](d => Float.box(JFloat.parseFloat(d)))
-		converter[JFloat](d => Float.box(JFloat.parseFloat(d)))
-		converter[Double](d => Double.box(JDouble.parseDouble(d)))
-		converter[JDouble](d => Double.box(JDouble.parseDouble(d)))
-		converter[BigDecimal](BigDecimal(_))
-		def convert(string: String, clazz: Class[_]) =
-			try {
-				val converter = converters.get(
-					if (clazz.isPrimitive)
-						getPrimitiveWrapper(clazz)
-					else clazz)
-				converter.map(_(string))
-			} catch {
-				case e => None
-			}
-	}
-
-	def getPrimitiveWrapper(clazz: Class[_]) =
-		clazz.getSimpleName match {
-			case "int" => classOf[Int]
-			case "long" => classOf[Long]
-			case "double" => classOf[Double]
-			case "float" => classOf[Float]
-			case "bool" => classOf[Boolean]
-			case "char" => classOf[Char]
-			case "byte" => classOf[Byte]
-			case "short" => classOf[Short]
-		}
-
 	class NiceObject[T](x: T) {
 		def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
 	}
@@ -169,31 +127,24 @@ object Reflection {
 		method.invoke(obj, params: _*)
 	}
 
+	private def reflectionsHints(classes: List[Class[_]]) =
+		(classes.map {
+			clazz =>
+				if (clazz.getPackage == null)
+					clazz.getClassLoader
+				else
+					clazz
+		}).toArray[Object]
+
 	def getAllImplementorsNames(pointsOfView: List[Class[_]], interfaceClass: Class[_]) = {
-		val hints = pointsOfView ++ List(interfaceClass)
-		val reflections = new Reflections(hints.toArray[Object])
+		val hints = reflectionsHints(pointsOfView ++ List(interfaceClass))
+		val reflections = new Reflections(hints)
 		val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
 		Set(subtypes: _*).asInstanceOf[Set[String]]
 	}
 
 	def getAllImplementors(pointsOfView: List[Class[_]], interfaceClass: Class[_]) =
 		getAllImplementorsNames(pointsOfView, interfaceClass).map(Class.forName)
-
-	def getAllPackageClasses(packageName: String) = {
-		var classes = Set[Class[_]]()
-		new Reflections(packageName, (new AbstractScanner {
-			def scan(cls: Object) = {
-				val className = getMetadataAdapter().asInstanceOf[MetadataAdapter[Object, Object, Object]].getClassName(cls);
-				if (!className.contains('$')) {
-					val clazz = Class.forName(className)
-					if (classOf[ScalaObject].isAssignableFrom(clazz))
-						classes += clazz
-				}
-
-			}
-		}));
-		classes
-	}
 
 	def findObject[R](obj: T forSome { type T <: Any })(f: (Any) => Boolean): Set[R] = {
 		(if (f(obj))

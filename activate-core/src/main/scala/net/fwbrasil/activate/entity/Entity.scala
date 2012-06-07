@@ -295,6 +295,9 @@ object EntityHelper {
 	def getEntityClassHashId(entityName: String): String =
 		Integer.toHexString(entityName.hashCode)
 
+	def getEntityMetadataOption(clazz: Class[_]) =
+		entitiesMetadatas.get(getEntityClassHashId(clazz))
+
 	def getEntityMetadata(clazz: Class[_]) =
 		entitiesMetadatas(getEntityClassHashId(clazz))
 
