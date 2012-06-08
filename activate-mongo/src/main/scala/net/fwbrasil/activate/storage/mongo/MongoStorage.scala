@@ -309,7 +309,7 @@ trait MongoStorage extends MarshalStorage {
 				throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
 		}
 
-	override def migrateStorage(action: StorageMigrationAction): Unit =
+	override def migrateStorage(action: ModifyStorageAction): Unit =
 		action match {
 			case action: StorageCreateTable =>
 				coll(action.tableName)

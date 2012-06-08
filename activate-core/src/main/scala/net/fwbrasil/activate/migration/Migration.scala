@@ -101,7 +101,7 @@ object Migration {
 
 	private def execute(context: ActivateContext, action: Action): Unit =
 		action match {
-			case e: MigrationAction =>
+			case e: StorageAction =>
 				context.execute(e)
 			case e: CustomScriptAction =>
 				e.f()
@@ -136,10 +136,10 @@ case class CustomScriptAction(migration: Migration, number: Int, f: () => Unit) 
 		throw CannotRevertMigration(this)
 }
 
-sealed trait MigrationAction extends Action {
+sealed trait StorageAction extends Action {
 	val migration: Migration
 	val number: Int
-	def revertAction: MigrationAction
+	def revertAction: StorageAction
 }
 
 trait IfNotExists[T <: IfNotExists[T]] {
@@ -205,7 +205,7 @@ case class CreateTable(
 	migration: Migration,
 	number: Int, tableName: String,
 	columns: List[Column[_]])
-		extends MigrationAction
+		extends StorageAction
 		with IfNotExists[CreateTable] {
 	def revertAction =
 		RemoveTable(migration, number, tableName)
@@ -215,7 +215,7 @@ case class RenameTable(
 	number: Int,
 	oldName: String,
 	newName: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RenameTable] {
 	def revertAction =
 		RenameTable(migration, number, newName, oldName)
@@ -224,7 +224,7 @@ case class RemoveTable(
 	migration: Migration,
 	number: Int,
 	name: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RemoveTable]
 		with Cascade {
 	def revertAction =
@@ -235,7 +235,7 @@ case class AddColumn(
 	number: Int,
 	tableName: String,
 	column: Column[_])
-		extends MigrationAction
+		extends StorageAction
 		with IfNotExists[AddColumn] {
 	def revertAction =
 		RemoveColumn(migration, number, tableName, column.name)
@@ -246,7 +246,7 @@ case class RenameColumn(
 	tableName: String,
 	oldName: String,
 	column: Column[_])
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RenameColumn] {
 	def revertAction =
 		RenameColumn(
@@ -263,7 +263,7 @@ case class RemoveColumn(
 	number: Int,
 	tableName: String,
 	name: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RemoveColumn] {
 	def revertAction =
 		throw CannotRevertMigration(this)
@@ -274,7 +274,7 @@ case class AddIndex(
 	tableName: String,
 	columnName: String,
 	indexName: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfNotExists[AddIndex] {
 	def revertAction =
 		RemoveIndex(
@@ -290,7 +290,7 @@ case class RemoveIndex(
 	tableName: String,
 	columnName: String,
 	name: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RemoveIndex] {
 	def revertAction =
 		throw CannotRevertMigration(this)
@@ -302,7 +302,7 @@ case class AddReference(
 	columnName: String,
 	referencedTable: String,
 	constraintName: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfNotExists[AddReference] {
 	def revertAction =
 		RemoveReference(migration, number, tableName, columnName, referencedTable, constraintName)
@@ -315,7 +315,7 @@ case class RemoveReference(
 	columnName: String,
 	referencedTable: String,
 	constraintName: String)
-		extends MigrationAction
+		extends StorageAction
 		with IfExists[RemoveReference] {
 	def revertAction =
 		AddReference(migration, number, tableName, columnName, referencedTable, constraintName)
@@ -502,7 +502,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 	def up: Unit
 	def down: Unit = {
 		val revertActions = upActions.map(_.revertAction)
-		_actions = List[MigrationAction]()
+		_actions = List[Action]()
 		revertActions.foreach(addAction(_))
 	}
 

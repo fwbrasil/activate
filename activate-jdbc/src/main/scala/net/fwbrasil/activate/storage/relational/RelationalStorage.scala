@@ -10,8 +10,8 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.util.GraphUtil._
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import scala.collection.mutable.{ Map => MutableMap }
-import net.fwbrasil.activate.migration.MigrationAction
-import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.migration.StorageAction
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait RelationalStorage extends MarshalStorage {
@@ -66,7 +66,7 @@ trait RelationalStorage extends MarshalStorage {
 			throw other
 	}
 
-	override def migrateStorage(action: StorageMigrationAction): Unit =
+	override def migrateStorage(action: ModifyStorageAction): Unit =
 		executeStatements(List(DdlStorageStatement(action)))
 
 	def executeStatements(sqls: List[StorageStatement]): Unit

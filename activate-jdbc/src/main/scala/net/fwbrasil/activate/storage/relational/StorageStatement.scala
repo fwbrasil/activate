@@ -5,7 +5,7 @@ import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.statement.query._
 import net.fwbrasil.activate.entity.EntityHelper
-import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 abstract class StorageStatement
@@ -30,5 +30,5 @@ case class QueryStorageStatement(query: Query[_])
 case class ModifyStorageStatement(statement: MassModificationStatement)
 	extends StorageStatement
 
-case class DdlStorageStatement(val action: StorageMigrationAction)
+case class DdlStorageStatement(val action: ModifyStorageAction)
 	extends StorageStatement

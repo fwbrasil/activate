@@ -11,7 +11,7 @@ import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
 import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
 import java.util.IdentityHashMap
-import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
@@ -84,10 +84,10 @@ trait MarshalStorage extends Storage {
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 
-	override def migrate(action: MigrationAction): Unit =
+	override def migrate(action: StorageAction): Unit =
 		migrateStorage(Marshaller.marshalling(action))
 
-	def migrateStorage(action: StorageMigrationAction): Unit
+	def migrateStorage(action: ModifyStorageAction): Unit
 
 }
 

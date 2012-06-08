@@ -4,7 +4,7 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
@@ -23,7 +23,7 @@ trait Storage {
 	def reinitialize = {
 
 	}
-	def migrate(action: MigrationAction): Unit
+	def migrate(action: StorageAction): Unit
 
 }
 

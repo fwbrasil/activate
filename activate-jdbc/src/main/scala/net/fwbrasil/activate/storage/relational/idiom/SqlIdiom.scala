@@ -36,7 +36,7 @@ import net.fwbrasil.activate.statement.SimpleValue
 import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.storage.marshalling.StorageAddColumn
-import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.storage.relational.UpdateDmlStorageStatement
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
@@ -316,7 +316,7 @@ abstract class SqlIdiom {
 	def toTableName(entityClass: Class[_]): String =
 		escape(EntityHelper.getEntityName(entityClass))
 
-	def toSqlDdl(statement: StorageMigrationAction): String
+	def toSqlDdl(statement: ModifyStorageAction): String
 
 	def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
 		statement.action match {

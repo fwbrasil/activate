@@ -31,7 +31,7 @@ object EntityHelper {
 	def initialize(referenceClass: Class[_]) = synchronized {
 		if (!initialized) {
 			UUIDUtil.generateUUID
-			for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass); if (!entityClass.isInterface()))
+			for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
 				if (!entityClass.isInterface()) {
 					val entityClassHashId = getEntityClassHashId(entityClass)
 					if (entitiesMetadatas.contains(entityClassHashId))

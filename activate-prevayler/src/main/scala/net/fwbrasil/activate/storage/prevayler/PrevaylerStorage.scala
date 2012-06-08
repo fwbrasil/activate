@@ -71,7 +71,7 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		List()
 
-	override def migrateStorage(action: StorageMigrationAction): Unit =
+	override def migrateStorage(action: ModifyStorageAction): Unit =
 		logWarn("PrevaylerStorage ignores Migration actions (only customScritps are executed)") {}
 
 	override def isMemoryStorage = true

@@ -41,6 +41,9 @@ trait Entity extends Serializable {
 	private[activate] def setPersisted =
 		persistedflag = true
 
+	private[activate] def setNotPersisted =
+		persistedflag = false
+
 	private[activate] def isPersisted =
 		persistedflag
 

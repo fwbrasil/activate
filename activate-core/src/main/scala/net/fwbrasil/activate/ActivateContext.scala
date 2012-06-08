@@ -8,7 +8,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.statement.query.QueryContext
 import net.fwbrasil.activate.statement.mass.MassUpdateContext
 import net.fwbrasil.activate.statement.query.QueryNormalizer
-import net.fwbrasil.activate.migration.MigrationAction
+import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
@@ -69,7 +69,7 @@ trait ActivateContext
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		true
 
-	protected[activate] def execute(action: MigrationAction) =
+	protected[activate] def execute(action: StorageAction) =
 		storage.migrate(action)
 
 	protected[activate] def runMigration =

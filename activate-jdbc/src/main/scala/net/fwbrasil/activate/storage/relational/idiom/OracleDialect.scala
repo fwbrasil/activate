@@ -11,7 +11,7 @@ import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.DateStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageAddColumn
-import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageAddIndex
 import net.fwbrasil.activate.storage.marshalling.StorageAddReference
@@ -52,7 +52,7 @@ object oracleDialect extends SqlIdiom {
 	override def escape(string: String) =
 		"\"" + string.toUpperCase.substring(0, string.length.min(30)) + "\""
 
-	override def toSqlDdl(action: StorageMigrationAction): String = {
+	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +

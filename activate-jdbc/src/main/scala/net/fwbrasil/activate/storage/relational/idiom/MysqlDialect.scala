@@ -12,7 +12,7 @@ import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.DateStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageAddColumn
-import net.fwbrasil.activate.storage.marshalling.StorageMigrationAction
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageAddIndex
 import net.fwbrasil.activate.storage.marshalling.StorageAddReference
@@ -80,7 +80,7 @@ object mySqlDialect extends SqlIdiom {
 	override def escape(string: String) =
 		"`" + string + "`"
 
-	override def toSqlDdl(action: StorageMigrationAction): String = {
+	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +
