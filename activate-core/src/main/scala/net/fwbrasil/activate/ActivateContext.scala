@@ -1,35 +1,23 @@
 package net.fwbrasil.activate
 
 import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.statement.mass.MassDeleteContext
 import net.fwbrasil.activate.entity.EntityContext
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.statement.query.QueryContext
-import net.fwbrasil.radon.transaction.Transaction
-import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.util.RichList.toRichList
-import net.fwbrasil.activate.serialization.NamedSingletonSerializable
-import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
-import net.fwbrasil.radon.ref.Ref
+import net.fwbrasil.activate.statement.mass.MassUpdateContext
 import net.fwbrasil.activate.statement.query.QueryNormalizer
-import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet, HashMap => MutableHashMap }
-import net.fwbrasil.activate.entity.EntityValue
-import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.MigrationAction
 import net.fwbrasil.activate.migration.Migration
-import net.fwbrasil.radon.util.ReferenceWeakKeyMap
-import net.fwbrasil.activate.statement.Statement
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import net.fwbrasil.activate.statement.mass.MassDeleteStatement
-import net.fwbrasil.activate.statement.mass.MassUpdateContext
-import net.fwbrasil.activate.statement.mass.MassUpdateStatement
-import net.fwbrasil.activate.statement.mass.MassDeleteContext
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.statement.query.Query
 import scala.collection.mutable.SynchronizedMap
-import net.fwbrasil.activate.statement.mass.MassModificationStatementNormalizer
+import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.activate.serialization.NamedSingletonSerializable
+import scala.collection.mutable.{ HashMap => MutableHashMap }
+import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
+import net.fwbrasil.activate.util.RichList._
 
 trait ActivateContext
 		extends EntityContext
@@ -38,7 +26,9 @@ trait ActivateContext
 		with MassDeleteContext
 		with NamedSingletonSerializable
 		with Logging
-		with DelayedInit {
+		with DelayedInit
+		with DurableContext
+		with StatementsContext {
 
 	info("Initializing context " + contextName)
 
@@ -47,9 +37,6 @@ trait ActivateContext
 	private[activate] val liveCache = new LiveCache(this)
 	private[activate] val properties =
 		new ActivateProperties(None, "activate")
-
-	private val transactionStatements =
-		ReferenceWeakKeyMap[Transaction, ListBuffer[MassModificationStatement]]()
 
 	implicit val context = this
 
@@ -64,7 +51,7 @@ trait ActivateContext
 	def reinitializeContext =
 		logInfo("reinitializing context " + contextName) {
 			liveCache.reinitialize
-			transactionStatements.clear
+			clearStatements
 			storages.foreach(_.reinitialize)
 		}
 
@@ -73,67 +60,11 @@ trait ActivateContext
 			QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
 		}).flatten
 
-	private[activate] def currentTransactionStatements =
-		transactionManager.getActiveTransaction.map(statementsForTransaction).getOrElse(ListBuffer())
-
-	private def statementsForTransaction(transaction: Transaction) =
-		transactionStatements.getOrElseUpdate(transaction, ListBuffer())
-
-	private[activate] def executeMassModification(statement: MassModificationStatement) =
-		for (normalized <- MassModificationStatementNormalizer.normalize[MassModificationStatement](statement)) {
-			liveCache.executeMassModification(normalized)
-			currentTransactionStatements += normalized
-		}
-
 	private[activate] def name = contextName
 	def contextName: String
 
 	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)
-
-	private[activate] def initializeGraphIfNecessary(entities: Seq[Entity]) {
-
-	}
-
-	override def makeDurable(transaction: Transaction) = {
-		val (assignments, deletes) = filterVars(transaction.refsAssignments)
-		val statements = statementsForTransaction(transaction)
-		storage.toStorage(statements.toList, assignments, deletes)
-		setPersisted(assignments)
-		deleteFromLiveCache(deletes)
-		statementsForTransaction(transaction).clear
-	}
-
-	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =
-		for ((ref, value) <- assignments)
-			yield ref.outerEntity.setPersisted
-
-	private[this] def deleteFromLiveCache(deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) =
-		for ((entity, map) <- deletes)
-			liveCache.delete(entity)
-
-	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
-		// Assume that all assignments are of Vars for performance reasons (could be Ref)
-		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], (Option[Any], Boolean))]]
-		val assignments = new IdentityHashMap[Var[Any], EntityValue[Any]]()
-		val deletes = new IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]()
-		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
-			if (destroyed) {
-				if (ref.outerEntity.isPersisted) {
-					val propertiesMap =
-						Option(deletes.get(ref.outerEntity)).getOrElse {
-							val map = new IdentityHashMap[Var[Any], EntityValue[Any]]()
-							deletes.put(ref.outerEntity, map)
-							map
-						}
-					propertiesMap.put(ref, ref.tval(ref.refContent.value))
-				}
-			} else
-				assignments.put(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
-		}
-		import scala.collection.JavaConversions._
-		(assignments.toList, deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
-	}
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		true
@@ -163,12 +94,11 @@ object ActivateContext {
 	private[activate] val contextCache =
 		new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
 
-	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) = {
+	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
 		contextCache.getOrElseUpdate(entityClass,
 			instancesOf[ActivateContext]
 				.filter(_.acceptEntity(entityClass))
 				.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context."))
-	}
 
 	def clearContextCache =
 		contextCache.clear

@@ -107,6 +107,8 @@ case class Where(value: Criteria) {
 			this,
 			Select(list: _*))
 
+	def a(a: Int)(v: Int)(d: Int) = {}
+
 	def select[T1](tuple: T1)(implicit tval1: (=> T1) => StatementSelectValue[T1]) =
 		Query[T1](From.from,
 			this,

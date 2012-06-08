@@ -54,6 +54,7 @@ import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.radon.util.ReferenceSoftValueMap
+import net.fwbrasil.activate.entity.EntityMetadata
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -63,9 +64,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	val cache =
 		new MutableHashMap[Class[_ <: Entity], ReferenceSoftValueMap[String, _ <: Entity] with Lockable] with Lockable
-
-	val transactionStatements =
-		ReferenceSoftValueMap[Transaction, Statement]()
 
 	def reinitialize =
 		logInfo("live cache reinitialize") {
@@ -140,15 +138,31 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		executeMassModificationWithEntitySources(statement, entities)
 	}
 
-	def executeQuery[S](query: Query[S], iniatializing: Boolean): Set[S] = {
-		var result =
-			if (query.orderByClause.isDefined)
-				query.orderByClause.get.emptyOrderedSet[S]
-			else
-				Set[S]()
+	private def buildResultSet[S](query: Query[S]) =
+		if (query.orderByClause.isDefined)
+			query.orderByClause.get.emptyOrderedSet[S]
+		else
+			Set[S]()
+
+	private def entitiesFromCache[S](query: Query[S]) = {
 		val entities = entitySourceInstancesCombined(false, query.from)
-		val fromCache = executeQueryWithEntitySources(query, entities)
-		object invalid
+		executeQueryWithEntitySources(query, entities)
+	}
+
+	object invalid
+
+	private def filterInvalid[S](list: List[S]) =
+		list.filter({
+			(row) =>
+				row match {
+					case row: Product =>
+						row.productIterator.find(_ == invalid).isEmpty
+					case other =>
+						other != invalid
+				}
+		})
+
+	private def entitiesFromStorage[S](query: Query[S], iniatializing: Boolean) = {
 		val fromStorage = (for (line <- storage.fromStorage(query))
 			yield toTuple[S](for (column <- line)
 			yield column match {
@@ -162,19 +176,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			case other: EntityValue[_] =>
 				other.value.getOrElse(null)
 		}))
-		result ++= fromStorage.filter({
-			(row) =>
-				row match {
-					case row: Product =>
-						row.productIterator.find(_ == invalid).isEmpty
-					case other =>
-						other != invalid
-				}
-		})
-		result ++= fromCache
-		result
-
+		filterInvalid(fromStorage)
 	}
+
+	def executeQuery[S](query: Query[S], iniatializing: Boolean): Set[S] =
+		buildResultSet(query) ++ entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
 
 	def materializeEntity(entityId: String): Entity = {
 		val entityClass = EntityHelper.getEntityClassFromId(entityId)
@@ -191,23 +197,33 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			Some(ret)
 	}
 
-	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
-		val entity = newInstance[E](entityClass)
-		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+	private def initializeLazyEntityProperties[E <: Entity](entity: E, entityMetadata: EntityMetadata) =
+		for (propertyMetadata <- entityMetadata.propertiesMetadata) {
+			val typ = propertyMetadata.propertyType
+			val field = propertyMetadata.varField
+			val ref = new Var(None, propertyMetadata.isMutable, typ, field.getName, entity)
+			field.set(entity, ref)
+		}
+
+	private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) = {
+		val idField = entityMetadata.idField
+		val ref = new IdVar(entity)
+		idField.set(entity, ref)
+		Reflection.set(ref, "id", entityId)
+	}
+
+	private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) =
 		transactional(transient) {
-			for (propertyMetadata <- entityMetadata.propertiesMetadata) {
-				val typ = propertyMetadata.propertyType
-				val field = propertyMetadata.varField
-				val ref = new Var(None, propertyMetadata.isMutable, typ, field.getName, entity)
-				field.set(entity, ref)
-			}
-			val idField = entityMetadata.idField
-			val ref = new IdVar(entity)
-			idField.set(entity, ref)
-			Reflection.set(ref, "id", entityId)
+			initializeLazyEntityProperties(entity, entityMetadata)
+			initalizeLazyEntityId(entity, entityMetadata, entityId)
 			entity.setPersisted
 			entity.setNotInitialized
 		}
+
+	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
+		val entity = newInstance[E](entityClass)
+		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+		initalizeLazyEntity(entity, entityMetadata, entityId)
 		Reflection.set(entity, "implicitEntity", entity)
 		executePendingMassStatements(entity)
 		context.entityMaterialized(entity)
@@ -231,7 +247,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			val row = list.headOption
 			if (row.isDefined) {
 				val tuple = row.get
-				for (i <- 0 to vars.size - 1) {
+				for (i <- 0 until vars.size) {
 					val ref = vars(i)
 					val value = tuple.productElement(i)
 					ref.setRefContent(Option(value))

@@ -5,8 +5,9 @@ import scala.util.PropertiesTrait
 
 class ActivateProperties(parent: Option[ActivateProperties], prefix: String) {
 
-	val systemProperties =
-		propertiesToMap(System.getProperties)
+	def properties: Map[String, String] =
+		parent.map(_.properties).getOrElse(
+			propertiesToMap(System.getProperties))
 
 	private def propertiesToMap(props: Properties) = {
 		var hm = Map[String, String]()
@@ -26,11 +27,11 @@ class ActivateProperties(parent: Option[ActivateProperties], prefix: String) {
 
 	def getProperty(path: String*) = {
 		val property = fullPath(path: _*)
-		systemProperties.getOrElse(property, throw new IllegalStateException("Cant find property " + property))
+		properties.getOrElse(property, throw new IllegalStateException("Cant find property " + property))
 	}
 
 	def childProperties(path: String*) = {
 		val base = fullPath(path: _*) + "."
-		systemProperties.filterKeys(_.startsWith(base)).map(tuple => (tuple._1.replaceFirst(base, ""), tuple._2))
+		properties.filterKeys(_.startsWith(base)).map(tuple => (tuple._1.replaceFirst(base, ""), tuple._2))
 	}
 }
