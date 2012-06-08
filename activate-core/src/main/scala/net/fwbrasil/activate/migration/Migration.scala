@@ -89,7 +89,7 @@ object Migration {
 		toRun
 	}
 
-	private def execute(context: ActivateContext, actions: List[Action]): Unit =
+	private def execute(context: ActivateContext, actions: List[MigrationAction]): Unit =
 		for (action <- actions) {
 			execute(context, action)
 			context.transactional {
@@ -99,7 +99,7 @@ object Migration {
 			}
 		}
 
-	private def execute(context: ActivateContext, action: Action): Unit =
+	private def execute(context: ActivateContext, action: MigrationAction): Unit =
 		action match {
 			case e: StorageAction =>
 				context.execute(e)
@@ -113,8 +113,8 @@ case class Column[T](name: String)(implicit val m: Manifest[T], val tval: Option
 		tval(None)
 }
 
-sealed trait Action {
-	def revertAction: Action
+sealed trait MigrationAction {
+	def revertAction: MigrationAction
 	def migration: Migration
 	def number: Int
 	def hasToRun(from: (Long, Int), to: (Long, Int), isRevert: Boolean) = {
@@ -131,12 +131,12 @@ sealed trait Action {
 	def isBefore(version: StorageVersion, isRevert: Boolean) =
 		migration.timestamp < version.lastScript || (!isRevert && migration.timestamp == version.lastScript && number <= version.lastAction)
 }
-case class CustomScriptAction(migration: Migration, number: Int, f: () => Unit) extends Action {
+case class CustomScriptAction(migration: Migration, number: Int, f: () => Unit) extends MigrationAction {
 	def revertAction =
 		throw CannotRevertMigration(this)
 }
 
-sealed trait StorageAction extends Action {
+sealed trait StorageAction extends MigrationAction {
 	val migration: Migration
 	val number: Int
 	def revertAction: StorageAction
@@ -321,7 +321,7 @@ case class RemoveReference(
 		AddReference(migration, number, tableName, columnName, referencedTable, constraintName)
 }
 
-case class CannotRevertMigration(action: Action) extends Exception
+case class CannotRevertMigration(action: MigrationAction) extends Exception
 
 abstract class Migration(implicit val context: ActivateContext) {
 
@@ -334,13 +334,13 @@ abstract class Migration(implicit val context: ActivateContext) {
 		number
 	}
 
-	private var _actions = List[Action]()
-	private def addAction[T <: Action](action: T) = {
+	private var _actions = List[MigrationAction]()
+	private def addAction[T <: MigrationAction](action: T) = {
 		_actions ++= List(action)
 		action
 	}
 	private def clear = {
-		_actions = List[Action]()
+		_actions = List[MigrationAction]()
 		number = -1
 	}
 	private[activate] def upActions = {
@@ -502,7 +502,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 	def up: Unit
 	def down: Unit = {
 		val revertActions = upActions.map(_.revertAction)
-		_actions = List[Action]()
+		_actions = List[MigrationAction]()
 		revertActions.foreach(addAction(_))
 	}
 
