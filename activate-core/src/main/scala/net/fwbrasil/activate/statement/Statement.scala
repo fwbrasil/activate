@@ -17,15 +17,16 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 	private[activate] val liveCache: LiveCache
 
 	// Use Any instead of Function1,2,3... There isn't a generic Function trait
-	val cache = MutableMap[Class[_], (List[Field], Stack[(Any, Any)])]()
+	type Function = Any
+	val cache = MutableMap[(Class[_], Seq[Manifest[_]]), (List[Field], Stack[(Function, Statement)])]()
 
-	protected def executeStatementWithCache[S <: Statement, R](f: Any, produce: () => S, execute: (S) => R): R = {
+	protected def executeStatementWithCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
 		val (fields, stack) =
 			cache.synchronized {
-				cache.getOrElseUpdate(f.getClass.asInstanceOf[Class[_]], {
+				cache.getOrElseUpdate((f.getClass.asInstanceOf[Class[_]], manifests), {
 					val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
 					fields.foreach(_.setAccessible(true))
-					(fields, new Stack[(Any, Any)]())
+					(fields, new Stack[(Function, Statement)]())
 				})
 			}
 		val fromCacheOption =

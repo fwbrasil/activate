@@ -56,8 +56,9 @@ trait Entity extends Serializable {
 	private[activate] def isInitialized =
 		initialized
 
+	// Cylic initializing
 	private[activate] def initialize =
-		if (!initializing && !initialized && id != null) // Performance!
+		if (!initialized && id != null) // Performance!
 			this.synchronized {
 				if (!initializing && !initialized && id != null) {
 					initializing = true

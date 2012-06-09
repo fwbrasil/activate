@@ -5,6 +5,7 @@ import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import net.fwbrasil.activate.util.ManifestUtil._
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {

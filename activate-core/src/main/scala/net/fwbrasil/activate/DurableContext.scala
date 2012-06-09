@@ -8,12 +8,15 @@ trait DurableContext {
 	this: ActivateContext =>
 
 	override def makeDurable(transaction: Transaction) = {
-		val (assignments, deletes) = filterVars(transaction.refsAssignments)
+		val refsAssignments = transaction.refsAssignments
 		val statements = statementsForTransaction(transaction)
-		storage.toStorage(statements.toList, assignments, deletes)
-		setPersisted(assignments)
-		deleteFromLiveCache(deletes)
-		statementsForTransaction(transaction).clear
+		if (refsAssignments.nonEmpty || statements.nonEmpty) {
+			val (assignments, deletes) = filterVars(refsAssignments)
+			storage.toStorage(statements.toList, assignments, deletes)
+			setPersisted(assignments)
+			deleteFromLiveCache(deletes)
+			statementsForTransaction(transaction).clear
+		}
 	}
 
 	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =

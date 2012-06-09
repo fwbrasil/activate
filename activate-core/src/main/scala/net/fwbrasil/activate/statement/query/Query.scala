@@ -32,7 +32,11 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		}
 
 	def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
-		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
+		executeStatementWithCache[Query[S], List[S]](
+			f,
+			() => produceQuery(f),
+			(query: Query[S]) => query.execute,
+			manifest[E1])
 
 	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): Query[S] =
 		runAndClearFrom {
@@ -42,7 +46,12 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		}
 
 	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
-		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
+		executeStatementWithCache[Query[S], List[S]](
+			f,
+			() => produceQuery(f),
+			(query: Query[S]) => query.execute,
+			manifest[E1],
+			manifest[E2])
 
 	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): Query[S] =
 		runAndClearFrom {
@@ -52,7 +61,13 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		}
 
 	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
-		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
+		executeStatementWithCache[Query[S], List[S]](
+			f,
+			() => produceQuery(f),
+			(query: Query[S]) => query.execute,
+			manifest[E1],
+			manifest[E2],
+			manifest[E3])
 
 	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): Query[S] =
 		runAndClearFrom {
@@ -63,7 +78,14 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		}
 
 	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
-		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
+		executeStatementWithCache[Query[S], List[S]](
+			f,
+			() => produceQuery(f),
+			(query: Query[S]) => query.execute,
+			manifest[E1],
+			manifest[E2],
+			manifest[E3],
+			manifest[E4])
 
 	def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): Query[S] =
 		runAndClearFrom {
@@ -75,7 +97,15 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		}
 
 	def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
-		executeStatementWithCache[Query[S], List[S]](f, () => produceQuery(f), (query: Query[S]) => query.execute)
+		executeStatementWithCache[Query[S], List[S]](
+			f,
+			() => produceQuery(f),
+			(query: Query[S]) => query.execute,
+			manifest[E1],
+			manifest[E2],
+			manifest[E3],
+			manifest[E4],
+			manifest[E5])
 
 	private def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		produceQuery { (entity: E) =>

@@ -184,9 +184,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def materializeEntity(entityId: String): Entity = {
 		val entityClass = EntityHelper.getEntityClassFromId(entityId)
-		entityInstacesMap(entityClass).getOrElse(entityId, {
-			toCache(entityClass, () => createLazyEntity(entityClass, entityId))
-		})
+		entityId.intern.synchronized {
+			entityInstacesMap(entityClass).getOrElse(entityId, {
+				toCache(entityClass, () => createLazyEntity(entityClass, entityId))
+			})
+		}
 	}
 
 	def materializeEntityIfNotDeleted(entityId: String): Option[Entity] = {

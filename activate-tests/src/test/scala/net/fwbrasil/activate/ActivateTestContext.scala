@@ -119,7 +119,7 @@ class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
 trait ActivateTestContext extends ActivateContext {
 
-	override val retryLimit = 2
+	//	override val retryLimit = 2
 
 	def contextName =
 		this.niceClass.getName + "@" + this.hashCode.toString
