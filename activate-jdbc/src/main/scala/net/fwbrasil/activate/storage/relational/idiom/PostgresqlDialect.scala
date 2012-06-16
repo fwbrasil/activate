@@ -67,7 +67,6 @@ object postgresqlDialect extends SqlIdiom {
 			case StorageRenameTable(oldName, newName, ifExists) =>
 				"ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
 			case StorageRemoveTable(name, ifExists, isCascade) =>
-				println("DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else ""))
 				"DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else "")
 			case StorageAddColumn(tableName, column, ifNotExists) =>
 				"ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)

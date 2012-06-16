@@ -2,14 +2,14 @@ package net.fwbrasil.scala
 
 import scala.IndexOutOfBoundsException
 
-object Product26 {
-	def unapply[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26](x: Product26[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26]): Option[Product26[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26]] =
+object Product28 {
+	def unapply[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28](x: Product28[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28]): Option[Product28[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28]] =
 		Some(x)
 }
 
-trait Product26[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9, +T10, +T11, +T12, +T13, +T14, +T15, +T16, +T17, +T18, +T19, +T20, +T21, +T22, +T23, +T24, +T25, +T26] extends Product {
+trait Product28[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9, +T10, +T11, +T12, +T13, +T14, +T15, +T16, +T17, +T18, +T19, +T20, +T21, +T22, +T23, +T24, +T25, +T26, +T27, +T28] extends Product {
 
-	override def productArity = 26
+	override def productArity = 28
 
 	@throws(classOf[IndexOutOfBoundsException])
 	override def productElement(n: Int) = n match {
@@ -39,6 +39,8 @@ trait Product26[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9, +T10, +T11, +T12, +
 		case 23 => _24
 		case 24 => _25
 		case 25 => _26
+		case 26 => _27
+		case 27 => _28
 		case _ => throw new IndexOutOfBoundsException(n.toString())
 	}
 
@@ -68,5 +70,7 @@ trait Product26[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9, +T10, +T11, +T12, +
 	def _24: T24
 	def _25: T25
 	def _26: T26
+	def _27: T27
+	def _28: T28
 
 }

@@ -57,10 +57,14 @@ object Migration {
 		updateTo(context, Long.MaxValue)
 
 	def updateTo(context: ActivateContext, timestamp: Long) =
-		execute(context, actionsOnInterval(context, storageVersionTuple(context), (timestamp, Int.MaxValue), false))
+		context.synchronized {
+			execute(context, actionsOnInterval(context, storageVersionTuple(context), (timestamp, Int.MaxValue), false))
+		}
 
 	def revertTo(context: ActivateContext, timestamp: Long) =
-		execute(context, actionsOnInterval(context, (timestamp, 0), storageVersionTuple(context), true))
+		context.synchronized {
+			execute(context, actionsOnInterval(context, (timestamp, 0), storageVersionTuple(context), true))
+		}
 
 	private def migrations(context: ActivateContext) =
 		migrationsCache.getOrElseUpdate(context, {

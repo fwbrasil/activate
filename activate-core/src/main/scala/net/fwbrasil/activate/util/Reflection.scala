@@ -28,8 +28,6 @@ import org.reflections.adapters.MetadataAdapter
 object Reflection {
 
 	val objenesis = new ObjenesisStd(false);
-	val classPool = ClassPool.getDefault
-	classPool.appendClassPath(new ClassClassPath(this.niceClass))
 
 	class NiceObject[T](x: T) {
 		def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
@@ -66,37 +64,6 @@ object Reflection {
 		} while (clazz != null)
 		methods
 	}
-
-	def getInstanceMethods(clazz: Class[_]) =
-		for (
-			jMethod <- clazz.getMethods;
-			if (jMethod.getDeclaringClass != classOf[Object]
-				&& !Modifier.isStatic(jMethod.getModifiers))
-		) yield jMethod
-
-	def getInstanceMethodsWithoutGettersAndSetters(clazz: Class[_]) = {
-		val variables = getInstanceFields(clazz).map(_.getName)
-		getInstanceMethods(clazz).filter(c =>
-			!variables.contains(c.getName.replace("_$eq", "")))
-	}
-
-	def getInstanceGettersAndSetters(clazz: Class[_]) = {
-		val variables = getInstanceFields(clazz).map(_.getName)
-		getInstanceMethods(clazz).filter(c =>
-			variables.contains(c.getName.replaceAll("_$eq", "")))
-	}
-
-	def getInstanceFieldsGetterAndSetter(clazz: Class[_]) = {
-		val variables = getInstanceFields(clazz)
-		val methods = getInstanceMethods(clazz)
-			def find(name: String) =
-				methods.find(_.getName == name)
-		(for (variable <- variables)
-			yield (variable, find(variable.getName), find(variable.getName + "_$eq"))).toList
-	}
-
-	def getInstanceFields(clazz: Class[_]) =
-		getDeclaredFieldsIncludingSuperClasses(clazz).filter(c => !Modifier.isStatic(c.getModifiers))
 
 	def set(obj: Object, fieldName: String, value: Object) = {
 		val field = getDeclaredFieldsIncludingSuperClasses(obj.niceClass).filter(_.getName() == fieldName).head
@@ -208,14 +175,6 @@ object Reflection {
 		companionClassOption.map(_.getField("MODULE$").get(clazz)).asInstanceOf[Option[T]]
 	}
 
-	def getModule[T](clazz: Class[_]) =
-		(try
-			Option(clazz.getField("MODULE$").get(clazz))
-		catch {
-			case e: NoSuchFieldException =>
-				None
-		}).asInstanceOf[Option[T]]
-
 	def materializeJodaInstant(clazz: Class[_], date: Date): AbstractInstant = {
 		val constructors = clazz.getDeclaredConstructors()
 		val constructor = constructors.find((c: Constructor[_]) => {
@@ -227,62 +186,4 @@ object Reflection {
 		materialized.asInstanceOf[AbstractInstant]
 	}
 
-	def getParameterNamesAndTypes(method: Method): List[(String, Class[_])] = {
-		val clazz = method.getDeclaringClass
-		val ctClass = classPool.getCtClass(clazz.getName)
-		if (ctClass.isFrozen) ctClass.defrost
-		val ctMethod =
-			ctClass.getMethods.find(
-				m => m.getName == method.getName
-					&& m.getParameterTypes.map(_.getName).toList == method.getParameterTypes.map(_.getName).toList)
-		if (ctMethod.isDefined) {
-			val result = getParameterNamesAndTypes(ctMethod.get)
-			ctClass.freeze
-			result
-		} else List()
-	}
-
-	def getParameterNamesAndTypes(constructor: Constructor[_]): List[(String, Class[_])] = {
-		val clazz = constructor.getDeclaringClass
-		val ctClass = classPool.getCtClass(clazz.getName)
-		if (ctClass.isFrozen) ctClass.defrost
-		val ctMethod =
-			ctClass.getConstructors.find(
-				_.getParameterTypes.map(_.getName).toList == constructor.getParameterTypes.map(_.getName).toList).get
-		val result = getParameterNamesAndTypes(ctMethod)
-		ctClass.freeze
-		result
-	}
-
-	def getClass(ctClass: CtClass) =
-		Class.forName(if (ctClass.isPrimitive())
-			ctClass.asInstanceOf[CtPrimitiveType].getWrapperName()
-		else
-			ctClass.getName)
-
-	def getParameterNamesAndTypes(ctBehavior: CtBehavior): List[(String, Class[_])] = {
-		val types = ctBehavior.getParameterTypes
-			def default =
-				(for (i <- 0 until types.length)
-					yield ("$" + i, getClass(types(i))))
-		if (types.length > 0) {
-			val codeAttribute = ctBehavior.getMethodInfo.getCodeAttribute;
-			val locals = codeAttribute.getAttribute(LocalVariableAttribute.tag).asInstanceOf[LocalVariableAttribute]
-			(if (locals == null) {
-				default
-			} else {
-				val paramBeginIndexOption =
-					(0 until locals.tableLength).find(i => locals.startPc(i) == 0 && !"this".equals(locals.variableName(i)))
-				if (!paramBeginIndexOption.isDefined)
-					default
-				else {
-					val paramBeginIndex = paramBeginIndexOption.get
-					val paramEndIndex =
-						paramBeginIndex + types.length
-					(for (i <- paramBeginIndex until paramEndIndex)
-						yield (locals.variableName(i).split('$')(0), getClass(types(i - paramBeginIndex)))).filter(_._1.nonEmpty)
-				}
-			}).toList
-		} else List()
-	}
 }
