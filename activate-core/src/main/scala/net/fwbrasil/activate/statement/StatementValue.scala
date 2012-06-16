@@ -74,16 +74,6 @@ trait StatementValueContext extends ValueContext {
 
 }
 
-object A {
-	abstract class FunnyValue[V](value: V) {
-		def print =
-			value.toString
-	}
-	implicit def funnyValue[V](value: => V): FunnyValue[V] = new FunnyValue(value) {}
-	def m[F](f: F)(implicit tval: (=> F) => FunnyValue[F]) = {}
-	"a".print
-}
-
 abstract class StatementEntityValue[V]() extends StatementSelectValue[V]
 
 case class StatementEntityInstanceValue[E <: Entity](val fEntity: () => E) extends StatementEntityValue[E] {
