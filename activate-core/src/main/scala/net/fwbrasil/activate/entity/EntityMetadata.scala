@@ -43,7 +43,7 @@ class EntityMetadata(
 	val idField =
 		allFields.find(_.getName == "id").get
 	def isEntityProperty(varField: Field) =
-		varField.getName != "id" && allMethods.find(_.getName == varField.getName).nonEmpty
+		varField.getName.split('$').last != "_baseVar" && varField.getName != "id" && allMethods.find(_.getName == varField.getName).nonEmpty
 	val varTypes = {
 		import scala.collection.JavaConversions._
 		var clazz: Class[_] = entityClass

@@ -23,14 +23,23 @@ trait Entity extends Serializable {
 				ref.destroy
 		}
 
+	@transient
+	private var _baseVar: Var[Any] = null
+
+	def baseVar = {
+		if (_baseVar == null)
+			_baseVar = vars.head
+		_baseVar
+	}
+
 	def isDeleted =
-		vars.head.isDestroyed
+		baseVar.isDestroyed
+
+	private[activate] def isDeletedSnapshot =
+		baseVar.isDestroyedSnapshot
 
 	def isDirty =
 		vars.find(_.isDirty).isDefined
-
-	private[activate] def isDeletedSnapshot =
-		vars.head.isDestroyedSnapshot
 
 	val id: String = null
 
