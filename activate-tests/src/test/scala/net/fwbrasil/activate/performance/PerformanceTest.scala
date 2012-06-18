@@ -10,7 +10,7 @@ import org.prevayler.Query
 object PerformanceTestMain extends App {
 	new PerformanceTest(50000, 2,
 		Map(
-			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject),
+			//			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject),
 			"ActivatePrevayler" -> (() => new ActivatePerformanceTestSubjectPrevayler)))
 }
 

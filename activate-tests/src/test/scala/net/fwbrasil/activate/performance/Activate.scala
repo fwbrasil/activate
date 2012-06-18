@@ -24,8 +24,8 @@ class ActivatePerformanceTestSubject(val fContext: () => ActivateContext) extend
 }
 
 class PrevaylerContext extends ActivateContext {
-	val storage = new MemoryStorage {
-		//		override lazy val name = System.currentTimeMillis.toString
+	val storage = new PrevaylerStorage {
+		override lazy val name = System.currentTimeMillis.toString
 	}
 	def contextName = "prevaylerContext"
 }

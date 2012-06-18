@@ -14,6 +14,7 @@ import java.util.IdentityHashMap
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import scala.collection.mutable.ListBuffer
 
 trait MarshalStorage extends Storage {
 
@@ -24,42 +25,34 @@ trait MarshalStorage extends Storage {
 
 		import Marshaller._
 
-		val insertMap = MutableMap[String, MutableMap[String, StorageValue]]()
-		val updateMap = MutableMap[String, MutableMap[String, StorageValue]]()
-		val deleteMap = MutableMap[String, MutableMap[String, StorageValue]]()
-		val entityMap = MutableMap[String, Entity]()
+			def propertyMap(map: IdentityHashMap[Entity, MutableMap[String, StorageValue]], entity: Entity) =
+				if (!map.containsKey(entity)) {
+					val propertyMap = newPropertyMap(entity)
+					map.put(entity, propertyMap)
+					propertyMap
+				} else
+					map.get(entity)
 
-			def propertyMap(map: MutableMap[String, MutableMap[String, StorageValue]], entity: Entity) = {
-				entityMap += (entity.id -> entity)
-				map.getOrElseUpdate(entity.id, newPropertyMap(entity))
-			}
-
-		for ((entity, properties) <- deletes) {
-			val map = propertyMap(deleteMap, entity)
-			for ((ref, value) <- properties) map.put(ref.name, marshalling(value))
-		}
-
+		// This code is ugly, but is faster! :(			
+		val insertMap = new IdentityHashMap[Entity, MutableMap[String, StorageValue]]()
+		val updateMap = new IdentityHashMap[Entity, MutableMap[String, StorageValue]]()
 		for ((ref, value) <- assignments) {
 			val entity = ref.outerEntity
 			val propertyName = ref.name
-			if (!deletes.contains(entity))
-				if (!entity.isPersisted)
-					propertyMap(insertMap, entity) += (propertyName -> marshalling(value))
-				else
-					propertyMap(updateMap, entity) += (propertyName -> marshalling(value))
+			if (!entity.isPersisted)
+				propertyMap(insertMap, entity).put(propertyName, marshalling(value))
+			else
+				propertyMap(updateMap, entity).put(propertyName, marshalling(value))
 		}
 
+		val deleteList =
+			deletes.map(tuple => (tuple._1, tuple._2.map(t => (t._1.name, marshalling(t._2))).toMap))
+
 		val insertList =
-			for ((entityId, properties) <- insertMap.toList)
-				yield (entityMap(entityId), properties.toMap)
+			insertMap.toList.map(tuple => (tuple._1, tuple._2.toMap))
 
 		val updateList =
-			for ((entityId, properties) <- updateMap.toList)
-				yield (entityMap(entityId), properties.toMap)
-
-		val deleteList =
-			for ((entityId, properties) <- deleteMap.toList)
-				yield (entityMap(entityId), properties.toMap)
+			updateMap.toList.map(tuple => (tuple._1, tuple._2.toMap))
 
 		store(statements, insertList, updateList, deleteList)
 	}
@@ -80,7 +73,11 @@ trait MarshalStorage extends Storage {
 			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
-	def store(statements: List[MassModificationStatement], insertMap: List[(Entity, Map[String, StorageValue])], updateMap: List[(Entity, Map[String, StorageValue])], deleteSet: List[(Entity, Map[String, StorageValue])]): Unit
+	def store(
+		statements: List[MassModificationStatement],
+		insertList: List[(Entity, Map[String, StorageValue])],
+		updateList: List[(Entity, Map[String, StorageValue])],
+		deleteList: List[(Entity, Map[String, StorageValue])]): Unit
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 

@@ -18,8 +18,11 @@ import scala.collection.mutable.{ Map => MutableMap }
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import scala.collection.mutable.Stack
+import net.fwbrasil.activate.storage.Storage
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
+
+	val storage: Storage
 
 	private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
 		runAndClearFrom {
@@ -129,7 +132,8 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			if (fromLiveCache.get.isDeletedSnapshot)
 				None
 			else {
-				fromLiveCache.get.initializeGraph
+				if (!storage.isMemoryStorage)
+					fromLiveCache.get.initializeGraph
 				fromLiveCache
 			}
 		else allWhere[T](_ :== id).headOption
