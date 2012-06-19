@@ -24,7 +24,7 @@ The main benefits of the framework are:
 Setup
 ===========
 
-Download xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") and activate [example project](https://github.com/fwbrasil/activate-example/zipball/v0.9 "example project").
+Download xsbt [sbt-launch.jar](http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/0.11.2/sbt-launch.jar "sbt-launch.jar") and activate [example project](https://github.com/fwbrasil/activate-example/zipball/v1.0-RC1 "example project").
 
 Create a sbt launch script like this and put in system path:
 
