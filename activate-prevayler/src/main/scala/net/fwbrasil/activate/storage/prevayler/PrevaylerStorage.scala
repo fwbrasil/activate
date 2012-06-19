@@ -11,6 +11,9 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import java.util.HashMap
+import java.util.HashSet
+import scala.collection.JavaConversions._
 
 class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
 
@@ -58,14 +61,16 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 		// Just ignore mass statements!
 		val inserts =
 			(for ((entity, propertyMap) <- insertList)
-				yield (entity.id -> propertyMap)).toMap
+				yield (entity.id -> propertyMap.toList))
 		val updates =
 			(for ((entity, propertyMap) <- updateList)
-				yield (entity.id -> propertyMap)).toMap
+				yield (entity.id -> propertyMap.toList))
 		val deletes =
 			for ((entity, propertyMap) <- deleteList)
 				yield entity.id
-		prevayler.execute(new PrevaylerMemoryStorageTransaction(context, inserts ++ updates, deletes.toSet))
+		val assignments =
+			new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
+		prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 	}
 
 	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
@@ -84,15 +89,16 @@ object PrevaylerStorage {
 
 class PrevaylerMemoryStorageTransaction(
 	context: ActivateContext,
-	assignments: Map[String, Map[String, StorageValue]],
-	deletes: Set[String])
+	assignments: HashMap[String, HashMap[String, StorageValue]],
+	deletes: HashSet[String])
 		extends PrevaylerTransaction {
 	def executeOn(system: Object, date: java.util.Date) = {
 		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 		val liveCache = context.liveCache
 
-		for ((entityId, changeSet) <- assignments)
+		for ((entityId, changeSet) <- assignments) {
 			storage += (entityId -> liveCache.materializeEntity(entityId))
+		}
 
 		for (entityId <- deletes)
 			storage -= entityId
