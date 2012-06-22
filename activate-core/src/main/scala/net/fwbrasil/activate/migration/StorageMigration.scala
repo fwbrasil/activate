@@ -7,7 +7,7 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.Logging
 
-class StorageMigration[A <: ActivateContext](val context: A, val oldStorage: Storage) extends Logging {
+class StorageMigration[A <: ActivateContext](val context: A, val oldStorage: Storage[_]) extends Logging {
 
 	import context._
 

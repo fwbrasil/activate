@@ -15,18 +15,23 @@ import java.util.HashMap
 import java.util.HashSet
 import scala.collection.JavaConversions._
 
-class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage with Logging {
+class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
 
-	var prevayler: Prevayler = _
+class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
+
+	protected[activate] var prevayler: Prevayler = _
 
 	lazy val name = "activate"
 
-	var prevalentSystem: scala.collection.mutable.HashMap[String, Entity] = _
+	def directAccess =
+		prevayler
+
+	protected[activate] var prevalentSystem: PrevaylerStorageSystem = _
 
 	initialize
 
-	def initialize = {
-		prevalentSystem = scala.collection.mutable.HashMap[String, Entity]()
+	protected[activate] def initialize = {
+		prevalentSystem = new PrevaylerStorageSystem()
 		val factory = new PrevaylerFactory()
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
@@ -36,7 +41,7 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 			prevayler = factory.create
 		finally
 			PrevaylerStorage.isRecovering = false
-		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
+		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
 		for (entity <- prevalentSystem.values) {
 			context.liveCache.toCache(entity)
 		}
@@ -50,10 +55,10 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 			Entity.serializeUsingEvelope = true
 		}
 
-	override def reinitialize =
+	override protected[activate] def reinitialize =
 		initialize
 
-	override def store(
+	override protected[activate] def store(
 		statements: List[MassModificationStatement],
 		insertList: List[(Entity, Map[String, StorageValue])],
 		updateList: List[(Entity, Map[String, StorageValue])],
@@ -73,10 +78,10 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 		prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 	}
 
-	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
+	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		List()
 
-	override def migrateStorage(action: ModifyStorageAction): Unit =
+	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
 		logWarn("PrevaylerStorage ignores Migration actions (only customScritps are executed)") {}
 
 	override def isMemoryStorage = true
@@ -135,7 +140,7 @@ class PrevaylerMemoryStorageTransaction(
 }
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
 		new PrevaylerStorage {
 			override lazy val name = properties("name")
 		}

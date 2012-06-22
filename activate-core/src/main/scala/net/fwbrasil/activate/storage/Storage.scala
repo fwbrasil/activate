@@ -13,22 +13,24 @@ import net.fwbrasil.activate.ActivateProperties
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
-trait Storage {
+trait Storage[T] {
 
-	def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
-	def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
+	protected[activate] def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
+	protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
+
+	def directAccess: T
 
 	def isMemoryStorage = false
 	def supportComplexQueries = true
-	def reinitialize = {
+	protected[activate] def reinitialize = {
 
 	}
-	def migrate(action: StorageAction): Unit
+	protected[activate] def migrate(action: StorageAction): Unit
 
 }
 
 trait StorageFactory {
-	def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage
+	def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_]
 }
 
 object StorageFactory {

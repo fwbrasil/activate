@@ -13,14 +13,19 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.collection.mutable.SynchronizedSet
 import scala.collection.mutable.HashSet
 
-class MemoryStorage extends Storage {
+class MemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
+	override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
+}
 
-	val storage = new HashSet[Entity]() with SynchronizedSet[Entity] {
-		override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
-	}
+class MemoryStorage extends Storage[HashSet[Entity]] {
+
+	val storageSet = new MemoryStorageSet
+
+	def directAccess =
+		storageSet
 
 	override def reinitialize =
-		for (entity <- storage)
+		for (entity <- storageSet)
 			entity.addToLiveCache
 
 	override def toStorage(
@@ -30,9 +35,9 @@ class MemoryStorage extends Storage {
 
 		for ((ref, value) <- assignments)
 			if (ref.outerEntity != null)
-				storage += ref.outerEntity
+				storageSet += ref.outerEntity
 		for ((entity, map) <- deletes)
-			storage -= entity
+			storageSet -= entity
 	}
 
 	override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =

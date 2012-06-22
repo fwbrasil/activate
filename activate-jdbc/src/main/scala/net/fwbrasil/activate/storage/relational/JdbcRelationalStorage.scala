@@ -13,13 +13,16 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 
-trait JdbcRelationalStorage extends RelationalStorage with Logging {
+trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	val dialect: SqlIdiom
 
-	def getConnection: Connection
+	protected[activate] def getConnection: Connection
 
-	override def executeStatements(storageStatements: List[StorageStatement]) = {
+	def directAccess =
+		getConnection
+
+	override protected[activate] def executeStatements(storageStatements: List[StorageStatement]) = {
 		val sqlStatements =
 			storageStatements.map(dialect.toSqlStatement)
 		val batchStatements =
@@ -36,7 +39,7 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		}
 	}
 
-	private def satisfyRestriction(jdbcStatement: JdbcStatement, connection: Connection) =
+	private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement, connection: Connection) =
 		jdbcStatement.restrictionQuery.map(tuple => {
 			val (query, expected) = tuple
 			val stmt = connection.prepareStatement(query)
@@ -46,17 +49,17 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 			result == expected
 		}).getOrElse(true)
 
-	def execute(jdbcStatement: JdbcStatement, connection: Connection) =
+	protected[activate] def execute(jdbcStatement: JdbcStatement, connection: Connection) =
 		if (satisfyRestriction(jdbcStatement, connection)) {
 			val stmt = createPreparedStatement(jdbcStatement, connection, true)
 			stmt.executeBatch
 			stmt.close
 		}
 
-	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
+	protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance)), expectedTypes)
 
-	def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
+	protected[activate] def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		val stmt = createPreparedStatement(sqlStatement, getConnection, false)
 		val resultSet = stmt.executeQuery
 		var result = List[List[StorageValue]]()
@@ -72,7 +75,7 @@ trait JdbcRelationalStorage extends RelationalStorage with Logging {
 		result
 	}
 
-	def createPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, isDml: Boolean) = {
+	protected[activate] def createPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, isDml: Boolean) = {
 		val (statement, bindsList) = jdbcStatement.toIndexedBind
 		val ps =
 			if (isDml)
@@ -112,7 +115,7 @@ trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage {
 }
 
 object SimpleJdbcRelationalStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
 		new SimpleJdbcRelationalStorage {
 			val jdbcDriver = properties("jdbcDriver")
 			val url = properties("url")
@@ -137,7 +140,7 @@ trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 }
 
 object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
 		new DataSourceJdbcRelationalStorage {
 			val dataSourceName = properties("dataSourceName")
 			val dialect = SqlIdiom.dialect(properties("dialect"))

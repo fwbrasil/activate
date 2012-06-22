@@ -16,9 +16,9 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.collection.mutable.ListBuffer
 
-trait MarshalStorage extends Storage {
+trait MarshalStorage[T] extends Storage[T] {
 
-	override def toStorage(
+	override protected[activate] def toStorage(
 		statements: List[MassModificationStatement],
 		assignments: List[(Var[Any], EntityValue[Any])],
 		deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
@@ -60,7 +60,7 @@ trait MarshalStorage extends Storage {
 	private[this] def newPropertyMap(entity: Entity) =
 		MutableMap("id" -> (ReferenceStorageValue(Option(entity.id))).asInstanceOf[StorageValue])
 
-	override def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
+	override protected[activate] def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
 		val entityValues =
 			for (value <- queryInstance.select.values)
 				yield value.entityValue
@@ -73,18 +73,18 @@ trait MarshalStorage extends Storage {
 			yield unmarshalling(line(i), entityValues(i))).toList)
 	}
 
-	def store(
+	protected[activate] def store(
 		statements: List[MassModificationStatement],
 		insertList: List[(Entity, Map[String, StorageValue])],
 		updateList: List[(Entity, Map[String, StorageValue])],
 		deleteList: List[(Entity, Map[String, StorageValue])]): Unit
 
-	def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
+	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 
-	override def migrate(action: StorageAction): Unit =
+	override protected[activate] def migrate(action: StorageAction): Unit =
 		migrateStorage(Marshaller.marshalling(action))
 
-	def migrateStorage(action: ModifyStorageAction): Unit
+	protected[activate] def migrateStorage(action: ModifyStorageAction): Unit
 
 }
 

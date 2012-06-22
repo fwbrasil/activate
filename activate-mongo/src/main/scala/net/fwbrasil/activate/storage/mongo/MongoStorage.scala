@@ -56,12 +56,16 @@ import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import scala.collection.mutable.ListBuffer
 import java.util.IdentityHashMap
 
-trait MongoStorage extends MarshalStorage {
+trait MongoStorage extends MarshalStorage[DB] {
 
 	val host: String
 	val port: Int = 27017
 	val db: String
 	val authentication: Option[(String, String)] = None
+
+	def directAccess =
+		mongoDB
+
 	lazy val mongoDB = {
 		val conn = new Mongo(host, port)
 		val ret = conn.getDB(db)
@@ -355,7 +359,7 @@ trait MongoStorage extends MarshalStorage {
 }
 
 object MongoStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage = {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
 		new MongoStorage {
 			override val host = properties("host")
 			override val port = Integer.parseInt(properties("port"))

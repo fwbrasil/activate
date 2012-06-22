@@ -34,7 +34,7 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 
 	def onlyOne(msg: => String): T =
 		if (iterable.size != 1)
-			throw new IllegalStateException(msg)
+			throw new IllegalStateException(msg + " " + iterable.size)
 		else
 			iterable.head
 

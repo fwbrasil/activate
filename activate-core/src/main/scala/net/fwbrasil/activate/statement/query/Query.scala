@@ -22,7 +22,7 @@ import net.fwbrasil.activate.storage.Storage
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
 
-	val storage: Storage
+	val storage: Storage[_]
 
 	private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
 		runAndClearFrom {

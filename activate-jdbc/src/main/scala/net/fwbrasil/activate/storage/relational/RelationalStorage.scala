@@ -14,9 +14,9 @@ import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
-trait RelationalStorage extends MarshalStorage {
+trait RelationalStorage[T] extends MarshalStorage[T] {
 
-	override def store(
+	override protected[activate] def store(
 		statementList: List[MassModificationStatement],
 		insertList: List[(Entity, Map[String, StorageValue])],
 		updateList: List[(Entity, Map[String, StorageValue])],
@@ -46,7 +46,7 @@ trait RelationalStorage extends MarshalStorage {
 		executeStatements(sqls)
 	}
 
-	def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
+	protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
 		val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
 		val tree = new DependencyTree[DmlStorageStatement](statements)
 		for (insertA <- statements) {
@@ -66,9 +66,9 @@ trait RelationalStorage extends MarshalStorage {
 			throw other
 	}
 
-	override def migrateStorage(action: ModifyStorageAction): Unit =
+	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
 		executeStatements(List(DdlStorageStatement(action)))
 
-	def executeStatements(sqls: List[StorageStatement]): Unit
+	protected[activate] def executeStatements(sqls: List[StorageStatement]): Unit
 
 }

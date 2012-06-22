@@ -40,7 +40,7 @@ trait ActivateContext
 
 	implicit val context = this
 
-	val storage: Storage
+	val storage: Storage[_]
 
 	protected def storageFor(entity: Entity) =
 		storage
