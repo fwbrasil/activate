@@ -104,7 +104,7 @@ object mySqlDialect extends SqlIdiom {
 			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
 				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
 			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
+				"ALTER TABLE " + escape(tableName) + " DROP FOREIGN KEY " + escape(constraintName)
 		}
 	}
 

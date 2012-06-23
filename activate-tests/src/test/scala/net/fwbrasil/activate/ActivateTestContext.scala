@@ -34,8 +34,8 @@ abstract class ActivateTestMigration(
 		createTableForAllEntities
 			.ifNotExists
 
-		//		createReferencesForAllEntities
-		//			.ifNotExists
+		createReferencesForAllEntities
+			.ifNotExists
 
 		createInexistentColumnsForAllEntities
 	}
@@ -82,16 +82,19 @@ class MysqlActivateTestMigration
 
 	def up = {
 
+		// Cascade option is ignored in MySql
+		removeReferencesForAllEntities
+			.ifNotExists
+
 		removeAllEntitiesTables
 			.ifExists
-			.cascade
 
 		createTableForAllEntities
 			.ifNotExists
 
-		// TODO MYSQL Bug involving self references
-		//		createReferencesForAllEntities
-		//			.ifNotExists
+		// TODO MYSQL Bug with self references
+		createReferencesForAllEntities
+			.ifNotExists
 
 		createInexistentColumnsForAllEntities
 	}
@@ -279,10 +282,9 @@ trait ActivateTestContext extends ActivateContext {
 	class EntityWithoutAttribute extends Entity
 
 	case class CaseClassEntity(
-			var stringValue: String,
-			var entityValue: ActivateTestEntity,
-			var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
-	}
+		var stringValue: String,
+		var entityValue: ActivateTestEntity,
+		var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity
 
 	abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 

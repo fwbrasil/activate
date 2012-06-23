@@ -45,6 +45,10 @@ class SqlStatement(
 
 	val bindsList = List(binds)
 
+	def isCompatible(other: SqlStatement) =
+		statement == other.statement &&
+			restrictionQuery == other.restrictionQuery
+
 }
 
 class BatchSqlStatement(
@@ -54,9 +58,14 @@ class BatchSqlStatement(
 		extends JdbcStatement
 
 object BatchSqlStatement {
-	def group(sqlStatements: List[SqlStatement]) = {
-		val grouped = sqlStatements.groupBy(s => (s.statement, s.restrictionQuery))
-		for (((statement, restrictionQuery), sqlStatements) <- grouped)
-			yield new BatchSqlStatement(statement, sqlStatements.map(_.binds), restrictionQuery)
+	def group(sqlStatements: List[SqlStatement]): List[JdbcStatement] = {
+		sqlStatements match {
+			case Nil =>
+				List()
+			case head :: tail =>
+				val (tailToGroup, others) = tail.span(_.isCompatible(head))
+				val toGroup = List(head) ++ tailToGroup
+				List(new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery)) ++ group(others)
+		}
 	}
 }

@@ -12,6 +12,7 @@ import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
+import java.sql.BatchUpdateException
 
 trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 

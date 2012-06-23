@@ -14,7 +14,7 @@ class MassDeleteSpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					step {
-						newFullActivateTestEntity
+						newEmptyActivateTestEntity
 					}
 					step {
 						step.ctx.delete {
@@ -49,7 +49,7 @@ class MassDeleteSpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					step {
-						(1 to 10).foreach(i => newFullActivateTestEntity)
+						(1 to 10).foreach(i => newEmptyActivateTestEntity)
 					}
 					step {
 						all[ActivateTestEntity].foreach(_.toString) // Just load entities
@@ -86,7 +86,7 @@ class MassDeleteSpecs extends ActivateTest {
 					import step.ctx._
 					val ids =
 						step {
-							(1 to 10).map(i => newFullActivateTestEntity.id)
+							(1 to 10).map(i => newEmptyActivateTestEntity.id)
 						}
 					step {
 						byId[ActivateTestEntity](ids.last).toString // Just load entity

@@ -180,6 +180,12 @@ abstract class Migration(implicit val context: ActivateContext) {
 			actions.foreach(_.ifNotExists)
 	}
 
+	def removeReferencesForAllEntities = new {
+		val actions = entitiesMetadatas.map(removeReferencesForEntityMetadata)
+		def ifNotExists =
+			actions.foreach(_.ifExists)
+	}
+
 	def createReferencesForEntity[E <: Entity: Manifest] =
 		createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
 
@@ -234,8 +240,15 @@ abstract class Migration(implicit val context: ActivateContext) {
 
 	private def createReferencesForEntityMetadata(metadata: EntityMetadata) =
 		table(manifestClass(metadata.entityClass)).addReferences(
-			(for (property <- metadata.propertiesMetadata; if (classOf[Entity].isAssignableFrom(property.propertyType) && !property.propertyType.isInterface && !Modifier.isAbstract(property.propertyType.getModifiers)))
-				yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))): _*)
+			referencesForEntityMetadata(metadata): _*)
+
+	private def referencesForEntityMetadata(metadata: EntityMetadata) =
+		for (property <- metadata.propertiesMetadata; if (classOf[Entity].isAssignableFrom(property.propertyType) && !property.propertyType.isInterface && !Modifier.isAbstract(property.propertyType.getModifiers)))
+			yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))
+
+	private def removeReferencesForEntityMetadata(metadata: EntityMetadata) =
+		table(manifestClass(metadata.entityClass)).removeReferences(
+			referencesForEntityMetadata(metadata): _*)
 
 	case class Table(name: String) {
 		def createTable(definitions: ((Columns) => Unit)*) = {
