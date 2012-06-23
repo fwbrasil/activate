@@ -38,6 +38,7 @@ object StatementMocks {
 	class FakeVar[P]
 			extends Var[P](None, true, null, null, null) {
 
+		override lazy val tval = EntityValue.tvalFunction[P](fakeValueClass)
 		def entityValueMock =
 			(EntityValue.tvalFunction(fakeValueClass))(None).asInstanceOf[EntityValue[P]]
 		var fakeValueClass: Class[_] = _
@@ -105,6 +106,7 @@ object StatementMocks {
 		val ref = mockVar
 		ref.fakeValueClass = classOf[String]
 		ref.fakeOuterEntityClass = entityClass
+		ref.originVar = originVar
 		set(ref, "name", "id")
 		set(ref, "outerEntity", entity)
 		idField.set(entity, ref)

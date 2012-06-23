@@ -380,5 +380,21 @@ class QuerySpecs extends ActivateTest {
 					testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
 				})
 		}
+
+		"support property path ending with id" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					if (step.ctx.storage.supportComplexQueries) {
+						val entityValueId =
+							step {
+								newFullActivateTestEntity.entityValue.id
+							}
+						step {
+							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).size must beEqualTo(1)
+						}
+					}
+				})
+		}
 	}
 }
