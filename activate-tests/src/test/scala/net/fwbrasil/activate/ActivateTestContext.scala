@@ -286,7 +286,12 @@ trait ActivateTestContext extends ActivateContext {
 
 	abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 
+	// Relational reserved words
 	class Order(val key: String) extends Entity
+
+	// Short name entity
+	@EntityName("sne")
+	class ShortNameEntity(var string: String) extends Entity
 
 	class ActivateTestEntity(
 			dummy: Boolean = false,

@@ -101,7 +101,7 @@ object oracleDialect extends SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>
-				"VARCHAR2(200)"
+				"VARCHAR2(45)"
 		}
 
 }

@@ -106,7 +106,7 @@ object postgresqlDialect extends SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				"BYTEA"
 			case value: ReferenceStorageValue =>
-				"VARCHAR(200)"
+				"VARCHAR(45)"
 		}
 }
 

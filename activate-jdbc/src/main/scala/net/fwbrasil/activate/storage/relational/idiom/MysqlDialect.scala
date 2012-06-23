@@ -129,7 +129,7 @@ object mySqlDialect extends SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>
-				"VARCHAR(200)"
+				"VARCHAR(45)"
 		}
 }
 

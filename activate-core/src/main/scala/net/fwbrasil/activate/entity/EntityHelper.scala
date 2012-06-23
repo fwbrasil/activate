@@ -44,7 +44,7 @@ object EntityHelper {
 	}
 
 	def getEntityClassFromId(entityId: String) =
-		entitiesMetadatas(entityId.substring(37)).entityClass
+		entitiesMetadatas(normalizeHex(entityId.substring(37))).entityClass
 
 	def getEntityClassHashId(entityClass: Class[_]): String =
 		getEntityClassHashId(getEntityName(entityClass))
@@ -58,8 +58,14 @@ object EntityHelper {
 		}
 	}
 
+	private def normalizeHex(hex: String) =
+		if (hex.length == 8)
+			hex
+		else
+			hex + (for (i <- 0 until (8 - hex.length)) yield "0").mkString("")
+
 	def getEntityClassHashId(entityName: String): String =
-		Integer.toHexString(entityName.hashCode)
+		normalizeHex(Integer.toHexString(entityName.hashCode).take(8))
 
 	def getEntityMetadataOption(clazz: Class[_]) =
 		entitiesMetadatas.get(getEntityClassHashId(clazz))
