@@ -14,6 +14,7 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import java.util.HashMap
 import java.util.HashSet
 import scala.collection.JavaConversions._
+import net.fwbrasil.activate.util.Reflection
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
 
@@ -37,11 +38,12 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 		factory.configurePrevalentSystem(prevalentSystem)
 		factory.configurePrevalenceDirectory(name)
 		PrevaylerStorage.isRecovering = true
-		try
+		try {
 			prevayler = factory.create
-		finally
+			prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
+			prevalentSystem.values.foreach(Reflection.initializeBitmaps)
+		} finally
 			PrevaylerStorage.isRecovering = false
-		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
 		for (entity <- prevalentSystem.values) {
 			context.liveCache.toCache(entity)
 		}
@@ -101,8 +103,12 @@ class PrevaylerMemoryStorageTransaction(
 		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 		val liveCache = context.liveCache
 
-		for ((entityId, changeSet) <- assignments) {
+		for ((entityId, changeSet) <- assignments) try {
 			storage += (entityId -> liveCache.materializeEntity(entityId))
+		} catch {
+			case e =>
+				e.printStackTrace
+				println(e)
 		}
 
 		for (entityId <- deletes)

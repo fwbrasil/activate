@@ -9,25 +9,28 @@ class PaginationNavigator[S](result: List[S], val pageSize: Int) extends Iterato
 	private val pages =
 		result.grouped(pageSize).toList
 
-	def numberOfPages =
+	val numberOfResults =
+		result.size
+
+	val numberOfPages =
 		pages.size
 
 	def hasNext =
 		_currentPage + 1 < numberOfPages
 
 	def next =
-		goToPage(_currentPage + 1)
+		page(_currentPage + 1)
 
-	def goToPage(number: Int) = {
+	def page(number: Int) = {
 		_currentPage = number
 		pages(_currentPage)
 	}
 
 	private var _currentPage = -1
 	def currentPage =
-		goToPage(_currentPage)
+		page(_currentPage)
 	def firstPage =
-		goToPage(0)
+		page(0)
 	def lastPage =
-		goToPage(numberOfPages)
+		page(numberOfPages)
 }

@@ -7,6 +7,7 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.statement.StatementMocks._
 import net.fwbrasil.activate.util.ManifestUtil._
+import scala.annotation.implicitNotFound
 
 class StatementValue()
 
@@ -52,6 +53,7 @@ trait StatementValueContext extends ValueContext {
 			new StatementEntityInstanceValue(fEntity)
 	}
 
+	@implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
 	implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
 		toStatementValueEntityValueOption(
 			if (value.isInstanceOf[Option[_]])
@@ -59,6 +61,7 @@ trait StatementValueContext extends ValueContext {
 			else
 				Option(value))
 
+	@implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
 	implicit def toStatementValueEntityValueOption[V](value: => Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
 		StatementMocks.lastFakeVarCalled match {
 			case Some(ref: Var[_]) =>

@@ -16,24 +16,31 @@ import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import org.joda.time.base.AbstractInstant
 import java.util.Date
+import scala.collection.mutable.Stack
 
 object StatementMocks {
 
 	val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
 
 	var _lastFakeVarCalled =
-		new ThreadLocal[Option[Var[_]]] {
-			override def initialValue = None
+		new ThreadLocal[Stack[Var[_]]] {
+			override def initialValue = Stack()
 		}
 
 	def lastFakeVarCalled = {
-		val last = _lastFakeVarCalled.get
+		val last = _lastFakeVarCalled.get.headOption
 		clearFakeVarCalled
 		last
 	}
 
+	def fakeVarCalledStack = {
+		val stack = _lastFakeVarCalled.get.toSeq
+		clearFakeVarCalled
+		stack
+	}
+
 	def clearFakeVarCalled =
-		_lastFakeVarCalled.set(None)
+		_lastFakeVarCalled.set(Stack())
 
 	class FakeVar[P]
 			extends Var[P](None, true, null, null, null) {
@@ -51,7 +58,7 @@ object StatementMocks {
 					mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
 				else
 					mock(fakeValueClass)
-			_lastFakeVarCalled.set(Some(this))
+			_lastFakeVarCalled.get.push(this)
 			Option(value.asInstanceOf[P])
 		}
 		override def put(value: Option[P]): Unit = {

@@ -36,13 +36,13 @@ class PaginatedQuerySpecs extends ActivateTest {
 									pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
 									val expectedPages = numbers.grouped(pageSize).toList
 									pagination.toList.map(_.map(_.intValue)) must beEqualTo(expectedPages)
-									pagination.goToPage(-1) must throwA[IndexOutOfBoundsException]
+									pagination.page(-1) must throwA[IndexOutOfBoundsException]
 									if (pagination.numberOfPages > 0) {
-										pagination.goToPage(0)
-										pagination.goToPage(expectedNumberOfPages - 1)
+										pagination.page(0)
+										pagination.page(expectedNumberOfPages - 1)
 									} else
-										pagination.goToPage(0) must throwA[IndexOutOfBoundsException]
-									pagination.goToPage(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
+										pagination.page(0) must throwA[IndexOutOfBoundsException]
+									pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
 								}
 							for (i <- 1 until 6)
 								test(pageSize = i)

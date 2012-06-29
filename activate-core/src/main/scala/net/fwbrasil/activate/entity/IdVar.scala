@@ -3,15 +3,15 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
 object IdVar {
-	def generateId(outerEntity: Entity) = {
+	def generateId(entityClass: Class[_]) = {
 		val uuid = UUIDUtil.generateUUID
-		val classId = EntityHelper.getEntityClassHashId(outerEntity.getClass)
+		val classId = EntityHelper.getEntityClassHashId(entityClass)
 		uuid + "-" + classId
 	}
 }
 
 class IdVar(outerEntity: Entity)
-		extends Var[String](Option(IdVar.generateId(outerEntity)), false, classOf[String], "id", outerEntity) {
+		extends Var[String](Option(IdVar.generateId(outerEntity.getClass)), false, classOf[String], "id", outerEntity) {
 
 	var id: String = _
 

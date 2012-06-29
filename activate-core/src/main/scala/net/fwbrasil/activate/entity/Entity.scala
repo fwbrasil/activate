@@ -105,7 +105,7 @@ trait Entity extends Serializable {
 		entityMetadata.varFields
 
 	@transient
-	private[this] var varFieldsMapCache: MutableMap[String, Var[Any]] = _
+	private[this] var varFieldsMapCache: MutableMap[String, Var[Any]] = null
 
 	private[this] def buildVarFieldsMap = {
 		val res = MutableMap[String, Var[Any]]()
@@ -127,11 +127,14 @@ trait Entity extends Serializable {
 	private[activate] def vars =
 		varFieldsMap.values
 
-	private[activate] def context: ActivateContext =
-		_context
-
-	private[this] lazy val _context =
+	private[activate] def context: ActivateContext = {
+		//		if (_context == null)
 		ActivateContext.contextFor(this.niceClass)
+		//		_context
+	}
+
+	@transient
+	private[this] var _context: ActivateContext = null
 
 	private[fwbrasil] def varNamed(name: String) =
 		varFieldsMap.get(name)

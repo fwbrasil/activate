@@ -13,6 +13,7 @@ import net.fwbrasil.activate.entity.EntityMetadata
 import java.lang.reflect.Modifier
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
+import scala.annotation.implicitNotFound
 
 class StorageVersion(val contextName: String, var lastScript: Long, var lastAction: Int) extends Entity
 
@@ -113,6 +114,7 @@ case class Column[T](name: String)(implicit val m: Manifest[T], val tval: Option
 		tval(None)
 }
 
+@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 abstract class Migration(implicit val context: ActivateContext) {
 
 	def timestamp: Long

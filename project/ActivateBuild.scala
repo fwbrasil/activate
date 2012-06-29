@@ -112,15 +112,16 @@ object ActivateBuild extends Build {
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo),
 			settings = commonSettings ++ Seq(
-		      libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql)
+		     	libraryDependencies ++= 
+		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql),
+		    	scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)
     	
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.0-RC1",
+    		version := "1.0-SNAPSHOT",
     		scalaVersion := "2.9.2",
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     	    testFrameworks ++= Seq(specs2Framework),

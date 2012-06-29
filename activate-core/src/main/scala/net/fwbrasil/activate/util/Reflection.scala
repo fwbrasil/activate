@@ -24,6 +24,9 @@ import org.reflections.scanners.TypeAnnotationsScanner
 import org.reflections.scanners.Scanner
 import org.reflections.scanners.AbstractScanner
 import org.reflections.adapters.MetadataAdapter
+import scala.collection.mutable.{ HashMap => MutableHashMap }
+import scala.collection.mutable.SynchronizedMap
+import net.fwbrasil.radon.util.Lockable
 
 object Reflection {
 
@@ -42,8 +45,11 @@ object Reflection {
 
 	implicit def toRichClass[T](clazz: Class[T]) = new RichClass(clazz)
 
-	def newInstance[T](clazz: Class[T]): T =
-		objenesis.newInstance(clazz).asInstanceOf[T]
+	def newInstance[T](clazz: Class[T]): T = {
+		val res = objenesis.newInstance(clazz).asInstanceOf[T]
+		initializeBitmaps(res)
+		res
+	}
 
 	def getDeclaredFieldsIncludingSuperClasses(concreteClass: Class[_]) = {
 		var clazz = concreteClass
@@ -184,6 +190,28 @@ object Reflection {
 		val params: Seq[Object] = Seq(date.getTime.asInstanceOf[Object])
 		val materialized = constructor.newInstance(params: _*)
 		materialized.asInstanceOf[AbstractInstant]
+	}
+
+	private val bitmapFieldsCache = new MutableHashMap[Class[_], List[Field]]() with Lockable
+
+	def initializeBitmaps(res: Any) = {
+		val clazz = res.getClass
+		val fields =
+			bitmapFieldsCache.doWithReadLock {
+				bitmapFieldsCache.get(clazz)
+			}.getOrElse {
+				bitmapFieldsCache.doWithWriteLock {
+					bitmapFieldsCache.getOrElseUpdate(
+						clazz,
+						getDeclaredFieldsIncludingSuperClasses(res.getClass)
+							.filter(field => field.getName.startsWith("bitmap$") && field.getType == classOf[Int]))
+				}
+			}
+		for (field <- fields) {
+			field.setAccessible(true)
+			field.set(res, Integer.MAX_VALUE)
+		}
+		res
 	}
 
 }

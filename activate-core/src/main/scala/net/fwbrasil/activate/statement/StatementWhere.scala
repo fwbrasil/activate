@@ -4,6 +4,7 @@ import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.Select
+import scala.annotation.implicitNotFound
 
 class Operator() {
 	StatementMocks.clearFakeVarCalled
@@ -19,13 +20,21 @@ case class SimpleStatementBooleanValue(value: Boolean)(implicit val tval: Boolea
 trait OperatorContext {
 	implicit def toAnd(value: StatementBooleanValue) = And(value)
 	implicit def toOr(value: StatementBooleanValue) = Or(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsEqualTo(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsGreaterThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterThan(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsLessThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessThan(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsGreaterOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterOrEqualTo(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsLessOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessOrEqualTo(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNull(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsNotNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNotNull(value)
+	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toMatcher[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = Matcher(value)
 }
 
