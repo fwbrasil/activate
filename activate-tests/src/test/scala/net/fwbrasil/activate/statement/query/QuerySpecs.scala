@@ -391,7 +391,28 @@ class QuerySpecs extends ActivateTest {
 								newFullActivateTestEntity.entityValue.id
 							}
 						step {
-							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).size must beEqualTo(1)
+							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).onlyOne.id must beEqualTo(entityValueId)
+						}
+					}
+				})
+		}
+
+		"support select entity id" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					if (step.ctx.storage.supportComplexQueries) {
+						val entityValueId =
+							step {
+								val entity = newEmptyActivateTestEntity
+								entity.stringValue = "test"
+								entity.id
+							}
+						step {
+							val result = query {
+								(e: ActivateTestEntity) => where(e isNotNull) select (e.id, e.intValue, e.bigDecimalValue, e.stringValue)
+							}
+							result.onlyOne must beEqualTo((entityValueId, 0, null, "test"))
 						}
 					}
 				})

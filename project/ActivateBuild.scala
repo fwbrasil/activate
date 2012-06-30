@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-RC1"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
@@ -46,7 +46,7 @@ object ActivateBuild extends Build {
   	    "snapshots" at "http://scala-tools.org/repo-snapshots",
   	    "releases" at "http://scala-tools.org/repo-releases",
   	    "Maven" at "http://repo1.maven.org/maven2/",
-  	    "www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
+  	    //"www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
   	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/",

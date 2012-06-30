@@ -62,7 +62,9 @@ trait StatementValueContext extends ValueContext {
 				Option(value))
 
 	@implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
-	implicit def toStatementValueEntityValueOption[V](value: => Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
+	implicit def toStatementValueEntityValueOption[V](value: => Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] = {
+		// Just to evaluate
+		value
 		StatementMocks.lastFakeVarCalled match {
 			case Some(ref: Var[_]) =>
 				toStatementValueRef(ref)
@@ -74,6 +76,7 @@ trait StatementValueContext extends ValueContext {
 						new SimpleValue[V](() => value.getOrElse(null.asInstanceOf[V]), m)
 				}
 		}
+	}
 
 }
 

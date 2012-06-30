@@ -23,6 +23,8 @@ class EntityPropertyMetadata(
 	val setter = entityMethods.find(_.getName == javaName + "_$eq").getOrElse(null)
 	val isMutable =
 		setter != null
+	val isOption =
+		getter.getReturnType == classOf[Option[_]]
 	val tval =
 		EntityValue.tvalFunctionOption[Any](propertyType)
 			.getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))

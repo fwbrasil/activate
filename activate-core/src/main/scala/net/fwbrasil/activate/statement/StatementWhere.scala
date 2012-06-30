@@ -123,14 +123,14 @@ case class Where(value: Criteria) {
 			this,
 			Select(tuple))
 
-	def select[T1, T2](value1: T1, value2: T2)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2]) =
+	def select[T1, T2](value1: => T1, value2: => T2)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2]) =
 		Query[Tuple2[T1, T2]](
 			From.from,
 			this,
 			Select(tval1(value1),
 				tval2(value2)))
 
-	def select[T1, T2, T3](value1: T1, value2: T2, value3: T3)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3]) =
+	def select[T1, T2, T3](value1: => T1, value2: => T2, value3: => T3)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3]) =
 		Query[Tuple3[T1, T2, T3]](
 			From.from,
 			this,
@@ -138,7 +138,7 @@ case class Where(value: Criteria) {
 				tval2(value2),
 				tval3(value3)))
 
-	def select[T1, T2, T3, T4](value1: T1, value2: T2, value3: T3, value4: T4)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3], tval4: (=> T4) => StatementSelectValue[T4]) =
+	def select[T1, T2, T3, T4](value1: => T1, value2: => T2, value3: => T3, value4: => T4)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3], tval4: (=> T4) => StatementSelectValue[T4]) =
 		Query[Tuple4[T1, T2, T3, T4]](
 			From.from,
 			this,
