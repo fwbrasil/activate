@@ -114,7 +114,7 @@ class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresql
 
 object mongoContext extends ActivateTestContext {
 	val storage = new MongoStorage {
-		override val authentication = Option(("root", ""))
+		override val authentication = Option(("ACTIVATE_TEST", "ACTIVATE_TEST"))
 		override val host = "localhost"
 		override val port = 27017
 		override val db = "ACTIVATE_TEST"
