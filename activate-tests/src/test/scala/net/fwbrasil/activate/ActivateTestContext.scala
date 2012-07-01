@@ -71,7 +71,8 @@ object mysqlContext extends ActivateTestContext {
 	System.getProperties.put("activate.storage.mysql.password", "")
 	System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/ACTIVATE_TEST")
 	System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
-	val storage = StorageFactory.fromSystemProperties("mysql")
+	val storage =
+		StorageFactory.fromSystemProperties("mysql")
 }
 class MysqlActivateTestMigration
 		extends Migration()(mysqlContext) {
