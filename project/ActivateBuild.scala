@@ -4,7 +4,7 @@ import Keys._
 object ActivateBuild extends Build {
   	
 	/* Core dependencies */
-  	val javassist = "org.javassist" % "javassist" % "3.16.1-GA"
+  	val javassist = "org.javassist" % "javassist" % "3.16.1-GA" withSources
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -18,6 +18,7 @@ object ActivateBuild extends Build {
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
+	val play = "play" %% "play" % "2.0.2"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
@@ -47,6 +48,7 @@ object ActivateBuild extends Build {
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "reflections" at "http://reflections.googlecode.com/svn/repo",
   	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/",
+  	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
   	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
   	)
 
@@ -56,7 +58,7 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, 
-    		    activateTests),
+    		    activateTests, activatePlay),
     		settings = commonSettings
     	)
 
@@ -102,7 +104,19 @@ object ActivateBuild extends Build {
 		    	  Seq(mongoDriver)
 		    )
     	)
-    	
+    
+	lazy val activatePlay = 
+    	Project(
+    	    id = "activate-play",
+    	    base = file("activate-play"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(play),
+		    crossScalaVersions := Seq("2.9.1")
+		    )
+    	)
+
     lazy val activateTests = 
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
@@ -119,7 +133,7 @@ object ActivateBuild extends Build {
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "1.0-SNAPSHOT",
-    		scalaVersion := "2.9.2",
+    		scalaVersion := "2.9.1",
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
