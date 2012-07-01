@@ -1,8 +1,5 @@
 import sbt._
 import Keys._
-import com.github.siasia._
-import WebPlugin._
-import PluginKeys._
 
 object ActivateBuild extends Build {
   	
