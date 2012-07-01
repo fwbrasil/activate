@@ -14,4 +14,4 @@ notifications:
 before_script:
   - mysql -e 'create database ACTIVATE_TEST;'
   - psql -c 'create database ACTIVATE_TEST;' -U postgres
-  - mongo mydb_test --eval 'db.addUser("travis", "test");'
+  - mongo mydb_test --eval 'db.addUser("root", "");'
