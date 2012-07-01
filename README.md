@@ -1,3 +1,5 @@
+[![Build Status](https://secure.travis-ci.org/fwbrasil/activate.png)](http://travis-ci.org/fwbrasil/activate)
+
 Activate Persistence Framework
 
 [README-PTBR](https://github.com/fwbrasil/activate/blob/master/README-PTBR.md "README-PTBR")

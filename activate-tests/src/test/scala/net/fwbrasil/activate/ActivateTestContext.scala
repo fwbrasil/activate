@@ -104,8 +104,8 @@ object postgresqlContext extends ActivateTestContext {
 	val storage = new SimpleJdbcRelationalStorage {
 		val jdbcDriver = "org.postgresql.Driver"
 		val user = "postgres"
-		val password = "teste"
-		val url = "jdbc:postgresql://127.0.0.1/postgres"
+		val password = ""
+		val url = "jdbc:postgresql://127.0.0.1/ACTIVATE_TEST"
 		val dialect = postgresqlDialect
 	}
 }
@@ -113,6 +113,7 @@ class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresql
 
 object mongoContext extends ActivateTestContext {
 	val storage = new MongoStorage {
+		override val authentication = Option(("root", ""))
 		override val host = "localhost"
 		override val port = 27017
 		override val db = "ACTIVATE_TEST"

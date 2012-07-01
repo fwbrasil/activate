@@ -1,0 +1,17 @@
+# See http://about.travis-ci.org/docs/user/build-configuration/
+language: scala
+scala:
+  - 2.9.2
+  - 2.9.1
+# whitelist branches for now.  need backport branch to support 2.8.x
+branches:
+  only:
+    - master
+notifications:
+  email:
+    recipients:
+      - fwbrasil@gmail.com
+before_script:
+  - mysql -e 'create database ACTIVATE_TEST;'
+  - psql -c 'create database ACTIVATE_TEST;' -U postgres
+  - mongo mydb_test --eval 'db.addUser("travis", "test");'
