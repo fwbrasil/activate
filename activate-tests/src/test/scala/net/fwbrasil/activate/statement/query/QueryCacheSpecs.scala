@@ -29,7 +29,7 @@ class QueryCacheSpecs extends ActivateTest {
 						}
 					step {
 						new ActorDsl with ManyActors with OneActorPerThread {
-							override lazy val actorsPoolSize = 50
+							override lazy val actorsPoolSize = 5
 							inParallelActors {
 								val result =
 									transactional {

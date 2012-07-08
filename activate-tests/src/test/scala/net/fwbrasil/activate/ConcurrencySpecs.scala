@@ -24,7 +24,7 @@ class ConcurrencySpecs extends ActivateTest {
 						import step.ctx._
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 50
+								override lazy val actorsPoolSize = 5
 								inParallelActors {
 									transactional {
 										new TraitAttribute1("1")
@@ -50,7 +50,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 100
+								override lazy val actorsPoolSize = 10
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -78,7 +78,7 @@ class ConcurrencySpecs extends ActivateTest {
 							val entity = byId[ActivateTestEntity](entityId).get
 							entity.intValue must beEqualTo(0)
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 100
+								override lazy val actorsPoolSize = 10
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -104,7 +104,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 100
+								override lazy val actorsPoolSize = 10
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get

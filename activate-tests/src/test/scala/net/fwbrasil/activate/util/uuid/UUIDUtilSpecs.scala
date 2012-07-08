@@ -13,7 +13,7 @@ class UUIDUtilSpecs extends Specification {
 	"UUIDUtil" should {
 		"generate unique UUIDs" in {
 			new ActorDsl with ManyActors with OneActorPerThread {
-				override lazy val actorsPoolSize = 50
+				override lazy val actorsPoolSize = 5
 				val ids =
 					inParallelActors {
 						UUIDUtil.generateUUID
@@ -26,7 +26,7 @@ class UUIDUtilSpecs extends Specification {
 
 		"generate unique hascodes from UUIDs" in {
 			new ActorDsl with ManyActors with OneActorPerThread {
-				override lazy val actorsPoolSize = 200
+				override lazy val actorsPoolSize = 10
 				val loops = 20
 				val ids =
 					(for (i <- 0 until loops) yield ProfillingUtil.profile("group: " + i) {
