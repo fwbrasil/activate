@@ -124,8 +124,8 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql)//,
-		    	// scalacOptions ++= Seq("-Xcheckinit")
+		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql),
+		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)
     	

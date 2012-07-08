@@ -91,7 +91,7 @@ object EntityEnhancer extends Logging {
 					toThrow.initCause(e)
 					throw toThrow
 			}
-			//clazz.writeFile
+			//			clazz.writeFile
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
@@ -206,9 +206,10 @@ object EntityEnhancer extends Logging {
 			var replace =
 				"setInitialized();\n"
 			for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
-				if (field.getName == "id")
+				if (field.getName == "id") {
 					replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
-				else {
+					replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
+				} else {
 					val isMutable = Modifier.isFinal(field.getModifiers)
 					replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
 				}
