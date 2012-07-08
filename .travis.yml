@@ -17,6 +17,6 @@ env:
   - DB=postgres
   - DB=mysql
 before_script:
-  - mysql -e 'create database ACTIVATE_TEST;'
-  - psql -c 'create database ACTIVATE_TEST;' -U postgres
-  - mongo mydb_test --eval 'db.addUser("ACTIVATE_TEST", "ACTIVATE_TEST");'
+  - mysql -e 'create database activate_test;'
+  - psql -c 'create database activate_test;' -U postgres
+  - mongo mydb_test --eval 'db.addUser("activate_test", "activate_test");'

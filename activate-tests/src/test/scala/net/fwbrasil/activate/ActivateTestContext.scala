@@ -56,8 +56,8 @@ class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 //object oracleContext extends ActivateTestContext {
 //	val storage = new SimpleJdbcRelationalStorage {
 //		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-//		val user = "ACTIVATE_TEST"
-//		val password = "ACTIVATE_TEST"
+//		val user = "activate_test"
+//		val password = "activate_test"
 //		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
 //		val dialect = oracleDialect
 //	}
@@ -69,7 +69,7 @@ object mysqlContext extends ActivateTestContext {
 	System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
 	System.getProperties.put("activate.storage.mysql.user", "root")
 	System.getProperties.put("activate.storage.mysql.password", "")
-	System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/ACTIVATE_TEST")
+	System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/activate_test")
 	System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
 	val storage =
 		StorageFactory.fromSystemProperties("mysql")
@@ -106,7 +106,7 @@ object postgresqlContext extends ActivateTestContext {
 		val jdbcDriver = "org.postgresql.Driver"
 		val user = "postgres"
 		val password = ""
-		val url = "jdbc:postgresql://127.0.0.1/ACTIVATE_TEST"
+		val url = "jdbc:postgresql://127.0.0.1/activate_test"
 		val dialect = postgresqlDialect
 	}
 }
@@ -114,10 +114,10 @@ class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresql
 
 object mongoContext extends ActivateTestContext {
 	val storage = new MongoStorage {
-		override val authentication = Option(("ACTIVATE_TEST", "ACTIVATE_TEST"))
+		override val authentication = Option(("activate_test", "activate_test"))
 		override val host = "localhost"
 		override val port = 27017
-		override val db = "ACTIVATE_TEST"
+		override val db = "activate_test"
 	}
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
