@@ -48,7 +48,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
-		val db = System.getProperty("DB")
+		val db = System.getenv("DB")
 		if (db == null)
 			ret
 		else
