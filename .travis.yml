@@ -11,6 +11,12 @@ notifications:
   email:
     recipients:
       - fwbrasil@gmail.com
+env:
+  - DB=memory
+  - DB=prevayler
+  - DB=mongo
+  - DB=postgres
+  - DB=mysql
 before_script:
   - mysql -e 'create database ACTIVATE_TEST;'
   - psql -c 'create database ACTIVATE_TEST;' -U postgres

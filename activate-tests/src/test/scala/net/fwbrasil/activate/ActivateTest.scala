@@ -44,11 +44,26 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			memoryContext,
 			prevaylerContext,
 			mongoContext,
-			//			postgresqlContext,
+			postgresqlContext,
 			mysqlContext)
 		ret.foreach(_.stop)
 		ret
-		//		List(postgresqlContext)
+		val db = System.getProperty("DB")
+		if (db == null)
+			ret
+		else
+			db match {
+				case "memoryContext" =>
+					List(memoryContext)
+				case "prevaylerContext" =>
+					List(prevaylerContext)
+				case "mongoContext" =>
+					List(mongoContext)
+				case "postgresqlContext" =>
+					List(postgresqlContext)
+				case "mysqlContext" =>
+					List(mysqlContext)
+			}
 	}
 
 	trait StepExecutor {
