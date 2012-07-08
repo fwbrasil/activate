@@ -33,7 +33,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[TraitAttribute1].size must beEqualTo(50)
+							all[TraitAttribute1].size must beEqualTo(5)
 							all[TraitAttribute1].map(_.attribute).toSet must beEqualTo(Set("1"))
 						}
 					})
@@ -88,7 +88,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(10)
 						}
 					})
 			}
@@ -114,7 +114,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(10)
 						}
 					})
 			}
