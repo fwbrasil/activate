@@ -53,15 +53,15 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			ret
 		else
 			db match {
-				case "memory" =>
+				case "memoryStorage" =>
 					List(memoryContext)
-				case "prevayler" =>
+				case "prevaylerStorage" =>
 					List(prevaylerContext)
-				case "mongo" =>
+				case "mongoStorage" =>
 					List(mongoContext)
-				case "postgres" =>
+				case "postgresStorage" =>
 					List(postgresqlContext)
-				case "mysql" =>
+				case "mysqlStorage" =>
 					List(mysqlContext)
 			}
 	}
