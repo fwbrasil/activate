@@ -18,18 +18,13 @@ import javassist.bytecode.CodeAttribute
 import javassist.bytecode.LocalVariableAttribute
 import javassist.CtBehavior
 import net.fwbrasil.activate.ActivateContext
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.storage.memory.MemoryStorage
+import net.fwbrasil.activate.util.RichList._
+
+import javassist.CtConstructor
 
 object EntityEnhancer extends Logging {
-
-	def verifyNoVerify = {
-		val RuntimemxBean = ManagementFactory.getRuntimeMXBean
-		val arguments = RuntimemxBean.getInputArguments
-		if (List(arguments.toArray: _*).filter(_ == "-Xverify:none").isEmpty) {
-			val msg = "Please add -noverify to vm options"
-			error(msg)
-			throw new IllegalStateException(msg)
-		}
-	}
 
 	val varClassName = classOf[Var[_]].getName
 	val idVarClassName = classOf[IdVar].getName
@@ -70,113 +65,79 @@ object EntityEnhancer extends Logging {
 	def isEnhanced(clazz: CtClass) =
 		clazz.getDeclaredFields.filter(_.getName() == "varTypes").nonEmpty
 
-	def box(typ: CtClass) =
+	def box(typ: CtClass, ref: String) =
 		typ match {
 			case typ: CtPrimitiveType =>
-				"new " + typ.getWrapperName + "($$)"
+				"new " + typ.getWrapperName + "($" + ref + ")"
 			case other =>
-				"$$"
+				"$" + ref
 		}
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
 		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
-			var enhancedFieldsMap = Map[CtField, (CtClass, Boolean)]()
-			val varClazz = classPool.get(varClassName);
-			val allFields = clazz.getDeclaredFields
-			val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
-			for (originalField <- fieldsToEnhance) {
-				val name = originalField.getName
-				clazz.removeField(originalField)
-				val enhancedField = new CtField(varClazz, name, clazz);
-				enhancedField.setModifiers(Modifier.PRIVATE)
-				clazz.addField(enhancedField)
-				val originalFieldTypeAndOptionFlag =
-					if (originalField.getType.getName != classOf[Option[_]].getName)
-						(originalField.getType, false)
-					else {
-						val att = originalField.getFieldInfo().getAttribute(SignatureAttribute.tag).asInstanceOf[SignatureAttribute]
-						val sig = att.getSignature
-						val className = sig.substring(15, sig.size - 3).replaceAll("/", ".")
-						(classPool.getCtClass(className), true)
-					}
-				enhancedFieldsMap += (enhancedField -> originalFieldTypeAndOptionFlag)
-			}
-
-			val hashMapClass = classPool.get(hashMapClassName)
-			val varTypesField = new CtField(hashMapClass, "varTypes", clazz);
-			varTypesField.setModifiers(Modifier.STATIC)
-			clazz.addField(varTypesField, "new " + hashMapClassName + "();")
-
-			val init = clazz.makeClassInitializer()
-
-			try
-				clazz.instrument(
-					new ExprEditor {
-						override def edit(fa: FieldAccess) = {
-							val field =
-								try {
-									fa.getField
-								} catch {
-									case e: javassist.NotFoundException =>
-										null
-								}
-							if (field != null && enhancedFieldsMap.contains(field)) {
-								val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-								if (fa.isWriter) {
-									if (optionFlag)
-										fa.replace("this." + fa.getFieldName + ".put(" + box(typ) + ");")
-									else
-										fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ) + ");")
-								} else if (fa.isReader) {
-									if (optionFlag)
-										fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
-									else
-										fa.replace("$_ = ($r) this." + fa.getFieldName + ".getValue($$);")
-								}
-							}
-						}
-					})
-			catch {
-				case e: javassist.CannotCompileException =>
+			try {
+				val allFields = clazz.getDeclaredFields
+				val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
+				val enhancedFieldsMap =
+					(for (originalField <- fieldsToEnhance) yield {
+						enhanceField(clazz, classPool, originalField)
+					}).toMap
+				enhanceConstructors(clazz, enhancedFieldsMap)
+				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
+				createVarTypesField(clazz, classPool, enhancedFieldsMap)
+			} catch {
+				case e =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
 					toThrow.initCause(e)
 					throw toThrow
 			}
-
-			for (c <- clazz.getConstructors) {
-
-				var replace =
-					"setInitialized();"
-				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
-					if (field.getName == "id")
-						replace += "this." + field.getName + " = new " + idVarClassName + "(this);"
-					else {
-						val isMutable = Modifier.isFinal(field.getModifiers)
-						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);"
-					}
-				}
-				c.insertBefore(replace)
-				c.insertAfter("addToLiveCache();")
-			}
-
-			val initBody =
-				(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
-					yield "varTypes.put(\"" + field.getName.split('$').last + "\", " + typ.getName + ".class)").mkString(";") + ";"
-
-			init.insertBefore(initBody)
-
-			//			clazz.writeFile
+			//clazz.writeFile
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
 	}
 
-	def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] = {
-		val clazz = classPool.get(clazzName)
-		enhance(clazz, classPool)
+	private var _enhancedEntityClasses: Option[Set[Class[Entity]]] = None
+
+	def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
+		_enhancedEntityClasses.getOrElse {
+			val classPool = buildClassPool
+			val enhancedEntityClasses =
+				entityClassesNames(referenceClass)
+					.map(enhance(_, classPool)).flatten
+			val resolved = resolveDependencies(enhancedEntityClasses)
+			val res = materializeClasses(resolved)
+			_enhancedEntityClasses = Some(res)
+			res
+		}
 	}
 
-	def registerDependency(clazz: CtClass, tree: DependencyTree[CtClass], enhancedEntityClasses: Set[CtClass]): Unit = {
+	private def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] =
+		enhance(classPool.get(clazzName), classPool)
+
+	private def materializeClasses(resolved: List[CtClass]) = {
+		val classLoader = classOf[Entity].getClassLoader
+		(for (enhancedEntityClass <- resolved)
+			yield enhancedEntityClass.toClass(classLoader).asInstanceOf[Class[Entity]]).toSet
+	}
+
+	private def entityClassesNames(referenceClass: Class[_]) =
+		Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
+
+	private def buildClassPool = {
+		val classPool = ClassPool.getDefault
+		classPool.appendClassPath(new ClassClassPath(this.niceClass))
+		classPool
+	}
+
+	private def resolveDependencies(enhancedEntityClasses: Set[CtClass]) = {
+		val tree = new DependencyTree(enhancedEntityClasses)
+		for (enhancedEntityClass <- enhancedEntityClasses)
+			registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
+		tree.resolve
+	}
+
+	private def registerDependency(clazz: CtClass, tree: DependencyTree[CtClass], enhancedEntityClasses: Set[CtClass]): Unit = {
 		val superClass = clazz.getSuperclass()
 		if (superClass != null) {
 			if (enhancedEntityClasses.contains(superClass))
@@ -185,30 +146,116 @@ object EntityEnhancer extends Logging {
 		}
 	}
 
-	private var _enhancedEntityClasses: Option[Set[Class[Entity]]] = None
+	private def localVariablesMap(codeAttribute: CodeAttribute) = {
+		val table = codeAttribute.getAttribute(LocalVariableAttribute.tag).asInstanceOf[LocalVariableAttribute]
+		if (table != null)
+			(for (i <- 0 until table.tableLength)
+				yield (table.variableName(i) -> i)).toMap
+		else
+			Map[String, Int]()
+	}
 
-	def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
-		if (_enhancedEntityClasses.isDefined)
-			_enhancedEntityClasses.get
-		else {
-			verifyNoVerify
-			val entityClassNames = Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
-			var enhancedEntityClasses = Set[CtClass]()
-			val classPool = ClassPool.getDefault
-			classPool.appendClassPath(new ClassClassPath(this.niceClass))
-			for (entityClassName <- entityClassNames)
-				enhancedEntityClasses ++= enhance(entityClassName, classPool)
-			val tree = new DependencyTree(enhancedEntityClasses)
-			for (enhancedEntityClass <- enhancedEntityClasses)
-				registerDependency(enhancedEntityClass, tree, enhancedEntityClasses)
-			val resolved = tree.resolve
-			val classLoader = classOf[Entity].getClassLoader
-			val res =
-				(for (enhancedEntityClass <- resolved)
-					yield enhancedEntityClass.toClass(classLoader).asInstanceOf[Class[Entity]]).toSet
-			_enhancedEntityClasses = Some(res)
-			res
+	private def enhanceField(clazz: CtClass, classPool: ClassPool, originalField: CtField) = {
+		val varClazz = classPool.get(varClassName);
+		val name = originalField.getName
+		clazz.removeField(originalField)
+		val enhancedField = new CtField(varClazz, name, clazz);
+		enhancedField.setModifiers(Modifier.PRIVATE)
+		clazz.addField(enhancedField)
+		val originalFieldTypeAndOptionFlag =
+			if (originalField.getType.getName != classOf[Option[_]].getName)
+				(originalField.getType, false)
+			else {
+				val att = originalField.getFieldInfo().getAttribute(SignatureAttribute.tag).asInstanceOf[SignatureAttribute]
+				val sig = att.getSignature
+				val className = sig.substring(15, sig.size - 3).replaceAll("/", ".")
+				(classPool.getCtClass(className), true)
+			}
+		(enhancedField, originalFieldTypeAndOptionFlag)
+	}
+
+	private def createVarTypesField(clazz: CtClass, classPool: ClassPool, enhancedFieldsMap: Map[javassist.CtField, (javassist.CtClass, Boolean)]) = {
+		val init = clazz.makeClassInitializer()
+		val hashMapClass = classPool.get(hashMapClassName)
+		val varTypesField = new CtField(hashMapClass, "varTypes", clazz);
+		varTypesField.setModifiers(Modifier.STATIC)
+		clazz.addField(varTypesField, "new " + hashMapClassName + "();")
+		val initBody =
+			(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
+				yield "varTypes.put(\"" + field.getName.split('$').last + "\", " + typ.getName + ".class)").mkString(";") + ";"
+
+		init.insertBefore(initBody)
+	}
+
+	private def enhanceConstructors(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Array[Unit] = {
+		for (c <- clazz.getConstructors) yield {
+			val codeAttribute = c.getMethodInfo.getCodeAttribute
+				def superCallIndex = codeAttribute.iterator.skipConstructor
+			val fields = ListBuffer[CtField]()
+			c.instrument(new ExprEditor {
+				override def edit(fa: FieldAccess) = {
+					val isWriter = fa.isWriter
+					val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
+					val isBeforeSuperCall = fa.indexOfBytecode < superCallIndex
+					if (isWriter && isEnhancedField && isBeforeSuperCall) {
+						fields += fa.getField
+						fa.replace("")
+					}
+				}
+			})
+			var replace =
+				"setInitialized();\n"
+			for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
+				if (field.getName == "id")
+					replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
+				else {
+					val isMutable = Modifier.isFinal(field.getModifiers)
+					replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
+				}
+			}
+
+			val localsMap = localVariablesMap(codeAttribute)
+			for (field <- fields) {
+				val (typ, optionFlag) = enhancedFieldsMap.get(field).get
+				if (optionFlag)
+					replace += "this." + field.getName + ".put(" + box(typ, localsMap(field.getName).toString) + ");\n"
+				else
+					replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
+			}
+			c.insertBeforeBody(replace + "addToLiveCache();\n")
 		}
+	}
+
+	private def enhanceFieldsAccesses(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Unit = {
+
+		clazz.instrument(
+			new ExprEditor {
+				override def edit(fa: FieldAccess) = {
+					if (!fa.where.isInstanceOf[CtConstructor]) {
+						val field =
+							try {
+								fa.getField
+							} catch {
+								case e: javassist.NotFoundException =>
+									null
+							}
+						if (field != null && enhancedFieldsMap.contains(field)) {
+							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
+							if (fa.isWriter) {
+								if (optionFlag)
+									fa.replace("this." + fa.getFieldName + ".put(" + box(typ, "$") + ");")
+								else
+									fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ, "$") + ");")
+							} else if (fa.isReader) {
+								if (optionFlag)
+									fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
+								else
+									fa.replace("$_ = ($r) this." + fa.getFieldName + ".getValue($$);")
+							}
+						}
+					}
+				}
+			})
 	}
 
 }

@@ -386,12 +386,13 @@ class QuerySpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					if (step.ctx.storage.supportComplexQueries) {
-						val entityValueId =
+						val (entityId, entityValueId) =
 							step {
-								newFullActivateTestEntity.entityValue.id
+								val entity = newFullActivateTestEntity
+								(entity.id, entity.entityValue.id)
 							}
 						step {
-							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).onlyOne.id must beEqualTo(entityValueId)
+							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).onlyOne.id must beEqualTo(entityId)
 						}
 					}
 				})

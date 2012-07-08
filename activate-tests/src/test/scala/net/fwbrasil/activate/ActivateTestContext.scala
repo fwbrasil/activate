@@ -321,8 +321,6 @@ trait ActivateTestContext extends ActivateContext {
 			var caseClassEntityValue: CaseClassEntity,
 			var serializableEntityValue: DummySeriablizable) extends ActivateTestDummyEntity(dummy) {
 		lazy val lazyValue: String = lazyValueValue
-
-		def caseClassList = EntityList[CaseClassEntity].mappedBy(_.entityValue)
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,
