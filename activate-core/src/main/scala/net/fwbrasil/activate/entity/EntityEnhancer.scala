@@ -195,11 +195,17 @@ object EntityEnhancer extends Logging {
 			c.instrument(new ExprEditor {
 				override def edit(fa: FieldAccess) = {
 					val isWriter = fa.isWriter
-					val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
 					val isBeforeSuperCall = fa.indexOfBytecode < superCallIndex
+					val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
 					if (isWriter && isEnhancedField && isBeforeSuperCall) {
 						fields += fa.getField
 						fa.replace("")
+					} else {
+						val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
+						if (isEnhancedField) {
+							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
+							enhanceFieldAccess(fa, typ, optionFlag)
+						}
 					}
 				}
 			})
@@ -242,21 +248,25 @@ object EntityEnhancer extends Logging {
 							}
 						if (field != null && enhancedFieldsMap.contains(field)) {
 							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-							if (fa.isWriter) {
-								if (optionFlag)
-									fa.replace("this." + fa.getFieldName + ".put(" + box(typ, "$") + ");")
-								else
-									fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ, "$") + ");")
-							} else if (fa.isReader) {
-								if (optionFlag)
-									fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
-								else
-									fa.replace("$_ = ($r) this." + fa.getFieldName + ".getValue($$);")
-							}
+							enhanceFieldAccess(fa, typ, optionFlag)
 						}
 					}
 				}
+
 			})
 	}
+
+	private def enhanceFieldAccess(fa: FieldAccess, typ: CtClass, optionFlag: Boolean) =
+		if (fa.isWriter) {
+			if (optionFlag)
+				fa.replace("this." + fa.getFieldName + ".put(" + box(typ, "$") + ");")
+			else
+				fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ, "$") + ");")
+		} else if (fa.isReader) {
+			if (optionFlag)
+				fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")
+			else
+				fa.replace("$_ = ($r) this." + fa.getFieldName + ".getValue($$);")
+		}
 
 }
