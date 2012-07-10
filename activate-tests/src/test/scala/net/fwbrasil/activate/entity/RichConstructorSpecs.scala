@@ -7,6 +7,14 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.util.RichList._
 
+class Super(param: Int) extends Entity {
+	var intValue = param * 2
+}
+class Sub(param: Int) extends Super(param) {
+	def this() = this(2)
+	intValue *= 2
+}
+
 @RunWith(classOf[JUnitRunner])
 class RichConstructorSpecs extends ActivateTest {
 
@@ -68,6 +76,20 @@ class RichConstructorSpecs extends ActivateTest {
 					step {
 						byId[ActivateTestEntity](entityId1).get.calculatedInConstructor must beEqualTo(fullIntValue * 2)
 						byId[ActivateTestEntity](entityId2).get.calculatedInConstructor must beEqualTo(fullIntValue * 4)
+					}
+				})
+		}
+		"support modified two times in different constructors" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val ((id1, e1), (id2, e2)) =
+						step {
+							(new Sub(1).id -> 4, new Sub().id -> 8)
+						}
+					step {
+						byId[Sub](id1).get.intValue must beEqualTo(e1)
+						byId[Sub](id2).get.intValue must beEqualTo(e2)
 					}
 				})
 		}

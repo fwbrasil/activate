@@ -12,7 +12,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 
-trait Entity extends Serializable {
+trait Entity extends Serializable with ValidEntity {
 
 	def delete =
 		if (!isDeleted) {

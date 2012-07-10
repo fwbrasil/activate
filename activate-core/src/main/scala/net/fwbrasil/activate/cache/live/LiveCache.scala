@@ -220,6 +220,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			initalizeLazyEntityId(entity, entityMetadata, entityId)
 			entity.setPersisted
 			entity.setNotInitialized
+			val inv = entity.invariants
+			println(inv)
 		}
 
 	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {

@@ -232,6 +232,7 @@ object EntityEnhancer extends Logging {
 						replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
 				}
 				c.insertBeforeBody(replace + "addToLiveCache();\n")
+				c.insertAfter("validate();")
 			}
 		}
 	}
