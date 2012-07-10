@@ -20,16 +20,6 @@ import net.fwbrasil.activate.migration.Migration
 
 object runningFlag
 
-object EnumerationValue extends Enumeration {
-	case class EnumerationValue(name: String) extends Val(name)
-	val value1a = EnumerationValue("v1")
-	val value2 = EnumerationValue("v2")
-	val value3 = EnumerationValue("v3")
-}
-import EnumerationValue._
-
-case class DummySeriablizable(val string: String)
-
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
 	def executors(ctx: ActivateTestContext): List[StepExecutor] =

@@ -54,7 +54,7 @@ object EntityEnhancer extends Logging {
 		Modifier.isTransient(field.getModifiers)
 
 	def isCandidate(field: CtField) =
-		!isTransient(field) && !isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && field.getType.getSimpleName != "EntityList" && field.getName.split('$').last != "implicitEntity"
+		!isTransient(field) && !isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -191,13 +191,14 @@ object EntityEnhancer extends Logging {
 		for (c <- clazz.getConstructors) yield {
 			val codeAttribute = c.getMethodInfo.getCodeAttribute
 				def superCallIndex = codeAttribute.iterator.skipConstructor
+			val isPrimaryConstructor = codeAttribute.iterator.skipSuperConstructor > 0
 			val fields = ListBuffer[CtField]()
 			c.instrument(new ExprEditor {
 				override def edit(fa: FieldAccess) = {
 					val isWriter = fa.isWriter
 					val isBeforeSuperCall = fa.indexOfBytecode < superCallIndex
 					val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
-					if (isWriter && isEnhancedField && isBeforeSuperCall) {
+					if (isWriter && isEnhancedField && isBeforeSuperCall && isPrimaryConstructor) {
 						fields += fa.getField
 						fa.replace("")
 					} else {
@@ -209,27 +210,29 @@ object EntityEnhancer extends Logging {
 					}
 				}
 			})
-			var replace =
-				"setInitialized();\n"
-			for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
-				if (field.getName == "id") {
-					replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
-					replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
-				} else {
-					val isMutable = Modifier.isFinal(field.getModifiers)
-					replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
+			if (isPrimaryConstructor) {
+				var replace =
+					"setInitialized();\n"
+				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
+					if (field.getName == "id") {
+						replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
+						replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
+					} else {
+						val isMutable = Modifier.isFinal(field.getModifiers)
+						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
+					}
 				}
-			}
 
-			val localsMap = localVariablesMap(codeAttribute)
-			for (field <- fields) {
-				val (typ, optionFlag) = enhancedFieldsMap.get(field).get
-				if (optionFlag)
-					replace += "this." + field.getName + ".put(" + box(typ, localsMap(field.getName).toString) + ");\n"
-				else
-					replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
+				val localsMap = localVariablesMap(codeAttribute)
+				for (field <- fields) {
+					val (typ, optionFlag) = enhancedFieldsMap.get(field).get
+					if (optionFlag)
+						replace += "this." + field.getName + ".put(" + box(typ, localsMap(field.getName).toString) + ");\n"
+					else
+						replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
+				}
+				c.insertBeforeBody(replace + "addToLiveCache();\n")
 			}
-			c.insertBeforeBody(replace + "addToLiveCache();\n")
 		}
 	}
 

@@ -14,8 +14,6 @@ import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 
 trait Entity extends Serializable {
 
-	protected implicit val implicitEntity = this: this.type
-
 	def delete =
 		if (!isDeleted) {
 			initialize

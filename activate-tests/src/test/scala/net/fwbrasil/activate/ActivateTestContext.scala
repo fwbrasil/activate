@@ -1,6 +1,5 @@
 package net.fwbrasil.activate
 
-import net.fwbrasil.activate.EnumerationValue._
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
@@ -16,6 +15,16 @@ import java.sql.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Reflection
+
+object EnumerationValue extends Enumeration {
+	case class EnumerationValue(name: String) extends Val(name)
+	val value1a = EnumerationValue("v1")
+	val value2 = EnumerationValue("v2")
+	val value3 = EnumerationValue("v3")
+}
+import EnumerationValue._
+
+case class DummySeriablizable(val string: String)
 
 abstract class ActivateTestMigration(
 	implicit val ctx: ActivateContext)
@@ -93,7 +102,6 @@ class MysqlActivateTestMigration
 		createTableForAllEntities
 			.ifNotExists
 
-		// TODO MYSQL Bug with self references
 		createReferencesForAllEntities
 			.ifNotExists
 
@@ -320,8 +328,34 @@ trait ActivateTestContext extends ActivateContext {
 			var entityWithoutAttributeValue: EntityWithoutAttribute,
 			var caseClassEntityValue: CaseClassEntity,
 			var serializableEntityValue: DummySeriablizable) extends ActivateTestDummyEntity(dummy) {
+
+		def this(intValue: Int) = this(
+			false,
+			intValue * 2,
+			emptyLongValue,
+			emptyBooleanValue,
+			emptyCharValue,
+			emptyStringValue,
+			emptyFloatValue,
+			emptyDoubleValue,
+			emptyBigDecimalValue,
+			emptyDateValue,
+			emptyJodaInstantValue,
+			emptyCalendarValue,
+			emptyByteArrayValue,
+			emptyEntityValue,
+			emptyTraitValue1,
+			emptyTraitValue2,
+			emptyEnumerationValue,
+			emptyLazyValue,
+			emptyOptionValue,
+			emptyEntityWithoutAttributeValue,
+			emptyCaseClassEntityValue,
+			emptySerializableEntityValue)
 		lazy val lazyValue: String = lazyValueValue
-		var initializedInConstructorBodyAttribute = "a"
+		var varInitializedInConstructor = fullStringValue
+		val valInitializedInConstructor = fullStringValue
+		val calculatedInConstructor = intValue * 2
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,
