@@ -162,7 +162,7 @@ case class Query[S](override val from: From, override val where: Where, select: 
 	private[activate] def execute(iniatializing: Boolean): List[S] = {
 		val context =
 			(for (src <- from.entitySources)
-				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
+				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne("All query entities sources must be from the same context.")
 		context.executeQuery(this, iniatializing)
 	}
 	def execute: List[S] = execute(false)

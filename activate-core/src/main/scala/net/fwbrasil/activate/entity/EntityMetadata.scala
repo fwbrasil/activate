@@ -43,7 +43,10 @@ class EntityMetadata(
 	val invariantMethods =
 		allMethods.filter((method: Method) => method.getReturnType == classOf[Invariant] && method.getName != "invariant")
 	val varFields =
-		allFields.filter((field: Field) => classOf[Var[_]] == field.getType)
+		allFields.filter(
+			(field: Field) =>
+				classOf[Var[_]] == field.getType
+					&& field.getName != "net$fwbrasil$activate$entity$Entity$$_baseVar")
 	val idField =
 		allFields.find(_.getName == "id").get
 	def isEntityProperty(varField: Field) =

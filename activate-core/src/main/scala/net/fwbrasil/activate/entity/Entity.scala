@@ -107,11 +107,12 @@ trait Entity extends Serializable with ValidEntity {
 
 	private[this] def buildVarFieldsMap = {
 		val res = MutableMap[String, Var[Any]]()
-		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]; if (ref != null))
-			yield if (ref.name == null)
-			throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
-		else
-			res.put(ref.name, ref)
+		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]) {
+			if (ref.name == null)
+				throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
+			else
+				res.put(ref.name, ref)
+		}
 		res
 	}
 
@@ -125,14 +126,8 @@ trait Entity extends Serializable with ValidEntity {
 	private[activate] def vars =
 		varFieldsMap.values
 
-	private[activate] def context: ActivateContext = {
-		//		if (_context == null)
+	private[activate] def context: ActivateContext =
 		ActivateContext.contextFor(this.niceClass)
-		//		_context
-	}
-
-	@transient
-	private[this] var _context: ActivateContext = null
 
 	private[fwbrasil] def varNamed(name: String) =
 		varFieldsMap.get(name)

@@ -211,8 +211,7 @@ object EntityEnhancer extends Logging {
 				}
 			})
 			if (isPrimaryConstructor) {
-				var replace =
-					"setInitialized();\n"
+				var replace = "setInitialized();\n"
 				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
 					if (field.getName == "id") {
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
@@ -231,8 +230,9 @@ object EntityEnhancer extends Logging {
 					else
 						replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
 				}
-				c.insertBeforeBody(replace + "addToLiveCache();\n")
-				c.insertAfter("validate();")
+
+				c.insertBeforeBody(replace)
+				c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {validate();addToLiveCache();}\n")
 			}
 		}
 	}

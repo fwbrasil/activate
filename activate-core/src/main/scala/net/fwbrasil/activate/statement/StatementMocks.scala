@@ -95,7 +95,13 @@ object StatementMocks {
 		mockEntity[E](clazz, null).asInstanceOf[E]
 
 	def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVar[_]): E = {
-		val concreteClass = EntityHelper.concreteClasses(entityClass).head
+		val concreteClass = EntityHelper.concreteClasses(entityClass).headOption.getOrElse {
+			throw new IllegalStateException(
+				"Can't find a concrete class for " + entityClass + ".\n" +
+					"Maybe the context isn't initialized or you must override acceptEntity on your context.\n" +
+					"Important: The context definition must be declared in a base package of the entities packages.\n" +
+					"Example: com.app.myContext for com.app.model.MyEntity")
+		}
 		val entity = newInstance(concreteClass)
 		val entityMetadata = EntityHelper.getEntityMetadata(concreteClass)
 		for (propertyMetadata <- entityMetadata.propertiesMetadata) {

@@ -100,7 +100,6 @@ trait ValidEntity {
 			yield name
 	}
 
-	invariants
 }
 
 trait ValidEntityContext {

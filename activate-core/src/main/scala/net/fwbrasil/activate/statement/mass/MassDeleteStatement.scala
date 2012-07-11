@@ -28,12 +28,5 @@ trait MassDeleteContext extends StatementContext {
 case class MassDeleteStatement(override val from: From, override val where: Where)
 		extends MassModificationStatement(from, where) {
 
-	def execute: Unit = {
-		val context =
-			(for (src <- from.entitySources)
-				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
-		context.executeMassModification(this)
-	}
-
 	override def toString = from + " => where" + where
 }

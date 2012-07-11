@@ -103,13 +103,8 @@ class PrevaylerMemoryStorageTransaction(
 		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 		val liveCache = context.liveCache
 
-		for ((entityId, changeSet) <- assignments) try {
+		for ((entityId, changeSet) <- assignments)
 			storage += (entityId -> liveCache.materializeEntity(entityId))
-		} catch {
-			case e =>
-				e.printStackTrace
-				println(e)
-		}
 
 		for (entityId <- deletes)
 			storage -= entityId

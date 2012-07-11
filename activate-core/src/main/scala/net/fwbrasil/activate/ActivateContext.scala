@@ -99,7 +99,10 @@ object ActivateContext {
 		contextCache.getOrElseUpdate(entityClass,
 			instancesOf[ActivateContext]
 				.filter(_.acceptEntity(entityClass))
-				.onlyOne("There should be only one context that accept " + entityClass + ". Override acceptEntity on your context."))
+				.onlyOne("\nThere should be one and only one context that accept " + entityClass + ".\n" +
+					"Maybe the context isn't initialized or you must override acceptEntity on your context.\n" +
+					"Important: The context definition must be declared in a base package of the entities packages.\n" +
+					"Example: com.app.myContext for com.app.model.MyEntity"))
 
 	def clearContextCache =
 		contextCache.clear

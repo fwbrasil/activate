@@ -26,6 +26,7 @@ trait JdbcStatement {
 				yield columns.map(binds(_))
 		(result, valuesList)
 	}
+	override def toString = statement + restrictionQuery.map(" restriction " + _).getOrElse("")
 }
 
 class SqlStatement(
@@ -55,8 +56,8 @@ class BatchSqlStatement(
 	val statement: String,
 	val bindsList: List[Map[String, StorageValue]],
 	val restrictionQuery: Option[(String, Int)])
-		extends JdbcStatement
-
+		extends JdbcStatement 
+		
 object BatchSqlStatement {
 	def group(sqlStatements: List[SqlStatement]): List[JdbcStatement] = {
 		sqlStatements match {

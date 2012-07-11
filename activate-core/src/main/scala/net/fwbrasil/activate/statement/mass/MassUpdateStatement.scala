@@ -43,12 +43,5 @@ case class UpdateAssignment(assignee: StatementSelectValue[_], value: StatementV
 case class MassUpdateStatement(override val from: From, override val where: Where, assignments: UpdateAssignment*)
 		extends MassModificationStatement(from, where) {
 
-	def execute: Unit = {
-		val context =
-			(for (src <- from.entitySources)
-				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
-		context.executeMassModification(this)
-	}
-
 	override def toString = from + " => where" + where + " set " + assignments.mkString(", ") + ""
 }
