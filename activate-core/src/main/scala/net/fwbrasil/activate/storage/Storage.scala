@@ -12,6 +12,7 @@ import net.fwbrasil.activate.ActivateProperties
 import net.fwbrasil.activate.ActivateProperties
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import scala.annotation.implicitNotFound
 
 trait Storage[T] {
 
@@ -34,6 +35,7 @@ trait StorageFactory {
 }
 
 object StorageFactory {
+	@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 	def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
 		import scala.collection.JavaConversions._
 		val properties =

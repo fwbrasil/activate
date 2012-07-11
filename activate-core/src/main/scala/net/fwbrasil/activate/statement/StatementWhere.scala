@@ -20,21 +20,13 @@ case class SimpleStatementBooleanValue(value: Boolean)(implicit val tval: Boolea
 trait OperatorContext {
 	implicit def toAnd(value: StatementBooleanValue) = And(value)
 	implicit def toOr(value: StatementBooleanValue) = Or(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsEqualTo(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsGreaterThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterThan(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsLessThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessThan(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsGreaterOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterOrEqualTo(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsLessOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessOrEqualTo(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNull(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toIsNotNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNotNull(value)
-	@implicitNotFound("Conversion to StatementSelectValue not found. Please use a entity property.")
 	implicit def toMatcher[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = Matcher(value)
 }
 
@@ -118,11 +110,13 @@ case class Where(value: Criteria) {
 
 	def a(a: Int)(v: Int)(d: Int) = {}
 
+	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1](tuple: T1)(implicit tval1: (=> T1) => StatementSelectValue[T1]) =
 		Query[T1](From.from,
 			this,
 			Select(tuple))
 
+	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2](value1: => T1, value2: => T2)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2]) =
 		Query[Tuple2[T1, T2]](
 			From.from,
@@ -130,6 +124,7 @@ case class Where(value: Criteria) {
 			Select(tval1(value1),
 				tval2(value2)))
 
+	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2, T3](value1: => T1, value2: => T2, value3: => T3)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3]) =
 		Query[Tuple3[T1, T2, T3]](
 			From.from,
@@ -137,7 +132,7 @@ case class Where(value: Criteria) {
 			Select(tval1(value1),
 				tval2(value2),
 				tval3(value3)))
-
+	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2, T3, T4](value1: => T1, value2: => T2, value3: => T3, value4: => T4)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3], tval4: (=> T4) => StatementSelectValue[T4]) =
 		Query[Tuple4[T1, T2, T3, T4]](
 			From.from,

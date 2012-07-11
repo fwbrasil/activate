@@ -5,6 +5,7 @@ import scala.collection.immutable.TreeSet
 import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.StatementSelectValue
+import scala.annotation.implicitNotFound
 
 trait OrderedQueryContext {
 
@@ -77,6 +78,7 @@ case object orderByDescendingDirection extends OrderByDirection {
 	override def toString = "desc"
 }
 
+@implicitNotFound("Can't find a Ordering implicit. Maybe the type does not support ordering.")
 case class OrderByDirectionWrapper[T](value: StatementSelectValue[T])(implicit ordering: Ordering[T]) {
 	def asc =
 		OrderByCriteria[T](value, orderByAscendingDirection, ordering)

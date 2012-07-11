@@ -15,9 +15,11 @@ import java.util.HashMap
 import java.util.HashSet
 import scala.collection.JavaConversions._
 import net.fwbrasil.activate.util.Reflection
+import scala.annotation.implicitNotFound
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
 
+@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
 
 	protected[activate] var prevayler: Prevayler = _

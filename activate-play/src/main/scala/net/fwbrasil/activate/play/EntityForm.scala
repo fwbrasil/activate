@@ -21,7 +21,9 @@ import net.fwbrasil.activate.entity.IdVar
 import play.api.data.format.Formatter
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityMetadata
+import scala.annotation.implicitNotFound
 
+@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class EntityForm[T <: Entity](
 	mapping: EntityMapping[T],
 	data: Map[String, String] = Map.empty,
@@ -160,35 +162,11 @@ object EntityForm extends App {
 	def entity[T <: Entity](implicit context: ActivateContext, m: Manifest[T]) =
 		of[T](new EntityFormatter[T])
 
-	//		mappings: (T) => ((F1, Mapping[F1])))(
-	//			implicit context: ActivateContext,
-	//			m: Manifest[T]): EntityForm[T] =
-	//		build(mappings)
-	//	def apply[T <: Entity, F1, F2](
-	//		mappings: (T) => ((F1, Mapping[F1]), (F2, Mapping[F2])))(
-	//			implicit context: ActivateContext,
-	//			m: Manifest[T]): EntityForm[T] =
-	//		build(mappings)
-	//	def apply[T <: Entity, F1, F2, F3](
-	//		mappings: (T) => ((F1, Mapping[F1]), (F2, Mapping[F2]), (F3, Mapping[F3])))(
-	//			implicit context: ActivateContext,
-	//			m: Manifest[T]): EntityForm[T] =
-	//		build(mappings)
 	def apply[T <: Entity](
 		mappings: ((T) => (_, Mapping[_]))*)(
 			implicit context: ActivateContext,
 			m: Manifest[T]): EntityForm[T] =
 		build(mappings.toList)
-	//	def apply[T <: Entity, F1, F2, F3, F4, F5](
-	//		mappings: (T) => ((F1, Mapping[F1]), (F2, Mapping[F2]), (F3, Mapping[F3]), (F4, Mapping[F4]), (F5, Mapping[F5])))(
-	//			implicit context: ActivateContext,
-	//			m: Manifest[T]): EntityForm[T] =
-	//		build(mappings)
-	//	def apply[T <: Entity, F1, F2, F3, F4, F5, F6](
-	//		mappings: (T) => ((F1, Mapping[F1]), (F2, Mapping[F2]), (F3, Mapping[F3]), (F4, Mapping[F4]), (F5, Mapping[F5]), (F6, Mapping[F6])))(
-	//			implicit context: ActivateContext,
-	//			m: Manifest[T]): EntityForm[T] =
-	//		build(mappings)
 
 	private def build[T <: Entity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
 		val mock = StatementMocks.mockEntity(erasureOf[T])
