@@ -72,7 +72,7 @@ object Migration {
 		migrationsCache.getOrElseUpdate(context, {
 			val result =
 				Reflection.getAllImplementors(List(classOf[Migration], context.getClass), classOf[Migration])
-					.filter(e => e.getAnnotation(classOf[MigrationBootstrap]) == null && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
+					.filter(e => !Reflection.hasClassAnnotationInHierarchy(e, classOf[MigrationBootstrap]) && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
 					.map(_.newInstance.asInstanceOf[Migration])
 					.toList
 					.sortBy(_.timestamp)
@@ -85,11 +85,14 @@ object Migration {
 			filtered
 		})
 
-	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) =
-		migrations(context)
-			.map(e => if (!isRevert) e.upActions else e.downActions)
-			.flatten
-			.filter(_.hasToRun(from, to, isRevert))
+	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) = {
+		val a = migrations(context)
+		val x = a.filter(_.hasToRun(from._1, to._1))
+		val b = x.map(e => if (!isRevert) e.upActions else e.downActions)
+		val c = b.flatten
+		val d = c.filter(_.hasToRun(from, to, isRevert))
+		d
+	}
 
 	private def execute(context: ActivateContext, actions: List[MigrationAction]): Unit =
 		for (action <- actions) {
@@ -147,6 +150,8 @@ abstract class Migration(implicit val context: ActivateContext) {
 		down
 		_actions.toList
 	}
+	private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
+		timestamp > fromMigration && timestamp <= toMigration
 
 	class Columns {
 		private var _definitions = List[Column[_]]()
@@ -187,7 +192,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 
 	def removeReferencesForAllEntities = new {
 		val actions = entitiesMetadatas.map(removeReferencesForEntityMetadata)
-		def ifNotExists =
+		def ifExists =
 			actions.foreach(_.ifExists)
 	}
 

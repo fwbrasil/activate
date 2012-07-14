@@ -103,7 +103,7 @@ trait Entity extends Serializable with ValidEntity {
 		entityMetadata.varFields
 
 	@transient
-	private[this] var varFieldsMapCache: MutableMap[String, Var[Any]] = null
+	private var _varFieldsMap: MutableMap[String, Var[Any]] = null
 
 	private[this] def buildVarFieldsMap = {
 		val res = MutableMap[String, Var[Any]]()
@@ -117,10 +117,10 @@ trait Entity extends Serializable with ValidEntity {
 	}
 
 	private[this] def varFieldsMap = {
-		if (varFieldsMapCache == null) {
-			varFieldsMapCache = buildVarFieldsMap
+		if (_varFieldsMap == null) {
+			_varFieldsMap = buildVarFieldsMap
 		}
-		varFieldsMapCache
+		_varFieldsMap
 	}
 
 	private[activate] def vars =

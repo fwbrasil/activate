@@ -38,7 +38,7 @@ trait ActivateContext
 	private[activate] val properties =
 		new ActivateProperties(None, "activate")
 
-	implicit val context = this
+	implicit val context = this: this.type
 
 	val storage: Storage[_]
 

@@ -160,7 +160,7 @@ object EntityEnhancer extends Logging {
 		val name = originalField.getName
 		clazz.removeField(originalField)
 		val enhancedField = new CtField(varClazz, name, clazz);
-		enhancedField.setModifiers(Modifier.PRIVATE)
+		enhancedField.setModifiers(originalField.getModifiers)
 		clazz.addField(enhancedField)
 		val originalFieldTypeAndOptionFlag =
 			if (originalField.getType.getName != classOf[Option[_]].getName)
@@ -188,7 +188,7 @@ object EntityEnhancer extends Logging {
 	}
 
 	private def enhanceConstructors(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Array[Unit] = {
-		for (c <- clazz.getConstructors) yield {
+		for (c <- clazz.getDeclaredConstructors) yield {
 			val codeAttribute = c.getMethodInfo.getCodeAttribute
 				def superCallIndex = codeAttribute.iterator.skipConstructor
 			val isPrimaryConstructor = codeAttribute.iterator.skipSuperConstructor > 0

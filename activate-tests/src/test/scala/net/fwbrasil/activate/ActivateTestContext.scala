@@ -94,7 +94,7 @@ class MysqlActivateTestMigration
 
 		// Cascade option is ignored in MySql
 		removeReferencesForAllEntities
-			.ifNotExists
+			.ifExists
 
 		removeAllEntitiesTables
 			.ifExists
@@ -281,7 +281,9 @@ trait ActivateTestContext extends ActivateContext {
 		def attribute: String
 	}
 
-	class TraitAttribute1(val attribute: String) extends TraitAttribute {
+	class TraitAttribute1 private (val attribute: String, val dummy: String) extends TraitAttribute {
+		def this(attribute: String) =
+			this(attribute, attribute)
 		def testTraitAttribute = attribute
 	}
 

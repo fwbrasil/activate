@@ -77,6 +77,7 @@ trait MongoStorage extends MarshalStorage[DB] {
 	}
 
 	override def supportComplexQueries = false
+	override def hasStaticScheme = false
 
 	override def store(
 		statements: List[MassModificationStatement],

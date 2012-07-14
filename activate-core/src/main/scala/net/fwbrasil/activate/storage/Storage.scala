@@ -22,6 +22,7 @@ trait Storage[T] {
 	def directAccess: T
 
 	def isMemoryStorage = false
+	def hasStaticScheme = !isMemoryStorage
 	def supportComplexQueries = true
 	protected[activate] def reinitialize = {
 

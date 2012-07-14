@@ -27,6 +27,7 @@ import org.reflections.adapters.MetadataAdapter
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.radon.util.Lockable
+import java.lang.annotation.Annotation
 
 object Reflection {
 
@@ -212,6 +213,17 @@ object Reflection {
 			field.set(res, Integer.MAX_VALUE)
 		}
 		res
+	}
+
+	def hasClassAnnotationInHierarchy(pClazz: Class[_], annotationClass: Class[_ <: Annotation]): Boolean = {
+		var clazz = pClazz
+		var annotations = List[Annotation]()
+		do {
+			if (clazz.getAnnotation(annotationClass) != null)
+				return true
+			clazz = clazz.getSuperclass()
+		} while (clazz != null)
+		return false
 	}
 
 }

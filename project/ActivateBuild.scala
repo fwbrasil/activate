@@ -140,6 +140,7 @@ object ActivateBuild extends Build {
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
     	    resolvers ++= customResolvers,
-    	    compileOrder := CompileOrder.JavaThenScala
+    	    compileOrder := CompileOrder.JavaThenScala,
+    	    parallelExecution in Test := false
     	)
 }
