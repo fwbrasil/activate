@@ -49,8 +49,9 @@ trait ValidEntity {
 
 	private[activate] def invariants = {
 		if (_invariants == null) {
-			initializeListener
 			val metadata = EntityHelper.getEntityMetadata(this.niceClass)
+			if (metadata.invariantMethods.nonEmpty)
+				initializeListener
 			_invariants = for (method <- metadata.invariantMethods)
 				yield (method.getName, method.invoke(this).asInstanceOf[Invariant].f)
 		}

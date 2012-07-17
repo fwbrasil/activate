@@ -1,4 +1,6 @@
 language: scala
+jdk:
+  - openjdk6
 scala:
   - 2.9.1
 branches:

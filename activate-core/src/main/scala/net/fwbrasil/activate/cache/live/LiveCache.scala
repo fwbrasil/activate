@@ -75,8 +75,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	def byId[E <: Entity: Manifest](id: String): Option[E] =
 		entityInstacesMap[E].get(id)
 
-	def contains[E <: Entity](entity: E) =
-		entityInstacesMap(entity.niceClass).contains(entity.id)
+	def contains[E <: Entity](entity: E) = {
+		val map = entityInstacesMap(entity.niceClass)
+		map.doWithReadLock(map.contains(entity.id))
+	}
 
 	def delete(entity: Entity): Unit =
 		delete(entity.id)
@@ -104,12 +106,15 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entity.isInitialized && !entity.isDeletedSnapshot && (isMassModification || storage.isMemoryStorage || !entity.isPersisted || entity.isDirty)
 
 	def fromCache[E <: Entity](entityClass: Class[E], isMassModification: Boolean) = {
-		val entities = entityInstacesMap(entityClass).values.filter(isQueriable(_, isMassModification)).toList
-		if (!storage.isMemoryStorage)
-			for (entity <- entities)
-				if (!entity.isPersisted)
-					entity.initializeGraph
-		entities
+		val map = entityInstacesMap(entityClass)
+		map.doWithReadLock {
+			val entities = map.values.filter(isQueriable(_, isMassModification)).toList
+			if (!storage.isMemoryStorage)
+				for (entity <- entities)
+					if (!entity.isPersisted)
+						entity.initializeGraph
+			entities
+		}
 	}
 
 	def entityInstacesMap[E <: Entity: Manifest]: ReferenceSoftValueMap[String, E] with Lockable =
