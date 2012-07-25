@@ -165,6 +165,9 @@ object EntityValidation {
 		globalOptions ++= options
 	}
 
+	def getGlobalOptions =
+		globalOptions.toSet
+
 	def addTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext) =
 		transactionOptionsMap.synchronized {
 			val key = ctx.currentTransaction
@@ -182,6 +185,9 @@ object EntityValidation {
 	def setTransactionOptions(options: Set[EntityValidationOption])(implicit ctx: ActivateContext) =
 		transactionOptionsMap.put(ctx.currentTransaction, options)
 
+	def getTransactionOptions(implicit ctx: ActivateContext) =
+		transactionOptionsMap.get(ctx.currentTransaction)
+
 	def addThreadOption(option: EntityValidationOption) =
 		threadOptionsThreadLocal.set(Option(threadOptionsThreadLocal.get.getOrElse(Set()) + option))
 
@@ -190,6 +196,9 @@ object EntityValidation {
 
 	def setThreadOptions(options: Set[EntityValidationOption]) =
 		threadOptionsThreadLocal.set(Option(options))
+
+	def getThreadOptions =
+		threadOptionsThreadLocal.get
 
 	private def optionsFor(obj: Entity): Set[EntityValidationOption] =
 		optionsFor(obj, obj.context.currentTransaction)

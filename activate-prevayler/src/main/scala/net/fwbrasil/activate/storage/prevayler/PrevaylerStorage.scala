@@ -44,6 +44,8 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 			prevayler = factory.create
 			prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
 			prevalentSystem.values.foreach(Reflection.initializeBitmaps)
+			prevalentSystem.values.foreach(_.invariants)
+
 		} finally
 			PrevaylerStorage.isRecovering = false
 		for (entity <- prevalentSystem.values) {

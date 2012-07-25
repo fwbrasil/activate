@@ -13,21 +13,21 @@ trait DurableContext {
 		val statements = statementsForTransaction(transaction)
 		if (refsAssignments.nonEmpty || statements.nonEmpty) {
 			val (assignments, deletes) = filterVars(refsAssignments)
-			val assignmentsEntities = assignments.map(_._1.outerEntity)
-			val deletesEntities = deletes.map(_._1)
-			EntityValidation.validateOnTransactionEnd(assignmentsEntities ++ deletesEntities, transaction)
+			validateTransactionEnd(transaction, assignments, deletes)
 			storage.toStorage(statements.toList, assignments, deletes)
-			setPersisted(assignmentsEntities)
-			deleteFromLiveCache(assignmentsEntities)
+			setPersisted(assignments)
+			deleteFromLiveCache(deletes)
 			statementsForTransaction(transaction).clear
 		}
 	}
 
-	private[this] def setPersisted(entities: List[Entity]) =
-		entities.foreach(_.setPersisted)
+	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =
+		for ((ref, value) <- assignments)
+			yield ref.outerEntity.setPersisted
 
-	private[this] def deleteFromLiveCache(entities: List[Entity]) =
-		entities.foreach(liveCache.delete)
+	private[this] def deleteFromLiveCache(deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) =
+		for ((entity, map) <- deletes)
+			liveCache.delete(entity)
 
 	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
 		// Assume that all assignments are of Vars for performance reasons (could be Ref)
@@ -50,5 +50,10 @@ trait DurableContext {
 		}
 		import scala.collection.JavaConversions._
 		(assignments.toList, deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
+	}
+
+	private def validateTransactionEnd(transaction: Transaction, assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) = {
+		val transactionEntities = assignments.map(_._1.outerEntity) ++ deletes.map(_._1)
+		EntityValidation.validateOnTransactionEnd(transactionEntities, transaction)
 	}
 }
