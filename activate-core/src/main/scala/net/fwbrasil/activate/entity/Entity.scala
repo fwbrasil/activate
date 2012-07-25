@@ -11,8 +11,9 @@ import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
+import java.util.Date
 
-trait Entity extends Serializable with ValidEntity {
+trait Entity extends Serializable with EntityValidation {
 
 	def delete =
 		if (!isDeleted) {
@@ -40,6 +41,9 @@ trait Entity extends Serializable with ValidEntity {
 		vars.find(_.isDirty).isDefined
 
 	val id: String = null
+
+	def creationTimestamp = UUIDUtil timestamp id
+	def creationDate = new Date(creationTimestamp)
 
 	private var persistedflag = false
 	private var initialized = true

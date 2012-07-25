@@ -3,6 +3,7 @@ package net.fwbrasil.activate
 import java.util.IdentityHashMap
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.EntityValidation
 
 trait DurableContext {
 	this: ActivateContext =>
@@ -12,20 +13,21 @@ trait DurableContext {
 		val statements = statementsForTransaction(transaction)
 		if (refsAssignments.nonEmpty || statements.nonEmpty) {
 			val (assignments, deletes) = filterVars(refsAssignments)
+			val assignmentsEntities = assignments.map(_._1.outerEntity)
+			val deletesEntities = deletes.map(_._1)
+			EntityValidation.validateOnTransactionEnd(assignmentsEntities ++ deletesEntities, transaction)
 			storage.toStorage(statements.toList, assignments, deletes)
-			setPersisted(assignments)
-			deleteFromLiveCache(deletes)
+			setPersisted(assignmentsEntities)
+			deleteFromLiveCache(assignmentsEntities)
 			statementsForTransaction(transaction).clear
 		}
 	}
 
-	private[this] def setPersisted(assignments: List[(Var[Any], EntityValue[Any])]) =
-		for ((ref, value) <- assignments)
-			yield ref.outerEntity.setPersisted
+	private[this] def setPersisted(entities: List[Entity]) =
+		entities.foreach(_.setPersisted)
 
-	private[this] def deleteFromLiveCache(deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) =
-		for ((entity, map) <- deletes)
-			liveCache.delete(entity)
+	private[this] def deleteFromLiveCache(entities: List[Entity]) =
+		entities.foreach(liveCache.delete)
 
 	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
 		// Assume that all assignments are of Vars for performance reasons (could be Ref)

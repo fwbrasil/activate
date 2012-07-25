@@ -187,7 +187,7 @@ object EntityEnhancer extends Logging {
 		init.insertBefore(initBody)
 	}
 
-	private def enhanceConstructors(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Array[Unit] = {
+	private def enhanceConstructors(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtClass, Boolean)]) = {
 		for (c <- clazz.getDeclaredConstructors) yield {
 			val codeAttribute = c.getMethodInfo.getCodeAttribute
 				def superCallIndex = codeAttribute.iterator.skipConstructor
@@ -232,7 +232,7 @@ object EntityEnhancer extends Logging {
 				}
 
 				c.insertBeforeBody(replace)
-				c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {validate();addToLiveCache();}\n")
+				c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {validateOnCreate();addToLiveCache();}\n")
 			}
 		}
 	}

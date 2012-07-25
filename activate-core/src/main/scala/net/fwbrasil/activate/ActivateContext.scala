@@ -55,6 +55,9 @@ trait ActivateContext
 			storages.foreach(_.reinitialize)
 		}
 
+	def currentTransaction =
+		transactionManager.getRequiredActiveTransaction
+
 	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
 		(for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
 			QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
