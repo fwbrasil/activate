@@ -161,10 +161,10 @@ object Marshaller {
 		columns.map(marshalling)
 
 	def marshalling(column: Column[_]): StorageColumn =
-		StorageColumn(column.name, marshalling(column.emptyEntityValue))
+		StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
 }
 
-case class StorageColumn(name: String, storageValue: StorageValue)
+case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])
 
 sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction

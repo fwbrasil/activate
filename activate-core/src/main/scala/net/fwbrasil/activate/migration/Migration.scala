@@ -114,7 +114,7 @@ object Migration {
 }
 
 @implicitNotFound("Can't find a EntityValue implicit converter. Maybe the column type is not supported.")
-case class Column[T](name: String)(implicit val m: Manifest[T], val tval: Option[T] => EntityValue[T]) {
+case class Column[T](name: String, specificTypeOption: Option[String])(implicit val m: Manifest[T], val tval: Option[T] => EntityValue[T]) {
 	private[activate] def emptyEntityValue =
 		tval(None)
 }
@@ -156,8 +156,8 @@ abstract class Migration(implicit val context: ActivateContext) {
 	class Columns {
 		private var _definitions = List[Column[_]]()
 		@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the column type is not supported.")
-		def column[T](name: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
-			val column = Column[T](name)
+		def column[T](name: String, customTypeName: Option[String] = None)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
+			val column = Column[T](name, customTypeName)
 			_definitions ++= List(column)
 			column
 		}

@@ -184,7 +184,7 @@ abstract class SqlIdiom {
 	def toSqlDdl(storageValue: StorageValue): String
 
 	def toSqlDdl(column: StorageColumn): String =
-		"	" + escape(column.name) + " " + toSqlDdl(column.storageValue)
+		"	" + escape(column.name) + " " + column.specificTypeOption.getOrElse(toSqlDdl(column.storageValue))
 
 	def escape(string: String): String
 

@@ -27,7 +27,7 @@ import EnumerationValue._
 case class DummySeriablizable(val string: String)
 
 abstract class ActivateTestMigration(
-	implicit val ctx: ActivateContext)
+	implicit val ctx: ActivateTestContext)
 		extends Migration {
 
 	val timestamp = System.currentTimeMillis
@@ -35,6 +35,11 @@ abstract class ActivateTestMigration(
 	val developers = List("fwbrasil")
 
 	def up = {
+
+		// Cascade option is ignored in MySql
+		if (ctx == mysqlContext)
+			removeReferencesForAllEntities
+				.ifExists
 
 		removeAllEntitiesTables
 			.ifExists
@@ -47,7 +52,11 @@ abstract class ActivateTestMigration(
 			.ifNotExists
 
 		createInexistentColumnsForAllEntities
+
+		table[ctx.ActivateTestEntity].removeColumns("bigStringValue")
+		table[ctx.ActivateTestEntity].addColumns(_.column[String]("bigStringValue", bigStringTypeOption))
 	}
+	def bigStringTypeOption: Option[String] = None
 }
 
 object prevaylerContext extends ActivateTestContext {
@@ -62,17 +71,6 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
-//object oracleContext extends ActivateTestContext {
-//	val storage = new SimpleJdbcRelationalStorage {
-//		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-//		val user = "activate_test"
-//		val password = "activate_test"
-//		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
-//		val dialect = oracleDialect
-//	}
-//}
-//class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
-
 object mysqlContext extends ActivateTestContext {
 	System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorageFactory")
 	System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
@@ -83,30 +81,8 @@ object mysqlContext extends ActivateTestContext {
 	val storage =
 		StorageFactory.fromSystemProperties("mysql")
 }
-class MysqlActivateTestMigration
-		extends Migration()(mysqlContext) {
-
-	val timestamp = System.currentTimeMillis
-	val name = "ActivateTestMigration"
-	val developers = List("fwbrasil")
-
-	def up = {
-
-		// Cascade option is ignored in MySql
-		removeReferencesForAllEntities
-			.ifExists
-
-		removeAllEntitiesTables
-			.ifExists
-
-		createTableForAllEntities
-			.ifNotExists
-
-		createReferencesForAllEntities
-			.ifNotExists
-
-		createInexistentColumnsForAllEntities
-	}
+class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext) {
+	override def bigStringTypeOption = Some("TEXT")
 }
 
 object postgresqlContext extends ActivateTestContext {
@@ -118,7 +94,9 @@ object postgresqlContext extends ActivateTestContext {
 		val dialect = postgresqlDialect
 	}
 }
-class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
+class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext) {
+	override def bigStringTypeOption = Some("TEXT")
+}
 
 object mongoContext extends ActivateTestContext {
 	val storage = new MongoStorage {
@@ -129,6 +107,16 @@ object mongoContext extends ActivateTestContext {
 	}
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
+
+object BigStringGenerator {
+	val generated = {
+		var s = ""
+		for (i <- 0 until 400)
+			s += "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+		s
+	}
+
+}
 
 trait ActivateTestContext extends ActivateContext {
 
@@ -358,6 +346,7 @@ trait ActivateTestContext extends ActivateContext {
 		var varInitializedInConstructor = fullStringValue
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2
+		val bigStringValue = BigStringGenerator.generated
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,

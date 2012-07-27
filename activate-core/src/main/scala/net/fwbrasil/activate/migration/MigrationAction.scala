@@ -85,7 +85,7 @@ case class RenameColumn(
 			number,
 			tableName,
 			column.name,
-			Column[Any](oldName)(
+			Column[Any](oldName, column.specificTypeOption)(
 				column.m.asInstanceOf[Manifest[Any]],
 				column.tval.asInstanceOf[Any => EntityValue[Any]]))
 }
