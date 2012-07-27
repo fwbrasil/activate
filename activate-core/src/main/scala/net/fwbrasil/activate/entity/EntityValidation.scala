@@ -17,19 +17,19 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 
 case class PostCond[R](f: () => R) {
 
-	def postCond(condition: => Boolean): R =
-		postCond(condition, "")
+	def postCondition(condition: => Boolean): R =
+		postCondition(condition, "")
 
-	def postCond(condition: => Boolean, name: String): R = {
+	def postCondition(condition: => Boolean, name: String): R = {
 		val result = f()
 		require(condition, name)
 		result
 	}
 
-	def postCond(condition: (R) => Boolean): R =
-		postCond(condition, "")
+	def postCondition(condition: (R) => Boolean): R =
+		postCondition(condition, "")
 
-	def postCond(condition: (R) => Boolean, name: String): R = {
+	def postCondition(condition: (R) => Boolean, name: String): R = {
 		val result = f()
 		require(condition(result), name)
 		result
@@ -111,10 +111,10 @@ trait EntityValidation {
 
 	protected implicit def toPostCond[R](f: => R) = PostCond(() => f)
 
-	protected def preCond[R](condition: => Boolean)(f: => R): R =
-		preCond[R](condition, "")(f)
+	protected def preCondition[R](condition: => Boolean)(f: => R): R =
+		preCondition[R](condition, "")(f)
 
-	protected def preCond[R](condition: => Boolean, name: String)(f: => R): R = {
+	protected def preCondition[R](condition: => Boolean, name: String)(f: => R): R = {
 		if (!condition)
 			throw new PreCondidionViolationException(name)
 		f
