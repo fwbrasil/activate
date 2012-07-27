@@ -13,6 +13,8 @@ import scala.collection.mutable.HashSet
 import scala.collection.mutable.SynchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
 
+import net.fwbrasil.radon.transaction.NestedTransaction
+
 case class PostCond[R](f: () => R) {
 
 	def postCond(condition: => Boolean): R =
@@ -82,16 +84,17 @@ trait EntityValidation {
 	private def listener = {
 		if (_listener == null) {
 			_listener = new RefListener[Any] with Serializable {
-				private var isValidating = new AtomicBoolean(false)
+				private val isValidating = new AtomicBoolean(false)
 				override def notifyPut(ref: Ref[Any], obj: Option[Any]) = {
 					EntityValidation.validateOnWrite(EntityValidation.this)
 				}
-				override def notifyGet(ref: Ref[Any]) = {
-					if (isValidating.compareAndSet(false, true)) {
-						EntityValidation.validateOnRead(EntityValidation.this)
-						isValidating.set(false)
-					}
-				}
+				override def notifyGet(ref: Ref[Any]) =
+					if (isValidating.compareAndSet(false, true))
+						try {
+							EntityValidation.validateOnRead(EntityValidation.this)
+						} finally {
+							isValidating.set(false)
+						}
 			}
 		}
 		_listener
@@ -142,16 +145,24 @@ trait EntityValidation {
 
 object EntityValidation {
 
-	private var globalOptions = new HashSet[EntityValidationOption]() with SynchronizedSet[EntityValidationOption]
+	private val globalOptions = new HashSet[EntityValidationOption]() with SynchronizedSet[EntityValidationOption]
 
-	globalOptions += onWrite
-	globalOptions += onCreate
-
-	private var transactionOptionsMap =
+	private val transactionOptionsMap =
 		new ReferenceWeakKeyMap[Transaction, Set[EntityValidationOption]]() with SynchronizedMap[Transaction, Set[EntityValidationOption]]
 
-	private var threadOptionsThreadLocal = new ThreadLocal[Option[Set[EntityValidationOption]]]() {
-		override def initialValue = None
+	private var threadOptionsThreadLocal: ThreadLocal[Option[Set[EntityValidationOption]]] = _
+
+	removeAllCustomOptions
+
+	def removeAllCustomOptions = synchronized {
+		globalOptions.clear
+		globalOptions += onWrite
+		globalOptions += onCreate
+		transactionOptionsMap.clear
+		threadOptionsThreadLocal =
+			new ThreadLocal[Option[Set[EntityValidationOption]]]() {
+				override def initialValue = None
+			}
 	}
 
 	def addGlobalOption(option: EntityValidationOption) =
@@ -203,13 +214,22 @@ object EntityValidation {
 	private def optionsFor(obj: Entity): Set[EntityValidationOption] =
 		optionsFor(obj, obj.context.currentTransaction)
 
+	private def transactionOptions(transaction: Transaction): Option[Set[EntityValidationOption]] = {
+		transaction match {
+			case nested: NestedTransaction =>
+				transactionOptionsMap.get(transaction).orElse(transactionOptions(nested.parent))
+			case normal: Transaction =>
+				transactionOptionsMap.get(transaction)
+		}
+	}
+
 	private def optionsFor(obj: Entity, transaction: Transaction): Set[EntityValidationOption] =
 		obj.validationOptions.getOrElse {
-			transactionOptionsMap.getOrElse(transaction, {
+			transactionOptions(transaction).getOrElse {
 				threadOptionsThreadLocal.get.getOrElse {
 					globalOptions.toSet
 				}
-			})
+			}
 		}
 
 	private def validateIfHasOption(obj: Entity, option: EntityValidationOption) =

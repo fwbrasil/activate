@@ -4,6 +4,7 @@ import java.util.IdentityHashMap
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.EntityValidation
+import net.fwbrasil.radon.transaction.NestedTransaction
 
 trait DurableContext {
 	this: ActivateContext =>
@@ -53,7 +54,11 @@ trait DurableContext {
 	}
 
 	private def validateTransactionEnd(transaction: Transaction, assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]) = {
-		val transactionEntities = assignments.map(_._1.outerEntity) ++ deletes.map(_._1)
-		EntityValidation.validateOnTransactionEnd(transactionEntities, transaction)
+		val nestedTransaction = new NestedTransaction(transaction)
+		try transactional(nestedTransaction) {
+			val transactionEntities = assignments.map(_._1.outerEntity) ++ deletes.map(_._1)
+			EntityValidation.validateOnTransactionEnd(transactionEntities, transaction)
+		} finally
+			nestedTransaction.rollback
 	}
 }
