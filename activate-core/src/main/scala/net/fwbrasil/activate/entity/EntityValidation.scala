@@ -45,7 +45,9 @@ case class Invariant(f: () => Boolean, errorParams: () => List[Any])
 abstract class ViolationExceptions(violations: String*) extends Exception {
 	override def toString = violations.toString
 }
-case class InvariantViolationException(violations: InvariantViolation*) extends Exception
+case class InvariantViolationException(violations: InvariantViolation*) extends Exception {
+	override def toString = violations.toString
+}
 case class PreCondidionViolationException(violations: String*) extends ViolationExceptions(violations: _*)
 case class PostCondidionViolationException(violations: String*) extends ViolationExceptions(violations: _*)
 

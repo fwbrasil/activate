@@ -42,7 +42,7 @@ trait Entity extends Serializable with EntityValidation {
 
 	val id: String = null
 
-	def creationTimestamp = UUIDUtil timestamp id
+	def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
 	def creationDate = new Date(creationTimestamp)
 
 	private var persistedflag = false
