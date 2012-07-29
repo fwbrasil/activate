@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
-import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.memory.MemoryStorage
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
@@ -71,8 +71,21 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
+object oracleContext extends ActivateTestContext {
+	val storage = new PooledJdbcRelationalStorage {
+		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
+		val user = "ACTIVATE_TEST"
+		val password = "ACTIVATE_TEST"
+		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
+		val dialect = oracleDialect
+	}
+}
+class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext) {
+	override def bigStringTypeOption = Some("CLOB")
+}
+
 object mysqlContext extends ActivateTestContext {
-	System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorageFactory")
+	System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
 	System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
 	System.getProperties.put("activate.storage.mysql.user", "root")
 	System.getProperties.put("activate.storage.mysql.password", "")
@@ -86,7 +99,7 @@ class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext) {
 }
 
 object postgresqlContext extends ActivateTestContext {
-	val storage = new SimpleJdbcRelationalStorage {
+	val storage = new PooledJdbcRelationalStorage {
 		val jdbcDriver = "org.postgresql.Driver"
 		val user = "postgres"
 		val password = ""

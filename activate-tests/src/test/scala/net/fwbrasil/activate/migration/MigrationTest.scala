@@ -5,10 +5,12 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.runningFlag
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.oracleContext
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 
 class MigrationTest extends ActivateTest {
 
-	@MigrationBootstrap
+	@ManualMigration
 	abstract class TestMigration(override implicit val context: ActivateTestContext) extends Migration {
 
 		Migration.migrationsCache.put(context, Migration.migrationsCache.getOrElse(context, List()) ++ List(this))
@@ -26,14 +28,19 @@ class MigrationTest extends ActivateTest {
 			for (ctx <- contexts) {
 				import ctx._
 				ctx.start
-				ctx.transactional {
-					ctx.delete {
-						(s: StorageVersion) => where(s isNotNull)
+					def clear = {
+						ctx.transactional {
+							ctx.delete {
+								(s: StorageVersion) => where(s isNotNull)
+							}
+						}
+						if (ctx.storage.isInstanceOf[PooledJdbcRelationalStorage])
+							ctx.storage.asInstanceOf[PooledJdbcRelationalStorage].dataSource.hardReset
+						ActivateContext.clearContextCache
+						Migration.migrationsCache.clear
+						Migration.storageVersionCache.clear
 					}
-				}
-				ActivateContext.clearContextCache
-				Migration.migrationsCache.clear
-				Migration.storageVersionCache.clear
+				clear
 				new TestMigration()(ctx) {
 					def up = {
 						removeReferencesForAllEntities
@@ -59,14 +66,7 @@ class MigrationTest extends ActivateTest {
 						e.printStackTrace
 						throw e
 				} finally {
-					ctx.transactional {
-						ctx.delete {
-							(s: StorageVersion) => where(s isNotNull)
-						}
-					}
-					ActivateContext.clearContextCache
-					Migration.migrationsCache.clear
-					Migration.storageVersionCache.clear
+					clear
 					stop
 				}
 			}

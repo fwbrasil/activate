@@ -31,9 +31,11 @@ object ActivateBuild extends Build {
 	/* 
 		Install oracle in your local repo
 	*/
-	/*val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"*/
+	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
+	val c3po = "com.mchange" % "c3p0" % "0.9.2-pre4"
+
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
 	/* Mongo */
@@ -90,7 +92,10 @@ object ActivateBuild extends Build {
     	    id = "activate-jdbc",
     		base = file("activate-jdbc"),
     		dependencies = Seq(activateCore),
-    		settings = commonSettings
+    		settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(c3po)
+		    )
     	)
                            
 
@@ -124,7 +129,7 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, /*objbd6,*/ postgresql),
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)

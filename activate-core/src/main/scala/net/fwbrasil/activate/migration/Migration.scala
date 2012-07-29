@@ -24,7 +24,7 @@ object Migration {
 
 	def storageVersion(ctx: ActivateContext) = {
 		import ctx._
-		@MigrationBootstrap
+		@ManualMigration
 		class StorageVersionMigration extends Migration {
 			val timestamp = 0l
 			val name = "Initial database setup (StorageVersion)"
@@ -72,7 +72,7 @@ object Migration {
 		migrationsCache.getOrElseUpdate(context, {
 			val result =
 				Reflection.getAllImplementors(List(classOf[Migration], context.getClass), classOf[Migration])
-					.filter(e => !Reflection.hasClassAnnotationInHierarchy(e, classOf[MigrationBootstrap]) && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
+					.filter(e => !Reflection.hasClassAnnotationInHierarchy(e, classOf[ManualMigration]) && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
 					.map(_.newInstance.asInstanceOf[Migration])
 					.toList
 					.sortBy(_.timestamp)
@@ -85,14 +85,12 @@ object Migration {
 			filtered
 		})
 
-	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) = {
-		val a = migrations(context)
-		val x = a.filter(_.hasToRun(from._1, to._1))
-		val b = x.map(e => if (!isRevert) e.upActions else e.downActions)
-		val c = b.flatten
-		val d = c.filter(_.hasToRun(from, to, isRevert))
-		d
-	}
+	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) =
+		migrations(context)
+			.filter(_.hasToRun(from._1, to._1))
+			.map(e => if (!isRevert) e.upActions else e.downActions)
+			.flatten
+			.filter(_.hasToRun(from, to, isRevert))
 
 	private def execute(context: ActivateContext, actions: List[MigrationAction]): Unit =
 		for (action <- actions) {

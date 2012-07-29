@@ -22,6 +22,9 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
+import java.sql.PreparedStatement
+import java.sql.Types
+import java.sql.ResultSet
 
 object oracleDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -30,13 +33,13 @@ object oracleDialect extends SqlIdiom {
 	override def findTableStatement(tableName: String) =
 		"SELECT COUNT(1) " +
 			"  FROM USER_TABLES " +
-			" WHERE TABLE_NAME = '" + tableName.toUpperCase + "'"
+			" WHERE TABLE_NAME = '" + normalize(tableName) + "'"
 
 	override def findTableColumnStatement(tableName: String, columnName: String) =
 		"SELECT COUNT(1) " +
 			"  FROM USER_TAB_COLUMNS " +
-			" WHERE TABLE_NAME = '" + tableName.toUpperCase + "' " +
-			"   AND COLUMN_NAME = '" + columnName.toUpperCase + "'"
+			" WHERE TABLE_NAME = '" + normalize(tableName) + "' " +
+			"   AND COLUMN_NAME = '" + normalize(columnName) + "'"
 
 	override def findIndexStatement(tableName: String, indexName: String) =
 		"SELECT COUNT(1) " +
@@ -46,11 +49,14 @@ object oracleDialect extends SqlIdiom {
 	override def findConstraintStatement(tableName: String, constraintName: String): String =
 		"SELECT COUNT(1) " +
 			"  FROM USER_CONSTRAINTS " +
-			" WHERE TABLE_NAME = '" + tableName + "'" +
+			" WHERE TABLE_NAME = '" + normalize(tableName) + "'" +
 			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
 
+	def normalize(string: String) =
+		string.toUpperCase.substring(0, string.length.min(30))
+
 	override def escape(string: String) =
-		"\"" + string.toUpperCase.substring(0, string.length.min(30)) + "\""
+		"\"" + normalize(string) + "\""
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
@@ -77,6 +83,27 @@ object oracleDialect extends SqlIdiom {
 				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
 			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
 				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
+		}
+	}
+
+	val emptyString = "" + '\u0000'
+
+	override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
+		storageValue match {
+			case value: StringStorageValue =>
+				setValue(ps, (v: String) => if (v == "") ps.setString(i, emptyString) else ps.setString(i, v), i, value.value, Types.VARCHAR)
+			case other =>
+				super.setValue(ps, i, other)
+		}
+	}
+
+	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
+		storageValue match {
+			case value: StringStorageValue =>
+				val value = getValue(resultSet, resultSet.getString(i)).map(string => if (string == emptyString) "" else string)
+				StringStorageValue(value)
+			case other =>
+				super.getValue(resultSet, i, storageValue)
 		}
 	}
 

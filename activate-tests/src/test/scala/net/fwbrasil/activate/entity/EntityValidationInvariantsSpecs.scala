@@ -149,7 +149,8 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 						def entity =
 							byId[TestValidationEntity](entityId).get
 					step {
-						entity.string1 must throwA[InvariantViolationException]
+						val e = entity
+						e.string1 must throwA[InvariantViolationException]
 						entity.string1 = "s2"
 						entity.string1 must beEqualTo("s2")
 						entity.string1 = ""

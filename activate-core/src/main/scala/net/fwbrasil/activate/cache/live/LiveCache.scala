@@ -55,6 +55,7 @@ import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.radon.util.ReferenceSoftValueMap
 import net.fwbrasil.activate.entity.EntityMetadata
+import org.joda.time.base.AbstractInstant
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -388,6 +389,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		a match {
 			case entity: Entity =>
 				entity.id
+			case instant: AbstractInstant =>
+				instant.getMillis
 			case other =>
 				other
 		}
