@@ -418,5 +418,20 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+
+		"not use deleted entities" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val entityId =
+						step {
+							newEmptyActivateTestEntity.delete
+							newEmptyActivateTestEntity.id
+						}
+					step {
+						all[ActivateTestEntity].onlyOne.id must beEqualTo(entityId)
+					}
+				})
+		}
 	}
 }
