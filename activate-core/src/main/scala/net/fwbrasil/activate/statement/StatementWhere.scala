@@ -141,5 +141,6 @@ case class Where(value: Criteria) {
 				tval2(value2),
 				tval3(value3),
 				tval4(value4)))
+
 	override def toString = value.toString
 }

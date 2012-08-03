@@ -43,15 +43,9 @@ object ActivateBuild extends Build {
   	
   	/* Resolvers */
   	val customResolvers = Seq(
-  	    "snapshots" at "http://scala-tools.org/repo-snapshots",
-  	    "releases" at "http://scala-tools.org/repo-releases",
   	    "Maven" at "http://repo1.maven.org/maven2/",
-  	    //"www.mvnsearch.org" at "http://www.mvnsearch.org/maven2/",
-  	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
-  	    "reflections" at "http://reflections.googlecode.com/svn/repo",
-  	    "ibiblio" at "http://mirrors.ibiblio.org/pub/mirrors/maven2/",
-  	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
-  	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
+  	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
+  	    "fwbrasil.net" at "http://fwbrasil.net/maven/"
   	)
 
     lazy val activate = 

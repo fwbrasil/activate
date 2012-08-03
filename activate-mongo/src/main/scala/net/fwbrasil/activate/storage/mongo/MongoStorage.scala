@@ -55,6 +55,7 @@ import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import scala.collection.mutable.ListBuffer
 import java.util.IdentityHashMap
+import net.fwbrasil.activate.statement.SimpleValue
 
 trait MongoStorage extends MarshalStorage[DB] {
 
@@ -165,15 +166,22 @@ trait MongoStorage extends MarshalStorage[DB] {
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		val from = queryInstance.from
 		val (coll, where) = collectionAndWhere(from, queryInstance.where)
-		val selectValues = query(queryInstance.select.values: _*)
+		val selectValues = queryInstance.select.values //query(queryInstance.select.values: _*)
 		val select = new BasicDBObject
 		for (value <- selectValues)
-			select.put(value, 1)
+			if (!value.isInstanceOf[SimpleValue[_]])
+				select.put(mongoStatementSelectValue(value), 1)
 		val entitySource = queryInstance.from.entitySources.onlyOne
 		val ret = coll.find(where, select)
 		val rows = ret.toArray
-		(for (row <- rows) yield (for (i <- 0 until selectValues.size)
-			yield getValue(row, selectValues(i), expectedTypes(i))).toList).toList
+		(for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
+			selectValues(i) match {
+				case value: SimpleValue[_] =>
+					expectedTypes(i)
+				case other =>
+					getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
+			}
+		}).toList).toList
 	}
 
 	def getValue(obj: DBObject, name: String, storageValue: StorageValue): StorageValue =

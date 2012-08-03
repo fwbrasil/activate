@@ -175,4 +175,3 @@ case class Query[S](override val from: From, override val where: Where, select: 
 case class Select(values: StatementSelectValue[_]*) {
 	override def toString = "(" + values.mkString(", ") + ")"
 }
-

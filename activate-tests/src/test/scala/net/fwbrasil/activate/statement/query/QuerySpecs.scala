@@ -433,5 +433,36 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+
+		"support count query" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						newEmptyActivateTestEntity
+						newEmptyActivateTestEntity
+					}
+					step {
+						query {
+							(e: ActivateTestEntity) => where(e isNotNull) select (1)
+						}.sum must beEqualTo(2)
+					}
+				})
+		}
+		"select simple values" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						newFullActivateTestEntity
+					}
+					step {
+						newFullActivateTestEntity
+						query {
+							(e: ActivateTestEntity) => where(e.stringValue :== fullStringValue) select ("a")
+						} must beEqualTo(List("a", "a"))
+					}
+				})
+		}
 	}
 }

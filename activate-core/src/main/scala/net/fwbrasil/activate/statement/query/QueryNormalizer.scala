@@ -107,7 +107,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 		} else query
 	}
 
-	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: Set[S]): List[S] = {
+	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: List[S]): List[S] = {
 		val orderByOption = originalQuery.orderByClause
 		val ret = if (orderByOption.isDefined) {
 			val size = originalQuery.select.values.size

@@ -38,8 +38,7 @@ case class OrderedQuery[S](override val from: From, override val where: Where, o
 }
 
 case class OrderBy(criterias: OrderByCriteria[_]*) {
-	def emptyOrderedSet[S] = TreeSet.empty(ordering[S])
-	private[this] def ordering[S] = new Ordering[S] {
+	def ordering[S] = new Ordering[S] {
 		def compare(x: S, y: S) = {
 			val tuple1 = x.asInstanceOf[Product]
 			val tuple2 = y.asInstanceOf[Product]

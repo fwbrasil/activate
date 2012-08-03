@@ -144,12 +144,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		executeMassModificationWithEntitySources(statement, entities)
 	}
 
-	private def buildResultSet[S](query: Query[S]) =
-		if (query.orderByClause.isDefined)
-			query.orderByClause.get.emptyOrderedSet[S]
-		else
-			Set[S]()
-
 	private def entitiesFromCache[S](query: Query[S]) = {
 		val entities = entitySourceInstancesCombined(false, query.from)
 		executeQueryWithEntitySources(query, entities)
@@ -185,8 +179,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		filterInvalid(fromStorage)
 	}
 
-	def executeQuery[S](query: Query[S], iniatializing: Boolean): Set[S] =
-		buildResultSet(query) ++ entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
+	def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
+		val result = entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
+		query.orderByClause.map(order =>
+			result.sorted(order.ordering)).getOrElse(result)
+	}
 
 	def materializeEntity(entityId: String): Entity = {
 		val entityClass = EntityHelper.getEntityClassFromId(entityId)

@@ -23,7 +23,7 @@ class PaginatedQuerySpecs extends ActivateTest {
 						import step.ctx._
 						val numbers = (0 until numberOfEntities).toList
 						step {
-							numbers.foreach(newFullActivateTestEntity.intValue = _)
+							numbers.foreach(newEmptyActivateTestEntity.intValue = _)
 						}
 						step {
 								def test(pageSize: Int) = {

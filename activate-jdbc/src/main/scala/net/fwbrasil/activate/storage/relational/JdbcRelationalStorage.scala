@@ -23,11 +23,10 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	protected def executeWithConnection[R](f: (Connection) => R) = {
 		val connection = getConnectionWithoutAutoCommit
-		try f(connection)
-		finally {
-			connection.rollback
+		try
+			f(connection)
+		finally
 			connection.close
-		}
 	}
 
 	private def getConnectionWithoutAutoCommit = {
@@ -52,25 +51,28 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 		}
 	}
 
-	private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement, connection: Connection) =
-		jdbcStatement.restrictionQuery.map(tuple => {
-			val (query, expected) = tuple
-			val stmt = connection.prepareStatement(query)
-			val result =
-				try {
-					val resultSet = stmt.executeQuery
-					try {
-						resultSet.next
-						resultSet.getInt(1)
-					} finally
-						resultSet.close
-				} finally
-					stmt.close
-			result == expected
-		}).getOrElse(true)
+	private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
+		executeWithConnection {
+			connection =>
+				jdbcStatement.restrictionQuery.map(tuple => {
+					val (query, expected) = tuple
+					val stmt = connection.prepareStatement(query)
+					val result =
+						try {
+							val resultSet = stmt.executeQuery
+							try {
+								resultSet.next
+								resultSet.getInt(1)
+							} finally
+								resultSet.close
+						} finally
+							stmt.close
+					result == expected
+				}).getOrElse(true)
+		}
 
 	protected[activate] def execute(jdbcStatement: JdbcStatement, connection: Connection) =
-		if (satisfyRestriction(jdbcStatement, connection)) {
+		if (satisfyRestriction(jdbcStatement)) {
 			val stmt = createPreparedStatement(jdbcStatement, connection, true)
 			try stmt.executeBatch
 			finally stmt.close
