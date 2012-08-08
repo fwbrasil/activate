@@ -60,12 +60,12 @@ object Migration {
 
 	def updateTo(context: ActivateContext, timestamp: Long) =
 		context.synchronized {
-			execute(context, actionsOnInterval(context, storageVersionTuple(context), (timestamp, Int.MaxValue), false))
+			execute(context, actionsOnInterval(context, storageVersionTuple(context), (timestamp, Int.MaxValue), false), false)
 		}
 
 	def revertTo(context: ActivateContext, timestamp: Long) =
 		context.synchronized {
-			execute(context, actionsOnInterval(context, (timestamp, 0), storageVersionTuple(context), true))
+			execute(context, actionsOnInterval(context, (timestamp, Int.MaxValue), storageVersionTuple(context), true), true)
 		}
 
 	private def migrations(context: ActivateContext) =
@@ -78,27 +78,36 @@ object Migration {
 					.sortBy(_.timestamp)
 			val filtered =
 				result.filter(_.context == context)
-			val duplicates =
-				filtered.filterNot(filtered.contains)
-			if (duplicates.nonEmpty)
-				throw new IllegalStateException("Duplicate migration timestamps " + duplicates.mkString(", "))
+			verifyDuplicatesTimestamps(filtered)
 			filtered
 		})
 
-	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) =
-		migrations(context)
+	private def actionsOnInterval(context: ActivateContext, from: (Long, Int), to: (Long, Int), isRevert: Boolean) = {
+		val actions = migrations(context)
 			.filter(_.hasToRun(from._1, to._1))
 			.map(e => if (!isRevert) e.upActions else e.downActions)
 			.flatten
+		actions
 			.filter(_.hasToRun(from, to, isRevert))
+	}
 
-	private def execute(context: ActivateContext, actions: List[MigrationAction]): Unit =
+	private def execute(context: ActivateContext, actions: List[MigrationAction], isRevert: Boolean): Unit =
 		for (action <- actions) {
 			execute(context, action)
 			context.transactional {
 				val version = storageVersion(context)
-				version.lastScript = action.migration.timestamp
-				version.lastAction = action.number
+				if (isRevert) {
+					if (action.number > 0) {
+						version.lastScript = action.migration.timestamp
+						version.lastAction = action.number - 1
+					} else {
+						version.lastScript = action.migration.timestamp - 1
+						version.lastAction = Integer.MAX_VALUE
+					}
+				} else {
+					version.lastScript = action.migration.timestamp
+					version.lastAction = action.number
+				}
 			}
 		}
 
@@ -109,6 +118,13 @@ object Migration {
 			case e: CustomScriptAction =>
 				e.f()
 		}
+
+	private def verifyDuplicatesTimestamps(filtered: List[net.fwbrasil.activate.migration.Migration]): Unit = {
+		val duplicates =
+			filtered.filterNot(filtered.contains)
+		if (duplicates.nonEmpty)
+			throw new IllegalStateException("Duplicate migration timestamps " + duplicates.mkString(", "))
+	}
 }
 
 @implicitNotFound("Can't find a EntityValue implicit converter. Maybe the column type is not supported.")

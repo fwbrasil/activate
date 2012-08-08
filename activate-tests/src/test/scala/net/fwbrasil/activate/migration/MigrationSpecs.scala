@@ -16,6 +16,201 @@ class MigrationSpecs extends MigrationTest {
 
 	"Migration" should {
 
+		"CreateTable" in {
+
+			"createTableForAllEntities" in
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							createTableForAllEntities
+						}
+						override def validateDown = {
+							validateSchemaError(new EntityWithoutAttribute)
+							validateSchemaError(all[EntityWithoutAttribute])
+							validateSchemaError(newFullActivateTestEntity)
+							validateSchemaError(all[ActivateTestEntity])
+						}
+					})
+
+			"createTableForEntity" in
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							createTableForEntity[EntityWithoutAttribute]
+							createTableForEntity[ActivateTestEntity]
+						}
+						override def validateDown = {
+							validateSchemaError(new EntityWithoutAttribute)
+							validateSchemaError(all[EntityWithoutAttribute])
+							validateSchemaError(newEmptyActivateTestEntity)
+							validateSchemaError(all[ActivateTestEntity])
+						}
+					})
+
+			"Table.createTable[Entity]" in
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							table[EntityWithoutAttribute].createTable()
+							table[TraitAttribute1].createTable(
+								_.column[String]("attribute"),
+								_.column[String]("dummy"))
+						}
+						override def validateUp = {
+							transactional(new EntityWithoutAttribute)
+							transactional(all[EntityWithoutAttribute])
+							transactional(new TraitAttribute1("a"))
+							transactional(all[TraitAttribute1])
+						}
+						override def validateDown = {
+							validateSchemaError(new EntityWithoutAttribute)
+							validateSchemaError(all[EntityWithoutAttribute])
+							validateSchemaError(new TraitAttribute1("a"))
+							validateSchemaError(all[TraitAttribute1])
+						}
+					})
+
+			"Table.createTable(name: String)" in
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							table("EntityWithoutAttribute").createTable()
+							table("TraitAttribute1").createTable(
+								_.column[String]("attribute"),
+								_.column[String]("dummy"))
+						}
+						override def validateUp = {
+							transactional(new EntityWithoutAttribute)
+							transactional(all[EntityWithoutAttribute])
+							transactional(new TraitAttribute1("a"))
+							transactional(all[TraitAttribute1])
+						}
+						override def validateDown = {
+							validateSchemaError(new EntityWithoutAttribute)
+							validateSchemaError(all[EntityWithoutAttribute])
+							validateSchemaError(new TraitAttribute1("a"))
+							validateSchemaError(all[TraitAttribute1])
+						}
+					})
+
+		}
+
+		"RenameTable" in {
+
+			"Table.renameTable" in
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							createTableForEntity[TraitAttribute1]
+						}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							table[TraitAttribute1].renameTable("renamed_table")
+						}
+						override def validateUp = {
+							validateSchemaError(new TraitAttribute1("a"))
+							validateSchemaError(all[TraitAttribute1])
+						}
+						override def validateDown = {
+							transactional(new TraitAttribute1("a"))
+							transactional(all[TraitAttribute1])
+						}
+					})
+
+		}
+
+		"RemoveTable" in {
+
+			"removeAllEntitiesTables" in {
+
+			}
+
+			"Table.removeTable" in {
+
+			}
+
+		}
+
+		"AddColumn" in {
+
+			"createInexistentColumnsForEntity" in {
+
+			}
+
+			"createInexistentColumnsForAllEntities" in {
+
+			}
+
+			"Table.addColumns" in {
+
+			}
+
+		}
+
+		"RenameColumn" in {
+
+			"Table.renameColumn" in {
+
+			}
+		}
+
+		"RemoveColumn" in {
+			"Table.removeColumns" in {
+
+			}
+
+		}
+
+		"AddIndex" in {
+
+			"Table.addIndexes" in {
+
+			}
+
+		}
+
+		"RemoveIndex" in {
+
+			"Table.removeIndexes" in {
+
+			}
+		}
+
+		"AddReference" in {
+			"createReferencesForAllEntities" in {
+
+			}
+
+			"createReferencesForEntity" in {
+
+			}
+			"Table.addReferences" in {
+
+			}
+
+		}
+
+		"RemoveReference" in {
+			"removeReferencesForAllEntities" in {
+
+			}
+
+			"Table.removeReferences" in {
+
+			}
+		}
+
+		"CustomScript" in {
+
+		}
+
 		"createTableForEntity EntityWithoutAttribute" in
 			migrationTest(
 				new TestMigration()(_) {

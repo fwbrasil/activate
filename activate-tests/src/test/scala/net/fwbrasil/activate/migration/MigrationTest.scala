@@ -19,6 +19,12 @@ class MigrationTest extends ActivateTest {
 		val name = "Test Migration"
 		val developers = List("tester")
 
+		def validateSchemaError(f: => Unit) =
+			if (context.storage.hasStaticScheme)
+				context.transactional {
+					f
+				} must throwA[Exception]
+
 		def validateUp: Unit = {}
 		def validateDown: Unit = {}
 	}

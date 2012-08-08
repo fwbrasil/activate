@@ -325,7 +325,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 	override def migrateStorage(action: ModifyStorageAction): Unit =
 		action match {
 			case action: StorageCreateTable =>
-				coll(action.tableName)
+				if (!action.ifNotExists || !mongoDB.collectionExists(action.tableName))
+					mongoDB.createCollection(action.tableName, new BasicDBObject)
 			case action: StorageRenameTable =>
 				coll(action.oldName).rename(action.newName)
 			case action: StorageRemoveTable =>
