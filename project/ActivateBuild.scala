@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA" withSources
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-RC2"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
@@ -44,6 +44,7 @@ object ActivateBuild extends Build {
   	/* Resolvers */
   	val customResolvers = Seq(
   	    "Maven" at "http://repo1.maven.org/maven2/",
+  	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
   	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/"
   	)
@@ -131,7 +132,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.0-RC2",
+    		version := "1.0-SNAPSHOT",
     		scalaVersion := "2.9.1",
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     	    testFrameworks ++= Seq(specs2Framework),

@@ -53,8 +53,10 @@ abstract class ActivateTestMigration(
 
 		createInexistentColumnsForAllEntities
 
-		table[ctx.ActivateTestEntity].removeColumns("bigStringValue")
-		table[ctx.ActivateTestEntity].addColumns(_.column[String]("bigStringValue", bigStringTypeOption))
+		bigStringTypeOption.map(bigStringType => {
+			table[ctx.ActivateTestEntity].removeColumns("bigStringValue")
+			table[ctx.ActivateTestEntity].addColumns(_.customColumn[String]("bigStringValue", bigStringType))
+		})
 	}
 	def bigStringTypeOption: Option[String] = None
 }
@@ -282,7 +284,7 @@ trait ActivateTestContext extends ActivateContext {
 		def attribute: String
 	}
 
-	class TraitAttribute1 private (val attribute: String, val dummy: String) extends TraitAttribute {
+	class TraitAttribute1 private (var attribute: String, val dummy: String) extends TraitAttribute {
 		def this(attribute: String) =
 			this(attribute, attribute)
 		def testTraitAttribute = attribute
@@ -359,7 +361,7 @@ trait ActivateTestContext extends ActivateContext {
 		var varInitializedInConstructor = fullStringValue
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2
-		val bigStringValue = BigStringGenerator.generated
+		var bigStringValue = BigStringGenerator.generated
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,
