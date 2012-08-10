@@ -52,9 +52,9 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 	}
 
 	private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
-		executeWithConnection {
-			connection =>
-				jdbcStatement.restrictionQuery.map(tuple => {
+		jdbcStatement.restrictionQuery.map(tuple => {
+			executeWithConnection {
+				connection =>
 					val (query, expected) = tuple
 					val stmt = connection.prepareStatement(query)
 					val result =
@@ -68,8 +68,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 						} finally
 							stmt.close
 					result == expected
-				}).getOrElse(true)
-		}
+			}
+		}).getOrElse(true)
 
 	protected[activate] def execute(jdbcStatement: JdbcStatement, connection: Connection) =
 		if (satisfyRestriction(jdbcStatement)) {

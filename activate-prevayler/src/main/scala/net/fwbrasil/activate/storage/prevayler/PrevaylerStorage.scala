@@ -81,7 +81,7 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 				yield entity.id
 		val assignments =
 			new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
-		prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
+		prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 	}
 
 	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
@@ -98,7 +98,7 @@ object PrevaylerStorage {
 	var isRecovering = false
 }
 
-class PrevaylerMemoryStorageTransaction(
+case class PrevaylerMemoryStorageTransaction(
 	context: ActivateContext,
 	assignments: HashMap[String, HashMap[String, StorageValue]],
 	deletes: HashSet[String])
