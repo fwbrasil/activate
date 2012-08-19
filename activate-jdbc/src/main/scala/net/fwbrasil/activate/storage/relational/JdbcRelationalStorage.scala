@@ -166,6 +166,16 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage {
 
 }
 
+trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
+
+	val dataSourceName: String
+	val initialContext = new InitialContext()
+	val dataSource = initialContext.lookup(dataSourceName).asInstanceOf[DataSource]
+
+	override def getConnection =
+		dataSource.getConnection
+}
+
 object PooledJdbcRelationalStorageFactory extends StorageFactory {
 	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
 		new PooledJdbcRelationalStorage {
@@ -188,16 +198,6 @@ object SimpleJdbcRelationalStorageFactory extends StorageFactory {
 			val dialect = SqlIdiom.dialect(properties("dialect"))
 		}
 	}
-}
-
-trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
-
-	val dataSourceName: String
-	val initialContext = new InitialContext()
-	val dataSource = initialContext.lookup(dataSourceName).asInstanceOf[DataSource]
-
-	override def getConnection =
-		dataSource.getConnection
 }
 
 object DataSourceJdbcRelationalStorageFactory extends StorageFactory {

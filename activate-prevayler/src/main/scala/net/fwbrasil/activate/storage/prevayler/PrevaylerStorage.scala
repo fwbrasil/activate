@@ -20,11 +20,17 @@ import scala.annotation.implicitNotFound
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
-class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
+class PrevaylerStorage(
+		val factory: PrevaylerFactory)(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
 
 	protected[activate] var prevayler: Prevayler = _
 
-	lazy val name = "activate"
+	def this(prevalenceDirectory: String)(implicit context: ActivateContext) = this({
+		val res = new PrevaylerFactory()
+		res.configurePrevalenceDirectory(prevalenceDirectory)
+		res
+	})
+	def this()(implicit context: ActivateContext) = this("activate")
 
 	def directAccess =
 		prevayler
@@ -35,17 +41,14 @@ class PrevaylerStorage(implicit val context: ActivateContext) extends MarshalSto
 
 	protected[activate] def initialize = {
 		prevalentSystem = new PrevaylerStorageSystem()
-		val factory = new PrevaylerFactory()
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
-		factory.configurePrevalenceDirectory(name)
 		PrevaylerStorage.isRecovering = true
 		try {
 			prevayler = factory.create
 			prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
 			prevalentSystem.values.foreach(Reflection.initializeBitmaps)
 			prevalentSystem.values.foreach(_.invariants)
-
 		} finally
 			PrevaylerStorage.isRecovering = false
 		for (entity <- prevalentSystem.values) {
@@ -145,9 +148,6 @@ case class PrevaylerMemoryStorageTransaction(
 }
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
-		new PrevaylerStorage {
-			override lazy val name = properties("name")
-		}
-	}
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+		properties.get("prevalenceDirectory").map(new PrevaylerStorage(_)).getOrElse(new PrevaylerStorage())
 }

@@ -13,7 +13,6 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.Reflection.newInstance
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.storage.memory.MemoryStorage
 import play.api.data.validation.Constraint
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.uuid.UUIDUtil

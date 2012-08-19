@@ -6,7 +6,7 @@ import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
-import net.fwbrasil.activate.storage.memory.MemoryStorage
+import net.fwbrasil.activate.storage.memory.TransientMemoryStorage
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 import net.fwbrasil.activate.storage.relational.idiom.oracleDialect
@@ -62,14 +62,12 @@ abstract class ActivateTestMigration(
 }
 
 object prevaylerContext extends ActivateTestContext {
-	val storage = new PrevaylerStorage {
-		override lazy val name = "testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime
-	}
+	val storage = new PrevaylerStorage("testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime)
 }
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object memoryContext extends ActivateTestContext {
-	val storage = new MemoryStorage
+	val storage = new TransientMemoryStorage
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
@@ -152,6 +150,8 @@ trait ActivateTestContext extends ActivateContext {
 
 	override protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		running
+
+	override val contextEntities = Some(List(classOf[ActivateTestEntity]))
 
 	override protected lazy val runMigrationAtStartup = false
 

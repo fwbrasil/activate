@@ -71,7 +71,9 @@ trait ActivateContext
 		liveCache.initialize(entity)
 
 	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
-		true
+		contextEntities.map(_.contains(entityClass)).getOrElse(true)
+
+	protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
 
 	protected[activate] def execute(action: StorageAction) =
 		storage.migrate(action)

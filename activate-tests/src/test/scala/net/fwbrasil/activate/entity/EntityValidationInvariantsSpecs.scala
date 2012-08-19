@@ -41,10 +41,15 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 
 	def invariantValidationTest[R](step: StepExecutor)(options: EntityValidationOption*)(f: (EntityValidationStepExecutor) => R) = {
 		import step.ctx._
-		f(new EntityValidationStepExecutor(step, () => EntityValidation.setGlobalOptions(options.toSet)))
-		f(new EntityValidationStepExecutor(step, () => EntityValidation.setThreadOptions(options.toSet)))
-		f(new EntityValidationStepExecutor(step, () => EntityValidation.setTransactionOptions(options.toSet)))
-		f(new EntityValidationStepExecutor(step, () => TestValidationEntity.validationOptions = Some(options.toSet)))
+			def run(executor: EntityValidationStepExecutor) = {
+				transactional(all[TestValidationEntity].map(_.delete))
+				f(executor)
+				step.finalizeExecution
+			}
+		run(new EntityValidationStepExecutor(step, () => EntityValidation.setGlobalOptions(options.toSet)))
+		run(new EntityValidationStepExecutor(step, () => EntityValidation.setThreadOptions(options.toSet)))
+		run(new EntityValidationStepExecutor(step, () => EntityValidation.setTransactionOptions(options.toSet)))
+		run(new EntityValidationStepExecutor(step, () => TestValidationEntity.validationOptions = Some(options.toSet)))
 	}
 
 	"Entity validation" should {
@@ -64,6 +69,9 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 						}
 						def entity =
 							byId[TestValidationEntity](entityId).get
+					step {
+						all[TestValidationEntity].size must beEqualTo(1)
+					}
 					step {
 						(entity.string1 = "") must throwA[InvariantViolationException]
 						entity.string1 must beEqualTo("s1")
@@ -92,6 +100,9 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 						}
 						def entity =
 							byId[TestValidationEntity](entityId).get
+					step {
+						all[TestValidationEntity].size must beEqualTo(1)
+					}
 					step {
 						entity.string1 = ""
 						entity.string1 must beEqualTo("")
@@ -170,6 +181,9 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 						}
 						def entity =
 							byId[TestValidationEntity](entityId).get
+					step {
+						all[TestValidationEntity].size must beEqualTo(1)
+					}
 					step {
 						entity.string1 must beEqualTo("s1")
 						entity.string1 = ""

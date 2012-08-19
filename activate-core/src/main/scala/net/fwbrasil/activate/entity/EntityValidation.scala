@@ -126,14 +126,22 @@ trait EntityValidation {
 		invariants.nonEmpty
 
 	private[activate] def validateOnCreate =
-		EntityValidation.validateOnCreate(this)
+		try {
+			EntityValidation.validateOnCreate(this)
+		} catch {
+			case e: InvariantViolationException =>
+				delete
+				throw e;
+		}
 
 	def validate = {
-		val invalid = invalidInvariants
-		if (invalid.nonEmpty) {
-			val invariantViolations =
-				invalidInvariants.map(tuple => InvariantViolation(tuple._1, tuple._2))
-			throw new InvariantViolationException(invariantViolations: _*)
+		if (!isDeleted) {
+			val invalid = invalidInvariants
+			if (invalid.nonEmpty) {
+				val invariantViolations =
+					invalidInvariants.map(tuple => InvariantViolation(tuple._1, tuple._2))
+				throw new InvariantViolationException(invariantViolations: _*)
+			}
 		}
 	}
 

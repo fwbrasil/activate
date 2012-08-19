@@ -25,7 +25,7 @@ trait Entity extends Serializable with EntityValidation {
 	@transient
 	private var _baseVar: Var[Any] = null
 
-	def baseVar = {
+	private def baseVar = {
 		if (_baseVar == null)
 			_baseVar = vars.head
 		_baseVar

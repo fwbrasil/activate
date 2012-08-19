@@ -12,14 +12,16 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.collection.mutable.SynchronizedSet
 import scala.collection.mutable.HashSet
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.storage.StorageFactory
 
-class MemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
+class TransientMemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
 	override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
 }
 
-class MemoryStorage extends Storage[HashSet[Entity]] {
+class TransientMemoryStorage extends Storage[HashSet[Entity]] {
 
-	val storageSet = new MemoryStorageSet
+	val storageSet = new TransientMemoryStorageSet
 
 	def directAccess =
 		storageSet
@@ -47,4 +49,9 @@ class MemoryStorage extends Storage[HashSet[Entity]] {
 
 	override def migrate(action: StorageAction): Unit = {}
 
+}
+
+object TransientMemoryStorageFactory extends StorageFactory {
+	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+		new TransientMemoryStorage
 }

@@ -378,6 +378,9 @@ class QuerySpecs extends ActivateTest {
 					testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
 					testRegexp("my-title-here", "my_title_here", "^[a-z0-9-]+$")
 					testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
+					testRegexp("test1string", "teststring", "^.*[0-9].*$")
+					testRegexp("test1str2ing", "teststring", "^.*[0-9].*$")
+					testRegexp("test12str3ing", "teststring", "^.*[0-9].*$")
 				})
 		}
 

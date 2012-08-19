@@ -6,7 +6,7 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import net.fwbrasil.activate.storage.memory.MemoryStorageSet
+import net.fwbrasil.activate.storage.memory.TransientMemoryStorageSet
 import java.sql.Connection
 import com.mongodb.DB
 import org.prevayler.Prevayler
@@ -31,7 +31,7 @@ class StorageDirectAccessSpecs extends ActivateTest {
 						}
 					step {
 						storage.directAccess match {
-							case memorySet: MemoryStorageSet =>
+							case memorySet: TransientMemoryStorageSet =>
 								memorySet.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
 							case jdbcConnection: Connection =>
 								val stmt = jdbcConnection.createStatement

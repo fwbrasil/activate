@@ -19,7 +19,6 @@ import javassist.bytecode.LocalVariableAttribute
 import javassist.CtBehavior
 import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.storage.memory.MemoryStorage
 import net.fwbrasil.activate.util.RichList._
 
 import javassist.CtConstructor

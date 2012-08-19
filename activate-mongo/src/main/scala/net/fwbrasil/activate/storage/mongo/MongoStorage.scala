@@ -374,6 +374,8 @@ object MongoStorageFactory extends StorageFactory {
 			override val host = properties("host")
 			override val port = Integer.parseInt(properties("port"))
 			override val db = properties("db")
+			override val authentication =
+				properties.get("user").map(user => (user, properties("password")))
 		}
 	}
 }
