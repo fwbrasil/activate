@@ -175,50 +175,50 @@ object EntityValidation {
 			}
 	}
 
-	def addGlobalOption(option: EntityValidationOption) =
+	def addGlobalOption(option: EntityValidationOption): Unit =
 		globalOptions += option
 
-	def removeGlobalOption(option: EntityValidationOption) =
+	def removeGlobalOption(option: EntityValidationOption): Unit =
 		globalOptions -= option
 
-	def setGlobalOptions(options: Set[EntityValidationOption]) = {
+	def setGlobalOptions(options: Set[EntityValidationOption]): Unit = {
 		globalOptions.clear
 		globalOptions ++= options
 	}
 
-	def getGlobalOptions =
+	def getGlobalOptions: Set[EntityValidationOption] =
 		globalOptions.toSet
 
-	def addTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext) =
+	def addTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit =
 		transactionOptionsMap.synchronized {
 			val key = ctx.currentTransaction
 			val old = transactionOptionsMap.getOrElse(key, Set())
 			transactionOptionsMap.put(key, old + option)
 		}
 
-	def removeTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext) =
+	def removeTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit =
 		transactionOptionsMap.synchronized {
 			val key = ctx.currentTransaction
 			val old = transactionOptionsMap.getOrElse(key, Set())
 			transactionOptionsMap.put(key, old - option)
 		}
 
-	def setTransactionOptions(options: Set[EntityValidationOption])(implicit ctx: ActivateContext) =
+	def setTransactionOptions(options: Set[EntityValidationOption])(implicit ctx: ActivateContext): Unit =
 		transactionOptionsMap.put(ctx.currentTransaction, options)
 
-	def getTransactionOptions(implicit ctx: ActivateContext) =
+	def getTransactionOptions(implicit ctx: ActivateContext): Option[Set[EntityValidationOption]] =
 		transactionOptionsMap.get(ctx.currentTransaction)
 
-	def addThreadOption(option: EntityValidationOption) =
+	def addThreadOption(option: EntityValidationOption): Unit =
 		threadOptionsThreadLocal.set(Option(threadOptionsThreadLocal.get.getOrElse(Set()) + option))
 
-	def removeThreadOption(option: EntityValidationOption) =
+	def removeThreadOption(option: EntityValidationOption): Unit =
 		threadOptionsThreadLocal.set(Option(threadOptionsThreadLocal.get.getOrElse(Set()) - option))
 
-	def setThreadOptions(options: Set[EntityValidationOption]) =
+	def setThreadOptions(options: Set[EntityValidationOption]): Unit =
 		threadOptionsThreadLocal.set(Option(options))
 
-	def getThreadOptions =
+	def getThreadOptions: Option[Set[EntityValidationOption]] =
 		threadOptionsThreadLocal.get
 
 	private def optionsFor(obj: Entity): Set[EntityValidationOption] =

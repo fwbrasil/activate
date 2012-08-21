@@ -6,6 +6,7 @@ import java.util.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.EntityHelper
@@ -20,9 +21,9 @@ class StorageVersion(val contextName: String, var lastScript: Long, var lastActi
 
 object Migration {
 
-	val storageVersionCache = MutableMap[String, StorageVersion]()
+	private[activate] val storageVersionCache = MutableMap[String, StorageVersion]()
 
-	def storageVersion(ctx: ActivateContext) = {
+	private def storageVersion(ctx: ActivateContext) = {
 		import ctx._
 		@ManualMigration
 		class StorageVersionMigration extends Migration {
@@ -46,7 +47,7 @@ object Migration {
 		})
 	}
 
-	def storageVersionTuple(ctx: ActivateContext) = {
+	private def storageVersionTuple(ctx: ActivateContext) = {
 		val version = storageVersion(ctx)
 		ctx.transactional {
 			(version.lastScript, version.lastAction)
@@ -119,7 +120,7 @@ object Migration {
 				e.f()
 		}
 
-	private def verifyDuplicatesTimestamps(filtered: List[net.fwbrasil.activate.migration.Migration]): Unit = {
+	private def verifyDuplicatesTimestamps(filtered: List[Migration]) = {
 		val duplicates =
 			filtered.filterNot(filtered.contains)
 		if (duplicates.nonEmpty)
@@ -167,14 +168,14 @@ abstract class Migration(implicit val context: ActivateContext) {
 	private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
 		timestamp > fromMigration && timestamp <= toMigration
 
-	private class Columns {
+	private class ColumnDef {
 		private var _definitions = List[Column[_]]()
 		@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the column type is not supported.")
 		def column[T](name: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) =
 			buildColumn[T](name, None)
 		def customColumn[T](name: String, customTypeName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) =
 			buildColumn[T](name, Some(customTypeName))
-		def definitions =
+		private[activate] def definitions =
 			_definitions.toList
 		private def buildColumn[T](name: String, customTypeNameOption: Option[String])(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
 			val column = Column[T](name, customTypeNameOption)
@@ -214,8 +215,11 @@ abstract class Migration(implicit val context: ActivateContext) {
 			actions.foreach(_.ifExists)
 	}
 
-	def createReferencesForEntity[E <: Entity: Manifest] =
-		createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
+	def createReferencesForEntity[E <: Entity: Manifest] = new {
+		val actions = createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
+		def ifNotExists =
+			actions.foreach(_.ifNotExists)
+	}
 
 	def removeAllEntitiesTables = {
 		val metadatas = entitiesMetadatas
@@ -255,10 +259,12 @@ abstract class Migration(implicit val context: ActivateContext) {
 				columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
 			})
 
-	private def createInexistentColumnsForEntityMetadata(metadata: EntityMetadata) =
-		(table(manifestClass(metadata.entityClass)).addColumns(columns =>
-			for (property <- metadata.propertiesMetadata)
-				columns.column(property.name)(manifestClass(property.propertyType), property.tval))).ifNotExists
+	private def createInexistentColumnsForEntityMetadata(metadata: EntityMetadata) = {
+		val tableInstance = table(manifestClass(metadata.entityClass))
+		for (property <- metadata.propertiesMetadata)
+			tableInstance.addColumn(columnDef =>
+				columnDef.column(property.name)(manifestClass(property.propertyType), property.tval)).ifNotExists
+	}
 
 	private def max(string: String, size: Int) =
 		string.substring(0, (size - 1).min(string.length))
@@ -279,43 +285,47 @@ abstract class Migration(implicit val context: ActivateContext) {
 			table(manifestClass(metadata.entityClass)).removeReference(reference._1, reference._2, reference._3))
 
 	case class Table(name: String) {
-		def createTable(definitions: ((Columns) => Unit)*) = {
-			val columns = new Columns()
+
+		def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable = {
+			val columns = new ColumnDef()
 			definitions.foreach(_(columns))
 			addAction(CreateTable(Migration.this, nextNumber, name, columns.definitions))
 		}
-		def renameTable(newName: String) =
-			addAction(RenameTable(Migration.this, nextNumber, name, newName))
-		def removeTable =
+		def removeTable: RemoveTable =
 			addAction(RemoveTable(Migration.this, nextNumber, name))
-		def addColumn(definition: (Columns) => Unit) =
-			addColumns(definition)
-		def addColumns(definitions: ((Columns) => Unit)*) = {
-			val columns = new Columns()
-			definitions.foreach(_(columns))
-			new IfNotExistsBag[AddColumn] {
-				val actions = columns.definitions.map(e => addAction(AddColumn(Migration.this, nextNumber, name, e)))
-			}
+
+		def renameTable(newName: String): RenameTable =
+			addAction(RenameTable(Migration.this, nextNumber, name, newName))
+
+		def addColumn(definition: (ColumnDef) => Unit): AddColumn = {
+			val columns = new ColumnDef()
+			definition(columns)
+			addAction(AddColumn(Migration.this, nextNumber, name, columns.definitions.onlyOne))
 		}
-		def renameColumn(oldName: String, newColumn: (Columns) => Unit) = {
-			val columns = new Columns()
+
+		def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn = {
+			val columns = new ColumnDef()
 			newColumn(columns)
 			val definition = columns.definitions.head
 			addAction(RenameColumn(Migration.this, nextNumber, name, oldName, definition))
 		}
-		def removeColumn(columnName: String) =
-			removeColumns(columnName)
-		def removeColumns(columNames: String*) =
-			new IfExistsBag[RemoveColumn] {
-				val actions = columNames.toList.map(e => addAction(RemoveColumn(Migration.this, nextNumber, name, e)))
-			}
-		def addIndex(columnName: String, indexName: String) =
+
+		def removeColumn(columnName: String): RemoveColumn =
+			addAction(RemoveColumn(Migration.this, nextNumber, name, columnName))
+
+		def addIndex(columnName: String, indexName: String): AddIndex =
 			addAction(AddIndex(Migration.this, nextNumber, name, columnName, indexName))
-		def removeIndex(columnName: String, indexName: String) =
+		def removeIndex(columnName: String, indexName: String): RemoveIndex =
 			addAction(RemoveIndex(Migration.this, nextNumber, name, columnName, indexName))
-		def addReference(columnName: String, referencedTable: String, constraintName: String) =
+
+		def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference =
+			addReference(columnName, referencedTable.name, constraintName)
+		private[activate] def addReference(columnName: String, referencedTable: String, constraintName: String): AddReference =
 			addAction(AddReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
-		def removeReference(columnName: String, referencedTable: String, constraintName: String) =
+
+		def removeReference(columnName: String, referencedTable: Table, constraintName: String): RemoveReference =
+			removeReference(columnName, referencedTable.name, constraintName)
+		private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
 			addAction(RemoveReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
 	}
 	def table[E <: Entity: Manifest]: Table =

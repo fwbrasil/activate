@@ -52,7 +52,7 @@ trait Cascade {
 }
 
 trait CascadeBag[T <: Cascade] {
-	val actions: List[T]
+	protected val actions: List[T]
 	def cascade = {
 		actions.foreach(_.cascade)
 		this

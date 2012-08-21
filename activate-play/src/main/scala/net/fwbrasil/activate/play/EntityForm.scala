@@ -38,6 +38,37 @@ class EntityForm[T <: Entity](
 		new EntityForm[T](mapping, mapping.unbind(EntityData(entity))._1)
 }
 
+object EntityForm {
+
+	implicit def entityData[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]) =
+		EntityData(entity)(context, m, EntityHelper.getEntityMetadata(erasureOf[T]))
+
+	def entity[T <: Entity](implicit context: ActivateContext, m: Manifest[T]) =
+		of[T](new EntityFormatter[T])
+
+	def apply[T <: Entity](
+		mappings: ((T) => (_, Mapping[_]))*)(
+			implicit context: ActivateContext,
+			m: Manifest[T]): EntityForm[T] =
+		build(mappings.toList)
+
+	private def build[T <: Entity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
+		val mock = StatementMocks.mockEntity(erasureOf[T])
+		val map = mappings.map(_(mock)).toList.asInstanceOf[List[(Any, Mapping[Any])]]
+		val stack = StatementMocks.fakeVarCalledStack.reverse
+		require(stack.size == map.size)
+		val properties =
+			for (i <- 0 until map.size) yield {
+				val property = stack(i).name
+				val mapping = map(i)._2
+				map(i)._2.withPrefix(property)
+			}
+		implicit val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[T])
+		val mapping = new EntityMapping(properties.toList)
+		new EntityForm(mapping)
+	}
+}
+
 class EntityData[T <: Entity](val data: List[(String, Any)])(
 	implicit val context: ActivateContext,
 	m: Manifest[T],
@@ -151,35 +182,4 @@ class EntityFormatter[T <: Entity](
 	}
 
 	def unbind(key: String, value: T) = Map(key -> value.id)
-}
-
-object EntityForm extends App {
-
-	implicit def entityData[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]) =
-		EntityData(entity)(context, m, EntityHelper.getEntityMetadata(erasureOf[T]))
-
-	def entity[T <: Entity](implicit context: ActivateContext, m: Manifest[T]) =
-		of[T](new EntityFormatter[T])
-
-	def apply[T <: Entity](
-		mappings: ((T) => (_, Mapping[_]))*)(
-			implicit context: ActivateContext,
-			m: Manifest[T]): EntityForm[T] =
-		build(mappings.toList)
-
-	private def build[T <: Entity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
-		val mock = StatementMocks.mockEntity(erasureOf[T])
-		val map = mappings.map(_(mock)).toList.asInstanceOf[List[(Any, Mapping[Any])]]
-		val stack = StatementMocks.fakeVarCalledStack.reverse
-		require(stack.size == map.size)
-		val properties =
-			for (i <- 0 until map.size) yield {
-				val property = stack(i).name
-				val mapping = map(i)._2
-				map(i)._2.withPrefix(property)
-			}
-		implicit val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[T])
-		val mapping = new EntityMapping(properties.toList)
-		new EntityForm(mapping)
-	}
 }

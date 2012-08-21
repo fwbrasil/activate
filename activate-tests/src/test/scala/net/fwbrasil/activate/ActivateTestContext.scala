@@ -54,8 +54,8 @@ abstract class ActivateTestMigration(
 		createInexistentColumnsForAllEntities
 
 		bigStringTypeOption.map(bigStringType => {
-			table[ctx.ActivateTestEntity].removeColumns("bigStringValue")
-			table[ctx.ActivateTestEntity].addColumns(_.customColumn[String]("bigStringValue", bigStringType))
+			table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
+			table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
 		})
 	}
 	def bigStringTypeOption: Option[String] = None

@@ -242,7 +242,7 @@ class MigrationSpecs extends MigrationTest {
 					new TestMigration()(_) {
 						import context._
 						def up = {
-							table[TraitAttribute1].addColumns(_.column[String]("attribute"))
+							table[TraitAttribute1].addColumn(_.column[String]("attribute"))
 						}
 						override def validateUp = {
 							transactional(new TraitAttribute1("a"))
@@ -297,7 +297,7 @@ class MigrationSpecs extends MigrationTest {
 					new TestMigration()(_) {
 						import context._
 						def up = {
-							table[TraitAttribute1].removeColumns("attribute")
+							table[TraitAttribute1].removeColumn("attribute")
 						}
 						override def validateUp = {
 							validateSchemaError(new TraitAttribute1("a"))
