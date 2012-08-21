@@ -35,8 +35,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			prevaylerContext,
 			mongoContext,
 			postgresqlContext,
-			mysqlContext //			oracleContext
-			)
+			mysqlContext,
+			oracleContext)
 		ret.foreach(_.stop)
 		ret
 		val db = System.getenv("DB")

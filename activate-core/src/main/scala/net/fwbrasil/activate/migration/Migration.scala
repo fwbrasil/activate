@@ -56,15 +56,15 @@ object Migration {
 
 	val migrationsCache = MutableMap[ActivateContext, List[Migration]]()
 
-	def update(context: ActivateContext) =
+	def update(context: ActivateContext): Unit =
 		updateTo(context, Long.MaxValue)
 
-	def updateTo(context: ActivateContext, timestamp: Long) =
+	def updateTo(context: ActivateContext, timestamp: Long): Unit =
 		context.synchronized {
 			execute(context, actionsOnInterval(context, storageVersionTuple(context), (timestamp, Int.MaxValue), false), false)
 		}
 
-	def revertTo(context: ActivateContext, timestamp: Long) =
+	def revertTo(context: ActivateContext, timestamp: Long): Unit =
 		context.synchronized {
 			execute(context, actionsOnInterval(context, (timestamp, Int.MaxValue), storageVersionTuple(context), true).reverse, true)
 		}
