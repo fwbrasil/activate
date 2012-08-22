@@ -6,6 +6,7 @@ import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.StatementSelectValue
 import scala.annotation.implicitNotFound
+import scala.math.Ordering.OptionOrdering
 
 trait OrderedQueryContext {
 
@@ -50,16 +51,28 @@ case class OrderBy(criterias: OrderByCriteria[_]*) {
 			stream.takeWhile((i: Int) => result == 0).foreach { (i: Int) =>
 				val a = tuple1.productElement(i)
 				val b = tuple2.productElement(i)
+				val criteria = criterias(i - tupleStartPos)
+				val direction = criteria.direction
+				val (x, y) =
+					if (direction == orderByAscendingDirection)
+						(a, b)
+					else
+						(b, a)
 				result =
-					if (a == null && b != null)
-						1
-					else if (a != null && b == null)
+					if (x == null && y != null)
 						-1
-					else if (a == null && b == null)
+					else if (x != null && y == null)
+						1
+					else if (x == null && y == null)
 						0
 					else {
-						val ordering = criterias(i - tupleStartPos).ordering
-						ordering.asInstanceOf[Ordering[Any]].compare(a, b)
+						val ordering = criteria.ordering
+						ordering match {
+							case ordering: OptionOrdering[Any] =>
+								ordering.compare(Option(x), Option(y))
+							case ordering =>
+								ordering.asInstanceOf[Ordering[Any]].compare(x, y)
+						}
 					}
 			}
 			0
@@ -85,11 +98,11 @@ case class OrderByDirectionWrapper[T](value: StatementSelectValue[T])(implicit o
 		OrderByCriteria[T](value, orderByDescendingDirection, ordering)
 }
 
-case class OrderByCriteria[T](value: StatementSelectValue[T], direction: OrderByDirection, _ordering: Ordering[T]) {
-	def ordering =
-		if (direction == orderByAscendingDirection)
-			_ordering
-		else
-			_ordering.reverse
+case class OrderByCriteria[T](value: StatementSelectValue[T], direction: OrderByDirection, ordering: Ordering[T]) {
+	//	def ordering =
+	//		if (direction == orderByAscendingDirection)
+	//			_ordering
+	//		else
+	//			_ordering.reverse
 	override def toString = value.toString() + " " + direction.toString
 }

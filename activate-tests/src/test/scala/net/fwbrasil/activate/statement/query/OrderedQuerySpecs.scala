@@ -36,7 +36,8 @@ class OrderedQuerySpecs extends ActivateTest {
 								dateValue = new Date(nextInt),
 								jodaInstantValue = new DateTime(nextInt),
 								calendarValue = randomCalendar,
-								stringValue = nextFloat.toString)
+								stringValue = nextFloat.toString,
+								optionValue = if (i == 10) None else Option(nextInt.toString))
 					}
 						def entities =
 							all[ActivateTestEntity].toList
@@ -134,6 +135,11 @@ class OrderedQuerySpecs extends ActivateTest {
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue asc)
 						} must beEqualTo(entities.sortBy(_.stringValue))
 
+						query {
+							(entity: ActivateTestEntity) =>
+								where(entity isNotNull) select (entity) orderBy (entity.optionValue asc)
+						} must beEqualTo(entities.sortBy(_.optionValue))
+
 					}
 
 					step {
@@ -181,6 +187,11 @@ class OrderedQuerySpecs extends ActivateTest {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.stringValue desc)
 						} must beEqualTo(entities.sortBy(_.stringValue).reverse)
+
+						query {
+							(entity: ActivateTestEntity) =>
+								where(entity isNotNull) select (entity) orderBy (entity.optionValue desc)
+						} must beEqualTo(entities.sortBy(_.optionValue).reverse)
 
 					}
 
@@ -256,7 +267,7 @@ class OrderedQuerySpecs extends ActivateTest {
 			activateTest(
 				(step: StepExecutor) => {
 					import step.ctx._
-					val expected = List("a", "b", "c", null)
+					val expected = List(null, "a", "b", "c")
 					step {
 						expected.randomize.foreach(v =>
 							newEmptyActivateTestEntity.stringValue = v)
