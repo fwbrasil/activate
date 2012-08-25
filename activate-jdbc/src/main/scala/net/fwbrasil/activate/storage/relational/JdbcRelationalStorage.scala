@@ -161,6 +161,9 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage {
 		dataSource
 	}
 
+	override protected[activate] def reinitialize =
+		dataSource.hardReset
+
 	override def getConnection =
 		dataSource.getConnection
 
