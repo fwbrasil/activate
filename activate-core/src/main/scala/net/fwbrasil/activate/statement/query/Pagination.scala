@@ -1,6 +1,10 @@
 package net.fwbrasil.activate.statement.query
 
 class Pagination[S](result: List[S]) {
+	def orderBy[B](f: (S) => B)(implicit ordering: Ordering[B]) =
+		new Pagination(result.sortBy(f))
+	def reverse =
+		new Pagination(result.reverse)
 	def navigator(pageSize: Int) =
 		new PaginationNavigator(result, pageSize)
 }
