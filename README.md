@@ -2,7 +2,7 @@
 Activate Persistence Framework
 
 Official site with documentation:
-[ttp://activate-framework.org](http://activate-framework.org "http://activate-framework.org")
+[http://activate-framework.org](http://activate-framework.org "http://activate-framework.org")
 
 INTRODUCTION
 ============
