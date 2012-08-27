@@ -1,8 +1,8 @@
 
 Activate Persistence Framework
 
-Official site:
-[ACTIVATE-SITE](http://activate-framework.org "http://activate-framework.org")
+Official site with documentation:
+[ttp://activate-framework.org](http://activate-framework.org "http://activate-framework.org")
 
 INTRODUCTION
 ============
