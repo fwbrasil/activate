@@ -294,6 +294,10 @@ trait ActivateTestContext extends ActivateContext {
 		def testTraitAttribute = attribute
 	}
 
+	class Employee(var name: String, var supervisor: Option[Employee]) extends Entity {
+		def subordinates = allWhere[Employee](_.supervisor :== Some(this))
+	}
+
 	class EntityWithoutAttribute extends Entity
 
 	case class CaseClassEntity(

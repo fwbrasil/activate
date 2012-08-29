@@ -467,5 +467,32 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+		"support query entity hierarchy involving option relation" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val (bossId, worker1Id, worker2Id) =
+						step {
+							val boss = new Employee("Boss", None)
+							val worker1 = new Employee("Worker1", Some(boss))
+							val worker2 = new Employee("Worker2", Some(boss))
+							(boss.id, worker1.id, worker2.id)
+						}
+					step {
+						val boss = byId[Employee](bossId).get
+						val worker1 = byId[Employee](worker1Id).get
+						val worker2 = byId[Employee](worker2Id).get
+
+						worker1.subordinates must beEmpty
+						worker1.supervisor must beSome(boss)
+
+						worker2.subordinates must beEmpty
+						worker2.supervisor must beSome(boss)
+
+						boss.supervisor must beNone
+						(boss.subordinates.map(_.id).toSet) must beEqualTo(Set(worker1Id, worker2Id))
+					}
+				})
+		}
 	}
 }
