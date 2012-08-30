@@ -65,6 +65,33 @@ class EntitySpecs extends ActivateTest {
 				})
 		}
 
+		"handle case class copy" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					val entityId =
+						step {
+							CaseClassEntity(fullStringValue, fullEntityValue, fullEntityWithoutAttributeValue).id
+						}
+					val copyId =
+						step {
+							val entity = byId[CaseClassEntity](entityId).get
+							entity.copy(entityValue = emptyEntityValue).id
+						}
+					step {
+						entityId must not be equalTo(copyId)
+						val entity = byId[CaseClassEntity](entityId).get
+						val copy = byId[CaseClassEntity](copyId).get
+						entity must not be equalTo(copy)
+						entity.entityValue must be equalTo (fullEntityValue)
+						copy.entityValue must be equalTo (emptyEntityValue)
+					}
+					step {
+						all[CaseClassEntity].map(_.id).toSet must be equalTo (Set(entityId, copyId))
+					}
+				})
+		}
+
 	}
 
 }
