@@ -494,5 +494,18 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+
+		"support select [Entity] where (criteria)" in {
+			activateTest(
+				(step: StepExecutor) => {
+					import step.ctx._
+					step {
+						newFullActivateTestEntity
+					}
+					step {
+						select[ActivateTestEntity] where (_.stringValue :== fullStringValue)
+					}
+				})
+		}
 	}
 }

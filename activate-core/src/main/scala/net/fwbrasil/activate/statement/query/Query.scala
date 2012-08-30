@@ -141,6 +141,11 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 	def all[E <: Entity: Manifest] =
 		allWhere[E](_ isNotNull)
 
+	def select[E <: Entity: Manifest] = new {
+		def where(criterias: ((E) => Criteria)*) =
+			allWhere[E](criterias: _*)
+	}
+
 	def byId[T <: Entity: Manifest](id: => String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
