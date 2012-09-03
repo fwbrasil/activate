@@ -1,21 +1,38 @@
 package net.fwbrasil.activate.storage.prevayler
 
-import net.fwbrasil.activate.storage.marshalling._
-import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.{ EntityValue, Entity, Var, EntityInstanceReferenceValue }
-import net.fwbrasil.radon.transaction.Transaction
-import org.prevayler.{ Transaction => PrevaylerTransaction, PrevaylerFactory, Prevayler }
-import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
-import net.fwbrasil.activate.util.Logging
-import net.fwbrasil.activate.storage.Storage
-import net.fwbrasil.activate.storage.StorageFactory
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import java.util.HashMap
 import java.util.HashSet
-import scala.collection.JavaConversions._
-import net.fwbrasil.activate.util.Reflection
 import scala.annotation.implicitNotFound
+import scala.collection.JavaConversions.asScalaSet
+import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.JavaConversions.mapAsScalaMap
+import scala.collection.JavaConversions.seqAsJavaList
+import org.prevayler.implementation.publishing.AbstractPublisher
+import org.prevayler.implementation.publishing.TransactionSubscriber
+import org.prevayler.implementation.PrevalentSystemGuard
+import org.prevayler.Prevayler
+import org.prevayler.PrevaylerFactory
+import org.prevayler.{ Transaction => PrevaylerTransaction }
+import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.storage.marshalling.MarshalStorage
+import net.fwbrasil.activate.storage.marshalling.Marshaller
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.ActivateContext
+import org.prevayler.implementation.TransactionTimestamp
+import org.prevayler.implementation.Capsule
+import java.util.Date
+import org.prevayler.foundation.serialization.Serializer
+import org.prevayler.implementation.TransactionCapsule
+import org.prevayler.implementation.DummyTransactionCapsule
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
 
@@ -43,17 +60,31 @@ class PrevaylerStorage(
 		prevalentSystem = new PrevaylerStorageSystem()
 		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
-		PrevaylerStorage.isRecovering = true
-		try {
-			prevayler = factory.create
-			prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
-			prevalentSystem.values.foreach(Reflection.initializeBitmaps)
-			prevalentSystem.values.foreach(_.invariants)
-		} finally
-			PrevaylerStorage.isRecovering = false
+		prevayler = factory.create
+		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
+		prevalentSystem.values.foreach(Reflection.initializeBitmaps)
+		prevalentSystem.values.foreach(_.invariants)
+		hackPrevaylerToActAsARedoLogOnly
 		for (entity <- prevalentSystem.values) {
 			context.liveCache.toCache(entity)
 		}
+	}
+
+	private def hackPrevaylerToActAsARedoLogOnly = {
+		val publisher = Reflection.get(prevayler, "_publisher").asInstanceOf[AbstractPublisher]
+		val guard = Reflection.get(prevayler, "_guard").asInstanceOf[PrevalentSystemGuard]
+		val journalSerializer = Reflection.get(prevayler, "_journalSerializer").asInstanceOf[Serializer]
+		publisher.cancelSubscription(guard)
+		val dummyCapsule = new DummyTransactionCapsule(journalSerializer)
+		publisher.addSubscriber(new TransactionSubscriber {
+			def receive(transactionTimestamp: TransactionTimestamp) = {
+				guard.receive(
+					new TransactionTimestamp(
+						dummyCapsule,
+						transactionTimestamp.systemVersion,
+						transactionTimestamp.executionTime))
+			}
+		})
 	}
 
 	def snapshot =
@@ -84,7 +115,14 @@ class PrevaylerStorage(
 				yield entity.id
 		val assignments =
 			new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
+
 		prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
+
+		for ((entityId, changeSet) <- assignments)
+			prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))
+
+		for (entityId <- deletes)
+			prevalentSystem -= entityId
 	}
 
 	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
@@ -95,10 +133,6 @@ class PrevaylerStorage(
 
 	override def isMemoryStorage = true
 
-}
-
-object PrevaylerStorage {
-	var isRecovering = false
 }
 
 case class PrevaylerMemoryStorageTransaction(
@@ -116,34 +150,31 @@ case class PrevaylerMemoryStorageTransaction(
 		for (entityId <- deletes)
 			storage -= entityId
 
-		if (PrevaylerStorage.isRecovering) {
-
-			for ((entityId, changeSet) <- assignments) {
-				val entity = liveCache.materializeEntity(entityId)
-				entity.setInitialized
-				for ((varName, value) <- changeSet; if (varName != "id")) {
-					val ref = entity.varNamed(varName).get
-					val entityValue = Marshaller.unmarshalling(value, ref.tval(None)) match {
-						case value: EntityInstanceReferenceValue[_] =>
-							if (value.value.isDefined)
-								ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
-							else
-								ref.setRefContent(None)
-						case other: EntityValue[_] =>
-							ref.setRefContent(other.value)
-					}
+		for ((entityId, changeSet) <- assignments) {
+			val entity = liveCache.materializeEntity(entityId)
+			entity.setInitialized
+			for ((varName, value) <- changeSet; if (varName != "id")) {
+				val ref = entity.varNamed(varName).get
+				val entityValue = Marshaller.unmarshalling(value, ref.tval(None)) match {
+					case value: EntityInstanceReferenceValue[_] =>
+						if (value.value.isDefined)
+							ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
+						else
+							ref.setRefContent(None)
+					case other: EntityValue[_] =>
+						ref.setRefContent(other.value)
 				}
 			}
-
-			for (entityId <- deletes) {
-				val entity = liveCache.materializeEntity(entityId)
-				liveCache.delete(entityId)
-				entity.setInitialized
-				for (ref <- entity.vars)
-					ref.destroyInternal
-			}
-
 		}
+
+		for (entityId <- deletes) {
+			val entity = liveCache.materializeEntity(entityId)
+			liveCache.delete(entityId)
+			entity.setInitialized
+			for (ref <- entity.vars)
+				ref.destroyInternal
+		}
+
 	}
 }
 

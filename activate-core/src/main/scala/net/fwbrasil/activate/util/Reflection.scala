@@ -195,7 +195,13 @@ object Reflection {
 
 	private val bitmapFieldsCache = new MutableHashMap[Class[_], List[Field]]() with Lockable
 
-	def initializeBitmaps(res: Any) = {
+	def initializeBitmaps(res: Any) =
+		setBitmaps(res, Integer.MAX_VALUE)
+
+	def uninitializeBitmaps(res: Any) =
+		setBitmaps(res, 0)
+
+	private def setBitmaps(res: Any, value: Int) = {
 		val clazz = res.getClass
 		val fields =
 			bitmapFieldsCache.doWithReadLock {
@@ -210,7 +216,7 @@ object Reflection {
 			}
 		for (field <- fields) {
 			field.setAccessible(true)
-			field.set(res, Integer.MAX_VALUE)
+			field.set(res, value)
 		}
 		res
 	}

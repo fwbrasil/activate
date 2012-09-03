@@ -333,38 +333,30 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeCompositeOperatorCriteria(criteria)
 		}
 
-	def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+	def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean = {
+		val a = executeStatementValue(criteria.valueA)
+		val b = executeStatementValue(criteria.valueB)
 		criteria.operator match {
 			case operator: IsEqualTo =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB)
 				equals(a, b)
 			case operator: IsGreaterThan =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) > 0
 			case operator: IsLessThan =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) < 0
 			case operator: IsGreaterOrEqualTo =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) >= 0
 			case operator: IsLessOrEqualTo =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB)
 				(a != null && b != null) &&
 					compare(a, b) <= 0
 			case operator: Matcher =>
-				val a = executeStatementValue(criteria.valueA)
-				val b = executeStatementValue(criteria.valueB).asInstanceOf[String]
-				(a != null && b != null) &&
-					a.toString.matches(b)
+				val matcher = b.asInstanceOf[String]
+				(a != null && matcher != null) &&
+					a.toString.matches(matcher)
 		}
+	}
 
 	def compare(a: Any, b: Any) =
 		(a.asInstanceOf[Comparable[Any]].compareTo(b))
