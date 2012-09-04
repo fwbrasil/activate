@@ -255,11 +255,7 @@ object EntityValidation {
 	private[activate] def validateOnCreate(obj: Entity) =
 		validateIfHasOption(obj, onCreate)
 
-	private[activate] def validateOnTransactionEnd(entities: List[Entity], transaction: Transaction): Unit =
-		entities.foreach(validateOnTransactionEnd(_, transaction))
-
-	private def validateOnTransactionEnd(obj: Entity, transaction: Transaction): Unit =
-		if (obj.isValidable && optionsFor(obj, transaction).contains(onTransactionEnd))
-			obj.validate
+	private[activate] def validatesOnTransactionEnd(obj: Entity, transaction: Transaction) =
+		obj.isValidable && optionsFor(obj, transaction).contains(onTransactionEnd)
 
 }
