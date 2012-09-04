@@ -4,7 +4,10 @@ import java.util.IdentityHashMap
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.EntityValidation
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.radon.transaction.NestedTransaction
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.ListBuffer
 
 trait DurableContext {
 	this: ActivateContext =>
@@ -30,27 +33,26 @@ trait DurableContext {
 	private[this] def deleteFromLiveCache(entities: List[Entity]) =
 		entities.foreach(liveCache.delete)
 
-	private[this] def filterVars(pAssignments: List[(Ref[Any], (Option[Any], Boolean))]) = {
+	private[this] def filterVars(pAssignments: List[(Ref[Any], Option[Any], Boolean)]) = {
 		// Assume that all assignments are of Vars for performance reasons (could be Ref)
-		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], (Option[Any], Boolean))]]
-		val assignments = new IdentityHashMap[Var[Any], EntityValue[Any]]()
-		val deletes = new IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]()
-		for ((ref, (value, destroyed)) <- varAssignments; if (ref.outerEntity != null)) {
-			if (destroyed) {
-				if (ref.outerEntity.isPersisted) {
-					val propertiesMap =
-						Option(deletes.get(ref.outerEntity)).getOrElse {
-							val map = new IdentityHashMap[Var[Any], EntityValue[Any]]()
-							deletes.put(ref.outerEntity, map)
-							map
-						}
-					propertiesMap.put(ref, ref.tval(ref.refContent.value))
-				}
-			} else
-				assignments.put(ref, ref.toEntityPropertyValue(value.getOrElse(null)))
+		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]]
+
+		val (assignmentsDelete, assignmentsUpdate) = varAssignments.map(e => (e._1, e._1.tval(e._2), e._3)).partition(_._3)
+
+		val deletes = new IdentityHashMap[Entity, ListBuffer[(Var[Any], EntityValue[Any])]]()
+
+		for ((ref, value, destroyed) <- assignmentsDelete) {
+			val entity = ref.outerEntity
+			if (entity.isPersisted) {
+				if (!deletes.containsKey(entity))
+					deletes.put(entity, ListBuffer())
+				deletes.get(entity) += (ref -> value)
+			}
 		}
+
 		import scala.collection.JavaConversions._
-		(assignments.toList, deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
+		(assignmentsUpdate.map(e => (e._1, e._2)),
+			deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
 	}
 
 	private def validateTransactionEnd(transaction: Transaction, entities: List[Entity]) = {
