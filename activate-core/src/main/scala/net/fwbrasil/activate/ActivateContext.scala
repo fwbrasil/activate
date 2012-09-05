@@ -65,7 +65,7 @@ trait ActivateContext
 	}
 
 	private[activate] def name = contextName
-	val contextName = {
+	lazy val contextName = {
 		val name = this.getClass.getSimpleName
 		val split = name.split('$')
 		split.last
