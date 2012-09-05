@@ -29,7 +29,7 @@ object Migration {
 		class StorageVersionMigration extends Migration {
 			val timestamp = 0l
 			val name = "Initial database setup (StorageVersion)"
-			val developers = List("fwbrasil")
+			override val developers = List("fwbrasil")
 			def up = {
 				createTableForEntity[StorageVersion]
 					.ifNotExists
@@ -139,8 +139,10 @@ abstract class Migration(implicit val context: ActivateContext) {
 
 	def timestamp: Long
 	def name: String
-	def developers: List[String]
+	def developers: List[String] = List("not specified")
+
 	private var number: Int = -1
+
 	def nextNumber = {
 		number += 1
 		number

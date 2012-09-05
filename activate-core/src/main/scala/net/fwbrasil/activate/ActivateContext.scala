@@ -65,7 +65,11 @@ trait ActivateContext
 	}
 
 	private[activate] def name = contextName
-	def contextName: String
+	val contextName = {
+		val name = this.getClass.getSimpleName
+		val split = name.split('$')
+		split.last
+	}
 
 	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)

@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA" withSources
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.0"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.1-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
@@ -54,7 +54,7 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateMongo, 
+    		    activateJdbc, activateMongo, activateCoordinator,
     		    activateTests, activatePlay),
     		settings = commonSettings
     	)
@@ -116,6 +116,17 @@ object ActivateBuild extends Build {
 		    crossScalaVersions := Seq("2.9.1")
 		    )
     	)
+
+     lazy val activateCoordinator = 
+		Project(id = "activate-coordinator",
+			base = file("activate-coordinator"),
+			dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		     	libraryDependencies ++= 
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql),
+		    	 scalacOptions ++= Seq("-Xcheckinit")
+		    )
+		)
 
     lazy val activateTests = 
 		Project(id = "activate-tests",

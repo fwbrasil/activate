@@ -8,9 +8,12 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.radon.transaction.NestedTransaction
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.util.uuid.UUIDUtil
 
 trait DurableContext {
 	this: ActivateContext =>
+
+	val contextUniqueId = UUIDUtil.generateUUID
 
 	override def makeDurable(transaction: Transaction) = {
 		val refsAssignments = transaction.refsAssignments

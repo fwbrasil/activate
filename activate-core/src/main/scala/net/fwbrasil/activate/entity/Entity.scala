@@ -13,6 +13,10 @@ import java.lang.reflect.Method
 import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 import java.util.Date
 
+class InvalidEntityException extends IllegalStateException("Trying to access an invalid entity. " +
+	"It was invalidated by a modification in another application node (vm). " +
+	"You must reload it from the storage by using a query.")
+
 trait Entity extends Serializable with EntityValidation {
 
 	def delete =
@@ -40,6 +44,9 @@ trait Entity extends Serializable with EntityValidation {
 	def isDirty =
 		vars.find(_.isDirty).isDefined
 
+	def isInvalid =
+		invalid
+
 	val id: String = null
 
 	def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
@@ -48,6 +55,7 @@ trait Entity extends Serializable with EntityValidation {
 	private var persistedflag = false
 	private var initialized = true
 	private var initializing = false
+	private var invalid = false
 
 	private[activate] def setPersisted =
 		persistedflag = true
@@ -67,8 +75,18 @@ trait Entity extends Serializable with EntityValidation {
 	private[activate] def isInitialized =
 		initialized
 
+	private[activate] def setNotInvalid =
+		invalid = false
+
+	private[activate] def invalidate = synchronized {
+		invalid = true
+		context.liveCache.delete(this)
+	}
+
 	// Cylic initializing
-	private[activate] def initialize =
+	private[activate] def initialize = {
+		if (invalid)
+			throw new InvalidEntityException
 		if (!initialized && id != null) // Performance!
 			this.synchronized {
 				if (!initializing && !initialized && id != null) {
@@ -78,6 +96,7 @@ trait Entity extends Serializable with EntityValidation {
 					initializing = false
 				}
 			}
+	}
 
 	private[activate] def initializeGraph: Unit =
 		initializeGraph(Set())

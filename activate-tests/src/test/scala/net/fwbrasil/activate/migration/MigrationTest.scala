@@ -17,7 +17,7 @@ class MigrationTest extends ActivateTest {
 
 		def timestamp = Migration.migrationsCache(context).indexOf(this)
 		val name = "Test Migration"
-		val developers = List("tester")
+		override val developers = List("tester")
 
 		def validateSchemaError(f: => Unit) =
 			if (context.storage.hasStaticScheme)

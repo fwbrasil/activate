@@ -21,7 +21,7 @@ class Var[T](value: Option[T], val isMutable: Boolean, val _valueClass: Class[_]
 
 	override def get = doInitialized {
 		if (outerEntity == null)
-			throw new IllegalStateException("Var isnt bound to a Entity.")
+			throw new IllegalStateException("Var isnt bound to an Entity.")
 		super.get
 	}
 

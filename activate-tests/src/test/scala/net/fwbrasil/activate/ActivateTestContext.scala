@@ -32,7 +32,7 @@ abstract class ActivateTestMigration(
 
 	val timestamp = System.currentTimeMillis
 	val name = "ActivateTestMigration"
-	val developers = List("fwbrasil")
+	override val developers = List("fwbrasil")
 
 	def up = {
 
@@ -134,9 +134,6 @@ object BigStringGenerator {
 trait ActivateTestContext extends ActivateContext {
 
 	//	override val retryLimit = 2
-
-	def contextName =
-		this.niceClass.getName + "@" + this.hashCode.toString
 
 	private[this] var running = false
 
