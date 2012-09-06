@@ -9,11 +9,22 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.uuid.UUIDUtil
+import net.fwbrasil.activate.coordinator.coordinatorObject
+import net.fwbrasil.radon.ConcurrentTransactionException
 
 trait DurableContext {
 	this: ActivateContext =>
 
-	val contextUniqueId = UUIDUtil.generateUUID
+	val contextId = UUIDUtil.generateUUID
+
+	coordinatorObject.registerContext(contextId)
+
+	Runtime.getRuntime.removeShutdownHook(new Thread {
+		override def run = coordinatorObject.deregisterContext(contextId)
+	})
+
+	private def reloadEntities(ids: Set[String]) =
+		liveCache.unitializeLazyEntities(ids)
 
 	override def makeDurable(transaction: Transaction) = {
 		val refsAssignments = transaction.refsAssignments
@@ -22,11 +33,21 @@ trait DurableContext {
 			val (assignments, deletes) = filterVars(refsAssignments)
 			val assignmentsEntities = assignments.map(_._1.outerEntity)
 			val deletedEntities = deletes.map(_._1)
-			validateTransactionEnd(transaction, assignmentsEntities ::: deletedEntities)
-			storage.toStorage(statements.toList, assignments, deletes)
-			setPersisted(assignmentsEntities)
-			deleteFromLiveCache(deletedEntities)
-			statementsForTransaction(transaction).clear
+			val entities = assignmentsEntities ::: deletedEntities
+			validateTransactionEnd(transaction, entities)
+			val entitiesIds = entities.map(_.id).toSet
+			val unlockeds = coordinatorObject.tryWriteLock(contextId, entitiesIds)
+			if (unlockeds.nonEmpty) {
+				reloadEntities(unlockeds)
+				throw new ConcurrentTransactionException
+			}
+			try {
+				storage.toStorage(statements.toList, assignments, deletes)
+				setPersisted(assignmentsEntities)
+				deleteFromLiveCache(deletedEntities)
+				statementsForTransaction(transaction).clear
+			} finally
+				coordinatorObject.writeUnlock(contextId, entitiesIds)
 		}
 	}
 

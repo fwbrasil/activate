@@ -230,10 +230,20 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val entity = newInstance[E](entityClass)
 		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
 		initalizeLazyEntity(entity, entityMetadata, entityId)
-		executePendingMassStatements(entity)
 		context.entityMaterialized(entity)
 		entity
 	}
+
+	def unitializeLazyEntities(ids: Set[String]) =
+		ids.map(byId[Entity](_).get).foreach(unitializeLazyEntity)
+
+	def unitializeLazyEntity[E <: Entity](entity: E) =
+		transactional(transient) {
+			entity.vars.foreach(_.put(None))
+			entity.setPersisted
+			entity.setNotInitialized
+			entity.invariants
+		}
 
 	def executePendingMassStatements(entity: Entity) =
 		for (statement <- context.currentTransactionStatements)
@@ -257,6 +267,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 					val value = tuple.productElement(i)
 					ref.setRefContent(Option(value))
 				}
+				executePendingMassStatements(entity)
 			} else entity.delete
 		}
 	}
