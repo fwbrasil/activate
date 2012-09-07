@@ -1,12 +1,10 @@
 package net.fwbrasil.activate.migration
 
-import net.fwbrasil.activate.ActivateTestContext
-import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.runningFlag
-import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.oracleContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.runningFlag
 
 class MigrationTest extends ActivateTest {
 
@@ -35,6 +33,7 @@ class MigrationTest extends ActivateTest {
 				import ctx._
 				ctx.start
 					def clear = {
+						Migration.storageVersion(ctx) // Crate StorageVersion if not exists
 						ctx.transactional {
 							ctx.delete {
 								(s: StorageVersion) => where(s isNotNull)
@@ -47,6 +46,7 @@ class MigrationTest extends ActivateTest {
 						Migration.storageVersionCache.clear
 					}
 				clear
+
 				new TestMigration()(ctx) {
 					def up = {
 						removeReferencesForAllEntities

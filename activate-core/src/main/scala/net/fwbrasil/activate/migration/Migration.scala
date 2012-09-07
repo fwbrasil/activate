@@ -23,7 +23,7 @@ object Migration {
 
 	private[activate] val storageVersionCache = MutableMap[String, StorageVersion]()
 
-	private def storageVersion(ctx: ActivateContext) = {
+	private[activate] def storageVersion(ctx: ActivateContext) = {
 		import ctx._
 		@ManualMigration
 		class StorageVersionMigration extends Migration {

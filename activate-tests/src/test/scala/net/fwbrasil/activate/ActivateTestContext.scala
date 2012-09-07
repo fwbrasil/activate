@@ -15,6 +15,8 @@ import java.sql.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
+import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
@@ -52,13 +54,24 @@ abstract class ActivateTestMigration(
 			.ifNotExists
 
 		createInexistentColumnsForAllEntities
-
-		bigStringTypeOption.map(bigStringType => {
-			table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
-			table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
-		})
 	}
-	def bigStringTypeOption: Option[String] = None
+}
+
+abstract class ActivateTestMigrationCustomColumnType(
+	implicit val ctx: ActivateTestContext)
+		extends Migration {
+
+	val timestamp = System.currentTimeMillis + 100000
+	val name = "ActivateTestMigrationCustomColumnType"
+	override val developers = List("fwbrasil")
+
+	def up = {
+		table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
+		table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
+	}
+
+	def bigStringType: String
+
 }
 
 object prevaylerContext extends ActivateTestContext {
@@ -80,8 +93,9 @@ object oracleContext extends ActivateTestContext {
 		val dialect = oracleDialect
 	}
 }
-class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext) {
-	override def bigStringTypeOption = Some("CLOB")
+class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
+class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
+	override def bigStringType = "CLOB"
 }
 
 object mysqlContext extends ActivateTestContext {
@@ -94,8 +108,9 @@ object mysqlContext extends ActivateTestContext {
 	val storage =
 		StorageFactory.fromSystemProperties("mysql")
 }
-class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext) {
-	override def bigStringTypeOption = Some("TEXT")
+class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext)
+class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(mysqlContext) {
+	override def bigStringType = "TEXT"
 }
 
 object postgresqlContext extends ActivateTestContext {
@@ -107,8 +122,25 @@ object postgresqlContext extends ActivateTestContext {
 		val dialect = postgresqlDialect
 	}
 }
-class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext) {
-	override def bigStringTypeOption = Some("TEXT")
+class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
+class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(postgresqlContext) {
+	override def bigStringType = "TEXT"
+}
+
+object h2Context extends ActivateTestContext {
+	val storage = new SimpleJdbcRelationalStorage {
+		val jdbcDriver = "org.h2.Driver"
+		val user = "sa"
+		val password = ""
+		val url = "jdbc:h2:mem:activate_test2;DB_CLOSE_DELAY=-1"
+		val dialect = h2Dialect
+	}
+	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
+}
+
+class H2ActivateTestMigration extends ActivateTestMigration()(h2Context)
+class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(h2Context) {
+	override def bigStringType = "CLOB"
 }
 
 object mongoContext extends ActivateTestContext {

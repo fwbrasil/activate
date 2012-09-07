@@ -21,6 +21,7 @@ class MigrationSpecs extends MigrationTest {
 			"createTableForAllEntities" in
 				migrationTest(
 					new TestMigration()(_) {
+
 						import context._
 						def up = {
 							createTableForAllEntities

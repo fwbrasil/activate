@@ -25,7 +25,11 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 		val connection = getConnectionWithoutAutoCommit
 		try
 			f(connection)
-		finally
+		catch {
+			case e =>
+				connection.rollback
+				throw e
+		} finally
 			connection.close
 	}
 
@@ -138,9 +142,10 @@ trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage {
 	val url: String
 	val user: String
 	val password: String
+	private lazy val clazz = Class.forName(jdbcDriver)
 
 	override def getConnection = {
-		Class.forName(jdbcDriver)
+		clazz
 		DriverManager.getConnection(url, user, password)
 	}
 }
