@@ -18,6 +18,7 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
+import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
@@ -141,6 +142,22 @@ object h2Context extends ActivateTestContext {
 
 class H2ActivateTestMigration extends ActivateTestMigration()(h2Context)
 class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(h2Context) {
+	override def bigStringType = "CLOB"
+}
+
+object hsqldbContext extends ActivateTestContext {
+	val storage = new SimpleJdbcRelationalStorage {
+		val jdbcDriver = "org.hsqldb.jdbcDriver"
+		val user = "sa"
+		val password = ""
+		val url = "jdbc:hsqldb:file:activate_test_hsqldb"
+		val dialect = hsqldbDialect
+	}
+	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
+}
+
+class HsqldbActivateTestMigration extends ActivateTestMigration()(hsqldbContext)
+class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(hsqldbContext) {
 	override def bigStringType = "CLOB"
 }
 
