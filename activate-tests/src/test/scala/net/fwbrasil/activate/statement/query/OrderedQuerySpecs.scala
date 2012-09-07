@@ -32,7 +32,6 @@ class OrderedQuerySpecs extends ActivateTest {
 								longValue = nextLong,
 								floatValue = nextFloat,
 								doubleValue = nextDouble,
-								bigDecimalValue = BigDecimal(nextInt),
 								dateValue = new Date(nextInt),
 								jodaInstantValue = new DateTime(nextInt),
 								calendarValue = randomCalendar,
@@ -61,11 +60,6 @@ class OrderedQuerySpecs extends ActivateTest {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.doubleValue)
 						} must beEqualTo(entities.sortBy(_.doubleValue))
-
-						query {
-							(entity: ActivateTestEntity) =>
-								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue)
-						} must beEqualTo(entities.sortBy(_.bigDecimalValue))
 
 						query {
 							(entity: ActivateTestEntity) =>
@@ -109,11 +103,6 @@ class OrderedQuerySpecs extends ActivateTest {
 							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.doubleValue asc)
 						} must beEqualTo(entities.sortBy(_.doubleValue))
-
-						query {
-							(entity: ActivateTestEntity) =>
-								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue asc)
-						} must beEqualTo(entities.sortBy(_.bigDecimalValue))
 
 						query {
 							(entity: ActivateTestEntity) =>
@@ -165,11 +154,6 @@ class OrderedQuerySpecs extends ActivateTest {
 
 						query {
 							(entity: ActivateTestEntity) =>
-								where(entity isNotNull) select (entity) orderBy (entity.bigDecimalValue desc)
-						} must beEqualTo(entities.sortBy(_.bigDecimalValue).reverse)
-
-						query {
-							(entity: ActivateTestEntity) =>
 								where(entity isNotNull) select (entity) orderBy (entity.dateValue desc)
 						} must beEqualTo(entities.sortBy(_.dateValue).reverse)
 
@@ -198,33 +182,10 @@ class OrderedQuerySpecs extends ActivateTest {
 				})
 		}
 
-		"perform query with fake order by" in {
+		"perform query with empty order by" in {
 			activateTest(
 				(step: StepExecutor) => {
 					import step.ctx._
-					step {
-						val a =
-							query {
-								(entity: ActivateTestEntity) =>
-									where(entity isNotNull) select (entity)
-							}
-						val b =
-							query {
-								(entity: ActivateTestEntity) =>
-									where(entity isNotNull) select (entity) orderBy ()
-							}
-						a must beEqualTo(b)
-					}
-				})
-		}
-
-		"perform query with fake order by" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					step {
-						newFullActivateTestEntity
-					}
 					step {
 						val a =
 							query {

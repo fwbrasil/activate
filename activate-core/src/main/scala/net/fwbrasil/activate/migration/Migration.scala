@@ -33,6 +33,9 @@ object Migration {
 			def up = {
 				createTableForEntity[StorageVersion]
 					.ifNotExists
+				customScript {
+					ctx.storage.prepareDatabase
+				}
 			}
 		}
 		storageVersionCache.getOrElseUpdate(context.name, {

@@ -21,11 +21,17 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	protected def getConnection: Connection
 
-	protected def executeWithConnection[R](f: (Connection) => R) = {
+	override protected[activate] def prepareDatabase = {
+		dialect.prepareDatabase(this)
+	}
+
+	def executeWithTransaction[R](f: (Connection) => R) = {
 		val connection = getConnectionWithoutAutoCommit
-		try
-			f(connection)
-		catch {
+		try {
+			val res = f(connection)
+			connection.commit
+			res
+		} catch {
 			case e =>
 				connection.rollback
 				throw e
@@ -47,17 +53,16 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 			storageStatements.map(dialect.toSqlStatement)
 		val batchStatements =
 			BatchSqlStatement.group(sqlStatements)
-		executeWithConnection {
+		executeWithTransaction {
 			connection =>
 				for (batchStatement <- batchStatements)
 					execute(batchStatement, connection)
-				connection.commit
 		}
 	}
 
 	private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
 		jdbcStatement.restrictionQuery.map(tuple => {
-			executeWithConnection {
+			executeWithTransaction {
 				connection =>
 					val (query, expected) = tuple
 					val stmt = connection.prepareStatement(query)
@@ -86,7 +91,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 		executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance)), expectedTypes)
 
 	protected[activate] def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
-		executeWithConnection {
+		executeWithTransaction {
 			connection =>
 				val stmt = createPreparedStatement(sqlStatement, connection, false)
 				try {

@@ -28,7 +28,7 @@ trait Storage[T] {
 
 	}
 	protected[activate] def migrate(action: StorageAction): Unit
-
+	protected[activate] def prepareDatabase = {}
 }
 
 trait StorageFactory {

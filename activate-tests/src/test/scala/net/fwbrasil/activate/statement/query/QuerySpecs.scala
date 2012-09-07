@@ -467,6 +467,7 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+
 		"support query entity hierarchy involving option relation" in {
 			activateTest(
 				(step: StepExecutor) => {

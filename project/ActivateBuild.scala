@@ -36,6 +36,7 @@ object ActivateBuild extends Build {
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
 	val c3po = "com.mchange" % "c3p0" % "0.9.2-pre4"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
+	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
@@ -124,8 +125,7 @@ object ActivateBuild extends Build {
 			dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql),
-		    	 scalacOptions ++= Seq("-Xcheckinit")
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql)
 		    )
 		)
 
@@ -136,7 +136,7 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql, h2),
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql, h2, derby),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)

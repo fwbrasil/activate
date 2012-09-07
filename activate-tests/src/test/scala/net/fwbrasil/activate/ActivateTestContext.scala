@@ -17,6 +17,7 @@ import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
+import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
@@ -38,8 +39,8 @@ abstract class ActivateTestMigration(
 
 	def up = {
 
-		// Cascade option is ignored in MySql
-		if (ctx == mysqlContext)
+		// Cascade option is ignored in MySql and Derby
+		if (ctx == mysqlContext || ctx == derbyContext)
 			removeReferencesForAllEntities
 				.ifExists
 
@@ -140,6 +141,23 @@ object h2Context extends ActivateTestContext {
 
 class H2ActivateTestMigration extends ActivateTestMigration()(h2Context)
 class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(h2Context) {
+	override def bigStringType = "CLOB"
+}
+
+object derbyContext extends ActivateTestContext {
+	System.setProperty("derby.locks.deadlockTrace", "true")
+	val storage = new PooledJdbcRelationalStorage {
+		val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
+		val user = ""
+		val password = ""
+		val url = "jdbc:derby:activate_test11;create=true"
+		val dialect = derbyDialect
+	}
+	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
+}
+
+class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
+class DerbyActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(derbyContext) {
 	override def bigStringType = "CLOB"
 }
 

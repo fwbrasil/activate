@@ -74,6 +74,7 @@ import java.sql.Timestamp
 import net.fwbrasil.activate.statement.Matcher
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
+import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 
 object SqlIdiom {
 	def dialect(name: String) =
@@ -88,6 +89,8 @@ object SqlIdiom {
 }
 
 abstract class SqlIdiom {
+
+	def prepareDatabase(storage: JdbcRelationalStorage) = {}
 
 	protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
 		if (optionValue == None || optionValue == null)
