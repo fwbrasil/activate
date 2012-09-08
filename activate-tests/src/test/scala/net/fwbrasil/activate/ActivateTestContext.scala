@@ -134,7 +134,7 @@ object h2Context extends ActivateTestContext {
 		val jdbcDriver = "org.h2.Driver"
 		val user = "sa"
 		val password = ""
-		val url = "jdbc:h2:mem:activate_test2;DB_CLOSE_DELAY=-1"
+		val url = "jdbc:h2:mem:activate_test_h2;DB_CLOSE_DELAY=-1"
 		val dialect = h2Dialect
 	}
 	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
@@ -150,7 +150,7 @@ object hsqldbContext extends ActivateTestContext {
 		val jdbcDriver = "org.hsqldb.jdbcDriver"
 		val user = "sa"
 		val password = ""
-		val url = "jdbc:hsqldb:file:activate_test_hsqldb"
+		val url = "jdbc:hsqldb:mem:activate_test_hsqldb"
 		val dialect = hsqldbDialect
 	}
 	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
@@ -167,7 +167,7 @@ object derbyContext extends ActivateTestContext {
 		val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
 		val user = ""
 		val password = ""
-		val url = "jdbc:derby:activate_test11;create=true"
+		val url = "jdbc:derby:memory:activate_test_derby;create=true"
 		val dialect = derbyDialect
 	}
 	val permanentConnectionToHoldMemoryDatabase = storage.getConnection
