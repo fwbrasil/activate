@@ -34,7 +34,7 @@ import org.prevayler.foundation.serialization.Serializer
 import org.prevayler.implementation.TransactionCapsule
 import org.prevayler.implementation.DummyTransactionCapsule
 
-class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity]
+class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
