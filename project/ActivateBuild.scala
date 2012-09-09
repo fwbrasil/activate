@@ -57,8 +57,7 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateMongo, activateCoordinator,
-    		    activateTests, activatePlay),
+    		    activateJdbc, activateMongo, activateTests, activatePlay),
     		settings = commonSettings
     	)
 
@@ -69,8 +68,7 @@ object ActivateBuild extends Build {
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
-		    	      reflections, googleCollections, dom4j, gson, servlet,
-		    	      grizzled, logbackClassic, jodaTime, jodaConvert)
+		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert)
 		    )
 		)
 
@@ -119,16 +117,6 @@ object ActivateBuild extends Build {
 		    crossScalaVersions := Seq("2.9.1")
 		    )
     	)
-
-     lazy val activateCoordinator = 
-		Project(id = "activate-coordinator",
-			base = file("activate-coordinator"),
-			dependencies = Seq(activateCore),
-			settings = commonSettings ++ Seq(
-		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql)
-		    )
-		)
 
     lazy val activateTests = 
 		Project(id = "activate-tests",

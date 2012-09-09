@@ -10,7 +10,8 @@ object coordinatorObject {
 
 	val notificationBlockSize = 1000
 
-	val locks = new MutableHashMap[String, String]() with Lockable
+	// Map[EntityId, (ContextId, NumOfLocks, Timestamp)]
+	val locks = new MutableHashMap[String, (String, Int, Long)]() with Lockable
 
 	def tryLock(contextId: String, entityIds: Set[String]): Set[String] = {
 		val (locked, unlocked) = entityIds.partition(tryLock(contextId, _))
@@ -21,19 +22,43 @@ object coordinatorObject {
 		unlocked
 	}
 
-	private def tryLock(contextId: String, entityId: String): Boolean = {
-		lazy val pendingNotification = hasPendingNotification(contextId, entityId)
-		lazy val locked = locks.doWithReadLock(locks.contains(entityId))
-		if (pendingNotification || locked)
-			false
-		else
-			locks.doWithWriteLock {
-				if (!locks.contains(entityId)) {
-					locks += (entityId -> contextId)
-					true
-				} else
-					false
+	private def lockPromotion(lockable: Lockable)(fCondition: => Boolean)(fAction: => Unit) = {
+		val write =
+			lockable.doWithReadLock {
+				fCondition
 			}
+		if (write)
+			lockable.doWithWriteLock {
+				if (fCondition) {
+					fAction
+					true
+				} else false
+			}
+		else false
+	}
+
+	private def tryLock(contextId: String, entityId: String): Boolean = {
+
+		lazy val pendingNotification = hasPendingNotification(contextId, entityId)
+		lazy val currentLockOption = locks.doWithReadLock(locks.get(entityId))
+
+		val promotedLock =
+			lockPromotion(locks)(locks.get(entityId) == Some(contextId)) {
+				locks(entityId) = {
+					val old = locks(entityId)
+					(contextId, old._2 + 1, System.currentTimeMillis)
+				}
+			}
+
+		promotedLock ||
+			(!pendingNotification &&
+				locks.doWithWriteLock {
+					if (!locks.contains(entityId)) {
+						locks += (entityId -> (contextId, 1, System.currentTimeMillis))
+						true
+					} else
+						false
+				})
 	}
 
 	def unlock(contextId: String, entityIds: Set[String]): Unit =
@@ -41,12 +66,20 @@ object coordinatorObject {
 
 	private def unlock(contextId: String, entityId: String): Unit =
 		locks.doWithWriteLock {
-			val lockedTo = locks.get(entityId)
-			if (lockedTo.isEmpty || lockedTo.get != contextId)
+			val lockedToOption = locks.get(entityId)
+			if (lockedToOption.isEmpty || lockedToOption.get._1 != contextId)
 				throw new IllegalStateException("Context doesn't own the lock!")
-			locks.remove(entityId)
+
+			lockedToOption.map { tuple =>
+				val (contextId, numOfLocks, timestamp) = tuple
+				if (numOfLocks == 1)
+					locks.remove(entityId)
+				else
+					locks(entityId) = (contextId, numOfLocks - 1, System.currentTimeMillis)
+			}
 		}
 
+	// Map[ContextId, Set[EntityId]]
 	val notifications = new MutableHashMap[String, MutableHashSet[String] with Lockable]() with Lockable
 
 	def registerContext(contextId: String) =

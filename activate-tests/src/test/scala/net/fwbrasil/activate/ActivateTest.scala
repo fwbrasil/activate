@@ -136,7 +136,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 		for (ctx <- contexts) {
 			import ctx._
-			ActivateContext.contextCache.clear
+			ActivateContext.clearContextCache
 			start
 			runMigration
 				def clear = transactional {

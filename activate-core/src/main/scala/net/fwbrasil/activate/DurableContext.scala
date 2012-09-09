@@ -18,7 +18,7 @@ class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs:
 trait DurableContext {
 	this: ActivateContext =>
 
-	val contextId = UUIDUtil.generateUUID
+	private val contextId = UUIDUtil.generateUUID
 
 	override protected[fwbrasil] val transactionManager =
 		new TransactionManager()(this) {
@@ -32,14 +32,19 @@ trait DurableContext {
 			}
 		}
 
-	val coordinatorOption = Option(coordinatorObject)
+	private lazy val coordinatorOption =
+		if (storage.isMemoryStorage)
+			None
+		else
+			Option(coordinatorObject)
 
-	coordinatorOption.map(coordinator => {
-		coordinator.registerContext(contextId)
-		Runtime.getRuntime.removeShutdownHook(new Thread {
-			override def run = coordinator.deregisterContext(contextId)
+	protected def startCoordinator =
+		coordinatorOption.map(coordinator => {
+			coordinator.registerContext(contextId)
+			Runtime.getRuntime.removeShutdownHook(new Thread {
+				override def run = coordinator.deregisterContext(contextId)
+			})
 		})
-	})
 
 	private def reloadEntities(ids: Set[String]) = {
 		liveCache.unitializeLazyEntities(ids)
@@ -60,23 +65,23 @@ trait DurableContext {
 		}.getOrElse(f)
 
 	override def makeDurable(transaction: Transaction) = {
-		val reads = transaction.reads
-		val statements = statementsForTransaction(transaction)
+		lazy val statements = statementsForTransaction(transaction)
+
 		val (assignments, deletes) = filterVars(transaction.assignments)
 
 		val assignmentsEntities = assignments.map(_._1.outerEntity)
 		val deletedEntities = deletes.map(_._1)
 		val entities = assignmentsEntities ::: deletedEntities
 
-		lazy val entitiesIds = (entities ++ reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
+		lazy val entitiesIds = (entities.map(_.id) ++ transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity.id)).toSet
 
 		runWithCoordinatorIfDefined(entitiesIds) {
-			if (assignments.nonEmpty || statements.nonEmpty) {
+			if (assignments.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
 				validateTransactionEnd(transaction, entities)
 				storage.toStorage(statements.toList, assignments, deletes)
 				setPersisted(assignmentsEntities)
 				deleteFromLiveCache(deletedEntities)
-				statementsForTransaction(transaction).clear
+				statements.clear
 			}
 		}
 	}

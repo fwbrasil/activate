@@ -89,6 +89,7 @@ trait ActivateContext
 
 	def delayedInit(x: => Unit): Unit = {
 		x
+		startCoordinator
 		if (runMigrationAtStartup)
 			runMigration
 	}
