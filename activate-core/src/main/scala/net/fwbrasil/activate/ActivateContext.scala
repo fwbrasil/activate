@@ -53,6 +53,7 @@ trait ActivateContext
 			liveCache.reinitialize
 			clearStatements
 			storages.foreach(_.reinitialize)
+			reinitializeCoordinator
 		}
 
 	def currentTransaction =
@@ -65,11 +66,9 @@ trait ActivateContext
 	}
 
 	private[activate] def name = contextName
-	lazy val contextName = {
-		val name = this.getClass.getSimpleName
-		val split = name.split('$')
-		split.last
-	}
+
+	lazy val contextName =
+		this.getClass.getSimpleName.split('$').last
 
 	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)
@@ -89,9 +88,12 @@ trait ActivateContext
 
 	def delayedInit(x: => Unit): Unit = {
 		x
-		startCoordinator
+		val hasCoordinator = startCoordinator.isDefined
 		if (runMigrationAtStartup)
-			runMigration
+			if (hasCoordinator)
+				throw new IllegalStateException("Can't run migrations automatically at startup if there is a coordinator defined.")
+			else
+				runMigration
 	}
 
 	protected[activate] def entityMaterialized(entity: Entity) = {}

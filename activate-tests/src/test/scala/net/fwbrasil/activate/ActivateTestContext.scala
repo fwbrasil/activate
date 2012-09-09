@@ -19,6 +19,7 @@ import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
+import net.fwbrasil.activate.coordinator.Coordinator
 
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
@@ -200,8 +201,6 @@ object BigStringGenerator {
 
 trait ActivateTestContext extends ActivateContext {
 
-	//	override val retryLimit = 2
-
 	private[this] var running = false
 
 	private[activate] def start = synchronized {
@@ -215,9 +214,13 @@ trait ActivateTestContext extends ActivateContext {
 	override protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		running
 
-	override val contextEntities = Some(List(classOf[ActivateTestEntity]))
-
 	override protected lazy val runMigrationAtStartup = false
+
+	protected override lazy val coordinatorClientOption =
+		if (storage.isMemoryStorage)
+			None
+		else
+			Coordinator.clientOption
 
 	override protected[activate] def entityMaterialized(entity: Entity) =
 		if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])

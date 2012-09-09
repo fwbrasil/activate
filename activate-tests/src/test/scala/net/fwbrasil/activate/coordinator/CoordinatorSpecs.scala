@@ -59,7 +59,6 @@ class CoordinatorSpecs extends ActivateTest {
 				entityCtx1.intValue += 1
 				entityCtx1.intValue
 			} mustEqual 3
-			ok
 		}
 	}
 

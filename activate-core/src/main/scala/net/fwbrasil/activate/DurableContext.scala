@@ -9,7 +9,7 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.uuid.UUIDUtil
-import net.fwbrasil.activate.coordinator.coordinatorObject
+import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.radon.ConcurrentTransactionException
 import net.fwbrasil.radon.transaction.TransactionManager
 
@@ -32,35 +32,43 @@ trait DurableContext {
 			}
 		}
 
-	private lazy val coordinatorOption =
-		if (storage.isMemoryStorage)
-			None
-		else
-			Option(coordinatorObject)
+	protected lazy val coordinatorClientOption =
+		Coordinator.clientOption
+
+	protected def reinitializeCoordinator = {
+		coordinatorClientOption.map { coordinatorClient =>
+			coordinatorClient.deregisterContext(contextId)
+			coordinatorClient.registerContext(contextId)
+		}
+	}
 
 	protected def startCoordinator =
-		coordinatorOption.map(coordinator => {
-			coordinator.registerContext(contextId)
+		coordinatorClientOption.map(coordinatorClient => {
+			if (storage.isMemoryStorage)
+				throw new IllegalStateException("Storage doesn't support coordinator")
+			coordinatorClient.registerContext(contextId)
 			Runtime.getRuntime.removeShutdownHook(new Thread {
-				override def run = coordinator.deregisterContext(contextId)
+				override def run = {
+					coordinatorClient.deregisterContext(contextId)
+				}
 			})
 		})
 
 	private def reloadEntities(ids: Set[String]) = {
 		liveCache.unitializeLazyEntities(ids)
-		coordinatorObject.removeNotifications(contextId, ids)
+		coordinatorClientOption.get.removeNotifications(contextId, ids)
 	}
 
 	private def runWithCoordinatorIfDefined(entitiesIds: => Set[String])(f: => Unit) =
-		coordinatorOption.map { coordinator =>
+		coordinatorClientOption.map { coordinatorClient =>
 
-			val failed = coordinator.tryLock(contextId, entitiesIds)
+			val failed = coordinatorClient.tryToAcquireLocks(contextId, entitiesIds)
 			if (failed.nonEmpty)
 				throw new ActivateConcurrentTransactionException(failed)
 			try
 				f
 			finally
-				coordinator.unlock(contextId, entitiesIds)
+				coordinatorClient.releaseLocks(contextId, entitiesIds)
 
 		}.getOrElse(f)
 
