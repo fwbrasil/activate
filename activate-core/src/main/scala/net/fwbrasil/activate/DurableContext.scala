@@ -11,43 +11,73 @@ import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.coordinator.coordinatorObject
 import net.fwbrasil.radon.ConcurrentTransactionException
+import net.fwbrasil.radon.transaction.TransactionManager
+
+class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: Ref[_]*) extends ConcurrentTransactionException(refs: _*)
 
 trait DurableContext {
 	this: ActivateContext =>
 
 	val contextId = UUIDUtil.generateUUID
 
-	coordinatorObject.registerContext(contextId)
+	override protected[fwbrasil] val transactionManager =
+		new TransactionManager()(this) {
+			override protected def waitToRetry(e: ConcurrentTransactionException) = {
+				e match {
+					case e: ActivateConcurrentTransactionException =>
+						reloadEntities(e.entitiesIds)
+					case other =>
+				}
+				super.waitToRetry(e)
+			}
+		}
 
-	Runtime.getRuntime.removeShutdownHook(new Thread {
-		override def run = coordinatorObject.deregisterContext(contextId)
+	val coordinatorOption = Option(coordinatorObject)
+
+	coordinatorOption.map(coordinator => {
+		coordinator.registerContext(contextId)
+		Runtime.getRuntime.removeShutdownHook(new Thread {
+			override def run = coordinator.deregisterContext(contextId)
+		})
 	})
 
-	private def reloadEntities(ids: Set[String]) =
+	private def reloadEntities(ids: Set[String]) = {
 		liveCache.unitializeLazyEntities(ids)
+		coordinatorObject.removeNotifications(contextId, ids)
+	}
+
+	private def runWithCoordinatorIfDefined(entitiesIds: => Set[String])(f: => Unit) =
+		coordinatorOption.map { coordinator =>
+
+			val failed = coordinator.tryLock(contextId, entitiesIds)
+			if (failed.nonEmpty)
+				throw new ActivateConcurrentTransactionException(failed)
+			try
+				f
+			finally
+				coordinator.unlock(contextId, entitiesIds)
+
+		}.getOrElse(f)
 
 	override def makeDurable(transaction: Transaction) = {
-		val refsAssignments = transaction.refsAssignments
+		val reads = transaction.reads
 		val statements = statementsForTransaction(transaction)
-		if (refsAssignments.nonEmpty || statements.nonEmpty) {
-			val (assignments, deletes) = filterVars(refsAssignments)
-			val assignmentsEntities = assignments.map(_._1.outerEntity)
-			val deletedEntities = deletes.map(_._1)
-			val entities = assignmentsEntities ::: deletedEntities
-			validateTransactionEnd(transaction, entities)
-			val entitiesIds = entities.map(_.id).toSet
-			val unlockeds = coordinatorObject.tryWriteLock(contextId, entitiesIds)
-			if (unlockeds.nonEmpty) {
-				reloadEntities(unlockeds)
-				throw new ConcurrentTransactionException
-			}
-			try {
+		val (assignments, deletes) = filterVars(transaction.assignments)
+
+		val assignmentsEntities = assignments.map(_._1.outerEntity)
+		val deletedEntities = deletes.map(_._1)
+		val entities = assignmentsEntities ::: deletedEntities
+
+		lazy val entitiesIds = (entities ++ reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
+
+		runWithCoordinatorIfDefined(entitiesIds) {
+			if (assignments.nonEmpty || statements.nonEmpty) {
+				validateTransactionEnd(transaction, entities)
 				storage.toStorage(statements.toList, assignments, deletes)
 				setPersisted(assignmentsEntities)
 				deleteFromLiveCache(deletedEntities)
 				statementsForTransaction(transaction).clear
-			} finally
-				coordinatorObject.writeUnlock(contextId, entitiesIds)
+			}
 		}
 	}
 

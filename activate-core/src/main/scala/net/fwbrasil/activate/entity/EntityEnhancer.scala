@@ -210,7 +210,7 @@ object EntityEnhancer extends Logging {
 				}
 			})
 			if (isPrimaryConstructor) {
-				var replace = "setInitialized();setNotInvalid();\n"
+				var replace = "setInitialized();\n"
 				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
 					if (field.getName == "id") {
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"

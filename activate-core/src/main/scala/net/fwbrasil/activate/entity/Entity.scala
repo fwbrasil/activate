@@ -44,9 +44,6 @@ trait Entity extends Serializable with EntityValidation {
 	def isDirty =
 		vars.find(_.isDirty).isDefined
 
-	def isInvalid =
-		invalid
-
 	val id: String = null
 
 	def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
@@ -55,7 +52,6 @@ trait Entity extends Serializable with EntityValidation {
 	private var persistedflag = false
 	private var initialized = true
 	private var initializing = false
-	private var invalid = false
 
 	private[activate] def setPersisted =
 		persistedflag = true
@@ -75,18 +71,8 @@ trait Entity extends Serializable with EntityValidation {
 	private[activate] def isInitialized =
 		initialized
 
-	private[activate] def setNotInvalid =
-		invalid = false
-
-	private[activate] def invalidate = synchronized {
-		invalid = true
-		context.liveCache.delete(this)
-	}
-
 	// Cylic initializing
 	private[activate] def initialize = {
-		if (invalid)
-			throw new InvalidEntityException
 		if (!initialized && id != null) // Performance!
 			this.synchronized {
 				if (!initializing && !initialized && id != null) {
@@ -166,11 +152,12 @@ trait Entity extends Serializable with EntityValidation {
 			try {
 				if (Entity.toStringSeen(this))
 					"(loop id->" + id + ")"
-				else context.transactional {
-					"(" + toStringVars.mkString(", ") + ")"
-				}
-				//				else
-				//					"(uninitialized id->" + id + ")"
+				else if (initialized)
+					context.transactional {
+						"(" + toStringVars.mkString(", ") + ")"
+					}
+				else
+					"(uninitialized id->" + id + ")"
 			} finally { Entity.toStringRemoveSeen(this) })
 
 	protected def writeReplace(): AnyRef =

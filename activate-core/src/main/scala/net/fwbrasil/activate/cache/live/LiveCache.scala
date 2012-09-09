@@ -235,15 +235,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 	}
 
 	def unitializeLazyEntities(ids: Set[String]) =
-		ids.map(byId[Entity](_).get).foreach(unitializeLazyEntity)
+		ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id))).get).foreach(unitializeLazyEntity)
 
-	def unitializeLazyEntity[E <: Entity](entity: E) =
+	def unitializeLazyEntity[E <: Entity](entity: E) = {
 		transactional(transient) {
 			entity.vars.foreach(_.put(None))
-			entity.setPersisted
-			entity.setNotInitialized
-			entity.invariants
 		}
+		entity.setNotInitialized
+	}
 
 	def executePendingMassStatements(entity: Entity) =
 		for (statement <- context.currentTransactionStatements)

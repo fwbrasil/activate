@@ -12,18 +12,19 @@ object coordinatorObject {
 
 	val locks = new MutableHashMap[String, String]() with Lockable
 
-	def tryWriteLock(contextId: String, entityIds: Set[String]): Set[String] = {
-		val (locked, unlocked) = entityIds.partition(tryWriteLock(contextId, _))
+	def tryLock(contextId: String, entityIds: Set[String]): Set[String] = {
+		val (locked, unlocked) = entityIds.partition(tryLock(contextId, _))
 		if (unlocked.isEmpty)
 			addNotifications(contextId, entityIds)
 		else
-			writeUnlock(contextId, locked)
+			unlock(contextId, locked)
 		unlocked
 	}
 
-	private def tryWriteLock(contextId: String, entityId: String): Boolean = {
-		val isLocked = locks.doWithReadLock(locks.contains(entityId))
-		if (isLocked)
+	private def tryLock(contextId: String, entityId: String): Boolean = {
+		lazy val pendingNotification = hasPendingNotification(contextId, entityId)
+		lazy val locked = locks.doWithReadLock(locks.contains(entityId))
+		if (pendingNotification || locked)
 			false
 		else
 			locks.doWithWriteLock {
@@ -35,14 +36,14 @@ object coordinatorObject {
 			}
 	}
 
-	def writeUnlock(contextId: String, entityIds: Set[String]): Unit =
-		entityIds.foreach(writeUnlock(contextId, _))
+	def unlock(contextId: String, entityIds: Set[String]): Unit =
+		entityIds.foreach(unlock(contextId, _))
 
-	private def writeUnlock(contextId: String, entityId: String): Unit =
+	private def unlock(contextId: String, entityId: String): Unit =
 		locks.doWithWriteLock {
 			val lockedTo = locks.get(entityId)
 			if (lockedTo.isEmpty || lockedTo.get != contextId)
-				throw new IllegalStateException("Context doesn't have the write lock!")
+				throw new IllegalStateException("Context doesn't own the lock!")
 			locks.remove(entityId)
 		}
 
@@ -67,8 +68,19 @@ object coordinatorObject {
 			notifications.get(contextId).getOrElse(throw new IllegalStateException("Context is already registered!"))
 		}
 
-	def pendingNotifications(contextId: String) =
-		noficationSet(contextId).take(notificationBlockSize).toSet
+	private def hasPendingNotification(contextId: String, entityId: String) = {
+		val set = noficationSet(contextId)
+		set.doWithReadLock {
+			set.contains(entityId)
+		}
+	}
+
+	def pendingNotifications(contextId: String) = {
+		val set = noficationSet(contextId)
+		set.doWithReadLock {
+			set.take(notificationBlockSize).toSet
+		}
+	}
 
 	def removeNotifications(contextId: String, ids: Set[String]) = {
 		val set = noficationSet(contextId)
@@ -77,11 +89,15 @@ object coordinatorObject {
 		}
 	}
 
-	def addNotifications(contextId: String, ids: Set[String]) = {
-		val set = noficationSet(contextId)
-		set.doWithWriteLock {
-			set ++= ids
+	def addNotifications(contextId: String, ids: Set[String]) =
+		notifications.doWithReadLock {
+			notifications.keys.filter(_ != contextId).foreach {
+				contextToNotify =>
+					val set = noficationSet(contextToNotify)
+					set.doWithWriteLock {
+						set ++= ids
+					}
+			}
 		}
-	}
 
 }
