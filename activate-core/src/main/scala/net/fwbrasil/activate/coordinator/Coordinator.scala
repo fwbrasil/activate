@@ -12,6 +12,8 @@ import scala.actors.remote.RemoteActor._
 
 object Coordinator {
 
+	RemoteActor.classLoader = getClass().getClassLoader()
+
 	val actorName = 'coordinatorServer
 
 	val isServerVM =

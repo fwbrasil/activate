@@ -24,7 +24,7 @@ class ConcurrencySpecs extends ActivateTest {
 						import step.ctx._
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 5
+								override lazy val actorsPoolSize = 50
 								inParallelActors {
 									transactional {
 										new TraitAttribute1("1")
@@ -33,7 +33,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[TraitAttribute1].size must beEqualTo(5)
+							all[TraitAttribute1].size must beEqualTo(50)
 							all[TraitAttribute1].map(_.attribute).toSet must beEqualTo(Set("1"))
 						}
 					})
@@ -50,7 +50,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 10
+								override lazy val actorsPoolSize = 50
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -78,7 +78,7 @@ class ConcurrencySpecs extends ActivateTest {
 							val entity = byId[ActivateTestEntity](entityId).get
 							entity.intValue must beEqualTo(0)
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 10
+								override lazy val actorsPoolSize = 50
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -88,7 +88,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(10)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(50)
 						}
 					})
 			}
@@ -104,7 +104,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 10
+								override lazy val actorsPoolSize = 50
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -114,10 +114,37 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(10)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(50)
 						}
 					})
 			}
+
+			//			"concurrent delete" in {
+			//				activateTest(
+			//					(step: StepExecutor) => {
+			//						import step.ctx._
+			//						val entityId =
+			//							step {
+			//								newEmptyActivateTestEntity.id
+			//							}
+			//							def entityOption =
+			//								byId[ActivateTestEntity](entityId)
+			//						step {
+			//							new ActorDsl with ManyActors with OneActorPerThread {
+			//								override lazy val actorsPoolSize = 50
+			//								inParallelActors {
+			//									transactional {
+			//										entityOption.map(entity => if (!entity.isDeleted) entity.delete)
+			//									}
+			//								}
+			//							}
+			//						}
+			//						step {
+			//							all[ActivateTestEntity] must beEmpty
+			//							entityOption must beEmpty
+			//						}
+			//					})
+			//			}
 		}
 	}
 }

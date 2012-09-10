@@ -18,6 +18,7 @@ import net.fwbrasil.activate.serialization.NamedSingletonSerializable
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.coordinator.Coordinator
 
 trait ActivateContext
 		extends EntityContext
@@ -90,10 +91,10 @@ trait ActivateContext
 		x
 		val hasCoordinator = startCoordinator.isDefined
 		if (runMigrationAtStartup)
-			if (hasCoordinator)
-				throw new IllegalStateException("Can't run migrations automatically at startup if there is a coordinator defined.")
-			else
+			if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
 				runMigration
+			else
+				warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
 	}
 
 	protected[activate] def entityMaterialized(entity: Entity) = {}
