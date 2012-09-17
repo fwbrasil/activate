@@ -89,7 +89,6 @@ trait ActivateContext
 
 	def delayedInit(x: => Unit): Unit = {
 		x
-		val hasCoordinator = startCoordinator.isDefined
 		if (runMigrationAtStartup)
 			if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
 				runMigration
@@ -105,19 +104,26 @@ trait ActivateContext
 
 object ActivateContext {
 
+	private[activate] var useContextCache = true
+
 	private[activate] val contextCache =
 		new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
 
 	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
-		contextCache.getOrElseUpdate(entityClass,
-			instancesOf[ActivateContext]
-				.filter(_.acceptEntity(entityClass))
-				.onlyOne("\nThere should be one and only one context that accepts " + entityClass + ".\n" +
-					"Maybe the context isn't initialized or you must override the contextEntities val on your context.\n" +
-					"Important: The context definition must be declared in a base package of the entities packages.\n" +
-					"Example: com.app.myContext for com.app.model.MyEntity"))
+		if (!useContextCache)
+			context(entityClass)
+		else
+			contextCache.getOrElseUpdate(entityClass, context(entityClass))
 
 	def clearContextCache =
 		contextCache.clear
+
+	private def context[E <: Entity](entityClass: Class[E]) =
+		instancesOf[ActivateContext]
+			.filter(_.acceptEntity(entityClass))
+			.onlyOne("\nThere should be one and only one context that accepts " + entityClass + ".\n" +
+				"Maybe the context isn't initialized or you must override the contextEntities val on your context.\n" +
+				"Important: The context definition must be declared in a base package of the entities packages.\n" +
+				"Example: com.app.myContext for com.app.model.MyEntity")
 
 }

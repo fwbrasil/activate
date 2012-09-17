@@ -28,7 +28,7 @@ object Migration {
 		@ManualMigration
 		class StorageVersionMigration extends Migration {
 			val timestamp = 0l
-			val name = "Initial database setup (StorageVersion)"
+			override val name = "Initial database setup (StorageVersion)"
 			override val developers = List("fwbrasil")
 			def up = {
 				createTableForEntity[StorageVersion]
@@ -141,7 +141,7 @@ case class Column[T](name: String, specificTypeOption: Option[String])(implicit 
 abstract class Migration(implicit val context: ActivateContext) {
 
 	def timestamp: Long
-	def name: String
+	def name: String = getClass.getSimpleName()
 	def developers: List[String] = List("not specified")
 
 	private var number: Int = -1

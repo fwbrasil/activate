@@ -36,6 +36,8 @@ object ActivateBuild extends Build {
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
 
+	val gfork = "org.gfork" % "gfork" % "0.11"
+
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
 	/* Mongo */
@@ -122,7 +124,8 @@ object ActivateBuild extends Build {
 			    activateMongo),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql, h2, derby, hqsqldb),
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql, 
+		    	  	h2, derby, hqsqldb, gfork),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)

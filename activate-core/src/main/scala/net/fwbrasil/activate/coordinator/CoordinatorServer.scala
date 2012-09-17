@@ -7,14 +7,15 @@ import scala.actors._
 import scala.actors.Actor._
 import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
+import net.fwbrasil.activate.util.Logging
 
 sealed trait CoordinatorServerMessage
 
 trait CoordinatorServerRequestMessage extends CoordinatorServerMessage
 case class RegisterContext(contextId: String) extends CoordinatorServerRequestMessage
 case class DeregisterContext(contextId: String) extends CoordinatorServerRequestMessage
-case class TryToAcquireLocks(contextId: String, entityIds: Set[String]) extends CoordinatorServerRequestMessage
-case class ReleaseLocks(contextId: String, entityIds: Set[String]) extends CoordinatorServerRequestMessage
+case class TryToAcquireLocks(contextId: String, reads: Set[String], writes: Set[String]) extends CoordinatorServerRequestMessage
+case class ReleaseLocks(contextId: String, reads: Set[String], writes: Set[String]) extends CoordinatorServerRequestMessage
 case class GetPendingNotifications(contextId: String) extends CoordinatorServerRequestMessage
 case class RemoveNotifications(contextId: String, entityIds: Set[String]) extends CoordinatorServerRequestMessage
 
@@ -26,12 +27,19 @@ case class Failure(request: CoordinatorServerRequestMessage, e: Throwable) exten
 
 case class PendingNotifications(request: CoordinatorServerRequestMessage, entitiesIds: Set[String]) extends CoordinatorServerReponseMessage
 
-case class LockFail(request: CoordinatorServerRequestMessage, failedIds: Set[String]) extends CoordinatorServerReponseMessage
+case class LockFail(request: CoordinatorServerRequestMessage, readLocksNok: Set[String], writeLocksNok: Set[String]) extends CoordinatorServerReponseMessage
+case class UnlockFail(request: CoordinatorServerRequestMessage, readUnlocksNok: Set[String], writeUnlocksNok: Set[String]) extends CoordinatorServerReponseMessage
 
-class CoordinatorServer extends Actor with LockManager with NotificationManager {
+class CoordinatorServer
+		extends Actor
+		with LockManager
+		with NotificationManager
+		with Logging {
+
+	info("Coordinator server started.")
 	start
 	def act {
-		alive(5674)
+		alive(Coordinator.port)
 		register(Coordinator.actorName, self)
 		loop {
 			receive {
@@ -40,16 +48,22 @@ class CoordinatorServer extends Actor with LockManager with NotificationManager 
 				case msg: DeregisterContext =>
 					runAndReplyIfSuccess(msg)(deregisterContext(msg.contextId))
 				case msg: TryToAcquireLocks =>
-					runAndReply(msg)(tryToAcquireLocks(msg.contextId, msg.entityIds)) {
+					runAndReply(msg)(tryToAcquireLocks(msg.contextId, msg.reads, msg.writes)) {
 						failed =>
-							if (failed.isEmpty)
+							if (failed._1.isEmpty && failed._2.isEmpty)
 								Success(msg)
 							else
-								LockFail(msg, failed)
+								LockFail(msg, failed._1, failed._2)
 					}
 
 				case msg: ReleaseLocks =>
-					runAndReplyIfSuccess(msg)(releaseLocks(msg.contextId, msg.entityIds))
+					runAndReply(msg)(releaseLocks(msg.contextId, msg.reads, msg.writes)) {
+						failed =>
+							if (failed._1.isEmpty && failed._2.isEmpty)
+								Success(msg)
+							else
+								UnlockFail(msg, failed._1, failed._2)
+					}
 				case msg: GetPendingNotifications =>
 					runAndReply(msg)(getPendingNotifications(msg.contextId))(PendingNotifications(msg, _))
 				case msg: RemoveNotifications =>

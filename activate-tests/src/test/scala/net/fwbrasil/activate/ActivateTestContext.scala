@@ -36,7 +36,6 @@ abstract class ActivateTestMigration(
 		extends Migration {
 
 	val timestamp = System.currentTimeMillis
-	val name = "ActivateTestMigration"
 	override val developers = List("fwbrasil")
 
 	def up = {
@@ -65,7 +64,6 @@ abstract class ActivateTestMigrationCustomColumnType(
 		extends Migration {
 
 	val timestamp = System.currentTimeMillis + 100000
-	val name = "ActivateTestMigrationCustomColumnType"
 	override val developers = List("fwbrasil")
 
 	def up = {
@@ -220,7 +218,7 @@ trait ActivateTestContext extends ActivateContext {
 		if (storage.isMemoryStorage)
 			None
 		else
-			Coordinator.clientOption
+			Coordinator.clientOption(this)
 
 	override protected[activate] def entityMaterialized(entity: Entity) =
 		if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])

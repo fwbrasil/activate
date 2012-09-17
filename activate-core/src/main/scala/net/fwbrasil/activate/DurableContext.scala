@@ -18,7 +18,7 @@ class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs:
 trait DurableContext {
 	this: ActivateContext =>
 
-	private val contextId = UUIDUtil.generateUUID
+	val contextId = UUIDUtil.generateUUID
 
 	override protected[fwbrasil] val transactionManager =
 		new TransactionManager()(this) {
@@ -33,12 +33,11 @@ trait DurableContext {
 		}
 
 	protected lazy val coordinatorClientOption =
-		Coordinator.clientOption
+		Coordinator.clientOption(this)
 
 	protected def reinitializeCoordinator = {
 		coordinatorClientOption.map { coordinatorClient =>
-			coordinatorClient.deregisterContext(contextId)
-			coordinatorClient.registerContext(contextId)
+			coordinatorClient.reinitialize
 		}
 	}
 
@@ -46,29 +45,26 @@ trait DurableContext {
 		coordinatorClientOption.map(coordinatorClient => {
 			if (storage.isMemoryStorage)
 				throw new IllegalStateException("Storage doesn't support coordinator")
-			coordinatorClient.registerContext(contextId)
-			Runtime.getRuntime.removeShutdownHook(new Thread {
-				override def run = {
-					coordinatorClient.deregisterContext(contextId)
-				}
-			})
 		})
 
-	private def reloadEntities(ids: Set[String]) = {
-		liveCache.unitializeLazyEntities(ids)
-		coordinatorClientOption.get.removeNotifications(contextId, ids)
+	private[activate] def reloadEntities(ids: Set[String]) = {
+		liveCache.uninitialize(ids)
+		coordinatorClientOption.get.removeNotifications(ids)
 	}
 
-	private def runWithCoordinatorIfDefined(entitiesIds: => Set[String])(f: => Unit) =
+	private def runWithCoordinatorIfDefined(reads: => Set[String], writes: => Set[String])(f: => Unit) =
 		coordinatorClientOption.map { coordinatorClient =>
 
-			val failed = coordinatorClient.tryToAcquireLocks(contextId, entitiesIds)
-			if (failed.nonEmpty)
-				throw new ActivateConcurrentTransactionException(failed)
+			val (readLocksNok, writeLocksNok) = coordinatorClient.tryToAcquireLocks(reads, writes)
+			if (readLocksNok.nonEmpty || writeLocksNok.nonEmpty)
+				throw new ActivateConcurrentTransactionException(readLocksNok ++ writeLocksNok)
 			try
 				f
-			finally
-				coordinatorClient.releaseLocks(contextId, entitiesIds)
+			finally {
+				val (readUnlocksNok, writeUnlocksNok) = coordinatorClient.releaseLocks(reads, writes)
+				if (readUnlocksNok.nonEmpty || writeUnlocksNok.nonEmpty)
+					throw new IllegalStateException("Can't release locks.")
+			}
 
 		}.getOrElse(f)
 
@@ -81,9 +77,10 @@ trait DurableContext {
 		val deletedEntities = deletes.map(_._1)
 		val entities = assignmentsEntities ::: deletedEntities
 
-		lazy val entitiesIds = (entities.map(_.id) ++ transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity.id)).toSet
+		lazy val reads = entities.map(_.id).toSet
+		lazy val writes = transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity.id).toSet
 
-		runWithCoordinatorIfDefined(entitiesIds) {
+		runWithCoordinatorIfDefined(reads, writes) {
 			if (assignments.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
 				validateTransactionEnd(transaction, entities)
 				storage.toStorage(statements.toList, assignments, deletes)

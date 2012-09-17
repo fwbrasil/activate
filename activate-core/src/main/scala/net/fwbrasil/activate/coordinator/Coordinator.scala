@@ -9,6 +9,7 @@ import scala.actors._
 import scala.actors.Actor._
 import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
+import net.fwbrasil.activate.DurableContext
 
 object Coordinator {
 
@@ -16,22 +17,26 @@ object Coordinator {
 
 	val actorName = 'coordinatorServer
 
+	val port = Integer.parseInt(Option(System.getProperty("activate.coordinator.port")).getOrElse("5674"))
+
 	val isServerVM =
 		System.getProperty("activate.coordinator.server") == "true"
 
-	val serverOption =
+	lazy val serverOption =
 		if (isServerVM)
 			Option(new CoordinatorServer)
 		else
 			None
 
-	def clientOption = {
+	def clientOption(context: DurableContext) = {
 		val hostOption =
-			if (isServerVM)
-				Option("localhost")
-			else
-				Option(System.getProperty("activate.coordinator.host"))
-		serverOption.orElse(hostOption.map(host => select(Node(host, 5674), actorName))).map(new CoordinatorClient(_))
+			Option(System.getProperty("activate.coordinator.serverHost"))
+		hostOption.map(host => select(Node(host, port), actorName)).orElse(serverOption).map(new CoordinatorClient(context, _))
 	}
 
+}
+
+object coordinatorServerMain extends App {
+	System.setProperty("activate.coordinator.server", "true")
+	require(Coordinator.serverOption.isDefined)
 }

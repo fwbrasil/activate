@@ -3,78 +3,126 @@ package net.fwbrasil.activate.coordinator
 import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.radon.util.Lockable
-
-class ContextDoesntOwnTheLock(contextId: String, entityId: String, currentOwnerContextIdOption: Option[String]) extends Exception
+import com.sun.org.apache.xalan.internal.xsltc.compiler.ForEach
 
 trait LockManager {
 	this: CoordinatorServer =>
 
-	// Map[EntityId, (ContextId, NumOfLocks, Timestamp)]
-	private val locks = new MutableHashMap[String, (String, Int, Long)]() with Lockable
+	private type ContextId = String
+	private type EntityId = String
 
-	protected def tryToAcquireLocks(contextId: String, entityIds: Set[String]): Set[String] = {
-		val (locked, unlocked) = entityIds.partition(tryLock(contextId, _))
-		if (unlocked.isEmpty)
-			addNotifications(contextId, entityIds)
-		else
-			releaseLocks(contextId, locked)
-		unlocked
+	private class Lock {
+		var readLocks = ListBuffer[ContextId]()
+		var writeLock: Option[ContextId] = None
 	}
 
-	protected def releaseLocks(contextId: String, entityIds: Set[String]): Unit =
-		entityIds.foreach(releaseLock(contextId, _))
+	private val locks = new MutableHashMap[EntityId, Lock]() with Lockable
 
-	private def lockPromotion(lockable: Lockable)(fCondition: => Boolean)(fAction: => Unit) = {
-		val write =
-			lockable.doWithReadLock {
-				fCondition
-			}
-		if (write)
-			lockable.doWithWriteLock {
-				if (fCondition) {
-					fAction
+	protected def tryToAcquireLocks(
+		contextId: ContextId,
+		reads: Set[EntityId],
+		writes: Set[EntityId]): (Set[EntityId], Set[EntityId]) = {
+		val (readLocksOk, readLocksNOk) = (reads -- writes).partition(tryToAcquireReadLock(contextId, _))
+		val (writeLocksOk, writeLocksNOk) = writes.partition(tryToAcquireWriteLock(contextId, _))
+		if (readLocksNOk.nonEmpty || writeLocksNOk.nonEmpty) {
+			readLocksOk.foreach(releaseReadLock(contextId, _))
+			writeLocksOk.foreach(releaseWriteLock(contextId, _))
+			(readLocksNOk, writeLocksNOk)
+		} else {
+			(Set(), Set())
+		}
+	}
+
+	protected def releaseLocks(
+		contextId: ContextId,
+		reads: Set[EntityId],
+		writes: Set[EntityId]) = {
+
+		val readUnlocksNOk = (reads -- writes).filterNot(releaseReadLock(contextId, _))
+		val writeUnlocksNOk = writes.filterNot(releaseWriteLock(contextId, _))
+		(readUnlocksNOk, writeUnlocksNOk)
+	}
+
+	// PRIVATE
+
+	private def tryToAcquireReadLock(
+		contextId: ContextId,
+		entityId: EntityId) = {
+		!hasPendingNotification(contextId, entityId) && {
+			val lock = lockFor(entityId)
+			lock.synchronized {
+				if (lock.writeLock.isEmpty) {
+					lock.readLocks += contextId
 					true
-				} else false
-			}
-		else false
-	}
-
-	private def tryLock(contextId: String, entityId: String): Boolean = {
-
-		lazy val pendingNotification = hasPendingNotification(contextId, entityId)
-		lazy val currentLockOption = locks.doWithReadLock(locks.get(entityId))
-
-		val promotedLock =
-			lockPromotion(locks)(locks.get(entityId) == Some(contextId)) {
-				locks(entityId) = {
-					val old = locks(entityId)
-					(contextId, old._2 + 1, System.currentTimeMillis)
-				}
-			}
-
-		promotedLock ||
-			(!pendingNotification &&
-				locks.doWithWriteLock {
-					if (!locks.contains(entityId)) {
-						locks += (entityId -> (contextId, 1, System.currentTimeMillis))
-						true
-					} else
-						false
-				})
-	}
-
-	private def releaseLock(contextId: String, entityId: String): Unit =
-		locks.doWithWriteLock {
-			val lockedToOption = locks.get(entityId)
-			if (lockedToOption.isEmpty || lockedToOption.get._1 != contextId)
-				throw new ContextDoesntOwnTheLock(contextId, entityId, lockedToOption.map(_._1))
-
-			lockedToOption.map { tuple =>
-				val (contextId, numOfLocks, timestamp) = tuple
-				if (numOfLocks == 1)
-					locks.remove(entityId)
-				else
-					locks(entityId) = (contextId, numOfLocks - 1, System.currentTimeMillis)
+				} else
+					false
 			}
 		}
+	}
+
+	private def tryToAcquireWriteLock(
+		contextId: ContextId,
+		entityId: EntityId) = {
+		!hasPendingNotification(contextId, entityId) && {
+			val lock = lockFor(entityId)
+			lock.synchronized {
+				if (lock.readLocks.isEmpty && lock.writeLock.isEmpty) {
+					lock.writeLock = Option(contextId)
+					true
+				} else
+					false
+			}
+		}
+	}
+
+	private def releaseReadLock(
+		contextId: ContextId,
+		entityId: EntityId) = {
+		val lock = lockFor(entityId)
+		lock.synchronized {
+			val res =
+				if (!lock.readLocks.contains(contextId))
+					false
+				else {
+					lock.readLocks -= contextId
+					true
+				}
+			cleanLockIfPossible(entityId, lock)
+			res
+		}
+	}
+
+	private def releaseWriteLock(
+		contextId: ContextId,
+		entityId: EntityId) = {
+
+		val lock = lockFor(entityId)
+		lock.synchronized {
+			val res =
+				if (lock.writeLock != Option(contextId))
+					false
+				else {
+					lock.writeLock = None
+					true
+				}
+			cleanLockIfPossible(entityId, lock)
+			addNotification(contextId, entityId)
+			res
+		}
+	}
+
+	private def cleanLockIfPossible(entityId: EntityId, lock: Lock) = {
+		//		if (lock.readLocks.isEmpty && lock.writeLock.isEmpty)
+		//			locks.doWithWriteLock {
+		//				locks -= entityId
+		//			}
+	}
+
+	private def lockFor(entityId: EntityId) =
+		locks.doWithReadLock(locks.get(entityId)).getOrElse {
+			locks.doWithWriteLock {
+				locks.getOrElseUpdate(entityId, new Lock)
+			}
+		}
+
 }

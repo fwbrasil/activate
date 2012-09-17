@@ -2,33 +2,67 @@ package net.fwbrasil.activate.coordinator
 
 import scala.actors.AbstractActor
 import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.DurableContext
+import java.lang.Thread.UncaughtExceptionHandler
+import net.fwbrasil.activate.util.Logging
 
-class CoordinatorClient(val server: AbstractActor) {
+class CoordinatorClient(val context: DurableContext, val server: AbstractActor) extends Logging {
 
-	def registerContext(contextId: String) =
+	val contextId = context.contextId
+
+	info("Coordinator client started.")
+
+	registerContext
+
+	Runtime.getRuntime.addShutdownHook(new Thread {
+		override def run = {
+			deregisterContext
+		}
+	})
+
+	//	var syncThread = CoordinatorClientSyncThread(this)
+
+	def reinitialize = {
+		//		syncThread.stopFlag = true
+		//		syncThread.join
+		deregisterContext
+		registerContext
+		//		syncThread = CoordinatorClientSyncThread(this)
+	}
+
+	private def registerContext =
 		sendAndExpectSuccess(RegisterContext(contextId))
 
-	def deregisterContext(contextId: String) =
+	private def deregisterContext =
 		sendAndExpectSuccess(DeregisterContext(contextId))
 
-	def tryToAcquireLocks(contextId: String, entityIds: Set[String]) =
-		sendAndExpect(TryToAcquireLocks(contextId, entityIds), _ match {
+	def tryToAcquireLocks(reads: Set[String], writes: Set[String]) = {
+		if (reads.isEmpty && writes.isEmpty)
+			(Set(), Set())
+		else
+			sendAndExpect(TryToAcquireLocks(contextId, reads, writes), _ match {
+				case Success(request) =>
+					(Set[String](), Set[String]())
+				case LockFail(request, readLocksNok, writeLocksNok) =>
+					(readLocksNok, writeLocksNok)
+			})
+	}
+
+	def releaseLocks(reads: Set[String], writes: Set[String]) =
+		sendAndExpect(ReleaseLocks(contextId, reads, writes), _ match {
 			case Success(request) =>
-				Set[String]()
-			case LockFail(request, failedIds) =>
-				failedIds
+				(Set[String](), Set[String]())
+			case UnlockFail(request, readUnlocksNok, writeUnlocksNok) =>
+				(readUnlocksNok, writeUnlocksNok)
 		})
 
-	def releaseLocks(contextId: String, entityIds: Set[String]) =
-		sendAndExpectSuccess(ReleaseLocks(contextId, entityIds))
-
-	def getPendingNotifications(contextId: String) =
+	def getPendingNotifications =
 		sendAndExpect(GetPendingNotifications(contextId), _ match {
 			case PendingNotifications(request, entitiesIds) =>
 				entitiesIds
 		})
 
-	def removeNotifications(contextId: String, entityIds: Set[String]) =
+	def removeNotifications(entityIds: Set[String]) =
 		sendAndExpectSuccess(RemoveNotifications(contextId, entityIds))
 
 	private def failResponse =

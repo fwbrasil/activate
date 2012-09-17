@@ -65,24 +65,36 @@ trait Entity extends Serializable with EntityValidation {
 	private[activate] def setNotInitialized =
 		initialized = false
 
-	private[activate] def setInitialized =
+	private[activate] def setInitialized = {
+		initializing = false
 		initialized = true
+	}
 
 	private[activate] def isInitialized =
 		initialized
 
-	// Cylic initializing
+	// Cyclic initializing
 	private[activate] def initialize = {
-		if (!initialized && id != null) // Performance!
-			this.synchronized {
-				if (!initializing && !initialized && id != null) {
-					initializing = true
-					context.initialize(this)
-					initialized = true
-					initializing = false
-				}
+		//		if (!initialized && id != null) // Performance!
+		this.synchronized {
+			if (id != null && !initialized && !initializing) {
+				initializing = true
+				context.initialize(this)
+				initialized = true
+				initializing = false
 			}
+		}
 	}
+
+	private[activate] def uninitialize =
+		this.synchronized {
+			if (initialized) {
+				context.transactional(context.transient) {
+					vars.foreach(_.put(None))
+				}
+				initialized = false
+			}
+		}
 
 	private[activate] def initializeGraph: Unit =
 		initializeGraph(Set())

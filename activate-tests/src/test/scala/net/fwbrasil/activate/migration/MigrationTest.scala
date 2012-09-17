@@ -14,7 +14,6 @@ class MigrationTest extends ActivateTest {
 		Migration.migrationsCache.put(context, Migration.migrationsCache.getOrElse(context, List()) ++ List(this))
 
 		def timestamp = Migration.migrationsCache(context).indexOf(this)
-		val name = "Test Migration"
 		override val developers = List("tester")
 
 		def validateSchemaError(f: => Unit) =
