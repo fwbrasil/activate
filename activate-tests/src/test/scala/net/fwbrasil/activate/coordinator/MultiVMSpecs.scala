@@ -3,7 +3,6 @@ package net.fwbrasil.activate.coordinator
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.ActivateContext
-
 import net.fwbrasil.activate.migration.Migration
 
 object coordinatorTestContext extends ActivateContext {
@@ -33,14 +32,20 @@ case class Runner(entityId: String, numOfVMs: Int, numOfThreads: Int, numOfTrans
 	def run = {
 		val tasks =
 			for (i <- 0 until numOfVMs)
-				yield fork
+				yield fork(false)
 		tasks.map(_.execute)
 		tasks.map(_.join)
 	}
-	def fork =
-		JvmFork.fork(128, 1024, Some("-Dactivate.coordinator.serverHost=localhost")) {
+	def fork(server: Boolean) = {
+		val option =
+			if (server)
+				"-Dactivate.coordinator.server=true"
+			else
+				"-Dactivate.coordinator.serverHost=localhost"
+		JvmFork.fork(128, 1024, Some(option)) {
 			runThreads
 		}
+	}
 	def runThreads = {
 		val threads =
 			for (i <- 0 until numOfThreads)

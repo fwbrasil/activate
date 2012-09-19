@@ -19,8 +19,8 @@ class NotificationList extends Lockable {
 			val index = list.indexOf(id)
 			if (index >= 0)
 				list.remove(index)
-			else
-				throw new IllegalStateException("Can't find the notification.")
+			//			else
+			//				throw new IllegalStateException("Can't find the notification.")
 		})
 
 	def contains(id: String) =
@@ -31,7 +31,7 @@ class NotificationList extends Lockable {
 }
 
 trait NotificationManager {
-	this: CoordinatorServer =>
+	this: CoordinatorService =>
 
 	private val notificationBlockSize =
 		Integer.parseInt(
@@ -41,28 +41,28 @@ trait NotificationManager {
 	// Map[ContextId, Set[EntityId]]
 	private val notifications = new MutableHashMap[String, NotificationList]() with Lockable
 
-	protected def registerContext(contextId: String) =
+	def registerContext(contextId: String) =
 		notifications.doWithWriteLock {
 			if (notifications.contains(contextId))
 				throw new ContextIsAlreadyRegistered(contextId)
 			notifications.getOrElseUpdate(contextId, new NotificationList)
 		}
 
-	protected def deregisterContext(contextId: String) =
+	def deregisterContext(contextId: String) =
 		notifications.doWithWriteLock {
 			if (!notifications.contains(contextId))
 				throw new ContextIsntRegistered(contextId)
 			notifications.remove(contextId)
 		}
 
-	protected def getPendingNotifications(contextId: String) = {
+	def getPendingNotifications(contextId: String) = {
 		val list = notificationList(contextId)
 		list.doWithReadLock {
 			list.take(notificationBlockSize).toSet
 		}
 	}
 
-	protected def removeNotifications(contextId: String, entityIds: Set[String]) = {
+	def removeNotifications(contextId: String, entityIds: Set[String]) = {
 		val list = notificationList(contextId)
 		list.doWithWriteLock {
 			list --= entityIds
@@ -74,14 +74,14 @@ trait NotificationManager {
 			notifications.get(contextId).getOrElse(throw new ContextIsntRegistered(contextId))
 		}
 
-	protected def hasPendingNotification(contextId: String, entityId: String) = {
+	def hasPendingNotification(contextId: String, entityId: String) = {
 		val list = notificationList(contextId)
 		list.doWithReadLock {
 			list.contains(entityId)
 		}
 	}
 
-	protected def addNotification(originatorContextId: String, id: String) =
+	def addNotification(originatorContextId: String, id: String) =
 		notifications.doWithReadLock {
 			notifications.keys.filter(_ != originatorContextId).foreach {
 				contextToNotify =>

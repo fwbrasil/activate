@@ -11,7 +11,7 @@ object IdVar {
 }
 
 class IdVar(outerEntity: Entity)
-		extends Var[String](Option(IdVar.generateId(outerEntity.getClass)), false, classOf[String], "id", outerEntity) {
+		extends Var[String](Option(IdVar.generateId(outerEntity.getClass)), false, false, classOf[String], "id", outerEntity) {
 
 	var id: String = _
 

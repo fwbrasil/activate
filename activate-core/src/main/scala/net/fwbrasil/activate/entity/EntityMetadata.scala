@@ -3,6 +3,7 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.activate.util.Reflection
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 class EntityPropertyMetadata(
 		val entityMetadata: EntityMetadata,
@@ -23,6 +24,8 @@ class EntityPropertyMetadata(
 	val setter = entityMethods.find(_.getName == javaName + "_$eq").getOrElse(null)
 	val isMutable =
 		setter != null
+	val isTransient =
+		Modifier.isTransient(varField.getModifiers)
 	val isOption =
 		getter.getReturnType == classOf[Option[_]]
 	val tval =

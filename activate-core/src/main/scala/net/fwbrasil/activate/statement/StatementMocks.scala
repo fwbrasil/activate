@@ -43,7 +43,7 @@ object StatementMocks {
 		_lastFakeVarCalled.set(Stack())
 
 	class FakeVar[P]
-			extends Var[P](None, true, null, null, null) {
+			extends Var[P](None, true, true, null, null, null) {
 
 		override lazy val tval = EntityValue.tvalFunction[P](fakeValueClass)
 		def entityValueMock =

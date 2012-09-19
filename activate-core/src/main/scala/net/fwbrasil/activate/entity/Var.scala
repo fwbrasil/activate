@@ -6,12 +6,12 @@ import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class Var[T](value: Option[T], val isMutable: Boolean, val _valueClass: Class[_], val name: String, _outerEntity: Entity)
+class Var[T](value: Option[T], val isMutable: Boolean, val isTransient: Boolean, val _valueClass: Class[_], val name: String, _outerEntity: Entity)
 		extends Ref[T](value)(_outerEntity.context)
 		with java.io.Serializable {
 
-	def this(isMutable: Boolean, _valueClass: Class[_], name: String, _outerEntity: Entity) =
-		this(None, isMutable, _valueClass, name, _outerEntity)
+	def this(isMutable: Boolean, isTransient: Boolean, _valueClass: Class[_], name: String, _outerEntity: Entity) =
+		this(None, isMutable, isTransient, _valueClass, name, _outerEntity)
 
 	val outerEntity = _outerEntity
 	lazy val tval = EntityValue.tvalFunction[T](_valueClass)

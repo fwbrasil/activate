@@ -53,7 +53,7 @@ object EntityEnhancer extends Logging {
 		Modifier.isTransient(field.getModifiers)
 
 	def isCandidate(field: CtField) =
-		!isTransient(field) && !isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -216,8 +216,8 @@ object EntityEnhancer extends Logging {
 						replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
 						replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
 					} else {
-						val isMutable = Modifier.isFinal(field.getModifiers)
-						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
+						val isMutable = !Modifier.isFinal(field.getModifiers)
+						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + isTransient(field) + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
 					}
 				}
 

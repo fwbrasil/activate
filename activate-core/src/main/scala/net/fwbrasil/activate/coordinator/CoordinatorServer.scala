@@ -30,11 +30,16 @@ case class PendingNotifications(request: CoordinatorServerRequestMessage, entiti
 case class LockFail(request: CoordinatorServerRequestMessage, readLocksNok: Set[String], writeLocksNok: Set[String]) extends CoordinatorServerReponseMessage
 case class UnlockFail(request: CoordinatorServerRequestMessage, readUnlocksNok: Set[String], writeUnlocksNok: Set[String]) extends CoordinatorServerReponseMessage
 
+class CoordinatorService extends LockManager
+	with NotificationManager
+
+object coordinatorServiceSingleton extends CoordinatorService
+
 class CoordinatorServer
-		extends Actor
-		with LockManager
-		with NotificationManager
+		extends DaemonActor
 		with Logging {
+
+	import coordinatorServiceSingleton._
 
 	info("Coordinator server started.")
 	start

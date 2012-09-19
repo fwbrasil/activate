@@ -6,7 +6,7 @@ import net.fwbrasil.radon.util.Lockable
 import com.sun.org.apache.xalan.internal.xsltc.compiler.ForEach
 
 trait LockManager {
-	this: CoordinatorServer =>
+	this: CoordinatorService =>
 
 	private type ContextId = String
 	private type EntityId = String
@@ -18,7 +18,7 @@ trait LockManager {
 
 	private val locks = new MutableHashMap[EntityId, Lock]() with Lockable
 
-	protected def tryToAcquireLocks(
+	def tryToAcquireLocks(
 		contextId: ContextId,
 		reads: Set[EntityId],
 		writes: Set[EntityId]): (Set[EntityId], Set[EntityId]) = {
@@ -33,7 +33,7 @@ trait LockManager {
 		}
 	}
 
-	protected def releaseLocks(
+	def releaseLocks(
 		contextId: ContextId,
 		reads: Set[EntityId],
 		writes: Set[EntityId]) = {

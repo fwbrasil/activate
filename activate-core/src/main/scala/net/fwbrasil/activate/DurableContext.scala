@@ -99,7 +99,7 @@ trait DurableContext {
 
 	private[this] def filterVars(pAssignments: List[(Ref[Any], Option[Any], Boolean)]) = {
 		// Assume that all assignments are of Vars for performance reasons (could be Ref)
-		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]]
+		val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]].filterNot(_._1.isTransient)
 
 		val (assignmentsDelete, assignmentsUpdate) = varAssignments.map(e => (e._1, e._1.tval(e._2), e._3)).partition(_._3)
 
