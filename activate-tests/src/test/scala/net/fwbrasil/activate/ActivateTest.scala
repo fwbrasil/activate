@@ -38,7 +38,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			mysqlContext,
 			h2Context,
 			derbyContext,
-			hsqldbContext //			oracleContext
+			hsqldbContext //oracleContext
 			)
 		ret.foreach(_.stop)
 		ret
@@ -136,7 +136,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 		for (ctx <- contexts) {
 			import ctx._
-			ActivateContext.clearContextCache
+			ActivateContext.contextCache.clear
 			start
 			runMigration
 				def clear = transactional {
