@@ -33,6 +33,7 @@ trait ActivateContext
 
 	info("Initializing context " + contextName)
 
+	ActivateContext.clearContextCaches
 	EntityHelper.initialize(this.getClass)
 
 	private[activate] val liveCache = new LiveCache(this)
@@ -115,8 +116,11 @@ object ActivateContext {
 		else
 			contextCache.getOrElseUpdate(entityClass, context(entityClass))
 
-	def clearContextCache =
+	def clearContextCaches = {
 		contextCache.clear
+		Migration.migrationsCache.clear
+		Migration.storageVersionCache.clear
+	}
 
 	private def context[E <: Entity](entityClass: Class[E]) =
 		instancesOf[ActivateContext]

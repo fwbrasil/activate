@@ -90,7 +90,7 @@ object oracleContext extends ActivateTestContext {
 		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
 		val user = "ACTIVATE_TEST"
 		val password = "ACTIVATE_TEST"
-		val url = "jdbc:oracle:thin:@10.211.55.3:1521:oracle"
+		val url = "jdbc:oracle:thin:@192.168.1.7:1521:orcl"
 		val dialect = oracleDialect
 	}
 }

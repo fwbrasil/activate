@@ -43,8 +43,14 @@ object EntityHelper {
 		initialized = true
 	}
 
+	def getEntityClassFromIdOption(entityId: String) =
+		if (entityId.length >= 35)
+			entitiesMetadatas.get(normalizeHex(entityId.substring(37))).map(_.entityClass)
+		else
+			None
+
 	def getEntityClassFromId(entityId: String) =
-		entitiesMetadatas(normalizeHex(entityId.substring(37))).entityClass
+		getEntityClassFromIdOption(entityId).get
 
 	def getEntityClassHashId(entityClass: Class[_]): String =
 		getEntityClassHashId(getEntityName(entityClass))

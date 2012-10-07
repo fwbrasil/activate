@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.statement
 
-import net.fwbrasil.activate.util.Reflection.newInstance
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.Reflection.materializeJodaInstant
 import net.fwbrasil.activate.util.Reflection.set
 import net.fwbrasil.activate.util.Reflection.get
@@ -127,5 +127,5 @@ object StatementMocks {
 	}
 
 	def mockVar =
-		newInstance(classOf[FakeVar[_]])
+		newInstanceUnitialized(classOf[FakeVar[_]])
 }

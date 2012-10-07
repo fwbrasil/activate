@@ -47,9 +47,13 @@ object Reflection {
 	implicit def toRichClass[T](clazz: Class[T]) = new RichClass(clazz)
 
 	def newInstance[T](clazz: Class[T]): T = {
-		val res = objenesis.newInstance(clazz).asInstanceOf[T]
+		val res = newInstanceUnitialized(clazz)
 		initializeBitmaps(res)
 		res
+	}
+
+	def newInstanceUnitialized[T](clazz: Class[T]): T = {
+		objenesis.newInstance(clazz).asInstanceOf[T]
 	}
 
 	def getDeclaredFieldsIncludingSuperClasses(concreteClass: Class[_]) = {
