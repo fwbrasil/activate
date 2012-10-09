@@ -12,6 +12,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 import java.util.Date
+import org.joda.time.DateTime
 
 class InvalidEntityException extends IllegalStateException("Trying to access an invalid entity. " +
 	"It was invalidated by a modification in another application node (vm). " +
@@ -48,6 +49,7 @@ trait Entity extends Serializable with EntityValidation {
 
 	def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
 	def creationDate = new Date(creationTimestamp)
+	def creationDateTime = new DateTime(creationTimestamp)
 
 	private var persistedflag = false
 	private var initialized = true

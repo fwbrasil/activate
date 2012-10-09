@@ -12,8 +12,6 @@ object EntityHelper {
 	private[this] val concreteEntityClasses =
 		MutableMap[Class[_ <: Entity], List[Class[Entity]]]()
 
-	var initialized = false
-
 	def metadatas =
 		entitiesMetadatas.values.toList.sortBy(_.name)
 
@@ -29,18 +27,15 @@ object EntityHelper {
 		}).toList.asInstanceOf[List[Class[_ <: E]]]
 
 	def initialize(referenceClass: Class[_]) = synchronized {
-		if (!initialized) {
-			UUIDUtil.generateUUID
-			for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
-				if (!entityClass.isInterface()) {
-					val entityClassHashId = getEntityClassHashId(entityClass)
-					if (entitiesMetadatas.contains(entityClassHashId))
-						throw new IllegalStateException("Duplicate entity name.")
-					val entityName = getEntityName(entityClass)
-					entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
-				}
-		}
-		initialized = true
+		UUIDUtil.generateUUID
+		for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
+			if (!entityClass.isInterface()) {
+				val entityClassHashId = getEntityClassHashId(entityClass)
+				if (entitiesMetadatas.contains(entityClassHashId))
+					throw new IllegalStateException("Duplicate entity name.")
+				val entityName = getEntityName(entityClass)
+				entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
+			}
 	}
 
 	def getEntityClassFromIdOption(entityId: String) =

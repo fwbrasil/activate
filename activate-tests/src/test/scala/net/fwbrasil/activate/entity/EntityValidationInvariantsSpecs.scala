@@ -7,10 +7,12 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.entity.EntityValidationOption._
 import net.fwbrasil.activate.util.ManifestUtil._
 
+class String1MustNotBeEmpty extends Exception
+
 class TestValidationEntity(var string1: String) extends Entity {
 	var string2 = "s2"
 	def string1MustNotBeEmpty =
-		invariant {
+		invariant(new String1MustNotBeEmpty) {
 			string1.nonEmpty
 		}
 	def string2MustNotBeEmpty =
@@ -64,7 +66,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 					import step.ctx._
 					val entityId =
 						step {
-							new TestValidationEntity("") must throwA[InvariantViolationException]
+							new TestValidationEntity("") must throwA[String1MustNotBeEmpty]
 							new TestValidationEntity("s1").id
 						}
 						def entity =
@@ -73,7 +75,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 						all[TestValidationEntity].size must beEqualTo(1)
 					}
 					step {
-						(entity.string1 = "") must throwA[InvariantViolationException]
+						(entity.string1 = "") must throwA[String1MustNotBeEmpty]
 						entity.string1 must beEqualTo("s1")
 					}
 					step {
@@ -95,7 +97,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 					import step.ctx._
 					val entityId =
 						step {
-							new TestValidationEntity("") must throwA[InvariantViolationException]
+							new TestValidationEntity("") must throwA[String1MustNotBeEmpty]
 							new TestValidationEntity("s1").id
 						}
 						def entity =
@@ -132,7 +134,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 							byId[TestValidationEntity](entityId).get
 					step {
 						entity.string1 = "s1"
-						(entity.string1 = "") must throwA[InvariantViolationException]
+						(entity.string1 = "") must throwA[String1MustNotBeEmpty]
 						entity.string1 must beEqualTo("s1")
 					}
 					step {
@@ -161,11 +163,11 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 							byId[TestValidationEntity](entityId).get
 					step {
 						val e = entity
-						e.string1 must throwA[InvariantViolationException]
+						e.string1 must throwA[String1MustNotBeEmpty]
 						entity.string1 = "s2"
 						entity.string1 must beEqualTo("s2")
 						entity.string1 = ""
-						entity.string1 must throwA[InvariantViolationException]
+						entity.string1 must throwA[String1MustNotBeEmpty]
 					}
 				}))
 		}
@@ -176,7 +178,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 					import step.ctx._
 					val entityId =
 						step {
-							new TestValidationEntity("") must throwA[InvariantViolationException]
+							new TestValidationEntity("") must throwA[String1MustNotBeEmpty]
 							new TestValidationEntity("s1").id
 						}
 						def entity =
@@ -187,7 +189,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 					step {
 						entity.string1 must beEqualTo("s1")
 						entity.string1 = ""
-						entity.string1 must throwA[InvariantViolationException]
+						entity.string1 must throwA[String1MustNotBeEmpty]
 						entity.string1 = "s2"
 						entity.string1 must beEqualTo("s2")
 					}
@@ -197,9 +199,10 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 			def mustThrowACause[E: Manifest](f: => Unit) = {
 				try {
 					f
-					throw new IllegalStateException("Not the expected cause")
+					throw new IllegalStateException("exception wasn't thrown")
 				} catch {
 					case e =>
+						e.printStackTrace()
 						if (e.getCause == null || !erasureOf[E].isAssignableFrom(e.getCause.getClass))
 							throw new IllegalStateException("Not the expected cause")
 				}
@@ -211,7 +214,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 					if (!step.wrapped.isInstanceOf[OneTransaction]) {
 						import step.ctx._
 						var erro = false
-						mustThrowACause[InvariantViolationException] {
+						mustThrowACause[String1MustNotBeEmpty] {
 							step {
 								new TestValidationEntity("")
 							}
@@ -229,7 +232,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
 							entity.string1 = "s2"
 							entity.string1 must beEqualTo("s2")
 						}
-						mustThrowACause[InvariantViolationException] {
+						mustThrowACause[String1MustNotBeEmpty] {
 							step {
 								entity.string1 = ""
 							}

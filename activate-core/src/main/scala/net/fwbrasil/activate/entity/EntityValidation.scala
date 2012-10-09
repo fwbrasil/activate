@@ -40,7 +40,7 @@ case class PostCond[R](f: () => R) {
 			throw new PostCondidionViolationException(name)
 }
 
-case class Invariant(f: () => Boolean, errorParams: () => List[Any])
+case class Invariant(f: () => Boolean, errorParams: () => List[Any], exceptionOption: Option[Exception] = None)
 
 abstract class ViolationExceptions(violations: String*) extends Exception {
 	override def toString = violations.toString
@@ -111,6 +111,9 @@ trait EntityValidation {
 	protected def invariant(errorParams: => List[Any])(f: => Boolean) =
 		Invariant(() => f, () => errorParams)
 
+	protected def invariant(exception: Exception)(f: => Boolean) =
+		Invariant(() => f, () => List(), exceptionOption = Some(exception))
+
 	protected implicit def toPostCond[R](f: => R) = PostCond(() => f)
 
 	protected def preCondition[R](condition: => Boolean)(f: => R): R =
@@ -129,7 +132,7 @@ trait EntityValidation {
 		try {
 			EntityValidation.validateOnCreate(this)
 		} catch {
-			case e: InvariantViolationException =>
+			case e =>
 				delete
 				throw e;
 		}
@@ -138,6 +141,7 @@ trait EntityValidation {
 		if (!isDeleted) {
 			val invalid = invalidInvariants
 			if (invalid.nonEmpty) {
+				invalid.map(_._3).flatten.headOption.map(throw _)
 				val invariantViolations =
 					invalidInvariants.map(tuple => InvariantViolation(tuple._1, tuple._2))
 				throw new InvariantViolationException(invariantViolations: _*)
@@ -147,7 +151,7 @@ trait EntityValidation {
 
 	private[this] def invalidInvariants =
 		for ((name, invariant) <- invariants; if (!invariant.f()))
-			yield (name, invariant.errorParams())
+			yield (name, invariant.errorParams(), invariant.exceptionOption)
 
 	protected def validationOptions: Option[Set[EntityValidationOption]] = None
 

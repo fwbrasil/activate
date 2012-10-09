@@ -21,21 +21,21 @@ class NamedSingletonSerializableWrapper(instance: NamedSingletonSerializable) ex
 	val name = instance.name
 	val clazz = instance.niceClass
 	protected def readResolve(): Any =
-		NamedSingletonSerializable.instances(clazz)(name)
+		NamedSingletonSerializable.instances(clazz.getName)(name)
 }
 
 object NamedSingletonSerializable {
 	val instances =
-		new MutableHashMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[Class[_], MutableHashMap[String, NamedSingletonSerializable]]
+		new MutableHashMap[String, MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[String, MutableHashMap[String, NamedSingletonSerializable]]
 
 	private[this] def instancesMapOf[T: Manifest] =
 		instances.getOrElseUpdate(
-			erasureOf[T],
+			erasureOf[T].getName,
 			new MutableHashMap[String, NamedSingletonSerializable]()).asInstanceOf[MutableHashMap[String, T]]
 
 	def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
 		val ret = MutableHashSet[T]()
-		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(clazz)))
+		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(Class.forName(clazz))))
 			ret ++= instancesMap.values.asInstanceOf[Iterable[T]]
 		ret
 	}
@@ -44,8 +44,8 @@ object NamedSingletonSerializable {
 		implicit val m = manifestClass[T](instance.niceClass)
 		val map = instancesMapOf[T]
 		val option = map.get(instance.name)
-		if (option.isDefined && option.get != instance)
-			throw new IllegalStateException("Duplicate singleton!")
+		//		if (option.isDefined && option.get != instance)
+		//			warn("Duplicate singleton!")
 		map += (instance.name -> instance)
 	}
 

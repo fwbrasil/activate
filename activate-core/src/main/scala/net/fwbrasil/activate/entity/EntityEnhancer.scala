@@ -52,8 +52,11 @@ object EntityEnhancer extends Logging {
 	def isTransient(field: CtField) =
 		Modifier.isTransient(field.getModifiers)
 
+	def isStatic(field: CtField) =
+		Modifier.isStatic(field.getModifiers)
+
 	def isCandidate(field: CtField) =
-		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field)
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && !isStatic(field)
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -73,7 +76,11 @@ object EntityEnhancer extends Logging {
 		}
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
+		println("start enhance")
+		if (!clazz.isInterface() && !clazz.isFrozen /*&& !isEnhanced(clazz)*/ && isEntityClass(clazz, classPool)) {
+			if (clazz.isFrozen)
+				clazz.defrost
+			println("will enhance")
 			try {
 				val allFields = clazz.getDeclaredFields
 				val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
@@ -96,35 +103,46 @@ object EntityEnhancer extends Logging {
 			Set()
 	}
 
-	private var _enhancedEntityClasses: Option[Set[Class[Entity]]] = None
-
 	def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
-		_enhancedEntityClasses.getOrElse {
-			val classPool = buildClassPool
-			val enhancedEntityClasses =
-				entityClassesNames(referenceClass)
-					.map(enhance(_, classPool)).flatten
-			val resolved = resolveDependencies(enhancedEntityClasses)
-			val res = materializeClasses(resolved)
-			_enhancedEntityClasses = Some(res)
-			res
-		}
+		val classPool = buildClassPool
+		val enhancedEntityClasses =
+			entityClassesNames(referenceClass)
+				.map(enhance(_, classPool)).flatten
+		val resolved = resolveDependencies(enhancedEntityClasses)
+		val res = materializeClasses(resolved, referenceClass)
+		println(res)
+		res
 	}
 
 	private def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] =
 		enhance(classPool.get(clazzName), classPool)
 
-	private def materializeClasses(resolved: List[CtClass]) = {
-		val classLoader = classOf[Entity].getClassLoader
-		(for (enhancedEntityClass <- resolved)
-			yield enhancedEntityClass.toClass(classLoader).asInstanceOf[Class[Entity]]).toSet
+	private def materializeClasses(resolved: List[CtClass], referenceClass: Class[_]) = {
+			def classLoaderFor(clazz: CtClass) =
+				if (clazz.getName.startsWith("net.fwbrasil.activate"))
+					classOf[Entity].getClassLoader()
+				else
+					referenceClass.getClassLoader
+		//		val method = classOf[ClassLoader].getDeclaredMethod("findLoadedClass", classOf[String])
+		//		method.setAccessible(true)
+		//			def isLoaded(name: String) =
+		//				false
+		//				method.invoke(classLoader, name) != null
+		(for (enhancedEntityClass <- resolved) //; if (!isLoaded(enhancedEntityClass.getName)))
+			yield try
+			Some(enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]])
+		catch {
+			case e =>
+				e.printStackTrace
+				None
+		}).flatten.toSet
 	}
 
 	private def entityClassesNames(referenceClass: Class[_]) =
 		Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
 
 	private def buildClassPool = {
-		val classPool = ClassPool.getDefault
+		val classPool = new ClassPool(true)
 		classPool.appendClassPath(new ClassClassPath(this.niceClass))
 		classPool
 	}
@@ -176,9 +194,13 @@ object EntityEnhancer extends Logging {
 	private def createVarTypesField(clazz: CtClass, classPool: ClassPool, enhancedFieldsMap: Map[javassist.CtField, (javassist.CtClass, Boolean)]) = {
 		val init = clazz.makeClassInitializer()
 		val hashMapClass = classPool.get(hashMapClassName)
-		val varTypesField = new CtField(hashMapClass, "varTypes", clazz);
-		varTypesField.setModifiers(Modifier.STATIC)
-		clazz.addField(varTypesField, "new " + hashMapClassName + "();")
+
+		val varTypesField = clazz.getDeclaredFields.find(_.getName() == "varTypes").getOrElse {
+			val varTypesField = new CtField(hashMapClass, "varTypes", clazz);
+			varTypesField.setModifiers(Modifier.STATIC)
+			clazz.addField(varTypesField, "new " + hashMapClassName + "();")
+			varTypesField
+		}
 		val initBody =
 			(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
 				yield "varTypes.put(\"" + field.getName.split('$').last + "\", " + typ.getName + ".class)").mkString(";") + ";"
