@@ -123,15 +123,9 @@ object EntityEnhancer extends Logging {
 					classOf[Entity].getClassLoader()
 				else
 					referenceClass.getClassLoader
-		//		val method = classOf[ClassLoader].getDeclaredMethod("findLoadedClass", classOf[String])
-		//		method.setAccessible(true)
-		//			def isLoaded(name: String) =
-		//				false
-		//				method.invoke(classLoader, name) != null
-		(for (enhancedEntityClass <- resolved) //; if (!isLoaded(enhancedEntityClass.getName)))
-			yield try
+		(for (enhancedEntityClass <- resolved) yield try {
 			Some(enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]])
-		catch {
+		} catch {
 			case e =>
 				e.printStackTrace
 				None

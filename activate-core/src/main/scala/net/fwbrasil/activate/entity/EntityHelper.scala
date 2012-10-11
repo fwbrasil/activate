@@ -12,6 +12,11 @@ object EntityHelper {
 	private[this] val concreteEntityClasses =
 		MutableMap[Class[_ <: Entity], List[Class[Entity]]]()
 
+	def clearMetadatas = {
+		entitiesMetadatas.clear
+		concreteEntityClasses.clear
+	}
+
 	def metadatas =
 		entitiesMetadatas.values.toList.sortBy(_.name)
 
@@ -19,12 +24,12 @@ object EntityHelper {
 		concreteEntityClasses.values.flatten.toSet
 
 	def concreteClasses[E <: Entity](clazz: Class[E]) =
-		concreteEntityClasses.getOrElse(clazz, {
+		concreteEntityClasses.getOrElseUpdate(clazz, {
 			for (
 				(hash, metadata) <- entitiesMetadatas;
 				if ((clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)) && metadata.entityClass.isConcreteClass)
 			) yield metadata.entityClass
-		}).toList.asInstanceOf[List[Class[_ <: E]]]
+		}.toList.asInstanceOf[List[Class[Entity]]])
 
 	def initialize(referenceClass: Class[_]) = synchronized {
 		UUIDUtil.generateUUID

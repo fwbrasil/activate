@@ -138,7 +138,7 @@ object ActivateBuild extends Build {
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
-    	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
+    	    //publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
     	    resolvers ++= customResolvers,
     	    compileOrder := CompileOrder.JavaThenScala,

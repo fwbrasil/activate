@@ -123,7 +123,7 @@ object StatementMocks {
 		set(ref, "name", "id")
 		set(ref, "outerEntity", entity)
 		idField.set(entity, ref)
-		entity
+		entity.asInstanceOf[E]
 	}
 
 	def mockVar =

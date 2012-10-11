@@ -3,6 +3,7 @@ package net.fwbrasil.activate
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
+import net.fwbrasil.activate.entity.EntityHelper
 
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
