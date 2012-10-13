@@ -76,11 +76,7 @@ object EntityEnhancer extends Logging {
 		}
 
 	def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-		println("start enhance")
-		if (!clazz.isInterface() && !clazz.isFrozen /*&& !isEnhanced(clazz)*/ && isEntityClass(clazz, classPool)) {
-			if (clazz.isFrozen)
-				clazz.defrost
-			println("will enhance")
+		if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
 			try {
 				val allFields = clazz.getDeclaredFields
 				val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
@@ -109,9 +105,7 @@ object EntityEnhancer extends Logging {
 			entityClassesNames(referenceClass)
 				.map(enhance(_, classPool)).flatten
 		val resolved = resolveDependencies(enhancedEntityClasses)
-		val res = materializeClasses(resolved, referenceClass)
-		println(res)
-		res
+		materializeClasses(resolved, referenceClass)
 	}
 
 	private def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] =
@@ -123,20 +117,15 @@ object EntityEnhancer extends Logging {
 					classOf[Entity].getClassLoader()
 				else
 					referenceClass.getClassLoader
-		(for (enhancedEntityClass <- resolved) yield try {
-			Some(enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]])
-		} catch {
-			case e =>
-				e.printStackTrace
-				None
-		}).flatten.toSet
+		for (enhancedEntityClass <- resolved) yield 
+			enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]]
 	}
 
 	private def entityClassesNames(referenceClass: Class[_]) =
 		Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
 
 	private def buildClassPool = {
-		val classPool = new ClassPool(true)
+		val classPool = ClassPool.getDefault
 		classPool.appendClassPath(new ClassClassPath(this.niceClass))
 		classPool
 	}

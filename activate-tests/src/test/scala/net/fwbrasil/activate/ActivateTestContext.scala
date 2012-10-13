@@ -31,12 +31,15 @@ import EnumerationValue._
 
 case class DummySeriablizable(val string: String)
 
+object ActivateTestMigration {
+  val timestamp = System.currentTimeMillis
+}
+
 abstract class ActivateTestMigration(
 	implicit val ctx: ActivateTestContext)
 		extends Migration {
 
-	val timestamp = System.currentTimeMillis
-	override val developers = List("fwbrasil")
+	val timestamp = ActivateTestMigration.timestamp
 
 	def up = {
 
@@ -63,8 +66,7 @@ abstract class ActivateTestMigrationCustomColumnType(
 	implicit val ctx: ActivateTestContext)
 		extends Migration {
 
-	val timestamp = System.currentTimeMillis + 100000
-	override val developers = List("fwbrasil")
+	val timestamp = ActivateTestMigration.timestamp + 100000
 
 	def up = {
 		table[ctx.ActivateTestEntity].removeColumn("bigStringValue")

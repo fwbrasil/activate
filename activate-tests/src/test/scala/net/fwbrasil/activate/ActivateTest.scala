@@ -29,7 +29,9 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			MultipleTransactionsWithReinitialize(ctx),
 			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
-	def contexts = {
+	def contexts = _contexts
+			
+	lazy val _contexts = {
 		val ret = List[ActivateTestContext](
 			memoryContext,
 			prevaylerContext,
@@ -42,7 +44,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			)
 		ret.foreach(_.stop)
 		ret
-		val db = System.getenv("DB")
+		val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
 		if (db == null)
 			ret
 		else
