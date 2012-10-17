@@ -4,17 +4,18 @@
 //import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 //import net.fwbrasil.activate.ActivateContext
 //import net.fwbrasil.activate.migration.Migration
+//import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
 //
 //object coordinatorTestContext extends ActivateContext {
+//
 //	val storage = new PooledJdbcRelationalStorage {
-//		val jdbcDriver = "org.postgresql.Driver"
-//		val user = "postgres"
+//		val jdbcDriver = "com.mysql.jdbc.Driver"
+//		val user = "root"
 //		val password = ""
-//		val url = "jdbc:postgresql://127.0.0.1/activate_test"
-//		val dialect = postgresqlDialect
+//		val url = "jdbc:mysql://127.0.0.1/activate_test"
+//		val dialect = mySqlDialect
 //	}
 //}
-//
 //import coordinatorTestContext._
 //
 //class CreateTables extends Migration {
@@ -22,7 +23,7 @@
 //	val timestamp = 1l
 //
 //	def up = {
-//		createTableForAllEntities.ifNotExists
+//		createTableForEntity[SomeEntity].ifNotExists
 //	}
 //}
 //
@@ -42,7 +43,7 @@
 //				"-Dactivate.coordinator.server=true"
 //			else
 //				"-Dactivate.coordinator.serverHost=localhost"
-//		JvmFork.fork(128, 1024, Some(option)) {
+//		JvmFork.fork(128, 1024, Some( /*"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=89898 " +*/ option)) {
 //			runThreads
 //		}
 //	}
@@ -64,7 +65,7 @@
 //object Teste extends App {
 //
 //	val numOfVMs = 2
-//	val numOfThreads = 2
+//	val numOfThreads = 1
 //	val numOfTransactions = 100
 //
 //	val entityId =
@@ -77,6 +78,6 @@
 //	val i = transactional {
 //		byId[SomeEntity](entityId).get.integer
 //	}
-//	println(i)
+//	println(i, numOfVMs * numOfThreads * numOfTransactions)
 //	require(i == numOfVMs * numOfThreads * numOfTransactions)
 //}

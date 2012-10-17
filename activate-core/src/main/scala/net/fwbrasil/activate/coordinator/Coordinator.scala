@@ -39,4 +39,5 @@ object Coordinator {
 object coordinatorServerMain extends App {
 	System.setProperty("activate.coordinator.server", "true")
 	require(Coordinator.serverOption.isDefined)
+	Thread.sleep(Long.MaxValue)
 }

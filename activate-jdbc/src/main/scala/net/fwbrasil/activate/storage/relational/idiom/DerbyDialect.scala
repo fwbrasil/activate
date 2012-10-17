@@ -28,6 +28,7 @@ import net.fwbrasil.activate.statement.SimpleValue
 import net.fwbrasil.activate.storage.marshalling.Marshaller
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import java.sql.SQLException
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object derbyRegex {
 	def regexp(src: String, pattern: String) = {
@@ -146,6 +147,8 @@ object derbyDialect extends SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
 			case value: ByteArrayStorageValue =>
+				"LONG VARCHAR FOR BIT DATA"
+			case value: ListStorageValue =>
 				"LONG VARCHAR FOR BIT DATA"
 			case value: ReferenceStorageValue =>
 				"VARCHAR(45)"

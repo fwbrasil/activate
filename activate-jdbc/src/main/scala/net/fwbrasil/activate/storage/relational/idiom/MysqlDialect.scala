@@ -26,6 +26,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import java.sql.PreparedStatement
 import java.util.Date
 import java.sql.Types
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object mySqlDialect extends SqlIdiom {
 
@@ -126,6 +127,8 @@ object mySqlDialect extends SqlIdiom {
 				"DOUBLE"
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
+			case value: ListStorageValue =>
+				"BLOB"
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>

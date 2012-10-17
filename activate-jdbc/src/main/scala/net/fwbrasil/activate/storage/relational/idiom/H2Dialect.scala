@@ -22,6 +22,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object h2Dialect extends SqlIdiom {
 
@@ -105,6 +106,8 @@ object h2Dialect extends SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
 			case value: ByteArrayStorageValue =>
+				"BYTEA"
+			case value: ListStorageValue =>
 				"BYTEA"
 			case value: ReferenceStorageValue =>
 				"VARCHAR(45)"

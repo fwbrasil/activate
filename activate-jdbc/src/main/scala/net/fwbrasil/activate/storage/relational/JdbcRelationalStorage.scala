@@ -21,9 +21,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	protected def getConnection: Connection
 
-	override protected[activate] def prepareDatabase = {
+	override protected[activate] def prepareDatabase =
 		dialect.prepareDatabase(this)
-	}
 
 	def executeWithTransaction[R](f: (Connection) => R) = {
 		val connection = getConnectionWithoutAutoCommit

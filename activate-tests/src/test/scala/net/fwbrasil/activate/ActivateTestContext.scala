@@ -32,7 +32,7 @@ import EnumerationValue._
 case class DummySeriablizable(val string: String)
 
 object ActivateTestMigration {
-  val timestamp = System.currentTimeMillis
+	val timestamp = System.currentTimeMillis
 }
 
 abstract class ActivateTestMigration(
@@ -199,7 +199,8 @@ object BigStringGenerator {
 
 }
 
-trait ActivateTestContext extends ActivateContext {
+trait ActivateTestContext
+		extends ActivateContext {
 
 	private[this] var running = false
 
@@ -247,6 +248,7 @@ trait ActivateTestContext extends ActivateContext {
 	val emptyEntityWithoutAttributeValue = null
 	val emptyCaseClassEntityValue = null
 	val emptySerializableEntityValue = null
+	val emptyIntListEntityValue = List[Int]()
 
 	val fullIntValue = 999
 	val fullLongValue = 999l
@@ -294,6 +296,8 @@ trait ActivateTestContext extends ActivateContext {
 	val fullSerializableEntityValue =
 		new DummySeriablizable("dummy")
 
+	val fullIntListEntityValue = List[Int](1, 2, 3)
+
 	def setFullEntity(entity: ActivateTestEntity) = {
 		entity.intValue = fullIntValue
 		entity.longValue = fullLongValue
@@ -315,6 +319,7 @@ trait ActivateTestContext extends ActivateContext {
 		entity.entityWithoutAttributeValue = fullEntityWithoutAttributeValue
 		entity.caseClassEntityValue = fullCaseClassEntityValue
 		entity.serializableEntityValue = fullSerializableEntityValue
+		entity.intListEntityValue = fullIntListEntityValue
 		entity
 	}
 
@@ -339,6 +344,7 @@ trait ActivateTestContext extends ActivateContext {
 		entity.entityWithoutAttributeValue = emptyEntityWithoutAttributeValue
 		entity.caseClassEntityValue = emptyCaseClassEntityValue
 		entity.serializableEntityValue = emptySerializableEntityValue
+		entity.intListEntityValue = emptyIntListEntityValue
 		entity
 	}
 
@@ -403,7 +409,8 @@ trait ActivateTestContext extends ActivateContext {
 			var optionValue: Option[String],
 			var entityWithoutAttributeValue: EntityWithoutAttribute,
 			var caseClassEntityValue: CaseClassEntity,
-			var serializableEntityValue: DummySeriablizable) extends ActivateTestDummyEntity(dummy) {
+			var serializableEntityValue: DummySeriablizable,
+			var intListEntityValue: List[Int]) extends ActivateTestDummyEntity(dummy) {
 
 		def this(intValue: Int) = this(
 			false,
@@ -427,7 +434,8 @@ trait ActivateTestContext extends ActivateContext {
 			emptyOptionValue,
 			emptyEntityWithoutAttributeValue,
 			emptyCaseClassEntityValue,
-			emptySerializableEntityValue)
+			emptySerializableEntityValue,
+			emptyIntListEntityValue)
 		lazy val lazyValue: String = lazyValueValue
 		var varInitializedInConstructor = fullStringValue
 		val valInitializedInConstructor = fullStringValue
@@ -455,7 +463,8 @@ trait ActivateTestContext extends ActivateContext {
 		optionValue: Option[String] = fullOptionValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = fullCaseClassEntityValue,
-		serializableEntityValue: DummySeriablizable = fullSerializableEntityValue) =
+		serializableEntityValue: DummySeriablizable = fullSerializableEntityValue,
+		intListEntityValue: List[Int] = fullIntListEntityValue) =
 
 		validateEmptyTestEntity(
 			entity,
@@ -478,7 +487,8 @@ trait ActivateTestContext extends ActivateContext {
 			optionValue,
 			entityWithoutAttributeValue,
 			caseClassEntityValue,
-			serializableEntityValue)
+			serializableEntityValue,
+			intListEntityValue)
 
 	def validateEmptyTestEntity(entity: ActivateTestEntity = null,
 		intValue: Int = emptyIntValue,
@@ -500,7 +510,8 @@ trait ActivateTestContext extends ActivateContext {
 		optionValue: Option[String] = emptyOptionValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
-		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue) = {
+		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
+		intListEntityValue: List[Int] = emptyIntListEntityValue) = {
 
 		require(entity.intValue == intValue)
 		require(entity.longValue == longValue)
@@ -519,6 +530,7 @@ trait ActivateTestContext extends ActivateContext {
 		require(entity.optionValue == optionValue)
 		require(entity.entityWithoutAttributeValue == entityWithoutAttributeValue)
 		require(entity.serializableEntityValue == serializableEntityValue)
+		require(entity.intListEntityValue == intListEntityValue)
 	}
 
 	def newTestEntity(
@@ -542,7 +554,8 @@ trait ActivateTestContext extends ActivateContext {
 		optionValue: Option[String] = emptyOptionValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
-		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue) = {
+		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
+		intListEntityValue: List[Int] = emptyIntListEntityValue) = {
 		new ActivateTestEntity(
 			intValue = intValue,
 			longValue = longValue,
@@ -564,6 +577,7 @@ trait ActivateTestContext extends ActivateContext {
 			optionValue = optionValue,
 			entityWithoutAttributeValue = entityWithoutAttributeValue,
 			caseClassEntityValue = caseClassEntityValue,
-			serializableEntityValue = serializableEntityValue)
+			serializableEntityValue = serializableEntityValue,
+			intListEntityValue = intListEntityValue)
 	}
 }

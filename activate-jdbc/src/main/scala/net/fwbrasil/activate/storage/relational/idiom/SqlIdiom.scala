@@ -75,6 +75,8 @@ import net.fwbrasil.activate.statement.Matcher
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.serialization.javaSerializator
 
 object SqlIdiom {
 	def dialect(name: String) =
@@ -118,6 +120,8 @@ abstract class SqlIdiom {
 				setValue(ps, (v: BigDecimal) => ps.setBigDecimal(i, v.bigDecimal), i, value.value, Types.BIGINT)
 			case value: ByteArrayStorageValue =>
 				setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BINARY)
+			case value: ListStorageValue =>
+				setValue(ps, (v: List[Any]) => ps.setBytes(i, javaSerializator.toSerialized(v)), i, value.value, Types.BINARY)
 			case value: ReferenceStorageValue =>
 				setValue(ps, (v: String) => ps.setString(i, v), i, value.value, Types.VARCHAR)
 		}
@@ -151,6 +155,8 @@ abstract class SqlIdiom {
 				BigDecimalStorageValue(getValue(resultSet, BigDecimal(resultSet.getBigDecimal(i))))
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))
+			case value: ListStorageValue =>
+				ListStorageValue(getValue(resultSet, javaSerializator.fromSerialized[List[Any]](resultSet.getBytes(i))), value.clazz)
 			case value: ReferenceStorageValue =>
 				ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))
 		}

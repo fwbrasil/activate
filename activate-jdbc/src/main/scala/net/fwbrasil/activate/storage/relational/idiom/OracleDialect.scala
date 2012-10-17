@@ -25,6 +25,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import java.sql.PreparedStatement
 import java.sql.Types
 import java.sql.ResultSet
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object oracleDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -125,6 +126,8 @@ object oracleDialect extends SqlIdiom {
 				"DOUBLE PRECISION"
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
+			case value: ListStorageValue =>
+				"BLOB"
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>

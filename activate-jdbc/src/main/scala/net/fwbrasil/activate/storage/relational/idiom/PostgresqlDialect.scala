@@ -22,6 +22,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object postgresqlDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -103,6 +104,8 @@ object postgresqlDialect extends SqlIdiom {
 				"DOUBLE PRECISION"
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
+			case value: ListStorageValue =>
+				"BYTEA"
 			case value: ByteArrayStorageValue =>
 				"BYTEA"
 			case value: ReferenceStorageValue =>

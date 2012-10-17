@@ -56,6 +56,7 @@ import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import scala.collection.mutable.ListBuffer
 import java.util.IdentityHashMap
 import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.serialization.javaSerializator
 
 trait MongoStorage extends MarshalStorage[DB] {
 
@@ -86,6 +87,48 @@ trait MongoStorage extends MarshalStorage[DB] {
 		updateList: List[(Entity, Map[String, StorageValue])],
 		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
+		storeStatements(statements)
+		storeInserts(insertList)
+		storeUpdates(updateList)
+		storeDeletes(deleteList)
+
+	}
+
+	private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
+		for ((entity, properties) <- deleteList) {
+			val query = new BasicDBObject()
+			query.put("_id", entity.id)
+			coll(entity).remove(query)
+		}
+
+	private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
+		for ((entity, properties) <- updateList) {
+			val query = new BasicDBObject
+			query.put("_id", entity.id)
+			val set = new BasicDBObject
+			for ((name, value) <- properties if (name != "id")) {
+				val inner = new BasicDBObject
+				set.put(name, getMongoValue(value))
+			}
+			val update = new BasicDBObject
+			update.put("$set", set)
+			coll(entity).update(query, update)
+		}
+
+	private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {
+		val insertMap = new IdentityHashMap[Class[_], ListBuffer[BasicDBObject]]()
+		for ((entity, properties) <- insertList) {
+			val doc = new BasicDBObject()
+			for ((name, value) <- properties if (name != "id"))
+				doc.put(name, getMongoValue(value))
+			doc.put("_id", entity.id)
+			insertMap.getOrElseUpdate(entity.getClass, ListBuffer()) += doc
+		}
+		for (entityClass <- insertMap.keys)
+			coll(entityClass).insert(insertMap(entityClass))
+	}
+
+	private def storeStatements(statements: List[MassModificationStatement]) =
 		for (statement <- statements) {
 			val (coll, where) = collectionAndWhere(statement.from, statement.where)
 			statement match {
@@ -100,37 +143,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 					coll.remove(where)
 			}
 		}
-		val insertMap = new IdentityHashMap[Class[_], ListBuffer[BasicDBObject]]()
-		for ((entity, properties) <- insertList) {
-			val doc = new BasicDBObject()
-			for ((name, value) <- properties if (name != "id"))
-				doc.put(name, getMongoValue(value))
-			doc.put("_id", entity.id)
-			insertMap.getOrElseUpdate(entity.getClass, ListBuffer()) += doc
-		}
-		for (entityClass <- insertMap.keys) {
-			coll(entityClass).insert(insertMap(entityClass))
-		}
-		for ((entity, properties) <- updateList) {
-			val query = new BasicDBObject
-			query.put("_id", entity.id)
-			val set = new BasicDBObject
-			for ((name, value) <- properties if (name != "id")) {
-				val inner = new BasicDBObject
-				set.put(name, getMongoValue(value))
-			}
-			val update = new BasicDBObject
-			update.put("$set", set)
-			coll(entity).update(query, update)
-		}
-		for ((entity, properties) <- deleteList) {
-			val query = new BasicDBObject()
-			query.put("_id", entity.id)
-			coll(entity).remove(query)
-		}
-	}
 
-	def getMongoValue(value: StorageValue): Any =
+	private def getMongoValue(value: StorageValue): Any =
 		value match {
 			case value: IntStorageValue =>
 				value.value.map(_.intValue).getOrElse(null)
@@ -148,6 +162,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 				value.value.map(_.doubleValue).getOrElse(null)
 			case value: BigDecimalStorageValue =>
 				value.value.map(_.doubleValue).getOrElse(null)
+			case value: ListStorageValue =>
+				javaSerializator.toSerialized(value.value.getOrElse(null))
 			case value: ByteArrayStorageValue =>
 				value.value.getOrElse(null)
 			case value: ReferenceStorageValue =>
@@ -202,6 +218,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 				DoubleStorageValue(getValue[Double](obj, name))
 			case value: BigDecimalStorageValue =>
 				BigDecimalStorageValue(getValue[Double](obj, name).map(BigDecimal(_)))
+			case value: ListStorageValue =>
+				ListStorageValue(getValue[Array[Byte]](obj, name).map(javaSerializator.fromSerialized[List[Any]]), value.clazz)
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue[Array[Byte]](obj, name))
 			case value: ReferenceStorageValue =>

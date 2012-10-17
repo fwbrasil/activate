@@ -4,6 +4,7 @@ import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableH
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.radon.util.Lockable
 import com.sun.org.apache.xalan.internal.xsltc.compiler.ForEach
+import net.fwbrasil.activate.util.Logging
 
 trait LockManager {
 	this: CoordinatorService =>

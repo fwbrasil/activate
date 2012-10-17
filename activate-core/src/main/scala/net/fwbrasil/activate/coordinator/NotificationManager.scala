@@ -3,6 +3,7 @@ package net.fwbrasil.activate.coordinator
 import scala.collection.mutable.{ HashMap => MutableHashMap, HashSet => MutableHashSet }
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.radon.util.Lockable
+import net.fwbrasil.activate.util.Logging
 
 class ContextIsAlreadyRegistered(contextId: String) extends Exception
 class ContextIsntRegistered(contextId: String) extends Exception
@@ -19,8 +20,8 @@ class NotificationList extends Lockable {
 			val index = list.indexOf(id)
 			if (index >= 0)
 				list.remove(index)
-			//			else
-			//				throw new IllegalStateException("Can't find the notification.")
+			else
+				throw new IllegalStateException("Can't find the notification.")
 		})
 
 	def contains(id: String) =
@@ -38,21 +39,25 @@ trait NotificationManager {
 			Option(System.getProperty("activate.coordinator.notificationBlockSize"))
 				.getOrElse("1000"))
 
-	// Map[ContextId, Set[EntityId]]
-	private val notifications = new MutableHashMap[String, NotificationList]() with Lockable
+	private val notifications =
+		new MutableHashMap[String, NotificationList]() with Lockable
 
 	def registerContext(contextId: String) =
-		notifications.doWithWriteLock {
-			if (notifications.contains(contextId))
-				throw new ContextIsAlreadyRegistered(contextId)
-			notifications.getOrElseUpdate(contextId, new NotificationList)
+		logInfo("register context " + contextId) {
+			notifications.doWithWriteLock {
+				if (notifications.contains(contextId))
+					throw new ContextIsAlreadyRegistered(contextId)
+				notifications += contextId -> new NotificationList
+			}
 		}
 
 	def deregisterContext(contextId: String) =
-		notifications.doWithWriteLock {
-			if (!notifications.contains(contextId))
-				throw new ContextIsntRegistered(contextId)
-			notifications.remove(contextId)
+		logInfo("deregister context " + contextId) {
+			notifications.doWithWriteLock {
+				if (!notifications.contains(contextId))
+					throw new ContextIsntRegistered(contextId)
+				notifications.remove(contextId)
+			}
 		}
 
 	def getPendingNotifications(contextId: String) = {

@@ -4,6 +4,7 @@ import net.fwbrasil.activate.util.Reflection
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.reflect.ParameterizedType
 
 class EntityPropertyMetadata(
 		val entityMetadata: EntityMetadata,
@@ -28,8 +29,16 @@ class EntityPropertyMetadata(
 		Modifier.isTransient(varField.getModifiers)
 	val isOption =
 		getter.getReturnType == classOf[Option[_]]
+	val genericParameter = {
+		val genericFieldType = varField.getGenericType
+		if (genericFieldType.isInstanceOf[ParameterizedType]) {
+			val aType = genericFieldType.asInstanceOf[ParameterizedType]
+			val fieldArgTypes = aType.getActualTypeArguments
+			fieldArgTypes.headOption.map(_.asInstanceOf[Class[_]]).getOrElse(classOf[Object])
+		} else classOf[Object]
+	}
 	val tval =
-		EntityValue.tvalFunctionOption[Any](propertyType)
+		EntityValue.tvalFunctionOption[Any](propertyType, genericParameter)
 			.getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
 	varField.setAccessible(true)
 	getter.setAccessible(true)

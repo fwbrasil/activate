@@ -31,7 +31,7 @@ case class LockFail(request: CoordinatorServerRequestMessage, readLocksNok: Set[
 case class UnlockFail(request: CoordinatorServerRequestMessage, readUnlocksNok: Set[String], writeUnlocksNok: Set[String]) extends CoordinatorServerReponseMessage
 
 class CoordinatorService extends LockManager
-	with NotificationManager
+	with NotificationManager with Logging
 
 object coordinatorServiceSingleton extends CoordinatorService
 
