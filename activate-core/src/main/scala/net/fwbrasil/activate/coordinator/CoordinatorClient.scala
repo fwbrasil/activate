@@ -12,22 +12,37 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
 
 	info("Coordinator client started.")
 
-	registerContext
+	start
 
-	Runtime.getRuntime.addShutdownHook(new Thread {
-		override def run = {
+	var running = true
+
+	def start = {
+		if (running)
+			throw new IllegalStateException("Coordinator client already started.")
+		running = true
+		registerContext
+	}
+
+	def terminate = synchronized {
+		if (running) {
+			running = false
 			deregisterContext
 		}
+	}
+
+	Runtime.getRuntime.addShutdownHook(new Thread {
+		override def run =
+			terminate
 	})
 
-	//	var syncThread = CoordinatorClientSyncThread(this)
+	var syncThread = CoordinatorClientSyncThread(this)
 
 	def reinitialize = {
-		//		syncThread.stopFlag = true
-		//		syncThread.join
+		syncThread.stopFlag = true
+		syncThread.join
 		deregisterContext
 		registerContext
-		//		syncThread = CoordinatorClientSyncThread(this)
+		syncThread = CoordinatorClientSyncThread(this)
 	}
 
 	private def registerContext =

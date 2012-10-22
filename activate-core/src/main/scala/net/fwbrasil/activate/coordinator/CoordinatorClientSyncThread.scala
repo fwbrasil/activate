@@ -7,22 +7,20 @@ case class CoordinatorClientSyncThread(client: CoordinatorClient) extends Thread
 	setDaemon(true)
 	setName("CoordinatorClientSyncThread - " + context + "@" + context.contextId)
 	setPriority(Thread.MIN_PRIORITY)
-	//	start
 
 	var stopFlag = false
 
 	val syncSleep =
 		Integer.parseInt(
 			Option(System.getProperty("activate.coordinator.syncSleep"))
-				.getOrElse("1000"))
+				.getOrElse("500"))
 
 	override def run =
 		while (!stopFlag) {
 			val notifications = client.getPendingNotifications
-			if (notifications.nonEmpty) {
+			if (notifications.nonEmpty)
 				client.context.reloadEntities(notifications)
-				client.removeNotifications(notifications)
-			} else
+			else
 				Thread.sleep(syncSleep)
 		}
 }

@@ -20,6 +20,7 @@ import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.coordinator.Coordinator
+import net.fwbrasil.activate.coordinator.CoordinatorClient
 
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
@@ -205,6 +206,7 @@ trait ActivateTestContext
 	private[this] var running = false
 
 	private[activate] def start = synchronized {
+		ActivateContext.contextCache.clear
 		running = true
 	}
 
@@ -217,11 +219,8 @@ trait ActivateTestContext
 
 	override protected lazy val runMigrationAtStartup = false
 
-	protected override lazy val coordinatorClientOption =
-		if (storage.isMemoryStorage)
-			None
-		else
-			Coordinator.clientOption(this)
+	protected override lazy val coordinatorClientOption: Option[CoordinatorClient] =
+		None
 
 	override protected[activate] def entityMaterialized(entity: Entity) =
 		if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])

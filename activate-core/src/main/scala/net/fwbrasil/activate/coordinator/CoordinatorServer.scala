@@ -22,6 +22,7 @@ case class RemoveNotifications(contextId: String, entityIds: Set[String]) extend
 trait CoordinatorServerReponseMessage extends CoordinatorServerMessage {
 	val request: CoordinatorServerRequestMessage
 }
+
 case class Success(request: CoordinatorServerRequestMessage) extends CoordinatorServerReponseMessage
 case class Failure(request: CoordinatorServerRequestMessage, e: Throwable) extends CoordinatorServerReponseMessage
 
@@ -47,7 +48,7 @@ class CoordinatorServer
 		alive(Coordinator.port)
 		register(Coordinator.actorName, self)
 		loop {
-			receive {
+			react {
 				case msg: RegisterContext =>
 					runAndReplyIfSuccess(msg)(registerContext(msg.contextId))
 				case msg: DeregisterContext =>

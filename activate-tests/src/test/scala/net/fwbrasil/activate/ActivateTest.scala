@@ -30,7 +30,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
 	def contexts = _contexts
-			
+
 	lazy val _contexts = {
 		val ret = List[ActivateTestContext](
 			memoryContext,
@@ -41,7 +41,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			h2Context,
 			derbyContext,
 			hsqldbContext //oracleContext
-			)
+		)
 		ret.foreach(_.stop)
 		ret
 		val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
@@ -138,7 +138,6 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 	def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {
 		for (ctx <- contexts) {
 			import ctx._
-			ActivateContext.contextCache.clear
 			start
 			runMigration
 				def clear = transactional {

@@ -8,27 +8,42 @@ import net.fwbrasil.activate.util.Logging
 class ContextIsAlreadyRegistered(contextId: String) extends Exception
 class ContextIsntRegistered(contextId: String) extends Exception
 
-class NotificationList extends Lockable {
-	private val list =
+class NotificationList {
+
+	private val toNotify =
 		ListBuffer[String]()
 
-	def take(i: Int) =
-		list.take(i)
+	private val toRemove =
+		ListBuffer[String]()
 
-	def --=(ids: Iterable[String]) =
+	def pendingNotification(id: String) = {
+		val isPending = toNotify.contains(id)
+		if (isPending) {
+			toNotify -= id
+			toRemove += id
+		}
+		isPending
+	}
+
+	def pendingNotifications(size: Int) = {
+		val res = toNotify.take(size)
+		toNotify.remove(0, size)
+		toRemove ++= res
+		res
+	}
+
+	def proccessedNotifications(ids: Iterable[String]) = {
 		ids.foreach(id => {
-			val index = list.indexOf(id)
+			val index = toRemove.indexOf(id)
 			if (index >= 0)
-				list.remove(index)
-			else
-				throw new IllegalStateException("Can't find the notification.")
+				toRemove.remove(index)
 		})
+	}
 
-	def contains(id: String) =
-		list.contains(id)
+	def addNotification(id: String) =
+		toNotify += id
 
-	def +=(id: String) =
-		list += id
+	override def toString = (toNotify, toRemove).toString
 }
 
 trait NotificationManager {
@@ -62,15 +77,15 @@ trait NotificationManager {
 
 	def getPendingNotifications(contextId: String) = {
 		val list = notificationList(contextId)
-		list.doWithReadLock {
-			list.take(notificationBlockSize).toSet
+		list.synchronized {
+			list.pendingNotifications(notificationBlockSize).toSet
 		}
 	}
 
 	def removeNotifications(contextId: String, entityIds: Set[String]) = {
 		val list = notificationList(contextId)
-		list.doWithWriteLock {
-			list --= entityIds
+		list.synchronized {
+			list.proccessedNotifications(entityIds)
 		}
 	}
 
@@ -81,8 +96,8 @@ trait NotificationManager {
 
 	def hasPendingNotification(contextId: String, entityId: String) = {
 		val list = notificationList(contextId)
-		list.doWithReadLock {
-			list.contains(entityId)
+		list.synchronized {
+			list.pendingNotification(entityId)
 		}
 	}
 
@@ -91,8 +106,8 @@ trait NotificationManager {
 			notifications.keys.filter(_ != originatorContextId).foreach {
 				contextToNotify =>
 					val list = notificationList(contextToNotify)
-					list.doWithWriteLock {
-						list += id
+					list.synchronized {
+						list.addNotification(id)
 					}
 			}
 		}
