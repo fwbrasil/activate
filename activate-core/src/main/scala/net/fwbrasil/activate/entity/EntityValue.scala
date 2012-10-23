@@ -95,9 +95,11 @@ case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val valu
 	def emptyValue = null
 }
 
-case class ListEntityValue[V: Manifest](override val value: Option[List[V]])
+case class ListEntityValue[V](override val value: Option[List[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
 		extends EntityValue[List[V]](value) {
 	def valueManifest = manifest[V]
+	def emptyValueEntityValue = tval(None)
+	def valueEntityValue(value: V) = tval(Option(value))
 	def emptyValue = List()
 }
 
@@ -108,7 +110,7 @@ case class SerializableEntityValue[S <: Serializable: Manifest](override val val
 
 object EntityValue extends ValueContext {
 
-	private[activate] def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]) =
+	private[activate] def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
 		Option((
 			if (clazz == classOf[String])
 				(value: Option[String]) => toStringEntityValueOption(value)
@@ -139,13 +141,13 @@ object EntityValue extends ValueContext {
 			else if (classOf[Entity].isAssignableFrom(clazz))
 				((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
 			else if (classOf[List[_]].isAssignableFrom(clazz))
-				(value: Option[List[Any]]) => toListEntityValueOption(value)(manifestClass(genericParameter))
+				(value: Option[List[Any]]) => toListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
 			else if (classOf[Serializable].isAssignableFrom(clazz))
 				(value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
 			else
 				null).asInstanceOf[(Option[T]) => EntityValue[T]])
 
-	private[activate] def tvalFunction[T](clazz: Class[_], genericParameter: Class[_]) =
+	private[activate] def tvalFunction[T](clazz: Class[_], genericParameter: Class[_]): Option[T] => EntityValue[T] =
 		tvalFunctionOption[T](clazz, genericParameter).getOrElse(throw new IllegalStateException("Invalid entity property type. " + clazz))
 
 }
@@ -180,7 +182,7 @@ trait ValueContext {
 		toByteArrayEntityValueOption(Option(value))
 	implicit def toEntityInstanceEntityValue[E <: Entity: Manifest](value: E) =
 		toEntityInstanceEntityValueOption(Option(value))
-	implicit def toListEntityValue[V: Manifest](value: List[V]): ListEntityValue[V] =
+	implicit def toListEntityValue[V](value: List[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
 		toListEntityValueOption(Option(value))
 	implicit def toSerializableEntityValue[S <: Serializable: Manifest](value: S): SerializableEntityValue[S] =
 		toSerializableEntityValueOption(Option(value))
@@ -213,7 +215,7 @@ trait ValueContext {
 		ByteArrayEntityValue(value)
 	implicit def toEntityInstanceEntityValueOption[E <: Entity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] =
 		EntityInstanceEntityValue(value)
-	implicit def toListEntityValueOption[V: Manifest](value: Option[List[V]]): ListEntityValue[V] =
+	implicit def toListEntityValueOption[V](value: Option[List[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
 		ListEntityValue[V](value)
 	implicit def toSerializableEntityValueOption[S <: Serializable: Manifest](value: Option[S]): SerializableEntityValue[S] =
 		SerializableEntityValue[S](value)

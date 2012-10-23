@@ -30,12 +30,12 @@ class EntityPropertyMetadata(
 	val isOption =
 		getter.getReturnType == classOf[Option[_]]
 	val genericParameter = {
-		val genericFieldType = varField.getGenericType
-		if (genericFieldType.isInstanceOf[ParameterizedType]) {
-			val aType = genericFieldType.asInstanceOf[ParameterizedType]
-			val fieldArgTypes = aType.getActualTypeArguments
-			fieldArgTypes.headOption.map(_.asInstanceOf[Class[_]]).getOrElse(classOf[Object])
-		} else classOf[Object]
+		getter.getGenericReturnType match {
+			case typ: ParameterizedType =>
+				typ.getActualTypeArguments.headOption.map(_.asInstanceOf[Class[_]]).getOrElse(classOf[Object])
+			case other =>
+				classOf[Object]
+		}
 	}
 	val tval =
 		EntityValue.tvalFunctionOption[Any](propertyType, genericParameter)

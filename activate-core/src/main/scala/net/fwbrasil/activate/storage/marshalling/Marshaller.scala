@@ -95,7 +95,7 @@ object Marshaller {
 			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
 				SerializableEntityValue[Serializable](storageValue.value.map(javaSerializator.fromSerialized[Serializable]))
 			case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
-				ListEntityValue[Any](storageValue.value)
+				ListEntityValue[Any](storageValue.value.map(list => list.map(e => unmarshalling(e, entityValue.emptyValueEntityValue).value.getOrElse(null))))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
 			case other =>
 				throw new IllegalStateException("Invalid storage value.")
 		}
@@ -133,7 +133,7 @@ object Marshaller {
 			case value: EnumerationEntityValue[_] =>
 				StringStorageValue(value.value.map(_.toString))
 			case value: ListEntityValue[_] =>
-				ListStorageValue(value.value, value.valueManifest.erasure)
+				ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
 			case value: SerializableEntityValue[_] =>
 				ByteArrayStorageValue(value.value.map(javaSerializator.toSerialized))
 		}

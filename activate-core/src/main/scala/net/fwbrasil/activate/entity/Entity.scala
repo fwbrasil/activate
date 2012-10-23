@@ -23,7 +23,8 @@ trait Entity extends Serializable with EntityValidation {
 	def delete =
 		if (!isDeleted) {
 			initialize
-			for (ref <- vars)
+			_baseVar.destroy
+			for (ref <- vars; if (ref != _baseVar))
 				ref.destroy
 		}
 

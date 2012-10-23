@@ -163,7 +163,12 @@ trait MongoStorage extends MarshalStorage[DB] {
 			case value: BigDecimalStorageValue =>
 				value.value.map(_.doubleValue).getOrElse(null)
 			case value: ListStorageValue =>
-				javaSerializator.toSerialized(value.value.getOrElse(null))
+				value.value.map { list =>
+					val dbList = new BasicDBList()
+					list.foreach(elem => dbList.add(getMongoValue(elem).asInstanceOf[Object]))
+					dbList
+				}.orNull
+			//				javaSerializator.toSerialized(value.value.getOrElse(null))
 			case value: ByteArrayStorageValue =>
 				value.value.getOrElse(null)
 			case value: ReferenceStorageValue =>
@@ -200,31 +205,39 @@ trait MongoStorage extends MarshalStorage[DB] {
 		}).toList).toList
 	}
 
-	def getValue(obj: DBObject, name: String, storageValue: StorageValue): StorageValue =
+	def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {
+			def getValue[T] = Option(obj.asInstanceOf[T])
 		storageValue match {
 			case value: IntStorageValue =>
-				IntStorageValue(getValue[Int](obj, name))
+				IntStorageValue(getValue[Int])
 			case value: LongStorageValue =>
-				LongStorageValue(getValue[Long](obj, name))
+				LongStorageValue(getValue[Long])
 			case value: BooleanStorageValue =>
-				BooleanStorageValue(getValue[Boolean](obj, name))
+				BooleanStorageValue(getValue[Boolean])
 			case value: StringStorageValue =>
-				StringStorageValue(getValue[String](obj, name))
+				StringStorageValue(getValue[String])
 			case value: FloatStorageValue =>
-				FloatStorageValue(getValue[Double](obj, name).map(_.floatValue))
+				FloatStorageValue(getValue[Double].map(_.floatValue))
 			case value: DateStorageValue =>
-				DateStorageValue(getValue[Date](obj, name))
+				DateStorageValue(getValue[Date])
 			case value: DoubleStorageValue =>
-				DoubleStorageValue(getValue[Double](obj, name))
+				DoubleStorageValue(getValue[Double])
 			case value: BigDecimalStorageValue =>
-				BigDecimalStorageValue(getValue[Double](obj, name).map(BigDecimal(_)))
+				BigDecimalStorageValue(getValue[Double].map(BigDecimal(_)))
 			case value: ListStorageValue =>
-				ListStorageValue(getValue[Array[Byte]](obj, name).map(javaSerializator.fromSerialized[List[Any]]), value.clazz)
+				ListStorageValue(getValue[BasicDBList].map { dbList =>
+					dbList.map(elem => getStorageValue(elem, value.emptyStorageValue)).toList
+				}, value.emptyStorageValue)
+			//				ListStorageValue(getValue[Array[Byte]].map(javaSerializator.fromSerialized[List[StorageValue]]), value.emptyStorageValue)
 			case value: ByteArrayStorageValue =>
-				ByteArrayStorageValue(getValue[Array[Byte]](obj, name))
+				ByteArrayStorageValue(getValue[Array[Byte]])
 			case value: ReferenceStorageValue =>
-				ReferenceStorageValue(getValue[String](obj, name))
+				ReferenceStorageValue(getValue[String])
 		}
+	}
+
+	def getValue(obj: DBObject, name: String, storageValue: StorageValue): StorageValue =
+		getStorageValue(obj.get(name), storageValue)
 
 	def getValue[T](obj: DBObject, name: String) =
 		Option(obj.get(name).asInstanceOf[T])

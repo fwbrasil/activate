@@ -47,7 +47,11 @@ object StatementMocks {
 
 		override lazy val tval = EntityValue.tvalFunction[P](fakeValueClass, classOf[Object])
 		def entityValueMock =
-			(EntityValue.tvalFunction(fakeValueClass, classOf[Object]))(None).asInstanceOf[EntityValue[P]]
+			(if (name == "id")
+				EntityValue.tvalFunction[P](classOf[String], classOf[Object])
+			else
+				EntityHelper.getEntityMetadata(fakeOuterEntityClass).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[P] => EntityValue[P]])(None)
+		(EntityValue.tvalFunction(fakeValueClass, classOf[Object]))(None).asInstanceOf[EntityValue[P]]
 		var fakeValueClass: Class[_] = _
 		var originVar: FakeVar[_] = _
 		var fakeOuterEntityClass: Class[_] = _

@@ -89,10 +89,10 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
 		})
 
 	private def sendAndExpect[R](msg: CoordinatorServerRequestMessage, handler: (CoordinatorServerReponseMessage) => R) = {
-		server !? msg match {
-			case Failure(request, exception) =>
+		(server.!?(Coordinator.timeout, msg)) match {
+			case Some(Failure(request, exception)) =>
 				throw exception
-			case other: CoordinatorServerReponseMessage =>
+			case Some(other: CoordinatorServerReponseMessage) =>
 				if (other.request != msg)
 					failResponse
 				try handler(other)
@@ -100,6 +100,8 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
 					case e: MatchError =>
 						failResponse
 				}
+			case None =>
+				throw new IllegalStateException("Time out accessing coordinator server.")
 		}
 	}
 }

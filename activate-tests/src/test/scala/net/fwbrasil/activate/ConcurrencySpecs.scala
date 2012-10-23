@@ -2,10 +2,10 @@ package net.fwbrasil.activate
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-
 import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.radon.dsl.actor._
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class ConcurrencySpecs extends ActivateTest {
@@ -119,32 +119,6 @@ class ConcurrencySpecs extends ActivateTest {
 					})
 			}
 
-			//			"concurrent delete" in {
-			//				activateTest(
-			//					(step: StepExecutor) => {
-			//						import step.ctx._
-			//						val entityId =
-			//							step {
-			//								newEmptyActivateTestEntity.id
-			//							}
-			//							def entityOption =
-			//								byId[ActivateTestEntity](entityId)
-			//						step {
-			//							new ActorDsl with ManyActors with OneActorPerThread {
-			//								override lazy val actorsPoolSize = 50
-			//								inParallelActors {
-			//									transactional {
-			//										entityOption.map(entity => if (!entity.isDeleted) entity.delete)
-			//									}
-			//								}
-			//							}
-			//						}
-			//						step {
-			//							all[ActivateTestEntity] must beEmpty
-			//							entityOption must beEmpty
-			//						}
-			//					})
-			//			}
 		}
 	}
 }

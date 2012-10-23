@@ -12,7 +12,8 @@ import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import scala.actors.remote.NetKernel
-
+import scala.actors.remote._
+import scala.actors.remote.RemoteActor._
 class CoordinatorTestContext extends ActivateTestContext {
 
 	System.setProperty("activate.coordinator.server", "true")
@@ -83,6 +84,10 @@ class CoordinatorSpecs extends ActivateTest {
 				import ctx1._
 				entityCtx1.intValue += 1
 			}) must throwA[IllegalStateException]
+		}
+		"timeout while connecting to the server" in {
+			val remoteActor = select(Node("199.9.9.9", 9999), Coordinator.actorName)
+			(new CoordinatorClient(ctx2, remoteActor)) must throwA[IllegalStateException]
 		}
 	}
 

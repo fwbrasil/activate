@@ -117,8 +117,7 @@ object EntityEnhancer extends Logging {
 					classOf[Entity].getClassLoader()
 				else
 					referenceClass.getClassLoader
-		for (enhancedEntityClass <- resolved) yield 
-			enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]]
+		for (enhancedEntityClass <- resolved) yield enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]]
 	}
 
 	private def entityClassesNames(referenceClass: Class[_]) =

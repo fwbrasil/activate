@@ -121,7 +121,7 @@ abstract class SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BINARY)
 			case value: ListStorageValue =>
-				setValue(ps, (v: List[Any]) => ps.setBytes(i, javaSerializator.toSerialized(v)), i, value.value, Types.BINARY)
+				setValue(ps, (v: List[StorageValue]) => ps.setBytes(i, javaSerializator.toSerialized(v)), i, value.value, Types.BINARY)
 			case value: ReferenceStorageValue =>
 				setValue(ps, (v: String) => ps.setString(i, v), i, value.value, Types.VARCHAR)
 		}
@@ -156,7 +156,7 @@ abstract class SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))
 			case value: ListStorageValue =>
-				ListStorageValue(getValue(resultSet, javaSerializator.fromSerialized[List[Any]](resultSet.getBytes(i))), value.clazz)
+				ListStorageValue(getValue(resultSet, javaSerializator.fromSerialized[List[StorageValue]](resultSet.getBytes(i))), value.emptyStorageValue)
 			case value: ReferenceStorageValue =>
 				ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))
 		}

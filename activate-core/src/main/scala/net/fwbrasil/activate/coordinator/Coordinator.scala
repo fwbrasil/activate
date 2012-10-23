@@ -18,6 +18,7 @@ object Coordinator {
 	val actorName = 'coordinatorServer
 
 	val port = Integer.parseInt(Option(System.getProperty("activate.coordinator.port")).getOrElse("5674"))
+	val timeout = Integer.parseInt(Option(System.getProperty("activate.coordinator.timeout")).getOrElse("3000"))
 
 	val isServerVM =
 		System.getProperty("activate.coordinator.server") == "true"
