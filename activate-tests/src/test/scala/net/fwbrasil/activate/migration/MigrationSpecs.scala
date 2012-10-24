@@ -208,6 +208,7 @@ class MigrationSpecs extends MigrationTest {
 							table[TraitAttribute1]
 								.createTable(_.column[String]("dummy"))
 								.ifNotExists
+
 							createTableForAllEntities
 								.ifNotExists
 						}

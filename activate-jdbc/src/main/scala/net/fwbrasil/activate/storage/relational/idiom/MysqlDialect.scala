@@ -27,15 +27,18 @@ import java.sql.PreparedStatement
 import java.util.Date
 import java.sql.Types
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import java.sql.Connection
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 
 object mySqlDialect extends SqlIdiom {
 
-	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue) = {
+	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection) = {
 		storageValue match {
 			case value: DateStorageValue =>
 				DateStorageValue(getValue(resultSet, resultSet.getLong(i)).map((t: Long) => new Date(t)))
 			case other =>
-				super.getValue(resultSet, i, storageValue)
+				super.getValue(resultSet, i, storageValue, connection)
 		}
 	}
 
@@ -83,6 +86,13 @@ object mySqlDialect extends SqlIdiom {
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
+			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+					toSqlDdl(valueColumn) +
+					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +

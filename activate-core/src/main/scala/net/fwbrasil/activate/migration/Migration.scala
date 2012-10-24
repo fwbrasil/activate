@@ -195,8 +195,10 @@ abstract class Migration(implicit val context: ActivateContext) {
 				&& ActivateContext.contextFor(e.entityClass) == context)
 
 	def createTableForAllEntities =
-		new IfNotExistsBag[CreateTable] {
+		new {
 			val actions = entitiesMetadatas.map(createTableForEntityMetadata)
+			def ifNotExists =
+				actions.foreach(_.ifNotExists)
 		}
 
 	def createTableForEntity[E <: Entity: Manifest] =
@@ -245,24 +247,40 @@ abstract class Migration(implicit val context: ActivateContext) {
 				case other =>
 					throw other
 			}
-		new IfExistsBag[RemoveTable] with CascadeBag[RemoveTable] {
-			val actions = resolved.map(metadata => table(manifestClass(metadata.entityClass)).removeTable)
-			override def ifExists = {
-				super.ifExists
+		new {
+			val actions = resolved.map(metadata => {
+				val mainTable = table(manifestClass(metadata.entityClass))
+				val lists = metadata.propertiesMetadata.filter(_.propertyType == classOf[List[_]])
+				val removeLists = lists.map(list => mainTable.removeNestedListTable(list.name))
+				removeLists ++ List(mainTable.removeTable)
+			}).flatten
+			def ifExists = {
+				actions.foreach(_.ifExists)
 				this
 			}
-			override def cascade = {
-				super.cascade
+			def cascade = {
+				actions.foreach(_.cascade)
 				this
 			}
 		}
 	}
 
-	private def createTableForEntityMetadata(metadata: EntityMetadata) =
-		table(manifestClass(metadata.entityClass)).createTable(columns =>
-			for (property <- metadata.propertiesMetadata) {
+	private def createTableForEntityMetadata(metadata: EntityMetadata) = {
+		val (normalColumns, listColumns) = metadata.propertiesMetadata.partition(_.propertyType != classOf[List[_]])
+		val ownerTable = table(manifestClass(metadata.entityClass))
+		val mainAction = ownerTable.createTable(columns =>
+			for (property <- normalColumns) {
 				columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
 			})
+		val nestedListsActions = listColumns.map { listColumn =>
+			ownerTable.createNestedListTableOf(listColumn.name)(manifestClass(listColumn.propertyType), listColumn.tval)
+		}
+		new {
+			val actions = List(mainAction) ++ nestedListsActions
+			def ifNotExists =
+				actions.foreach(_.ifNotExists)
+		}
+	}
 
 	private def createInexistentColumnsForEntityMetadata(metadata: EntityMetadata) = {
 		val tableInstance = table(manifestClass(metadata.entityClass))
@@ -332,6 +350,11 @@ abstract class Migration(implicit val context: ActivateContext) {
 			removeReference(columnName, referencedTable.name, constraintName)
 		private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
 			addAction(RemoveReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
+
+		def createNestedListTableOf[T](listName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) =
+			addAction(CreateListTable(Migration.this, nextNumber, name, listName, Column("value", None)))
+		def removeNestedListTable(listName: String) =
+			addAction(RemoveListTable(Migration.this, nextNumber, name, listName))
 	}
 	def table[E <: Entity: Manifest]: Table =
 		table(EntityHelper.getEntityName(erasureOf[E]))

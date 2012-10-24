@@ -1,0 +1,1995 @@
+Listening for transport dt_socket at address: 8000
+[0m[[0minfo[0m] [0mLoading global plugins from /Users/fwbrasil/.sbt/plugins[0m
+[0m[[0minfo[0m] [0mLoading project definition from /Users/fwbrasil/workspace/activate/project[0m
+[0m[[0minfo[0m] [0mCompiling 1 Scala source to /Users/fwbrasil/workspace/activate/project/target/scala-2.9.1/sbt-0.11.2/classes...[0m
+[0m[[0minfo[0m] [0mSet current project to activate (in build file:/Users/fwbrasil/workspace/activate/)[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate/test:test[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate-core/test:test[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate-play/test:test[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate-prevayler/test:test[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate-mongo/test:test[0m
+[0m[[0minfo[0m] [0mNo tests to run for activate-jdbc/test:test[0m
+13:16:45.145 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - Initializing context memoryContext
+13:16:45.246 [specs2.DefaultExecutionStrategy4] DEBUG org.reflections.Reflections - going to scan these urls:
+	file:/Users/fwbrasil/workspace/activate/activate-jdbc/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-prevayler/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-tests/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-core/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-mongo/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-tests/target/scala-2.9.1/test-classes/
+
+13:16:46.428 [specs2.DefaultExecutionStrategy4] INFO  org.reflections.Reflections - Reflections took 1180 ms to scan 6 urls, producing 149 keys and 7382 values 
+13:16:46.987 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context memoryContext
+13:16:47.087 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.prevaylerContext$ - Initializing context prevaylerContext
+13:16:47.088 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context prevaylerContext
+13:16:47.134 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.mongoContext$ - Initializing context mongoContext
+13:16:47.135 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context mongoContext
+13:16:47.161 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.postgresqlContext$ - Initializing context postgresqlContext
+13:16:47.162 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context postgresqlContext
+13:16:47.181 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.mysqlContext$ - Initializing context mysqlContext
+13:16:47.182 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context mysqlContext
+13:16:47.226 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.h2Context$ - Initializing context h2Context
+13:16:47.227 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context h2Context
+13:16:47.712 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.derbyContext$ - Initializing context derbyContext
+13:16:47.713 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context derbyContext
+13:16:49.125 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.hsqldbContext$ - Initializing context hsqldbContext
+13:16:49.125 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context hsqldbContext
+13:16:49.739 [specs2.DefaultExecutionStrategy4] DEBUG org.reflections.Reflections - going to scan these urls:
+	file:/Users/fwbrasil/workspace/activate/activate-jdbc/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-prevayler/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-tests/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-core/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-mongo/target/scala-2.9.1/classes/
+	file:/Users/fwbrasil/workspace/activate/activate-tests/target/scala-2.9.1/test-classes/
+
+13:16:50.437 [specs2.DefaultExecutionStrategy4] INFO  org.reflections.Reflections - Reflections took 698 ms to scan 6 urls, producing 149 keys and 7382 values 
+13:16:50.515 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.oracleContext$ - Initializing context oracleContext
+13:16:50.515 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - Initializing live cache for context oracleContext
+13:16:50.813 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.815 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.821 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.821 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.824 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.824 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.903 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.903 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.907 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.907 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.910 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.910 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.912 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.912 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.914 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.914 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.927 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.927 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.928 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.928 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.929 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.929 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.984 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.984 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:50.987 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:50.987 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.101 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.101 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.107 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.108 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.130 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.130 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.132 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.132 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.311 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.311 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.326 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.326 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.431 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.431 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.439 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.439 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.500 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.500 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.505 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.505 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.576 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.576 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.579 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.579 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.645 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.646 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.648 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.648 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.708 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.709 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.710 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.710 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.749 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.749 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.750 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.750 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:51.752 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:51.752 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntitySerializationSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity should[0m
+[0m[[0minfo[0m] [0m[32m+[0m Serialize using envelope[0m
+[0m[[0minfo[0m] [0m[32m+[0m Serialize not using envelope[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntitySerializationSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 6 seconds, 980 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntitySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity should[0m
+[0m[[0minfo[0m] [0m[32m+[0m be in live cache[0m
+[0m[[0minfo[0m] [0m[32m+[0m return vars fields[0m
+[0m[[0minfo[0m] [0m[32m+[0m return var named[0m
+[0m[[31merror[0m] [0m[31m![0m handle case class copy[0m
+[0m[[31merror[0m] [0m    RequiredTransactionException: null (TransactionManager.scala:36)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager$$anonfun$getRequiredActiveTransaction$1.apply(TransactionManager.scala:36)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager$$anonfun$getRequiredActiveTransaction$1.apply(TransactionManager.scala:36)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.getRequiredActiveTransaction(TransactionManager.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.ref.Ref.getRequiredTransaction(Ref.scala:60)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.ref.Ref.get(Ref.scala:92)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var.net$fwbrasil$activate$entity$Var$$super$get(Var.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var$$anonfun$get$1.apply(Var.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var$$anonfun$get$1.apply(Var.scala:22)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var.doInitialized(Var.scala:52)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var.get(Var.scala:22)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.Var.getValue(Var.scala:30)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTestContext$CaseClassEntity.stringValue(ActivateTestContext.scala:371)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTestContext$CaseClassEntity.equals(ActivateTestContext.scala:370)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.memory.TransientMemoryStorageSet.scala$collection$mutable$SynchronizedSet$$super$$plus$eq(TransientMemoryStorage.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.memory.TransientMemoryStorageSet.$plus$eq(TransientMemoryStorage.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.memory.TransientMemoryStorage$$anonfun$toStorage$2.apply(TransientMemoryStorage.scala:40)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.memory.TransientMemoryStorage$$anonfun$toStorage$2.apply(TransientMemoryStorage.scala:38)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.memory.TransientMemoryStorage.toStorage(TransientMemoryStorage.scala:38)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.DurableContext$$anonfun$makeDurable$1.apply$mcV$sp(DurableContext.scala:86)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.DurableContext$$anonfun$makeDurable$1.apply(DurableContext.scala:84)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.DurableContext$$anonfun$makeDurable$1.apply(DurableContext.scala:84)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.DurableContext$class.runWithCoordinatorIfDefined(DurableContext.scala:69)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.DurableContext$class.makeDurable(DurableContext.scala:83)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.makeDurable(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Transaction.commit(Transaction.scala:208)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Transaction.commit(Transaction.scala:177)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$OneTransaction.finalizeExecution(ActivateTest.scala:97)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:154)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntitySpecs.activateTest(EntitySpecs.scala:9)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntitySpecs$$anonfun$1$$anonfun$apply$57.apply(EntitySpecs.scala:69)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntitySpecs$$anonfun$1$$anonfun$apply$57.apply(EntitySpecs.scala:69)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntitySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 7 seconds, 86 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 1 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mCRUDSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate perssitence framework should[0m
+[0m[[0minfo[0m] [0m  support CRUD[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create and retreive[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, update and retreive[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, update, retreive and delete[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, retreive and delete entity without attribute[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, retreive and delete case class entity[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification CRUDSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 6 seconds, 971 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m5 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQueryCacheSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery cache should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support multiple threads[0m
+[0m[[0minfo[0m] [0m[32m+[0m be consistent with parameters[0m
+[0m[[0minfo[0m] [0m[32m+[0m be consistent with manifests parameters[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification QueryCacheSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 7 seconds, 232 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m3 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntityLazySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mLazy entities should[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load and initialize[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load and initialize by a var[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntityLazySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 98 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m3 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:52.137 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.137 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.142 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.142 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.387 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.387 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.392 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.392 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.394 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.394 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.674 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.674 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.744 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.744 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.746 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.746 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.835 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.835 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.837 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.837 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.838 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.838 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.927 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.927 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.928 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.928 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:52.929 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:52.929 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.084 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.084 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.095 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.095 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.097 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.097 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.178 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.178 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.179 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.179 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.180 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.181 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.397 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.398 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.432 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.433 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.434 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.435 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.476 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.476 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.477 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.477 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.513 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.514 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.542 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.542 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.544 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.544 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.546 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.547 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mMassUpdateSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUpdate framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m update specific entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m normalize update statement from[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MassUpdateSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 1 second, 519 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m5 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:53.663 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.663 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.667 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.667 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.688 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.688 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.700 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.701 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.701 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.702 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.705 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.706 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.761 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.761 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.765 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.765 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.768 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.769 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.770 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.770 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.772 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.772 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.839 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.840 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.858 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.858 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.885 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.886 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.903 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.903 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.914 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.914 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.915 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.915 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:53.916 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:53.916 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mMassUpdateSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUpdate framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m update specific entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m update entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m normalize update statement from[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MassUpdateSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 1 second, 788 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m5 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:54.255 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.256 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:54.256 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.256 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:54.258 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.258 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mCRUDSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate perssitence framework should[0m
+[0m[[0minfo[0m] [0m  support CRUD[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create and retreive[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, update and retreive[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, update, retreive and delete[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, retreive and delete entity without attribute[0m
+[0m[[0minfo[0m] [0m  [32m+[0m create, retreive and delete case class entity[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification CRUDSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 2 seconds, 237 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m5 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntitySerializationSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity should[0m
+[0m[[0minfo[0m] [0m[32m+[0m Serialize using envelope[0m
+[0m[[0minfo[0m] [0m[32m+[0m Serialize not using envelope[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntitySerializationSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 674 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:54.681 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.681 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:54.682 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.682 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:54.711 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.711 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:54.712 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:54.712 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntityValidationPrePostConditionsSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity validation framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support preCondition[0m
+[0m[[0minfo[0m] [0m[32m+[0m support postCondition[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntityValidationPrePostConditionsSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 718 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:55.198 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.199 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.201 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.201 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.203 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.203 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.205 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.206 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.208 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.208 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.210 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.210 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.212 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.212 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.222 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.222 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.375 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.376 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.377 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.378 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.395 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.396 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.399 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.399 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.400 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.400 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.402 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.402 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.408 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.408 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.410 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.410 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.412 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.412 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.416 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.426 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.427 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.427 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.429 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.429 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.828 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.828 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.829 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.829 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.831 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.831 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.833 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.833 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.846 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.846 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.857 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.857 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.858 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.858 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.860 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.860 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.862 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.862 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.863 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.864 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.868 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.869 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.873 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.873 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.875 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.875 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.877 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.882 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.884 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.884 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.887 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.887 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.888 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.888 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.890 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.890 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.892 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.892 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:55.913 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:55.913 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.026 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.026 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.051 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.051 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.052 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.052 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.053 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.053 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.055 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.055 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.060 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.060 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.061 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.061 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.062 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.062 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.063 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.063 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.064 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.064 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.067 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.067 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.068 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.084 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.085 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.085 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.086 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.086 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.115 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.115 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.120 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.120 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.121 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.121 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.122 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.122 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.123 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.124 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.125 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.125 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.243 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.243 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.245 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.246 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.247 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.248 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.249 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.249 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.251 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.251 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.252 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.252 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.254 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.255 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.256 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.257 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.259 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.259 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.261 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.261 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.263 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.263 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.264 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.265 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.267 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.267 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.268 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.269 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.270 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.270 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:56.272 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:56.272 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntityValidationInvariantsSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity validation should[0m
+[0m[[0minfo[0m] [0m[32m+[0m have onCreate and onWrite as default[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onCreate & onWrite[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onCreate[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onWrite[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onRead[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onRead & onCreate[0m
+[0m[[31merror[0m] [0m[31m![0m support onTransactionEnd[0m
+[0m[[31merror[0m] [0m    IllegalStateException: Not the expected cause (EntityValidationInvariantsSpecs.scala:217)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1.mustThrowACause$1(EntityValidationInvariantsSpecs.scala:207)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119$$anonfun$apply$120.apply(EntityValidationInvariantsSpecs.scala:217)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119$$anonfun$apply$120.apply(EntityValidationInvariantsSpecs.scala:213)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.run$1(EntityValidationInvariantsSpecs.scala:48)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.invariantValidationTest(EntityValidationInvariantsSpecs.scala:51)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.activateTest(EntityValidationInvariantsSpecs.scala:30)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntityValidationInvariantsSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 1 second, 863 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m7 examples, 0 failure, 1 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mCollectionUtilSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mCollectionUtil should[0m
+[0m[[0minfo[0m] [0m[32m+[0m combine[0m
+[0m[[0minfo[0m] [0m[32m+[0m tupelize[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification CollectionUtilSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 1 second, 821 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:57.187 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.187 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.362 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.363 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.364 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.365 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.435 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.435 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.500 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.500 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.507 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.509 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.680 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.680 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.811 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.811 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:57.812 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:57.813 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.174 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.174 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.186 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.186 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.285 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.285 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.287 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.287 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.289 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.289 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.291 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.291 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.293 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.293 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.294 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.295 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.296 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.296 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.298 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.298 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.358 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.359 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.361 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.361 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.363 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.363 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.364 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.364 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.366 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.366 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.367 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.367 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.369 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.369 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.370 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.370 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.373 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.373 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.375 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.375 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.377 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.377 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.378 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.378 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.380 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.380 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.381 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.381 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.383 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.383 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.384 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.384 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.425 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.426 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.428 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.441 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.442 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.442 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.443 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.443 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.444 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.444 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.446 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.446 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.447 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.447 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.448 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.449 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.449 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.450 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.451 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.451 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.453 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.453 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.454 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.454 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.455 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.455 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.456 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.456 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.457 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.457 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.460 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.460 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.461 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.461 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.462 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.462 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.463 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.463 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.465 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.465 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.527 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.527 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.530 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.530 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.532 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.532 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.533 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.533 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.535 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.535 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.537 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.537 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.538 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.538 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.539 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.539 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.541 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.541 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.542 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.542 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.545 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.545 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.546 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.546 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.547 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.548 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.549 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.550 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.565 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.566 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.568 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.568 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.569 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.569 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.571 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.571 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.572 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.572 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.574 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.574 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.720 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.721 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.735 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.735 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.737 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.737 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.846 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.846 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.856 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.859 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:58.860 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:58.860 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.480 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.480 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.481 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.482 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.482 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.483 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.537 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.537 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.539 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.539 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.540 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.540 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.562 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.562 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.563 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.563 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.564 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.564 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.609 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.609 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.612 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.612 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.613 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.613 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.661 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.661 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.665 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.666 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.667 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.667 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mMassDeleteSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUpdate framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m normalize delete statement from[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MassDeleteSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 4 seconds, 764 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m7 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:59.796 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.796 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.797 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.798 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.799 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.799 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.808 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.808 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.809 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.809 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.811 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.811 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.814 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.814 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.815 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.815 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.816 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.816 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.819 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.819 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.821 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.821 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.822 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.822 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntityValidationInvariantsSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity validation should[0m
+[0m[[0minfo[0m] [0m[32m+[0m have onCreate and onWrite as default[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onCreate & onWrite[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onCreate[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onWrite[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onRead[0m
+[0m[[0minfo[0m] [0m[32m+[0m support onRead & onCreate[0m
+[0m[[31merror[0m] [0m[31m![0m support onTransactionEnd[0m
+[0m[[31merror[0m] [0m    IllegalStateException: Not the expected cause (EntityValidationInvariantsSpecs.scala:217)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1.mustThrowACause$1(EntityValidationInvariantsSpecs.scala:207)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119$$anonfun$apply$120.apply(EntityValidationInvariantsSpecs.scala:217)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119$$anonfun$apply$120.apply(EntityValidationInvariantsSpecs.scala:213)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.run$1(EntityValidationInvariantsSpecs.scala:48)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.invariantValidationTest(EntityValidationInvariantsSpecs.scala:51)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118$$anonfun$apply$119.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs.activateTest(EntityValidationInvariantsSpecs.scala:30)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.entity.EntityValidationInvariantsSpecs$$anonfun$1$$anonfun$apply$118.apply(EntityValidationInvariantsSpecs.scala:212)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntityValidationInvariantsSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 3 seconds, 394 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m7 examples, 0 failure, 1 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mConcurrencySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate should[0m
+[0m[[0minfo[0m] [0m  be consistent[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent creation[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent initialization[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent modification[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent initialization and modification[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification ConcurrencySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 3 seconds, 353 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:16:59.958 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.959 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.960 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.960 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:16:59.965 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:16:59.966 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mMigrationSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mMigration should[0m
+[0m[[0minfo[0m] [0m  CreateTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createTableForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createTableForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.createTable[Entity][0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.createTable(name: String)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RenameTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.renameTable[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m removeAllEntitiesTables[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeTable[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createInexistentColumnsForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createInexistentColumnsForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addColumns[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RenameColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.renameColumn[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeColumns[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddIndex[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addIndexes[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveIndex[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeIndexes[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddReference[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createReferencesForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createReferencesForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addReferences[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveReference[0m
+[0m[[0minfo[0m] [0m  [32m+[0m removeReferencesForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeReferences[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m[32m+[0m CustomScript[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MigrationSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 7 seconds, 669 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m20 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:00.048 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.048 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.051 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.052 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.052 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.053 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.061 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.062 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.063 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.063 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.064 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.064 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.076 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.076 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.077 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.077 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.078 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.078 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.118 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.119 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.128 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.128 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.129 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.129 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.191 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.191 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.210 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.210 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.211 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.211 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntityLazySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mLazy entities should[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load and initialize[0m
+[0m[[0minfo[0m] [0m[32m+[0m lazy load and initialize by a var[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntityLazySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 310 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m3 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:00.266 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.266 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.269 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.269 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.270 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.270 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mMassDeleteSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUpdate framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entities in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m delete specific entities partially in memory[0m
+[0m[[0minfo[0m] [0m[32m+[0m normalize delete statement from[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MassDeleteSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 409 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m7 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mCollectionUtilSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mCollectionUtil should[0m
+[0m[[0minfo[0m] [0m[32m+[0m combine[0m
+[0m[[0minfo[0m] [0m[32m+[0m tupelize[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification CollectionUtilSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 297 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:00.499 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.500 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.501 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.501 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.677 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.677 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:00.690 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:00.690 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:01.968 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:01.968 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.417 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.417 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.520 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.520 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.542 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.542 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.670 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.670 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.672 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.672 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.733 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.734 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.736 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.736 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.755 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.755 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.756 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.756 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.783 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.783 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.785 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.785 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.785 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.785 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.786 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.786 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.797 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.797 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.798 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.798 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.812 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.812 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.813 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.813 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.829 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.829 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.830 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.830 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.831 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.831 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.833 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.833 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.892 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.892 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.894 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.894 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.913 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.913 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.914 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.914 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.956 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.956 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:02.969 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:02.969 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:03.866 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:03.866 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.279 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.280 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.333 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.333 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.359 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.359 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.388 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.388 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.391 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.391 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.408 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.408 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.410 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.410 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.420 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.420 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.422 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.422 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.505 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.505 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.507 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.507 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.509 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.509 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.569 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.569 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.573 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.573 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.582 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.582 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.583 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.583 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.659 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.659 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.662 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.663 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.736 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.736 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.738 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.738 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.774 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.774 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.785 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.785 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.838 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.839 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.839 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.840 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.840 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.840 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.841 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.841 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.842 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.842 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.842 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.842 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.843 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.843 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.843 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.843 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.844 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.844 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.844 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.844 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.845 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.845 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.845 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.845 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.846 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.846 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.846 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.846 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.847 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.847 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.847 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.847 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.848 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.848 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.848 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.848 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.849 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.849 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.849 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.849 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.850 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.850 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.850 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.850 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.851 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.851 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.852 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.852 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.852 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.852 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.853 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.854 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.854 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.855 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.855 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.855 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.855 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.856 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.856 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.857 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.857 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.891 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.891 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.892 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.892 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.893 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.894 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.894 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.894 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.895 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.895 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.896 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.896 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.897 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.897 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.897 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.897 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.898 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.898 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.899 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.899 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.900 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.900 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.900 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.900 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.901 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.901 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.902 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.902 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.902 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.902 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.903 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.903 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.904 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.904 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.926 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.926 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.938 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.938 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.940 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.940 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.974 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.974 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.975 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.975 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.976 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.977 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.977 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.977 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.979 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.979 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.979 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.979 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.996 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.996 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.997 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.997 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.998 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.998 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:04.998 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:04.998 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.008 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.008 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.008 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.008 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.009 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.010 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.010 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.010 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.011 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.011 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.012 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.012 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.013 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.013 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.051 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.051 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.054 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.054 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.062 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.062 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.063 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.063 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.084 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.084 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.087 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.087 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.124 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.124 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.126 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.126 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.208 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.209 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.218 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.218 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.247 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.247 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.247 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.248 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.248 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.248 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.249 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.249 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.249 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.249 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.250 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.250 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.251 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.251 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.251 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.251 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.252 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.252 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.252 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.252 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.253 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.253 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.253 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.253 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.254 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.254 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.254 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.254 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.255 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.255 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.255 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.255 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.256 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.256 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.256 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.256 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.257 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.257 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.258 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.258 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.259 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.259 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.259 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.259 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.260 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.260 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.261 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.261 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.262 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.262 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.262 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.262 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.263 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.263 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.264 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.264 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.265 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.265 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.265 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.265 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.266 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.266 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.266 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.267 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.267 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.267 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.312 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.312 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.321 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.321 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.346 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.346 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.349 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.350 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.370 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.370 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.371 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.371 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.380 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.380 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.381 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.381 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.408 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.409 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.410 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.411 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mQuerySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support byId[0m
+[0m[[0minfo[0m] [0m[32m+[0m support all[0m
+[0m[[0minfo[0m] [0m[32m+[0m support allWhere[0m
+[0m[[0minfo[0m] [0m[32m+[0m support simple query[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with or[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with and[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with > and <[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with >= and <=[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with abstract entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with nested property[0m
+[0m[[0minfo[0m] [0m[32m+[0m support queries about more than one entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m support like[0m
+[0m[[0minfo[0m] [0m[32m+[0m support regexp[0m
+[0m[[0minfo[0m] [0m[32m+[0m support property path ending with id[0m
+[0m[[0minfo[0m] [0m[32m+[0m support select entity id[0m
+[0m[[0minfo[0m] [0m[32m+[0m not use deleted entities[0m
+[0m[[0minfo[0m] [0m[32m+[0m support count query[0m
+[0m[[0minfo[0m] [0m[32m+[0m select simple values[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query entity hierarchy involving option relation[0m
+[0m[[0minfo[0m] [0m[32m+[0m support select [Entity] where (criteria)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification QuerySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 5 seconds, 410 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m20 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mShortEntityNameSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support entities with short name[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification ShortEntityNameSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 4 seconds, 919 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m1 example, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mRichConstructorSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity constructor should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support var defined in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support val defined in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support val calcultated in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support modified two times in different constructors[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification RichConstructorSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 4 seconds, 891 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:05.522 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.522 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.647 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.647 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.659 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.659 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.661 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.661 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.667 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.668 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.669 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.669 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.676 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.677 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.678 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.678 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.693 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.693 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.697 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.698 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mQuerySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support byId[0m
+[0m[[0minfo[0m] [0m[32m+[0m support all[0m
+[0m[[0minfo[0m] [0m[32m+[0m support allWhere[0m
+[0m[[0minfo[0m] [0m[32m+[0m support simple query[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with or[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with and[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with > and <[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with >= and <=[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with abstract entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query with nested property[0m
+[0m[[0minfo[0m] [0m[32m+[0m support queries about more than one entity[0m
+[0m[[0minfo[0m] [0m[32m+[0m support like[0m
+[0m[[0minfo[0m] [0m[32m+[0m support regexp[0m
+[0m[[0minfo[0m] [0m[32m+[0m support property path ending with id[0m
+[0m[[0minfo[0m] [0m[32m+[0m support select entity id[0m
+[0m[[0minfo[0m] [0m[32m+[0m not use deleted entities[0m
+[0m[[0minfo[0m] [0m[32m+[0m support count query[0m
+[0m[[0minfo[0m] [0m[32m+[0m select simple values[0m
+[0m[[0minfo[0m] [0m[32m+[0m support query entity hierarchy involving option relation[0m
+[0m[[0minfo[0m] [0m[32m+[0m support select [Entity] where (criteria)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification QuerySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 5 seconds, 281 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m20 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:05.771 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.771 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.773 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.773 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.790 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.790 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.793 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.793 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.897 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.897 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.931 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.931 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.944 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.944 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.945 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.945 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.953 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.953 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.954 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.954 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.961 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.962 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.963 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.963 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.978 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.978 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.981 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.981 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.981 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.981 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:05.982 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:05.982 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mRichConstructorSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity constructor should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support var defined in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support val defined in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support val calcultated in constructor[0m
+[0m[[0minfo[0m] [0m[32m+[0m support modified two times in different constructors[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification RichConstructorSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 468 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mIdableSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mAn idable should[0m
+[0m[[0minfo[0m] [0m[32m+[0m have an id[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationTimestamp[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationDate[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationTimestamp equal to creationDate[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification IdableSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 454 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mPaginatedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support paginated queries[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification PaginatedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 549 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m1 example, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+Starting group: 0
+13:17:06.193 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:06.193 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:06.195 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:06.195 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+Ended group: 0(50ms)
+Starting group: 1
+Ended group: 1(6ms)
+Starting group: 2
+Ended group: 2(3ms)
+Starting group: 3
+Ended group: 3(7ms)
+Starting group: 4
+Ended group: 4(2ms)
+Starting group: 5
+Ended group: 5(3ms)
+Starting group: 6
+Ended group: 6(4ms)
+Starting group: 7
+Ended group: 7(3ms)
+13:17:06.257 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+Starting group: 8
+13:17:06.257 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:06.259 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:06.259 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+Ended group: 8(2ms)
+Starting group: 9
+Ended group: 9(3ms)
+Starting group: 10
+Ended group: 10(10ms)
+Starting group: 11
+Ended group: 11(6ms)
+Starting group: 12
+Ended group: 12(5ms)
+Starting group: 13
+13:17:06.285 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:06.286 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+Ended group: 13(4ms)
+Starting group: 14
+Ended group: 14(3ms)
+Starting group: 15
+Ended group: 15(2ms)
+Starting group: 16
+Ended group: 16(3ms)
+Starting group: 17
+Ended group: 17(4ms)
+Starting group: 18
+Ended group: 18(3ms)
+Starting group: 19
+Ended group: 19(2ms)
+13:17:15.626 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:15.626 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:16.840 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:16.840 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:18.216 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:18.216 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.576 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.576 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mOrderedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m perform ordered queries[0m
+[0m[[0minfo[0m] [0m[32m+[0m perform query with empty order by[0m
+[0m[[0minfo[0m] [0m[32m+[0m perform query with multiple order by[0m
+[0m[[0minfo[0m] [0m[32m+[0m perform query with order by null column[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification OrderedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 13 seconds, 826 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUUIDUtilSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUUIDUtil should[0m
+[0m[[0minfo[0m] [0m[32m+[0m generate unique UUIDs[0m
+[0m[[0minfo[0m] [0m[32m+[0m generate unique hascodes from UUIDs[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification UUIDUtilSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 13 seconds, 459 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:19.660 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.661 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.664 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.664 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.678 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.678 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.682 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.682 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mGraphUtilSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mDependencyTree should[0m
+[0m[[0minfo[0m] [0m  resolve[0m
+[0m[[0minfo[0m] [0m  [32m+[0m one root[0m
+[0m[[0minfo[0m] [0m  [32m+[0m many roots[0m
+[0m[[0minfo[0m] [0m  [32m+[0m only one root[0m
+[0m[[0minfo[0m] [0m  [32m+[0m empty tree[0m
+[0m[[0minfo[0m] [0m  [32m+[0m a tree with null node[0m
+[0m[[0minfo[0m] [0m  [32m+[0m a tree with null nodes[0m
+[0m[[0minfo[0m] [0m  [32m+[0m a tree with null root node[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  detect cyclic reference[0m
+[0m[[0minfo[0m] [0m  [32m+[0m with root[0m
+[0m[[0minfo[0m] [0m  [32m+[0m with roots[0m
+[0m[[0minfo[0m] [0m  [32m+[0m without roots[0m
+[0m[[0minfo[0m] [0m  [32m+[0m the event case[0m
+[0m[[0minfo[0m] [0m  [32m+[0m with internal cycle[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification GraphUtilSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 13 seconds, 462 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m12 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:19.856 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.856 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.874 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.874 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mPaginatedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mQuery framework should[0m
+[0m[[0minfo[0m] [0m[32m+[0m support paginated queries[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification PaginatedQuerySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 13 seconds, 762 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m1 example, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:19.894 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.901 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:19.902 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:19.903 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mIdableSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mAn idable should[0m
+[0m[[0minfo[0m] [0m[32m+[0m have an id[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationTimestamp[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationDate[0m
+[0m[[0minfo[0m] [0m[32m+[0m have a creationTimestamp equal to creationDate[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification IdableSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 83 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:20.035 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.036 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.039 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.040 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+Starting group: 0
+13:17:20.168 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.169 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.171 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.171 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.182 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.182 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.182 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.182 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+Ended group: 0(160ms)
+Starting group: 1
+Ended group: 1(1ms)
+Starting group: 2
+Ended group: 2(2ms)
+Starting group: 3
+Ended group: 3(1ms)
+Starting group: 4
+Ended group: 4(1ms)
+Starting group: 5
+Ended group: 5(2ms)
+Starting group: 6
+Ended group: 6(1ms)
+Starting group: 7
+Ended group: 7(2ms)
+Starting group: 8
+Ended group: 8(2ms)
+Starting group: 9
+Ended group: 9(1ms)
+Starting group: 10
+Ended group: 10(2ms)
+Starting group: 11
+Ended group: 11(1ms)
+Starting group: 12
+Ended group: 12(2ms)
+Starting group: 13
+Ended group: 13(4ms)
+Starting group: 14
+Ended group: 14(3ms)
+Starting group: 15
+Ended group: 15(1ms)
+Starting group: 16
+Ended group: 16(1ms)
+Starting group: 17
+Ended group: 17(2ms)
+Starting group: 18
+Ended group: 18(1ms)
+Starting group: 19
+Ended group: 19(1ms)
+[0m[[0minfo[0m] [0mUUIDUtilSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mUUIDUtil should[0m
+[0m[[0minfo[0m] [0m[32m+[0m generate unique UUIDs[0m
+[0m[[0minfo[0m] [0m[32m+[0m generate unique hascodes from UUIDs[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification UUIDUtilSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 298 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m2 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+13:17:20.551 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.552 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.555 [specs2.DefaultExecutionStrategy1] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.555 [specs2.DefaultExecutionStrategy1] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.592 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.592 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.611 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.611 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.612 [specs2.DefaultExecutionStrategy2] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.612 [specs2.DefaultExecutionStrategy2] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.639 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.639 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.789 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.789 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.790 [specs2.DefaultExecutionStrategy4] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.791 [specs2.DefaultExecutionStrategy4] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.839 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.839 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.916 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.917 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.917 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.917 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.938 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.938 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+13:17:20.947 [specs2.DefaultExecutionStrategy3] INFO  net.fwbrasil.activate.memoryContext$ - reinitializing context memoryContext
+13:17:20.948 [specs2.DefaultExecutionStrategy3] INFO  n.f.activate.cache.live.LiveCache - live cache reinitialize
+[0m[[0minfo[0m] [0mEntitySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mEntity should[0m
+[0m[[0minfo[0m] [0m[32m+[0m be in live cache[0m
+[0m[[0minfo[0m] [0m[32m+[0m return vars fields[0m
+[0m[[0minfo[0m] [0m[32m+[0m return var named[0m
+[0m[[0minfo[0m] [0m[32m+[0m handle case class copy[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification EntitySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 1 second, 329 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mStorageDirectAccessSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate should[0m
+[0m[[31merror[0m] [0m[31m![0m provide direct access to the storage[0m
+[0m[[31merror[0m] [0m    IllegalStateException: List hasn't one element. 2 (ctx: memoryContext, mode: MultipleTransactions) (ActivateTest.scala:81)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:81)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:37)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:33)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransaction(TransactionManager.scala:45)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.attemptTransact$1(TransactionManager.scala:76)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransactionWithRetry(TransactionManager.scala:86)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInNewTransactionWithRetry(TransactionManager.scala:58)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Required.execute(Propagation.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:329)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:306)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions$$anonfun$apply$2.apply(ActivateTest.scala:105)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:74)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mList hasn't one element. 2[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:37)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:33)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransaction(TransactionManager.scala:45)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.attemptTransact$1(TransactionManager.scala:76)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransactionWithRetry(TransactionManager.scala:86)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInNewTransactionWithRetry(TransactionManager.scala:58)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Required.execute(Propagation.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:329)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:306)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions$$anonfun$apply$2.apply(ActivateTest.scala:105)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:74)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification StorageDirectAccessSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 965 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m1 example, 0 failure, 1 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mStorageDirectAccessSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate should[0m
+[0m[[31merror[0m] [0m[31m![0m provide direct access to the storage[0m
+[0m[[31merror[0m] [0m    IllegalStateException: List hasn't one element. 2 (ctx: memoryContext, mode: MultipleTransactions) (ActivateTest.scala:81)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:81)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:37)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:33)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransaction(TransactionManager.scala:45)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.attemptTransact$1(TransactionManager.scala:76)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransactionWithRetry(TransactionManager.scala:86)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInNewTransactionWithRetry(TransactionManager.scala:58)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Required.execute(Propagation.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:329)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:306)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions$$anonfun$apply$2.apply(ActivateTest.scala:105)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:74)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mList hasn't one element. 2[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:37)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.util.RichList.onlyOne(RichList.scala:33)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6$$anonfun$apply$7.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5$$anonfun$apply$6.apply(StorageDirectAccessSpecs.scala:35)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransaction(TransactionManager.scala:45)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.attemptTransact$1(TransactionManager.scala:76)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInTransactionWithRetry(TransactionManager.scala:86)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionManager.runInNewTransactionWithRetry(TransactionManager.scala:58)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.Required.execute(Propagation.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:329)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.radon.transaction.TransactionContext$class.transactional(Transaction.scala:306)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.memoryContext$.transactional(ActivateTestContext.scala:85)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions$$anonfun$apply$2.apply(ActivateTest.scala:105)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$StepExecutor$class.execute(ActivateTest.scala:74)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.execute(ActivateTest.scala:102)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$MultipleTransactions.apply(ActivateTest.scala:104)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:32)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4$$anonfun$apply$5.apply(StorageDirectAccessSpecs.scala:26)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:153)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2$$anonfun$apply$5.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:151)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$$anonfun$activateTest$2.apply(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.ActivateTest$class.activateTest(ActivateTest.scala:139)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs.activateTest(StorageDirectAccessSpecs.scala:18)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[31merror[0m] [0mnet.fwbrasil.activate.storage.StorageDirectAccessSpecs$$anonfun$1$$anonfun$apply$4.apply(StorageDirectAccessSpecs.scala:25)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification StorageDirectAccessSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 974 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m1 example, 0 failure, 1 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mConcurrencySpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mActivate should[0m
+[0m[[0minfo[0m] [0m  be consistent[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent creation[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent initialization[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent modification[0m
+[0m[[0minfo[0m] [0m  [32m+[0m concurrent initialization and modification[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification ConcurrencySpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 782 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m4 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mMigrationSpecs[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mMigration should[0m
+[0m[[0minfo[0m] [0m  CreateTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createTableForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createTableForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.createTable[Entity][0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.createTable(name: String)[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RenameTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.renameTable[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveTable[0m
+[0m[[0minfo[0m] [0m  [32m+[0m removeAllEntitiesTables[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeTable[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createInexistentColumnsForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createInexistentColumnsForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addColumns[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RenameColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.renameColumn[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveColumn[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeColumns[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddIndex[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addIndexes[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveIndex[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeIndexes[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  AddReference[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createReferencesForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m createReferencesForEntity[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.addReferences[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m  RemoveReference[0m
+[0m[[0minfo[0m] [0m  [32m+[0m removeReferencesForAllEntities[0m
+[0m[[0minfo[0m] [0m  [32m+[0m Table.removeReferences[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m[32m+[0m CustomScript[0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0m [0m
+[0m[[0minfo[0m] [0mTotal for specification MigrationSpecs[0m
+[0m[[0minfo[0m] [0m[34mFinished in 260 ms[0m[0m
+[0m[[0minfo[0m] [0m[34m20 examples, 0 failure, 0 error[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[31merror[0m] [0mError: Total 204, Failed 0, Errors 5, Passed 199, Skipped 0[0m
+[0m[[31merror[0m] [0mError during tests:[0m
+[0m[[31merror[0m] [0m	net.fwbrasil.activate.entity.EntityValidationInvariantsSpecs[0m
+[0m[[31merror[0m] [0m	net.fwbrasil.activate.storage.StorageDirectAccessSpecs[0m
+[0m[[31merror[0m] [0m	net.fwbrasil.activate.entity.EntitySpecs[0m
+[0m[[31merror[0m] [0m{file:/Users/fwbrasil/workspace/activate/}activate-tests/test:[31mtest[0m: Tests unsuccessful[0m
+[0m[[31merror[0m] [0mTotal time: 40 s, completed 13/10/2012 13:17:21[0m

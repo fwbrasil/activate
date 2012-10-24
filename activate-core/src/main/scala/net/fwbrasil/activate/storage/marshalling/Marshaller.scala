@@ -47,6 +47,8 @@ import net.fwbrasil.activate.migration.Column
 import net.fwbrasil.activate.migration.CustomScriptAction
 import net.fwbrasil.activate.migration.AddReference
 import net.fwbrasil.activate.migration.RemoveReference
+import net.fwbrasil.activate.migration.CreateListTable
+import net.fwbrasil.activate.migration.RemoveListTable
 
 object Marshaller {
 
@@ -142,6 +144,10 @@ object Marshaller {
 		action match {
 			case action: CreateTable =>
 				StorageCreateTable(action.tableName, marshalling(action.columns), action.onlyIfNotExists)
+			case action: CreateListTable =>
+				StorageCreateListTable(action.ownerTableName, action.listName, marshalling(action.valueColumn), action.onlyIfNotExists)
+			case action: RemoveListTable =>
+				StorageRemoveListTable(action.ownerTableName, action.listName, action.onlyIfExists)
 			case action: RenameTable =>
 				StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
 			case action: RemoveTable =>
@@ -170,9 +176,10 @@ object Marshaller {
 }
 
 case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])
-
 sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction
+case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction
+case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends ModifyStorageAction
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction

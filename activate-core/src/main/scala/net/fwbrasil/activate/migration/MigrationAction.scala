@@ -34,7 +34,8 @@ sealed trait StorageAction extends MigrationAction {
 
 case class CreateTable(
 	migration: Migration,
-	number: Int, tableName: String,
+	number: Int,
+	tableName: String,
 	columns: List[Column[_]])
 		extends StorageAction
 		with IfNotExists[CreateTable] {
@@ -46,6 +47,31 @@ case class CreateTable(
 		revertAction
 	}
 }
+
+case class CreateListTable(
+	migration: Migration,
+	number: Int,
+	ownerTableName: String,
+	listName: String,
+	valueColumn: Column[_])
+		extends StorageAction
+		with IfNotExists[CreateListTable] {
+	private[activate] def revertAction =
+		RemoveListTable(migration, number, ownerTableName, listName)
+}
+
+case class RemoveListTable(
+	migration: Migration,
+	number: Int,
+	ownerTableName: String,
+	listName: String)
+		extends StorageAction
+		with IfExists[RemoveListTable]
+		with Cascade {
+	private[activate] def revertAction =
+		throw CannotRevertMigration(this)
+}
+
 case class RenameTable(
 	migration: Migration,
 	number: Int,

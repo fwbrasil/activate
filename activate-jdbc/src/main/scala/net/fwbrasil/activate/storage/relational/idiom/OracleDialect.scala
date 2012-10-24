@@ -26,6 +26,7 @@ import java.sql.PreparedStatement
 import java.sql.Types
 import java.sql.ResultSet
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import java.sql.Connection
 
 object oracleDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -98,13 +99,13 @@ object oracleDialect extends SqlIdiom {
 		}
 	}
 
-	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
+	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
 		storageValue match {
 			case value: StringStorageValue =>
 				val value = getValue(resultSet, resultSet.getString(i)).map(string => if (string == emptyString) "" else string)
 				StringStorageValue(value)
 			case other =>
-				super.getValue(resultSet, i, storageValue)
+				super.getValue(resultSet, i, storageValue, connection)
 		}
 	}
 

@@ -77,6 +77,17 @@ import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import ch.qos.logback.classic.db.names.TableName
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.relational.DmlStorageStatement
+import net.fwbrasil.activate.entity.ListEntityValue
+import java.sql.Connection
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 
 object SqlIdiom {
 	def dialect(name: String) =
@@ -135,7 +146,7 @@ abstract class SqlIdiom {
 			Option(value)
 	}
 
-	def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue = {
+	def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
 		storageValue match {
 			case value: IntStorageValue =>
 				IntStorageValue(getValue(resultSet, resultSet.getInt(i)))
@@ -156,39 +167,93 @@ abstract class SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))
 			case value: ListStorageValue =>
-				ListStorageValue(getValue(resultSet, javaSerializator.fromSerialized[List[StorageValue]](resultSet.getBytes(i))), value.emptyStorageValue)
+				val sql = resultSet.getString(i)
+				val stmt = connection.createStatement
+				val list =
+					try {
+						val res = stmt.executeQuery(sql)
+						try {
+							val list = ListBuffer[StorageValue]()
+							while (res.next())
+								list += getValue(res, 1, value.emptyStorageValue, connection)
+							list.toList
+						} finally
+							res.close
+					} finally
+						stmt.close
+				ListStorageValue(Option(list), value.emptyStorageValue)
 			case value: ReferenceStorageValue =>
 				ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))
 		}
 	}
 
-	def toSqlStatement(statement: StorageStatement): SqlStatement = {
+	private def digestLists(statement: DmlStorageStatement, mainStatementProducer: (Map[String, StorageValue] => SqlStatement)) = {
+		val (normalPropertyMap, listPropertyMap) = statement.propertyMap.partition(tuple => !tuple._2.isInstanceOf[ListStorageValue])
+		val id = statement.propertyMap("id")
+		val mainStatement =
+			mainStatementProducer(normalPropertyMap)
+		val listUpdates =
+			listPropertyMap.map { tuple =>
+				val (name, value) = tuple.asInstanceOf[(String, ListStorageValue)]
+				val listTable = toTableName(statement.entityClass, name.capitalize)
+				val delete =
+					new SqlStatement(
+						"DELETE FROM " + listTable + " WHERE OWNER = :id", Map("id" -> id))
+				val inserts = value.value.map { list =>
+					list.map { elem =>
+						new SqlStatement(
+							"INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ") VALUES (:owner, :value)", Map("owner" -> id, "value" -> elem))
+					}
+				}.flatten
+				List(delete) ++ inserts
+			}.toList.flatten
+		List(mainStatement) ++ listUpdates
+	}
+
+	def toSqlStatement(statement: StorageStatement): List[SqlStatement] =
 		statement match {
 			case insert: InsertDmlStorageStatement =>
-				new SqlStatement(
-					"INSERT INTO " + toTableName(insert.entityClass) +
-						" (" + insert.propertyMap.keys.toList.map(escape).mkString(", ") + ") " +
-						" VALUES (:" + insert.propertyMap.keys.mkString(", :") + ")",
-					insert.propertyMap)
-
+				digestLists(insert, propertyMap =>
+					new SqlStatement(
+						"INSERT INTO " + toTableName(insert.entityClass) +
+							" (" + propertyMap.keys.toList.map(escape).mkString(", ") + ") " +
+							" VALUES (:" + propertyMap.keys.mkString(", :") + ")",
+						propertyMap))
 			case update: UpdateDmlStorageStatement =>
-				new SqlStatement(
-					"UPDATE " + toTableName(update.entityClass) +
-						" SET " + (for (key <- update.propertyMap.keys) yield escape(key) + " = :" + key).mkString(", ") +
-						" WHERE ID = :id",
-					update.propertyMap)
-
+				digestLists(update, propertyMap =>
+					new SqlStatement(
+						"UPDATE " + toTableName(update.entityClass) +
+							" SET " + (for (key <- propertyMap.keys) yield escape(key) + " = :" + key).mkString(", ") +
+							" WHERE ID = :id",
+						propertyMap))
 			case delete: DeleteDmlStorageStatement =>
-				new SqlStatement(
+				List(new SqlStatement(
 					"DELETE FROM " + toTableName(delete.entityClass) +
 						" WHERE ID = '" + delete.entityId + "'",
-					delete.propertyMap)
+					delete.propertyMap))
 			case ddl: DdlStorageStatement =>
-				toSqlDdl(ddl)
+				//				val actions = ddl.action match {
+				//					case action: StorageCreateTable =>
+				//						val (normalColumns, listColumns) = action.columns.partition(!_.storageValue.isInstanceOf[ListStorageValue])
+				//						val mainTableAction = StorageCreateTable(action.tableName, normalColumns, action.ifNotExists)
+				//						val listTablesActions = listColumns.map { listColumn =>
+				//							val name = action.tableName + listColumn.name.capitalize
+				//							val elementStorageValue = listColumn.storageValue.asInstanceOf[ListStorageValue].emptyStorageValue
+				//							val valueColumn = StorageColumn("VALUE", elementStorageValue, None)
+				//							StorageCreateListTable(name, action.tableName, valueColumn, action.ifNotExists)
+				//						}
+				//						List(mainTableAction) ++ listTablesActions
+				//					case action: StorageRemoveTable =>
+				//						
+				//						List(action)
+				//					case action =>
+				//						List(action)
+				//				}
+				//				actions.map(toSqlDdlAction)
+				List(toSqlDdlAction(ddl.action))
 			case modify: ModifyStorageStatement =>
-				toSqlModify(modify)
+				List(toSqlModify(modify))
 		}
-	}
 
 	def toSqlDdl(storageValue: StorageValue): String
 
@@ -265,7 +330,14 @@ abstract class SqlIdiom {
 			case value: StatementEntityInstanceValue[_] =>
 				bind(StringStorageValue(Option(value.entityId)))
 			case value: StatementEntitySourcePropertyValue[v] =>
-				value.entitySource.name + "." + escape(value.propertyPathNames.mkString("."))
+				val propertyName = value.propertyPathNames.mkString(".")
+				value.entityValue match {
+					case entityValue: ListEntityValue[_] =>
+						val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
+						"CONCAT('SELECT VALUE FROM " + listTableName + " WHERE OWNER = ''', " + value.entitySource.name + ".id, '''')"
+					case other =>
+						value.entitySource.name + "." + escape(propertyName)
+				}
 			case value: StatementEntitySourceValue[v] =>
 				value.entitySource.name + ".id"
 		}
@@ -322,13 +394,21 @@ abstract class SqlIdiom {
 			":" + name
 		}
 
-	def toTableName(entityClass: Class[_]): String =
-		escape(EntityHelper.getEntityName(entityClass))
+	def toTableName(entityClass: Class[_], suffix: String = ""): String =
+		escape(EntityHelper.getEntityName(entityClass) + suffix)
 
-	def toSqlDdl(statement: ModifyStorageAction): String
+	def toSqlDdl(action: ModifyStorageAction): String
 
-	def toSqlDdl(statement: DdlStorageStatement): SqlStatement =
-		statement.action match {
+	def toSqlDdlAction(action: ModifyStorageAction): SqlStatement =
+		action match {
+			case action: StorageCreateListTable =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findTableStatement(escape(action.ownerTableName + action.listName.capitalize)), action.ifNotExists))
+			case action: StorageRemoveListTable =>
+				new SqlStatement(
+					toSqlDdl(action),
+					ifNotExistsRestriction(findTableStatement(escape(action.ownerTableName + action.listName.capitalize)), action.ifExists))
 			case action: StorageCreateTable =>
 				new SqlStatement(
 					toSqlDdl(action),

@@ -31,6 +31,10 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 			connection.commit
 			res
 		} catch {
+			case e: BatchUpdateException =>
+				e.getNextException().printStackTrace()
+				connection.rollback
+				throw e
 			case e =>
 				connection.rollback
 				throw e
@@ -49,7 +53,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	override protected[activate] def executeStatements(storageStatements: List[StorageStatement]) = {
 		val sqlStatements =
-			storageStatements.map(dialect.toSqlStatement)
+			storageStatements.map(dialect.toSqlStatement).flatten
 		val batchStatements =
 			BatchSqlStatement.group(sqlStatements)
 		executeWithTransaction {
@@ -102,7 +106,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 							result ::=
 								(for (expectedType <- expectedTypes) yield {
 									i += 1
-									dialect.getValue(resultSet, i, expectedType)
+									dialect.getValue(resultSet, i, expectedType, connection)
 								})
 						}
 						result
