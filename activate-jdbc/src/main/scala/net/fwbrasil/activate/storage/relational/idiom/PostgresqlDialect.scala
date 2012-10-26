@@ -24,6 +24,7 @@ import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 
 object postgresqlDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -61,9 +62,11 @@ object postgresqlDialect extends SqlIdiom {
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
-			case StorageCreateListTable(tableName, ownerTableName, valueColumn, ifNotExists) =>
-				"CREATE TABLE " + escape(tableName) + "(\n" +
-					escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + ownerTableName + "(ID),\n" +
+			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
 					toSqlDdl(valueColumn) +
 					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
@@ -92,6 +95,9 @@ object postgresqlDialect extends SqlIdiom {
 		}
 	}
 
+	def concat(strings: String*) =
+		"CONCAT(" + strings.mkString(", ") + ")"
+
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
@@ -111,7 +117,7 @@ object postgresqlDialect extends SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
 			case value: ListStorageValue =>
-				"BYTEA"
+				"VARCHAR(1)"
 			case value: ByteArrayStorageValue =>
 				"BYTEA"
 			case value: ReferenceStorageValue =>

@@ -29,6 +29,8 @@ import net.fwbrasil.activate.storage.marshalling.Marshaller
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import java.sql.SQLException
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 
 object derbyRegex {
 	def regexp(src: String, pattern: String) = {
@@ -102,6 +104,13 @@ object derbyDialect extends SqlIdiom {
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
+			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+					toSqlDdl(valueColumn) +
+					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
@@ -128,6 +137,9 @@ object derbyDialect extends SqlIdiom {
 		}
 	}
 
+	def concat(strings: String*) =
+		strings.mkString(" || ")
+
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
@@ -149,7 +161,7 @@ object derbyDialect extends SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				"LONG VARCHAR FOR BIT DATA"
 			case value: ListStorageValue =>
-				"LONG VARCHAR FOR BIT DATA"
+				"VARCHAR(1)"
 			case value: ReferenceStorageValue =>
 				"VARCHAR(45)"
 		}

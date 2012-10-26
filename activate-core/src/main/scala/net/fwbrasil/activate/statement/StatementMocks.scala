@@ -50,7 +50,7 @@ object StatementMocks {
 			(if (name == "id")
 				EntityValue.tvalFunction[P](classOf[String], classOf[Object])
 			else
-				EntityHelper.getEntityMetadata(fakeOuterEntityClass).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[P] => EntityValue[P]])(None)
+				EntityHelper.getEntityMetadata(EntityHelper.concreteClasses(fakeOuterEntityClass.asInstanceOf[Class[Entity]]).head).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[P] => EntityValue[P]])(None)
 		(EntityValue.tvalFunction(fakeValueClass, classOf[Object]))(None).asInstanceOf[EntityValue[P]]
 		var fakeValueClass: Class[_] = _
 		var originVar: FakeVar[_] = _

@@ -119,6 +119,9 @@ object mySqlDialect extends SqlIdiom {
 		}
 	}
 
+	def concat(strings: String*) =
+		"CONCAT(" + strings.mkString(", ") + ")"
+
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
@@ -138,7 +141,7 @@ object mySqlDialect extends SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
 			case value: ListStorageValue =>
-				"BLOB"
+				"INTEGER"
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>

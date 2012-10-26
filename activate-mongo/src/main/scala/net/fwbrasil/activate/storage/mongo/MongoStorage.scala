@@ -1,62 +1,61 @@
 package net.fwbrasil.activate.storage.mongo
 
-import net.fwbrasil.activate.storage.marshalling._
-import com.mongodb.Mongo
+import java.util.Date
+import java.util.IdentityHashMap
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+
+import com.mongodb.BasicDBList
+import com.mongodb.BasicDBObject
 import com.mongodb.DB
 import com.mongodb.DBCollection
-import com.mongodb.BasicDBObject
-import com.mongodb.BasicDBList
-import com.mongodb.DBObject
 import com.mongodb.DBCursor
-import net.fwbrasil.activate.storage.Storage
-import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.storage.marshalling.StorageValue
+import com.mongodb.DBObject
+import com.mongodb.Mongo
+
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper.getEntityName
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.util.RichList._
-import net.fwbrasil.activate.util.Reflection.toNiceObject
-import scala.collection.JavaConversions._
-import java.util.Date
-import net.fwbrasil.activate.entity._
-import java.util.regex.Pattern
-import net.fwbrasil.activate.migration.AddReference
-import net.fwbrasil.activate.migration.RemoveReference
-import net.fwbrasil.activate.storage.StorageFactory
-import net.fwbrasil.activate.statement.IsLessThan
-import net.fwbrasil.activate.statement.CompositeOperator
-import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
-import net.fwbrasil.activate.statement.StatementEntitySourceValue
-import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
-import net.fwbrasil.activate.statement.StatementEntityInstanceValue
-import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.statement.And
 import net.fwbrasil.activate.statement.BooleanOperatorCriteria
-import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.statement.CompositeOperator
 import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
+import net.fwbrasil.activate.statement.IsGreaterThan
 import net.fwbrasil.activate.statement.IsLessOrEqualTo
+import net.fwbrasil.activate.statement.IsLessThan
 import net.fwbrasil.activate.statement.IsNotNull
 import net.fwbrasil.activate.statement.IsNull
-import net.fwbrasil.activate.statement.IsGreaterThan
-import net.fwbrasil.activate.statement.SimpleOperatorCriteria
-import net.fwbrasil.activate.statement.And
-import net.fwbrasil.activate.statement.Or
 import net.fwbrasil.activate.statement.Matcher
-import net.fwbrasil.activate.statement.StatementBooleanValue
-import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.Or
+import net.fwbrasil.activate.statement.SimpleOperatorCriteria
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
-import net.fwbrasil.activate.statement.StatementSelectValue
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import net.fwbrasil.activate.statement.Where
-import net.fwbrasil.activate.statement.From
-import net.fwbrasil.activate.statement.mass.MassUpdateStatement
-import net.fwbrasil.activate.statement.mass.MassDeleteStatement
-import scala.collection.mutable.ListBuffer
-import java.util.IdentityHashMap
 import net.fwbrasil.activate.statement.SimpleValue
-import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.statement.StatementBooleanValue
+import net.fwbrasil.activate.statement.StatementEntityInstanceValue
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.StatementValue
+import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.mass.MassUpdateStatement
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.storage.marshalling._
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.RichList._
 
 trait MongoStorage extends MarshalStorage[DB] {
 
@@ -387,6 +386,10 @@ trait MongoStorage extends MarshalStorage[DB] {
 			case action: StorageAddReference =>
 			// Do nothing!
 			case action: StorageRemoveReference =>
+			// Do nothing!
+			case action: StorageCreateListTable =>
+			// Do nothing!
+			case action: StorageRemoveListTable =>
 			// Do nothing!
 		}
 

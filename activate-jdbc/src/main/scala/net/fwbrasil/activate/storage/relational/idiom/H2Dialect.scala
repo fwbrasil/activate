@@ -23,6 +23,8 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 
 object h2Dialect extends SqlIdiom {
 
@@ -61,6 +63,13 @@ object h2Dialect extends SqlIdiom {
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
+			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+					toSqlDdl(valueColumn) +
+					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
@@ -87,6 +96,9 @@ object h2Dialect extends SqlIdiom {
 		}
 	}
 
+	def concat(strings: String*) =
+		"CONCAT(" + strings.mkString(", ") + ")"
+
 	override def toSqlDdl(storageValue: StorageValue): String =
 		storageValue match {
 			case value: IntStorageValue =>
@@ -108,7 +120,7 @@ object h2Dialect extends SqlIdiom {
 			case value: ByteArrayStorageValue =>
 				"BYTEA"
 			case value: ListStorageValue =>
-				"BYTEA"
+				"INTEGER"
 			case value: ReferenceStorageValue =>
 				"VARCHAR(45)"
 		}

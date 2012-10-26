@@ -69,7 +69,7 @@ object Migration {
 
 	def revertTo(context: ActivateContext, timestamp: Long): Unit =
 		context.synchronized {
-			execute(context, actionsOnInterval(context, (timestamp, Int.MaxValue), storageVersionTuple(context), true).reverse, true)
+			execute(context, actionsOnInterval(context, (timestamp, Int.MaxValue), storageVersionTuple(context), true), true)
 		}
 
 	private def migrations(context: ActivateContext) =
@@ -195,11 +195,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 				&& ActivateContext.contextFor(e.entityClass) == context)
 
 	def createTableForAllEntities =
-		new {
-			val actions = entitiesMetadatas.map(createTableForEntityMetadata)
-			def ifNotExists =
-				actions.foreach(_.ifNotExists)
-		}
+		IfNotExistsBag(entitiesMetadatas.map(createTableForEntityMetadata))
 
 	def createTableForEntity[E <: Entity: Manifest] =
 		createTableForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
@@ -210,23 +206,14 @@ abstract class Migration(implicit val context: ActivateContext) {
 	def createInexistentColumnsForEntity[E <: Entity: Manifest] =
 		createInexistentColumnsForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
 
-	def createReferencesForAllEntities = new {
-		val actions = entitiesMetadatas.map(createReferencesForEntityMetadata).flatten
-		def ifNotExists =
-			actions.foreach(_.ifNotExists)
-	}
+	def createReferencesForAllEntities =
+		IfNotExistsBag(entitiesMetadatas.map(createReferencesForEntityMetadata).flatten)
 
-	def removeReferencesForAllEntities = new {
-		val actions = entitiesMetadatas.map(removeReferencesForEntityMetadata).flatten
-		def ifExists =
-			actions.foreach(_.ifExists)
-	}
+	def removeReferencesForAllEntities =
+		IfExistsBag(entitiesMetadatas.map(removeReferencesForEntityMetadata).flatten)
 
-	def createReferencesForEntity[E <: Entity: Manifest] = new {
-		val actions = createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
-		def ifNotExists =
-			actions.foreach(_.ifNotExists)
-	}
+	def createReferencesForEntity[E <: Entity: Manifest] =
+		IfNotExistsBag(createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E])))
 
 	def removeAllEntitiesTables = {
 		val metadatas = entitiesMetadatas
@@ -247,22 +234,13 @@ abstract class Migration(implicit val context: ActivateContext) {
 				case other =>
 					throw other
 			}
-		new {
-			val actions = resolved.map(metadata => {
-				val mainTable = table(manifestClass(metadata.entityClass))
-				val lists = metadata.propertiesMetadata.filter(_.propertyType == classOf[List[_]])
-				val removeLists = lists.map(list => mainTable.removeNestedListTable(list.name))
-				removeLists ++ List(mainTable.removeTable)
-			}).flatten
-			def ifExists = {
-				actions.foreach(_.ifExists)
-				this
-			}
-			def cascade = {
-				actions.foreach(_.cascade)
-				this
-			}
-		}
+		val actionList = resolved.map(metadata => {
+			val mainTable = table(manifestClass(metadata.entityClass))
+			val lists = metadata.propertiesMetadata.filter(_.propertyType == classOf[List[_]])
+			val removeLists = lists.map(list => mainTable.removeNestedListTable(list.name))
+			removeLists ++ List(mainTable.removeTable)
+		}).flatten
+		IfExistsWithCascadeBag(actionList)
 	}
 
 	private def createTableForEntityMetadata(metadata: EntityMetadata) = {
@@ -275,11 +253,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 		val nestedListsActions = listColumns.map { listColumn =>
 			ownerTable.createNestedListTableOf(listColumn.name)(manifestClass(listColumn.propertyType), listColumn.tval)
 		}
-		new {
-			val actions = List(mainAction) ++ nestedListsActions
-			def ifNotExists =
-				actions.foreach(_.ifNotExists)
-		}
+		IfNotExistsBag(List(mainAction) ++ nestedListsActions)
 	}
 
 	private def createInexistentColumnsForEntityMetadata(metadata: EntityMetadata) = {
@@ -351,8 +325,11 @@ abstract class Migration(implicit val context: ActivateContext) {
 		private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
 			addAction(RemoveReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
 
-		def createNestedListTableOf[T](listName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) =
-			addAction(CreateListTable(Migration.this, nextNumber, name, listName, Column("value", None)))
+		def createNestedListTableOf[T](listName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
+			val addColumnAction = addColumn(_.column[List[T]](listName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
+			val addTableAction = addAction(CreateListTable(Migration.this, nextNumber, name, listName, Column("value", None)))
+			IfNotExistsBag(List(addColumnAction, addTableAction))
+		}
 		def removeNestedListTable(listName: String) =
 			addAction(RemoveListTable(Migration.this, nextNumber, name, listName))
 	}
@@ -366,7 +343,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 	def down: Unit = {
 		val revertActions = upActions.map(_.revertAction)
 		_actions = List[MigrationAction]()
-		revertActions.foreach(addAction(_))
+		revertActions.reverse.foreach(addAction(_))
 	}
 
 	override def toString =

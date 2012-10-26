@@ -182,7 +182,7 @@ trait ValueContext {
 		toByteArrayEntityValueOption(Option(value))
 	implicit def toEntityInstanceEntityValue[E <: Entity: Manifest](value: E) =
 		toEntityInstanceEntityValueOption(Option(value))
-	implicit def toListEntityValue[V](value: List[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
+	def toListEntityValue[V](value: List[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
 		toListEntityValueOption(Option(value))
 	implicit def toSerializableEntityValue[S <: Serializable: Manifest](value: S): SerializableEntityValue[S] =
 		toSerializableEntityValueOption(Option(value))
@@ -215,7 +215,7 @@ trait ValueContext {
 		ByteArrayEntityValue(value)
 	implicit def toEntityInstanceEntityValueOption[E <: Entity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] =
 		EntityInstanceEntityValue(value)
-	implicit def toListEntityValueOption[V](value: Option[List[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
+	def toListEntityValueOption[V](value: Option[List[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
 		ListEntityValue[V](value)
 	implicit def toSerializableEntityValueOption[S <: Serializable: Manifest](value: Option[S]): SerializableEntityValue[S] =
 		SerializableEntityValue[S](value)

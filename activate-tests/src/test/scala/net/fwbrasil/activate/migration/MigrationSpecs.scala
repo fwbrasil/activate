@@ -479,7 +479,8 @@ class MigrationSpecs extends MigrationTest {
 					override def validateDown = {
 						attributes must beEqualTo(Set("a"))
 					}
-				})
+				}
+			)
 
 		}
 

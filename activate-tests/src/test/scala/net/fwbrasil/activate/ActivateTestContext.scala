@@ -67,7 +67,7 @@ abstract class ActivateTestMigrationCustomColumnType(
 	implicit val ctx: ActivateTestContext)
 		extends Migration {
 
-	val timestamp = ActivateTestMigration.timestamp + 100000
+	val timestamp = ActivateTestMigration.timestamp + 1
 
 	def up = {
 		table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
@@ -93,7 +93,7 @@ object oracleContext extends ActivateTestContext {
 		val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
 		val user = "ACTIVATE_TEST"
 		val password = "ACTIVATE_TEST"
-		val url = "jdbc:oracle:thin:@192.168.1.7:1521:orcl"
+		val url = "jdbc:oracle:thin:@192.168.1.77:1521:orcl"
 		val dialect = oracleDialect
 	}
 }

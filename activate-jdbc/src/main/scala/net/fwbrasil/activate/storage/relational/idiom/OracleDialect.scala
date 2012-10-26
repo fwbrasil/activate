@@ -27,6 +27,8 @@ import java.sql.Types
 import java.sql.ResultSet
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import java.sql.Connection
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 
 object oracleDialect extends SqlIdiom {
 	def toSqlDmlRegexp(value: String, regex: String) =
@@ -62,6 +64,13 @@ object oracleDialect extends SqlIdiom {
 
 	override def toSqlDdl(action: ModifyStorageAction): String = {
 		action match {
+			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+					toSqlDdl(valueColumn) +
+					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +
 					"	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
@@ -87,6 +96,9 @@ object oracleDialect extends SqlIdiom {
 				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
 		}
 	}
+
+	def concat(strings: String*) =
+		strings.mkString(" || ")
 
 	val emptyString = "" + '\u0000'
 
@@ -128,7 +140,7 @@ object oracleDialect extends SqlIdiom {
 			case value: BigDecimalStorageValue =>
 				"DECIMAL"
 			case value: ListStorageValue =>
-				"BLOB"
+				"INTEGER"
 			case value: ByteArrayStorageValue =>
 				"BLOB"
 			case value: ReferenceStorageValue =>

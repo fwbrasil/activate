@@ -12,14 +12,6 @@ trait IfNotExists[T <: IfNotExists[T]] {
 		_ifNotExists
 }
 
-trait IfNotExistsBag[T] {
-	val actions: List[{ def ifNotExists: T }]
-	def ifNotExists = {
-		actions.foreach(_.ifNotExists)
-		this
-	}
-}
-
 trait IfExists[T <: IfExists[T]] {
 	this: T =>
 	// TODO This should be immutable
@@ -32,9 +24,17 @@ trait IfExists[T <: IfExists[T]] {
 		_ifExists
 }
 
-trait IfExistsBag[T] {
-	val actions: List[{ def ifExists: T }]
-	def ifExists = {
+case class IfNotExistsBag(actions: List[IfNotExists[_]]) 
+extends IfNotExists[IfNotExistsBag]{
+	override def ifNotExists = {
+		actions.foreach(_.ifNotExists)
+		this
+	}
+}
+
+case class IfExistsBag(actions: List[IfExists[_]]) 
+extends IfExists[IfExistsBag]{
+	override def ifExists = {
 		actions.foreach(_.ifExists)
 		this
 	}
@@ -51,10 +51,21 @@ trait Cascade {
 		_cascade
 }
 
-trait CascadeBag[T <: Cascade] {
+trait CascadeBag[T <: Cascade] extends Cascade {
 	protected val actions: List[T]
-	def cascade = {
+	override def cascade = {
 		actions.foreach(_.cascade)
 		this
 	}
+}
+
+case class IfExistsWithCascadeBag(actions: List[IfExists[_] with Cascade]) {
+  def ifExists = {
+    actions.foreach(_.ifExists)
+    this
+  }
+  def cascade = {
+    actions.foreach(_.cascade)
+    this
+  }
 }
