@@ -28,6 +28,7 @@ import scala.collection.mutable.{ HashMap => MutableHashMap }
 import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.radon.util.Lockable
 import java.lang.annotation.Annotation
+import net.fwbrasil.activate.ActivateContext
 
 object Reflection {
 
@@ -104,8 +105,8 @@ object Reflection {
 		method.setAccessible(true)
 		method.invoke(obj, params: _*)
 	}
-	
-	private val reflectionsCache = MutableHashMap[Set[Object], Reflections]()
+
+	val reflectionsCache = MutableHashMap[Set[Object], Reflections]()
 
 	private def reflectionsHints(classes: List[Class[_]]) =
 		(classes.map {
@@ -117,18 +118,15 @@ object Reflection {
 		}).toSet
 
 	private def reflectionsFor(hints: Set[Object]) = reflectionsCache.synchronized {
-	  reflectionsCache.getOrElseUpdate(hints, new Reflections(hints.toArray[Object]))
+		reflectionsCache.getOrElseUpdate(hints, new Reflections(hints.toArray[Object]))
 	}
-		
+
 	def getAllImplementorsNames(pointsOfView: List[Class[_]], interfaceClass: Class[_]) = {
 		val hints = reflectionsHints(pointsOfView ++ List(interfaceClass))
 		val reflections = reflectionsFor(hints)
 		val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
 		Set(subtypes: _*).asInstanceOf[Set[String]]
 	}
-
-	def getAllImplementors(pointsOfView: List[Class[_]], interfaceClass: Class[_]) =
-		getAllImplementorsNames(pointsOfView, interfaceClass).map(Class.forName)
 
 	def findObject[R](obj: T forSome { type T <: Any })(f: (Any) => Boolean): Set[R] = {
 		(if (f(obj))

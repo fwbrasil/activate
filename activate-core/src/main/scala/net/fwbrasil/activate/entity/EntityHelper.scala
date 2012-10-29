@@ -31,17 +31,16 @@ object EntityHelper {
 			) yield metadata.entityClass
 		}.toList.asInstanceOf[List[Class[Entity]]])
 
-	def initialize(referenceClass: Class[_]) = synchronized {
-		UUIDUtil.generateUUID
-		for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
-			if (!entityClass.isInterface()) {
-				val entityClassHashId = getEntityClassHashId(entityClass)
-				if (entitiesMetadatas.contains(entityClassHashId))
-					throw new IllegalStateException("Duplicate entity name.")
-				val entityName = getEntityName(entityClass)
-				entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
-			}
-	}
+	def initialize(referenceClass: Class[_]): Unit =
+		synchronized {
+			UUIDUtil.generateUUID
+			for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
+				if (!entityClass.isInterface()) {
+					val entityClassHashId = getEntityClassHashId(entityClass)
+					val entityName = getEntityName(entityClass)
+					entitiesMetadatas += (entityClassHashId -> new EntityMetadata(entityName, entityClass))
+				}
+		}
 
 	def getEntityClassFromIdOption(entityId: String) =
 		if (entityId.length >= 35)

@@ -147,8 +147,8 @@ case class EntityMapping[T <: Entity](
 	def unbind(value: EntityData[T]) = {
 		val data = value.data
 		val res =
-			for ((key, value) <- data)
-				yield properties.find(_.key == key).get.asInstanceOf[Mapping[Any]].unbind(value)
+			(for ((key, value) <- data)
+				yield properties.find(_.key == key).map(_.asInstanceOf[Mapping[Any]].unbind(value))).flatten
 		res.foldLeft(
 			(Map[String, String](), Seq[FormError]()))(
 				(t1, t2) => (t1._1 ++ t2._1, t1._2 ++ t2._2))

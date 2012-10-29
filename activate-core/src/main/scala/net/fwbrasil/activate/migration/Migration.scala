@@ -75,7 +75,8 @@ object Migration {
 	private def migrations(context: ActivateContext) =
 		migrationsCache.getOrElseUpdate(context, {
 			val result =
-				Reflection.getAllImplementors(List(classOf[Migration], context.getClass), classOf[Migration])
+				Reflection.getAllImplementorsNames(List(classOf[Migration], context.getClass), classOf[Migration])
+					.map(name => ActivateContext.classLoaderFor(name).loadClass(name))
 					.filter(e => !Reflection.hasClassAnnotationInHierarchy(e, classOf[ManualMigration]) && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
 					.map(_.newInstance.asInstanceOf[Migration])
 					.toList

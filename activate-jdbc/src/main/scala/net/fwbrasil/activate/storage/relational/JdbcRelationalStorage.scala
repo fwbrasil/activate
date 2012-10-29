@@ -31,10 +31,6 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 			connection.commit
 			res
 		} catch {
-			case e: BatchUpdateException =>
-				e.getNextException().printStackTrace()
-				connection.rollback
-				throw e
 			case e =>
 				connection.rollback
 				throw e

@@ -89,12 +89,15 @@ trait ActivateContext
 
 	def delayedInit(x: => Unit): Unit = {
 		x
+		runStartupMigration
+	}
+
+	private[activate] def runStartupMigration =
 		if (runMigrationAtStartup)
 			if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
 				runMigration
 			else
 				warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
-	}
 
 	protected[activate] def entityMaterialized(entity: Entity) = {}
 
@@ -105,6 +108,14 @@ trait ActivateContext
 object ActivateContext {
 
 	private[activate] var useContextCache = true
+
+	private[activate] var currentClassLoader = this.getClass.getClassLoader
+
+	private[activate] def classLoaderFor(className: String) =
+		if (className.startsWith("net.fwbrasil.activate"))
+			classOf[Entity].getClassLoader()
+		else
+			currentClassLoader
 
 	private[activate] val contextCache =
 		new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]

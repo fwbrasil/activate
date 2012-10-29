@@ -20,8 +20,10 @@ import javassist.CtBehavior
 import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.RichList._
-
 import javassist.CtConstructor
+import java.lang.instrument.ClassFileTransformer
+import java.security.ProtectionDomain
+import javassist.CannotCompileException
 
 object EntityEnhancer extends Logging {
 
@@ -105,26 +107,27 @@ object EntityEnhancer extends Logging {
 			entityClassesNames(referenceClass)
 				.map(enhance(_, classPool)).flatten
 		val resolved = resolveDependencies(enhancedEntityClasses)
-		materializeClasses(resolved, referenceClass)
+		materializeClasses(resolved)
 	}
 
 	private def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] =
 		enhance(classPool.get(clazzName), classPool)
 
-	private def materializeClasses(resolved: List[CtClass], referenceClass: Class[_]) = {
-			def classLoaderFor(clazz: CtClass) =
-				if (clazz.getName.startsWith("net.fwbrasil.activate"))
-					classOf[Entity].getClassLoader()
-				else
-					referenceClass.getClassLoader
-		for (enhancedEntityClass <- resolved) yield enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass)).asInstanceOf[Class[Entity]]
+	private def materializeClasses(resolved: List[CtClass]) = {
+		import ActivateContext.classLoaderFor
+		for (enhancedEntityClass <- resolved) yield try
+			enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName)).asInstanceOf[Class[Entity]]
+		catch {
+			case e: CannotCompileException =>
+				classLoaderFor(enhancedEntityClass.getName).loadClass(enhancedEntityClass.getName).asInstanceOf[Class[Entity]]
+		}
 	}
 
 	private def entityClassesNames(referenceClass: Class[_]) =
 		Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
 
 	private def buildClassPool = {
-		val classPool = ClassPool.getDefault
+		val classPool = new ClassPool(false)
 		classPool.appendClassPath(new ClassClassPath(this.niceClass))
 		classPool
 	}
