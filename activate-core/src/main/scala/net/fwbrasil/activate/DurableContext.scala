@@ -77,8 +77,8 @@ trait DurableContext {
 		val deletedEntities = deletes.map(_._1)
 		val entities = assignmentsEntities ::: deletedEntities
 
-		lazy val reads = entities.map(_.id).toSet
-		lazy val writes = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity) ++ deletedEntities).map(_.id).toSet
+		lazy val writes = entities.map(_.id).toSet
+		lazy val reads = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
 
 		runWithCoordinatorIfDefined(reads, writes) {
 			if (assignments.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {

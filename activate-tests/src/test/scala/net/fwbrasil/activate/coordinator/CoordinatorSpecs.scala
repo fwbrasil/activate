@@ -17,6 +17,8 @@ import scala.actors.remote.RemoteActor._
 class CoordinatorTestContext extends ActivateTestContext {
 
 	System.setProperty("activate.coordinator.server", "true")
+	Coordinator.timeout = 1000
+
 	protected override lazy val coordinatorClientOption =
 		if (storage.isMemoryStorage)
 			None
@@ -48,7 +50,18 @@ object ctx2 extends CoordinatorTestContext
 class CoordinatorSpecs extends ActivateTest {
 
 	"Coordinator" should {
-		"detect concurrent modification" in synchronized {
+		"detect concurrent modification (write)" in synchronized {
+			val (entityCtx1, entityCtx2) = prepareEntity
+			ctx2.run {
+				import ctx2._
+				entityCtx2.intValue = 3
+			}
+			ctx1.run {
+				import ctx1._
+				entityCtx1.intValue
+			} mustEqual 3
+		}
+		"detect concurrent modification (read+write)" in synchronized {
 			val (entityCtx1, entityCtx2) = prepareEntity
 			ctx2.run {
 				import ctx2._
@@ -74,7 +87,7 @@ class CoordinatorSpecs extends ActivateTest {
 				entityCtx1.intValue
 			}) must throwA[IllegalStateException]
 		}
-		"detect concurrent delete (read)" in synchronized {
+		"detect concurrent delete (read/write)" in synchronized {
 			val (entityCtx1, entityCtx2) = prepareEntity
 			ctx2.run {
 				import ctx2._
@@ -85,7 +98,7 @@ class CoordinatorSpecs extends ActivateTest {
 				entityCtx1.intValue += 1
 			}) must throwA[IllegalStateException]
 		}
-		"timeout while connecting to the server" in {
+		"timeout while connecting to the server" in synchronized {
 			val remoteActor = select(Node("199.9.9.9", 9999), Coordinator.actorName)
 			(new CoordinatorClient(ctx2, remoteActor)) must throwA[IllegalStateException]
 		}
