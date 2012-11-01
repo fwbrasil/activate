@@ -13,6 +13,7 @@ import java.lang.reflect.Method
 import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 import java.util.Date
 import org.joda.time.DateTime
+import java.util.{ HashMap => JHashMap }
 
 class InvalidEntityException extends IllegalStateException("Trying to access an invalid entity. " +
 	"It was invalidated by a modification in another application node (vm). " +
@@ -77,17 +78,15 @@ trait Entity extends Serializable with EntityValidation {
 		initialized
 
 	// Cyclic initializing
-	private[activate] def initialize = {
-		//		if (!initialized && id != null) // Performance!
+	private[activate] def initialize =
 		this.synchronized {
-			if (id != null && !initialized && !initializing) {
+			if (!initialized && !initializing && id != null) {
 				initializing = true
 				context.initialize(this)
 				initialized = true
 				initializing = false
 			}
 		}
-	}
 
 	private[activate] def uninitialize =
 		this.synchronized {
@@ -127,10 +126,10 @@ trait Entity extends Serializable with EntityValidation {
 		entityMetadata.varFields
 
 	@transient
-	private var _varFieldsMap: MutableMap[String, Var[Any]] = null
+	private var _varFieldsMap: JHashMap[String, Var[Any]] = null
 
 	private[this] def buildVarFieldsMap = {
-		val res = MutableMap[String, Var[Any]]()
+		val res = new JHashMap[String, Var[Any]]()
 		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]) {
 			if (ref.name == null)
 				throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
@@ -147,8 +146,10 @@ trait Entity extends Serializable with EntityValidation {
 		_varFieldsMap
 	}
 
-	private[activate] def vars =
-		varFieldsMap.values
+	private[activate] def vars = {
+		import scala.collection.JavaConversions._
+		varFieldsMap.values.toList
+	}
 
 	private[activate] def context: ActivateContext =
 		ActivateContext.contextFor(this.niceClass)

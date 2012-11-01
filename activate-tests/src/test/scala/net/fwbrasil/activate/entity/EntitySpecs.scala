@@ -48,18 +48,18 @@ class EntitySpecs extends ActivateTest {
 					}
 					step {
 						for (entity <- all[ActivateTestEntity]) {
-							entity.intValue must beEqualTo(entity.varNamed("intValue").get.unary_!.asInstanceOf[Any])
-							entity.longValue must beEqualTo(entity.varNamed("longValue").get.unary_!.asInstanceOf[Any])
-							entity.booleanValue must beEqualTo(entity.varNamed("booleanValue").get.unary_!.asInstanceOf[Any])
-							entity.charValue must beEqualTo(entity.varNamed("charValue").get.unary_!.asInstanceOf[Any])
-							entity.stringValue must beEqualTo(entity.varNamed("stringValue").get.unary_!.asInstanceOf[Any])
-							entity.floatValue must beEqualTo(entity.varNamed("floatValue").get.unary_!.asInstanceOf[Any])
-							entity.doubleValue must beEqualTo(entity.varNamed("doubleValue").get.unary_!.asInstanceOf[Any])
-							entity.bigDecimalValue must beEqualTo(entity.varNamed("bigDecimalValue").get.unary_!.asInstanceOf[Any])
-							entity.dateValue must beEqualTo(entity.varNamed("dateValue").get.unary_!.asInstanceOf[Any])
-							entity.calendarValue must beEqualTo(entity.varNamed("calendarValue").get.unary_!.asInstanceOf[Any])
-							entity.entityValue must beEqualTo(entity.varNamed("entityValue").get.unary_!.asInstanceOf[Any])
-							entity.enumerationValue must beEqualTo(entity.varNamed("enumerationValue").get.unary_!.asInstanceOf[Any])
+							entity.intValue must beEqualTo(entity.varNamed("intValue").unary_!.asInstanceOf[Any])
+							entity.longValue must beEqualTo(entity.varNamed("longValue").unary_!.asInstanceOf[Any])
+							entity.booleanValue must beEqualTo(entity.varNamed("booleanValue").unary_!.asInstanceOf[Any])
+							entity.charValue must beEqualTo(entity.varNamed("charValue").unary_!.asInstanceOf[Any])
+							entity.stringValue must beEqualTo(entity.varNamed("stringValue").unary_!.asInstanceOf[Any])
+							entity.floatValue must beEqualTo(entity.varNamed("floatValue").unary_!.asInstanceOf[Any])
+							entity.doubleValue must beEqualTo(entity.varNamed("doubleValue").unary_!.asInstanceOf[Any])
+							entity.bigDecimalValue must beEqualTo(entity.varNamed("bigDecimalValue").unary_!.asInstanceOf[Any])
+							entity.dateValue must beEqualTo(entity.varNamed("dateValue").unary_!.asInstanceOf[Any])
+							entity.calendarValue must beEqualTo(entity.varNamed("calendarValue").unary_!.asInstanceOf[Any])
+							entity.entityValue must beEqualTo(entity.varNamed("entityValue").unary_!.asInstanceOf[Any])
+							entity.enumerationValue must beEqualTo(entity.varNamed("enumerationValue").unary_!.asInstanceOf[Any])
 						}
 					}
 				})

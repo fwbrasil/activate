@@ -249,7 +249,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val varNames = vars.map(_.name)
 		if (varNames != List("id")) {
 			val list = produceQuery({ (e: Entity) =>
-				where(e :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name).get)).toList)
+				where(e :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name))).toList)
 			})(manifestClass(entity.niceClass)).execute(true)
 			val row = list.headOption
 			if (row.isDefined) {
@@ -318,7 +318,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				case prop: StatementEntitySourcePropertyValue[_] =>
 					val ref = prop.propertyPathVars.onlyOne("Update statement does not support nested properties")
 					val entity = entitySourceInstancesMap.values.onlyOne("Update statement does not support nested properties")
-					val entityRef = entity.varNamed(ref.name).get
+					val entityRef = entity.varNamed(ref.name)
 					entityRef := valueToSet
 				case other =>
 					throw new IllegalStateException("An update statement should have a entity property in the left side.")
@@ -465,13 +465,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			}
 		}
 
-	def entityProperty[T](entity: Entity, propertyName: String) =
-		(entity.varNamed(propertyName) match {
-			case None =>
-				null
-			case someRef: Some[Var[_]] =>
-				someRef.get.getValue
-		}).asInstanceOf[T]
+	def entityProperty[T](entity: Entity, propertyName: String) = {
+		var ref = entity.varNamed(propertyName)
+		(if (ref == null)
+			null
+		else
+			ref.getValue).asInstanceOf[T]
+	}
 
 	def entitySourceInstancesCombined(isMassModification: Boolean, from: From) =
 		CollectionUtil.combine(entitySourceInstances(isMassModification, from.entitySources: _*))

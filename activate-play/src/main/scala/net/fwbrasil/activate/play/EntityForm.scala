@@ -79,7 +79,7 @@ class EntityData[T <: Entity](val data: List[(String, Any)])(
 		val entity = context.byId(id).get
 		val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
 		for ((property, value) <- data) {
-			val ref = entity.varNamed(property).get
+			val ref = entity.varNamed(property)
 			val propertyMetadata = metadatasMap(property)
 			if (propertyMetadata.isOption)
 				ref.put(value.asInstanceOf[Option[_]])
