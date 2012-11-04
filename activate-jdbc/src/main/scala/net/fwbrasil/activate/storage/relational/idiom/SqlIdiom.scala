@@ -88,20 +88,25 @@ import java.sql.Connection
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.util.Reflection
 
 object SqlIdiom {
+	lazy val dialectsMap = {
+		val dialects =
+			Reflection
+				.getAllImplementorsNames(
+					List(classOf[SqlIdiom]),
+					classOf[SqlIdiom])
+				.map(Class.forName)
+		for (dialect <- dialects)
+			yield (dialect.getSimpleName.split('$').last ->
+			Reflection.getObject[SqlIdiom](dialect))
+	}.toMap
 	def dialect(name: String) =
-		name match {
-			case "oracleDialect" =>
-				oracleDialect
-			case "mySqlDialect" =>
-				mySqlDialect
-			case "postgresqlDialect" =>
-				postgresqlDialect
-		}
+		dialectsMap.getOrElse(name, throw new IllegalArgumentException("Invalid dialect " + name))
 }
 
-abstract class SqlIdiom {
+trait SqlIdiom {
 
 	def prepareDatabase(storage: JdbcRelationalStorage) = {}
 

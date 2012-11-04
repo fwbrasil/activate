@@ -117,9 +117,10 @@ object Reflection {
 					clazz.getPackage.getName
 		}).toSet
 
-	private def reflectionsFor(hints: Set[Object]) = reflectionsCache.synchronized {
-		reflectionsCache.getOrElseUpdate(hints, new Reflections(hints.toArray[Object]))
-	}
+	private def reflectionsFor(hints: Set[Object]) =
+		reflectionsCache.synchronized {
+			reflectionsCache.getOrElseUpdate(hints, new Reflections(hints.toArray[Object]))
+		}
 
 	def getAllImplementorsNames(pointsOfView: List[Class[_]], interfaceClass: Class[_]) = {
 		val hints = reflectionsHints(pointsOfView ++ List(interfaceClass))
