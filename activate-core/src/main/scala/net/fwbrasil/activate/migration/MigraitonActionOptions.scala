@@ -24,16 +24,16 @@ trait IfExists[T <: IfExists[T]] {
 		_ifExists
 }
 
-case class IfNotExistsBag(actions: List[IfNotExists[_]]) 
-extends IfNotExists[IfNotExistsBag]{
+case class IfNotExistsBag(actions: List[IfNotExists[_]])
+		extends IfNotExists[IfNotExistsBag] {
 	override def ifNotExists = {
 		actions.foreach(_.ifNotExists)
 		this
 	}
 }
 
-case class IfExistsBag(actions: List[IfExists[_]]) 
-extends IfExists[IfExistsBag]{
+case class IfExistsBag(actions: List[IfExists[_]])
+		extends IfExists[IfExistsBag] {
 	override def ifExists = {
 		actions.foreach(_.ifExists)
 		this
@@ -59,13 +59,17 @@ trait CascadeBag[T <: Cascade] extends Cascade {
 	}
 }
 
-case class IfExistsWithCascadeBag(actions: List[IfExists[_] with Cascade]) {
-  def ifExists = {
-    actions.foreach(_.ifExists)
-    this
-  }
-  def cascade = {
-    actions.foreach(_.cascade)
-    this
-  }
+case class IfExistsWithCascadeBag(actions: List[IfExists[_]]) {
+	def ifExists = {
+		actions.foreach(_.ifExists)
+		this
+	}
+	def cascade = {
+		actions.foreach(_ match {
+			case e: Cascade =>
+				e.cascade
+			case _ =>
+		})
+		this
+	}
 }

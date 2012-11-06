@@ -252,7 +252,8 @@ abstract class Migration(implicit val context: ActivateContext) {
 				columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
 			})
 		val nestedListsActions = listColumns.map { listColumn =>
-			ownerTable.createNestedListTableOf(listColumn.name)(manifestClass(listColumn.propertyType), listColumn.tval)
+			val tval = EntityValue.tvalFunction(listColumn.genericParameter, classOf[Object])
+			ownerTable.createNestedListTableOf(listColumn.name)(manifestClass(listColumn.genericParameter), tval)
 		}
 		IfNotExistsBag(List(mainAction) ++ nestedListsActions)
 	}
@@ -331,8 +332,11 @@ abstract class Migration(implicit val context: ActivateContext) {
 			val addTableAction = addAction(CreateListTable(Migration.this, nextNumber, name, listName, Column("value", None)))
 			IfNotExistsBag(List(addColumnAction, addTableAction))
 		}
-		def removeNestedListTable(listName: String) =
-			addAction(RemoveListTable(Migration.this, nextNumber, name, listName))
+		def removeNestedListTable(listName: String) = {
+			val removeColumnAction = removeColumn(listName)
+			val removeTableAction = addAction(RemoveListTable(Migration.this, nextNumber, name, listName))
+			IfExistsBag(List(removeColumnAction, removeTableAction))
+		}
 	}
 	def table[E <: Entity: Manifest]: Table =
 		table(EntityHelper.getEntityName(erasureOf[E]))
