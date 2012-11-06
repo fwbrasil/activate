@@ -319,6 +319,7 @@ trait ActivateTestContext
 		entity.caseClassEntityValue = fullCaseClassEntityValue
 		entity.serializableEntityValue = fullSerializableEntityValue
 		entity.listEntityValue = fullListEntityValue
+		entity.unitializedList = List("aaaa", "bbbb")
 		entity
 	}
 
@@ -344,6 +345,7 @@ trait ActivateTestContext
 		entity.caseClassEntityValue = emptyCaseClassEntityValue
 		entity.serializableEntityValue = emptySerializableEntityValue
 		entity.listEntityValue = emptyListEntityValue
+		entity.unitializedList = List()
 		entity
 	}
 
@@ -351,6 +353,8 @@ trait ActivateTestContext
 		setEmptyEntity(newTestEntity())
 	def newFullActivateTestEntity =
 		setFullEntity(newTestEntity())
+
+	class SimpleEntity(var intValue: Int) extends Entity
 
 	trait TraitAttribute extends Entity {
 		def attribute: String
@@ -440,6 +444,7 @@ trait ActivateTestContext
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2
 		var bigStringValue = BigStringGenerator.generated
+		var unitializedList: List[String] = _
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,
