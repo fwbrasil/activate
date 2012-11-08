@@ -33,6 +33,9 @@ trait ActivateContext
 
 	info("Initializing context " + contextName)
 
+	type Migration = net.fwbrasil.activate.migration.Migration
+	type ManualMigration = net.fwbrasil.activate.migration.ManualMigration
+
 	EntityHelper.initialize(this.getClass)
 
 	private[activate] val liveCache = new LiveCache(this)

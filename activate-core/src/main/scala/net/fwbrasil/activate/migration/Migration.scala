@@ -15,7 +15,6 @@ import java.lang.reflect.Modifier
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import scala.annotation.implicitNotFound
-import scala.annotation.implicitNotFound
 
 class StorageVersion(val contextName: String, var lastScript: Long, var lastAction: Int) extends Entity
 
@@ -24,8 +23,7 @@ object Migration {
 	private[activate] val storageVersionCache = MutableMap[String, StorageVersion]()
 
 	private[activate] def storageVersion(ctx: ActivateContext) = {
-		import ctx._
-		class StorageVersionMigration extends ManualMigration {
+		class StorageVersionMigration extends ManualMigration()(ctx) {
 			override val name = "Initial database setup (StorageVersion)"
 			override val developers = List("fwbrasil")
 			def up = {
@@ -36,6 +34,7 @@ object Migration {
 				}
 			}
 		}
+		import ctx._
 		storageVersionCache.getOrElseUpdate(context.name, {
 			this.execute(context, new StorageVersionMigration)
 			transactional {
