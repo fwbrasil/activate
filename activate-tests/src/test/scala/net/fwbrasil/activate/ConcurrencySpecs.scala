@@ -24,7 +24,7 @@ class ConcurrencySpecs extends ActivateTest {
 						import step.ctx._
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 50
+								override lazy val actorsPoolSize = 200
 								inParallelActors {
 									transactional {
 										new TraitAttribute1("1")
@@ -33,7 +33,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[TraitAttribute1].size must beEqualTo(50)
+							all[TraitAttribute1].size must beEqualTo(200)
 							all[TraitAttribute1].map(_.attribute).toSet must beEqualTo(Set("1"))
 						}
 					})
@@ -50,7 +50,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 50
+								override lazy val actorsPoolSize = 200
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -78,7 +78,7 @@ class ConcurrencySpecs extends ActivateTest {
 							val entity = byId[ActivateTestEntity](entityId).get
 							entity.intValue must beEqualTo(0)
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 50
+								override lazy val actorsPoolSize = 200
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -88,7 +88,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(50)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(200)
 						}
 					})
 			}
@@ -104,7 +104,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						step {
 							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 50
+								override lazy val actorsPoolSize = 200
 								inParallelActors {
 									transactional {
 										val entity = byId[ActivateTestEntity](entityId).get
@@ -114,7 +114,7 @@ class ConcurrencySpecs extends ActivateTest {
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(50)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(200)
 						}
 					})
 			}

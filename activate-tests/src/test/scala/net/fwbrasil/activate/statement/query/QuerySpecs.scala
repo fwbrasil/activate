@@ -62,6 +62,7 @@ class QuerySpecs extends ActivateTest {
 							_.entityValue :== fullEntityValue,
 							//							_.enumerationValue :== fullEnumerationValue
 							_.optionValue :== fullOptionValue,
+							_.customNamedValue :== fullStringValue,
 							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
 							_.caseClassEntityValue :== fullCaseClassEntityValue).size must beEqualTo(1)
 
@@ -96,8 +97,8 @@ class QuerySpecs extends ActivateTest {
 						allWhere[ActivateTestEntity](
 							_.entityValue isNull,
 							_.charValue :== 'A' //, 
-							//							_.enumerationValue isNull
-							).headOption must beNone
+						//							_.enumerationValue isNull
+						).headOption must beNone
 					}
 				})
 		}

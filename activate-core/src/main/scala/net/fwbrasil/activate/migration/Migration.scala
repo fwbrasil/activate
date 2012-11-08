@@ -25,9 +25,7 @@ object Migration {
 
 	private[activate] def storageVersion(ctx: ActivateContext) = {
 		import ctx._
-		@ManualMigration
-		class StorageVersionMigration extends Migration {
-			val timestamp = 0l
+		class StorageVersionMigration extends ManualMigration {
 			override val name = "Initial database setup (StorageVersion)"
 			override val developers = List("fwbrasil")
 			def up = {
@@ -39,9 +37,7 @@ object Migration {
 			}
 		}
 		storageVersionCache.getOrElseUpdate(context.name, {
-			val setupActions =
-				(new StorageVersionMigration).upActions
-			setupActions.foreach(Migration.execute(context, _))
+			this.execute(context, new StorageVersionMigration)
 			transactional {
 				allWhere[StorageVersion](_.contextName :== context.name)
 					.headOption
@@ -58,6 +54,18 @@ object Migration {
 	}
 
 	val migrationsCache = MutableMap[ActivateContext, List[Migration]]()
+
+	def execute(context: ActivateContext, manualMigration: ManualMigration): Unit = {
+		val setupActions =
+			manualMigration.upActions
+		setupActions.foreach(execute(context, _))
+	}
+
+	def revert(context: ActivateContext, manualMigration: ManualMigration): Unit = {
+		val setupActions =
+			manualMigration.downActions
+		setupActions.foreach(execute(context, _))
+	}
 
 	def update(context: ActivateContext): Unit =
 		updateTo(context, Long.MaxValue)
@@ -77,7 +85,7 @@ object Migration {
 			val result =
 				Reflection.getAllImplementorsNames(List(classOf[Migration], context.getClass), classOf[Migration])
 					.map(name => ActivateContext.classLoaderFor(name).loadClass(name))
-					.filter(e => !Reflection.hasClassAnnotationInHierarchy(e, classOf[ManualMigration]) && !e.isInterface && !Modifier.isAbstract(e.getModifiers()))
+					.filter(e => !e.isInterface && !Modifier.isAbstract(e.getModifiers()) && !classOf[ManualMigration].isAssignableFrom(e))
 					.map(_.newInstance.asInstanceOf[Migration])
 					.toList
 					.sortBy(_.timestamp)
@@ -136,6 +144,12 @@ object Migration {
 case class Column[T](name: String, specificTypeOption: Option[String])(implicit val m: Manifest[T], val tval: Option[T] => EntityValue[T]) {
 	private[activate] def emptyEntityValue =
 		tval(None)
+}
+
+abstract class ManualMigration(implicit context: ActivateContext) extends Migration {
+	def timestamp = -2l
+	override private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
+		false
 }
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")

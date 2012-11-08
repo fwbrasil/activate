@@ -24,6 +24,7 @@ import javassist.CtConstructor
 import java.lang.instrument.ClassFileTransformer
 import java.security.ProtectionDomain
 import javassist.CannotCompileException
+import javassist.bytecode.AnnotationsAttribute
 
 object EntityEnhancer extends Logging {
 
@@ -161,8 +162,12 @@ object EntityEnhancer extends Logging {
 		val varClazz = classPool.get(varClassName);
 		val name = originalField.getName
 		clazz.removeField(originalField)
-		val enhancedField = new CtField(varClazz, name, clazz);
+		val enhancedField = new CtField(varClazz, name, clazz)
 		enhancedField.setModifiers(originalField.getModifiers)
+		val fieldInfo = originalField.getFieldInfo
+		val originalAttribute = fieldInfo.getAttribute(AnnotationsAttribute.visibleTag).asInstanceOf[AnnotationsAttribute]
+		if (originalAttribute != null)
+			enhancedField.getFieldInfo.addAttribute(originalAttribute.copy(enhancedField.getFieldInfo.getConstPool(), null))
 		clazz.addField(enhancedField)
 		val originalFieldTypeAndOptionFlag =
 			if (originalField.getType.getName != classOf[Option[_]].getName)
@@ -224,7 +229,7 @@ object EntityEnhancer extends Logging {
 						replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
 					} else {
 						val isMutable = !Modifier.isFinal(field.getModifiers)
-						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + isTransient(field) + "," + typ.getName + ".class, \"" + field.getName.split('$').last + "\", this);\n"
+						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + isTransient(field) + "," + typ.getName + ".class, \"" + getFieldName(field) + "\", this);\n"
 					}
 				}
 
@@ -242,6 +247,9 @@ object EntityEnhancer extends Logging {
 			}
 		}
 	}
+
+	private def getFieldName(field: CtField) =
+		Option(field.getAnnotation(classOf[Alias]).asInstanceOf[Alias]).map(_.value).getOrElse(field.getName.split('$').last)
 
 	private def enhanceFieldsAccesses(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Unit = {
 

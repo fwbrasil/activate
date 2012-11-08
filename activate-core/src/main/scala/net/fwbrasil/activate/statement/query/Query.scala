@@ -150,10 +150,9 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 	def byId[T <: Entity: Manifest](id: => String): Option[T] = {
 		val fromLiveCache = liveCache.byId[T](id)
-		if (fromLiveCache.isDefined) {
-			val a = fromLiveCache.filterNot(_.isDeletedSnapshot)
-			a
-		} else allWhere[T](_ :== id).headOption
+		if (fromLiveCache.isDefined)
+			fromLiveCache.filterNot(_.isDeletedSnapshot)
+		else allWhere[T](_ :== id).headOption
 	}
 
 	private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]

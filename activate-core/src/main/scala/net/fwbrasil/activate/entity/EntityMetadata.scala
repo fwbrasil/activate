@@ -13,9 +13,13 @@ class EntityPropertyMetadata(
 		entityClass: Class[Entity],
 		varTypes: Map[String, Class[_]]) {
 	val javaName = varField.getName
-	val name = javaName.split('$').last
+	val originalName = javaName.split('$').last
+	val name =
+		Option(varField.getAnnotation(classOf[Alias]))
+			.map(_.value)
+			.getOrElse(originalName)
 	val propertyType =
-		varTypes.getOrElse(name, null)
+		varTypes.getOrElse(originalName, null)
 	require(propertyType != null)
 	if (propertyType == classOf[Enumeration#Value])
 		throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +

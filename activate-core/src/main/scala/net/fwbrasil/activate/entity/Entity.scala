@@ -216,7 +216,7 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
 trait EntityContext extends ValueContext with TransactionContext {
 
 	type Entity = net.fwbrasil.activate.entity.Entity
-	type EntityName = net.fwbrasil.activate.entity.EntityName
+	type Alias = net.fwbrasil.activate.entity.Alias
 	type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
 	private[activate] val liveCache: LiveCache

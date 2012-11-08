@@ -387,7 +387,7 @@ trait ActivateTestContext
 	class Order(val key: String) extends Entity
 
 	// Short name entity
-	@EntityName("sne")
+	@Alias("sne")
 	class ShortNameEntity(var string: String) extends Entity
 
 	class ActivateTestEntity(
@@ -445,6 +445,8 @@ trait ActivateTestContext
 		val calculatedInConstructor = intValue * 2
 		var bigStringValue = BigStringGenerator.generated
 		var unitializedList: List[String] = _
+		@Alias("customName")
+		var customNamedValue = fullStringValue
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,

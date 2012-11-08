@@ -75,10 +75,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				step
 			} catch {
 				case e: FailureException =>
-					e.printStackTrace
 					throw new IllegalStateException(e.f + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 				case e =>
-					e.printStackTrace
 					throw new IllegalStateException(e.getMessage + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 			}
 		def contextName = ctx.name
@@ -146,6 +144,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 					all[TraitAttribute].foreach(_.delete)
 					all[EntityWithoutAttribute].foreach(_.delete)
 					all[CaseClassEntity].foreach(_.delete)
+					all[SimpleEntity].foreach(_.delete)
 				}
 			try {
 				for (executor <- executors(ctx)) {

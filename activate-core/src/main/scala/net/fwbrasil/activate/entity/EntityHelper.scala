@@ -55,9 +55,9 @@ object EntityHelper {
 		getEntityClassHashId(getEntityName(entityClass))
 
 	def getEntityName(entityClass: Class[_]) = {
-		val annotation = entityClass.getAnnotation(classOf[EntityName])
-		if (annotation != null)
-			annotation.value
+		val alias = entityClass.getAnnotation(classOf[Alias])
+		if (alias != null)
+			alias.value
 		else {
 			entityClass.getSimpleName
 		}

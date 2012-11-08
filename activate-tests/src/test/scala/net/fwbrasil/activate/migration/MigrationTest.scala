@@ -8,13 +8,7 @@ import net.fwbrasil.activate.runningFlag
 
 class MigrationTest extends ActivateTest {
 
-	@ManualMigration
-	abstract class TestMigration(override implicit val context: ActivateTestContext) extends Migration {
-
-		Migration.migrationsCache.put(context, Migration.migrationsCache.getOrElse(context, List()) ++ List(this))
-
-		def timestamp = Migration.migrationsCache(context).indexOf(this)
-		override val developers = List("tester")
+	abstract class TestMigration(override implicit val context: ActivateTestContext) extends ManualMigration {
 
 		def validateSchemaError(f: => Unit) =
 			if (context.storage.hasStaticScheme)
@@ -46,7 +40,7 @@ class MigrationTest extends ActivateTest {
 					}
 				clear
 
-				new TestMigration()(ctx) {
+				val bootstrap = new TestMigration()(ctx) {
 					def up = {
 						removeReferencesForAllEntities
 							.ifExists
@@ -56,14 +50,15 @@ class MigrationTest extends ActivateTest {
 					}
 
 				}
+				Migration.execute(ctx, bootstrap)
 				val migrations = registers.map(_(ctx))
 				try {
 					for (migration <- migrations) {
-						Migration.updateTo(ctx, migration.timestamp)
+						Migration.execute(ctx, migration)
 						migration.validateUp
 					}
 					for (migration <- migrations.reverse) {
-						Migration.revertTo(ctx, migration.timestamp - 1)
+						Migration.revert(ctx, migration)
 						migration.validateDown
 					}
 				} catch {
