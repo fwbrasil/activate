@@ -103,27 +103,39 @@ class MigrationSpecs extends MigrationTest {
 		"RenameTable" in {
 
 			"Table.renameTable" in
-				migrationTest(
-					new TestMigration()(_) {
-						import context._
-						def up = {
-							createTableForEntity[TraitAttribute1]
-						}
-					},
-					new TestMigration()(_) {
-						import context._
-						def up = {
-							table[TraitAttribute1].renameTable("renamed_table")
-						}
-						override def validateUp = {
-							validateSchemaError(new TraitAttribute1("a"))
-							validateSchemaError(all[TraitAttribute1])
-						}
-						override def validateDown = {
-							transactional(new TraitAttribute1("a"))
-							transactional(all[TraitAttribute1])
-						}
-					})
+				testRenameTable(migration => {
+					import migration.context._
+					migration.table[TraitAttribute1].renameTable("renamed_table")
+				})
+
+			"Table.renameTable.ifExists" in
+				testRenameTable(migration => {
+					import migration.context._
+					migration.table[TraitAttribute1].renameTable("renamed_table").ifExists
+				})
+
+				def testRenameTable(action: (TestMigration) => Unit) =
+					migrationTest(
+						new TestMigration()(_) {
+							import context._
+							def up = {
+								createTableForEntity[TraitAttribute1]
+							}
+						},
+						new TestMigration()(_) {
+							import context._
+							def up = {
+								action(this)
+							}
+							override def validateUp = {
+								validateSchemaError(new TraitAttribute1("a"))
+								validateSchemaError(all[TraitAttribute1])
+							}
+							override def validateDown = {
+								transactional(new TraitAttribute1("a"))
+								transactional(all[TraitAttribute1])
+							}
+						})
 
 		}
 
@@ -260,28 +272,40 @@ class MigrationSpecs extends MigrationTest {
 		"RenameColumn" in {
 
 			"Table.renameColumn" in
-				migrationTest(
-					new TestMigration()(_) {
-						import context._
-						def up = {
-							createTableForEntity[TraitAttribute1]
-						}
-						override def validateUp = {
-							transactional(new TraitAttribute1("a"))
-						}
-					},
-					new TestMigration()(_) {
-						import context._
-						def up = {
-							table[TraitAttribute1].renameColumn("attribute", _.column[String]("attribute_renamed"))
-						}
-						override def validateUp = {
-							validateSchemaError(new TraitAttribute1("a"))
-						}
-						override def validateDown = {
-							transactional(new TraitAttribute1("a"))
-						}
-					})
+				testRenameColumn { migration =>
+					import migration.context._
+					migration.table[TraitAttribute1].renameColumn("attribute", _.column[String]("attribute_renamed"))
+				}
+
+			"Table.renameColumn.ifExists" in
+				testRenameColumn { migration =>
+					import migration.context._
+					migration.table[TraitAttribute1].renameColumn("attribute", _.column[String]("attribute_renamed")).ifExists
+				}
+
+				def testRenameColumn(action: (TestMigration) => Unit) =
+					migrationTest(
+						new TestMigration()(_) {
+							import context._
+							def up = {
+								createTableForEntity[TraitAttribute1]
+							}
+							override def validateUp = {
+								transactional(new TraitAttribute1("a"))
+							}
+						},
+						new TestMigration()(_) {
+							import context._
+							def up = {
+								action(this)
+							}
+							override def validateUp = {
+								validateSchemaError(new TraitAttribute1("a"))
+							}
+							override def validateDown = {
+								transactional(new TraitAttribute1("a"))
+							}
+						})
 		}
 
 		"RemoveColumn" in {

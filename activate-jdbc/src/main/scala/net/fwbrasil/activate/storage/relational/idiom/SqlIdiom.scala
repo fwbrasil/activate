@@ -434,7 +434,7 @@ trait SqlIdiom {
 			case action: StorageRenameColumn =>
 				new SqlStatement(
 					toSqlDdl(action),
-					ifExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifExists))
+					ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists))
 			case action: StorageRemoveColumn =>
 				new SqlStatement(
 					toSqlDdl(action),
