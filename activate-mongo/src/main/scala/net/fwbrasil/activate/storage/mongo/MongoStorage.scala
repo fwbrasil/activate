@@ -167,7 +167,6 @@ trait MongoStorage extends MarshalStorage[DB] {
 					list.foreach(elem => dbList.add(getMongoValue(elem).asInstanceOf[Object]))
 					dbList
 				}.orNull
-			//				javaSerializator.toSerialized(value.value.getOrElse(null))
 			case value: ByteArrayStorageValue =>
 				value.value.getOrElse(null)
 			case value: ReferenceStorageValue =>
@@ -175,7 +174,7 @@ trait MongoStorage extends MarshalStorage[DB] {
 		}
 
 	private[this] def coll(entity: Entity): DBCollection =
-		coll(entity.niceClass)
+		coll(entity.getClass)
 
 	private[this] def coll(entityClass: Class[_]): DBCollection =
 		coll(getEntityName(entityClass))
@@ -186,7 +185,7 @@ trait MongoStorage extends MarshalStorage[DB] {
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
 		val from = queryInstance.from
 		val (coll, where) = collectionAndWhere(from, queryInstance.where)
-		val selectValues = queryInstance.select.values //query(queryInstance.select.values: _*)
+		val selectValues = queryInstance.select.values
 		val select = new BasicDBObject
 		for (value <- selectValues)
 			if (!value.isInstanceOf[SimpleValue[_]])
@@ -227,7 +226,6 @@ trait MongoStorage extends MarshalStorage[DB] {
 				ListStorageValue(getValue[BasicDBList].map { dbList =>
 					dbList.map(elem => getStorageValue(elem, value.emptyStorageValue)).toList
 				}, value.emptyStorageValue)
-			//				ListStorageValue(getValue[Array[Byte]].map(javaSerializator.fromSerialized[List[StorageValue]]), value.emptyStorageValue)
 			case value: ByteArrayStorageValue =>
 				ByteArrayStorageValue(getValue[Array[Byte]])
 			case value: ReferenceStorageValue =>

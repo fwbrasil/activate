@@ -146,6 +146,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 					all[EntityWithoutAttribute].foreach(_.delete)
 					all[CaseClassEntity].foreach(_.delete)
 					all[SimpleEntity].foreach(_.delete)
+					all[ShortNameEntity].foreach(_.delete)
 				}
 			try {
 				for (executor <- executors(ctx)) {
