@@ -113,10 +113,10 @@ trait LockManager {
 	}
 
 	private def cleanLockIfPossible(entityId: EntityId, lock: Lock) = {
-		//		if (lock.readLocks.isEmpty && lock.writeLock.isEmpty)
-		//			locks.doWithWriteLock {
-		//				locks -= entityId
-		//			}
+		if (lock.readLocks.isEmpty && lock.writeLock.isEmpty)
+			locks.doWithWriteLock {
+				locks -= entityId
+			}
 	}
 
 	private def lockFor(entityId: EntityId) =

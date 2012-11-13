@@ -155,15 +155,8 @@ case class PrevaylerMemoryStorageTransaction(
 			entity.setInitialized
 			for ((varName, value) <- changeSet; if (varName != "id")) {
 				val ref = entity.varNamed(varName)
-				val entityValue = Marshaller.unmarshalling(value, ref.tval(None)) match {
-					case value: EntityInstanceReferenceValue[_] =>
-						if (value.value.isDefined)
-							ref.setRefContent(Option(liveCache.materializeEntity(value.value.get)))
-						else
-							ref.setRefContent(None)
-					case other: EntityValue[_] =>
-						ref.setRefContent(other.value)
-				}
+				val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
+				ref.setRefContent(Option(liveCache.materialize(entityValue, true)))
 			}
 		}
 

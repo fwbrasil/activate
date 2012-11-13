@@ -27,7 +27,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
 			MultipleTransactionsWithReinitialize(ctx),
-			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)
+		).filter(_.accept(ctx))
 
 	def contexts = _contexts
 

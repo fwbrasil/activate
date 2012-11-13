@@ -103,6 +103,11 @@ case class ListEntityValue[V](override val value: Option[List[V]])(implicit val 
 	def emptyValue = List()
 }
 
+case class ReferenceListEntityValue[V](override val value: Option[List[Option[String]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
+		extends EntityValue[List[Option[String]]](value) {
+	def emptyValue = List()
+}
+
 case class SerializableEntityValue[S <: Serializable: Manifest](override val value: Option[S])
 		extends EntityValue[S](value) {
 	def emptyValue = null.asInstanceOf[S]

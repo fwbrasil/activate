@@ -47,7 +47,7 @@ class CoordinatorMultiVMSpecs extends ActivateTest {
 		"work :)" in {
 			val numOfVMs = 2
 			val numOfThreads = 4
-			val numOfTransactions = 5
+			val numOfTransactions = 30
 
 			val entityId =
 				run {

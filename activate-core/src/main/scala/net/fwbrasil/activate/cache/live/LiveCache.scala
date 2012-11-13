@@ -56,6 +56,11 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.radon.util.ReferenceSoftValueMap
 import net.fwbrasil.activate.entity.EntityMetadata
 import org.joda.time.base.AbstractInstant
+import net.fwbrasil.activate.entity.ListEntityValue
+import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
+import net.fwbrasil.activate.entity.ReferenceListEntityValue
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -162,21 +167,32 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				}
 		})
 
-	private def entitiesFromStorage[S](query: Query[S], iniatializing: Boolean) = {
-		val fromStorage = (for (line <- storage.fromStorage(query))
-			yield toTuple[S](for (column <- line)
-			yield column match {
+	private def entitiesFromStorage[S](query: Query[S], initializing: Boolean) = {
+		val fromStorage = storage.fromStorage(query)
+		val fromStorageMaterialized =
+			for (line <- storage.fromStorage(query))
+				yield toTuple[S](for (column <- line)
+				yield materialize(column, initializing))
+		filterInvalid(fromStorageMaterialized)
+	}
+
+	def materialize(value: EntityValue[_], initializing: Boolean) =
+		value match {
+			case value: ReferenceListEntityValue[_] =>
+				value.value.map(_.map(_.map(materializeEntity).orNull)).orNull
 			case value: EntityInstanceReferenceValue[_] =>
-				if (value.value == None)
-					null
-				else if (iniatializing)
-					materializeEntity(value.value.get)
-				else
-					materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
+				materializeReference(value, initializing)
 			case other: EntityValue[_] =>
 				other.value.getOrElse(null)
-		}))
-		filterInvalid(fromStorage)
+		}
+
+	private def materializeReference(value: EntityInstanceReferenceValue[_], initializing: Boolean) = {
+		if (value.value == None)
+			null
+		else if (initializing)
+			materializeEntity(value.value.get)
+		else
+			materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
 	}
 
 	def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {

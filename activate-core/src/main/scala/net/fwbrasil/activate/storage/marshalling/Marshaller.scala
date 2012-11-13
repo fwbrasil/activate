@@ -49,6 +49,8 @@ import net.fwbrasil.activate.migration.AddReference
 import net.fwbrasil.activate.migration.RemoveReference
 import net.fwbrasil.activate.migration.CreateListTable
 import net.fwbrasil.activate.migration.RemoveListTable
+import net.fwbrasil.activate.entity.ReferenceListEntityValue
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 
 object Marshaller {
 
@@ -97,7 +99,13 @@ object Marshaller {
 			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
 				SerializableEntityValue[Serializable](storageValue.value.map(javaSerializator.fromSerialized[Serializable]))
 			case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
-				ListEntityValue[Any](storageValue.value.map(list => list.map(e => unmarshalling(e, entityValue.emptyValueEntityValue).value.getOrElse(null))))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+				val v = storageValue.value.map(list => list.map(e => {
+					unmarshalling(e, entityValue.emptyValueEntityValue).value
+				}))
+				if (entityValue.emptyValueEntityValue.isInstanceOf[EntityInstanceEntityValue[_]])
+					ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[String]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+				else
+					ListEntityValue[Any](v)(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
 			case other =>
 				throw new IllegalStateException("Invalid storage value.")
 		}

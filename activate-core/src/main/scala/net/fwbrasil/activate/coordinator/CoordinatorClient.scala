@@ -10,9 +10,11 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
 
 	val contextId = context.contextId
 
-	info("Coordinator client started.")
+	info("Starting coordinator client.")
 
 	start
+
+	info("Coordinator client started.")
 
 	var running = true
 

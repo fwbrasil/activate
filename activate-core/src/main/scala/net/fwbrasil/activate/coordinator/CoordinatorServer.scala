@@ -42,13 +42,15 @@ class CoordinatorServer
 
 	import coordinatorServiceSingleton._
 
-	info("Coordinator server started.")
 	start
+
+	info("Coordinator server started.")
+
 	def act {
 		alive(Coordinator.port)
 		register(Coordinator.actorName, self)
 		loop {
-			react {
+			receive {
 				case msg: RegisterContext =>
 					runAndReplyIfSuccess(msg)(registerContext(msg.contextId))
 				case msg: DeregisterContext =>
