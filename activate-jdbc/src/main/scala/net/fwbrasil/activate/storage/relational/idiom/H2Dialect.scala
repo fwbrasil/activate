@@ -46,7 +46,7 @@ object h2Dialect extends SqlIdiom {
 
 	override def findIndexStatement(tableName: String, indexName: String) =
 		"SELECT COUNT(1) " +
-			"  FROM INFORMATION_SCHEMA.STATISTICS " +
+			"  FROM INFORMATION_SCHEMA.INDEXES " +
 			" WHERE TABLE_SCHEMA = SCHEMA() " +
 			"   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
 			"   AND INDEX_NAME = '" + indexName.toUpperCase + "'"

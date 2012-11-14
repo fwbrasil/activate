@@ -46,8 +46,8 @@ object hsqldbDialect extends SqlIdiom {
 
 	override def findIndexStatement(tableName: String, indexName: String) =
 		"SELECT COUNT(1) " +
-			"  FROM INFORMATION_SCHEMA.STATISTICS " +
-			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+			"  FROM INFORMATION_SCHEMA.SYSTEM_INDEXINFO " +
+			" WHERE TABLE_SCHEM = CURRENT_SCHEMA " +
 			"   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
 			"   AND INDEX_NAME = '" + indexName.toUpperCase + "'"
 

@@ -21,11 +21,16 @@ class MigrationSpecs extends MigrationTest {
 			"createTableForAllEntities" in
 				migrationTest(
 					new TestMigration()(_) {
-
 						import context._
 						def up = {
 							createTableForAllEntities
 						}
+						override def down = {}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up =
+							createTableForAllEntities.ifNotExists
 						override def validateDown = {
 							validateSchemaError(new EntityWithoutAttribute)
 							validateSchemaError(all[EntityWithoutAttribute])
@@ -41,6 +46,14 @@ class MigrationSpecs extends MigrationTest {
 						def up = {
 							createTableForEntity[EntityWithoutAttribute]
 							createTableForEntity[ActivateTestEntity]
+						}
+						override def down = {}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							createTableForEntity[EntityWithoutAttribute].ifNotExists
+							createTableForEntity[ActivateTestEntity].ifNotExists
 						}
 						override def validateDown = {
 							validateSchemaError(new EntityWithoutAttribute)
@@ -60,11 +73,19 @@ class MigrationSpecs extends MigrationTest {
 								_.column[String]("attribute"),
 								_.column[String]("dummy"))
 						}
+						override def down = {}
 						override def validateUp = {
 							transactional(new EntityWithoutAttribute)
 							transactional(all[EntityWithoutAttribute])
 							transactional(new TraitAttribute1("a"))
 							transactional(all[TraitAttribute1])
+						}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							table[EntityWithoutAttribute].createTable().ifNotExists
+							table[TraitAttribute1].createTable().ifNotExists
 						}
 						override def validateDown = {
 							validateSchemaError(new EntityWithoutAttribute)
@@ -138,7 +159,7 @@ class MigrationSpecs extends MigrationTest {
 						})
 
 		}
-
+		//
 		"RemoveTable" in {
 
 			"removeAllEntitiesTables" in {
@@ -175,6 +196,9 @@ class MigrationSpecs extends MigrationTest {
 						def up = {
 							table[TraitAttribute1]
 								.removeTable
+							table[TraitAttribute1]
+								.removeTable
+								.ifExists
 						}
 						override def validateUp = {
 							validateSchemaError(new TraitAttribute1("a"))
@@ -324,6 +348,7 @@ class MigrationSpecs extends MigrationTest {
 						import context._
 						def up = {
 							table[TraitAttribute1].removeColumn("attribute")
+							table[TraitAttribute1].removeColumn("attribute").ifExists
 						}
 						override def validateUp = {
 							validateSchemaError(new TraitAttribute1("a"))
@@ -342,10 +367,17 @@ class MigrationSpecs extends MigrationTest {
 						def up = {
 							createTableForEntity[TraitAttribute1]
 							table[TraitAttribute1].addIndex("attribute", "att_idx")
+							table[TraitAttribute1].addIndex("attribute", "att_idx").ifNotExists
 						}
+						override def down = {}
 						override def validateUp = {
 							transactional(new TraitAttribute1("a"))
 						}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up =
+							table[TraitAttribute1].addIndex("attribute", "att_idx").ifNotExists
 					})
 
 		}
@@ -360,10 +392,17 @@ class MigrationSpecs extends MigrationTest {
 							createTableForEntity[TraitAttribute1]
 							table[TraitAttribute1].addIndex("attribute", "att_idx")
 							table[TraitAttribute1].removeIndex("attribute", "att_idx")
+							table[TraitAttribute1].removeIndex("attribute", "att_idx").ifExists
 						}
+						override def down = {}
 						override def validateUp = {
 							transactional(new TraitAttribute1("a"))
 						}
+					},
+					new TestMigration()(_) {
+						import context._
+						def up =
+							table[TraitAttribute1].removeIndex("attribute", "att_idx").ifExists
 					})
 			}
 		}
@@ -403,11 +442,20 @@ class MigrationSpecs extends MigrationTest {
 			"createReferencesForAllEntities" in
 				test(_.createReferencesForAllEntities)
 
+			"createReferencesForAllEntities.ifNotExists" in
+				test(_.createReferencesForAllEntities.ifNotExists)
+
 			"createReferencesForEntity" in
 				test(c => c.createReferencesForEntity[ActivateTestContext#ActivateTestEntity])
 
+			"createReferencesForEntity.ifNotExists" in
+				test(c => c.createReferencesForEntity[ActivateTestContext#ActivateTestEntity].ifNotExists)
+
 			"Table.addReferences" in
 				test(_.table[ActivateTestContext#ActivateTestEntity].addReference("entityWithoutAttributeValue", "EntityWithoutAttribute", "fk_ewa"))
+
+			"Table.addReferences.ifNotExists" in
+				test(_.table[ActivateTestContext#ActivateTestEntity].addReference("entityWithoutAttributeValue", "EntityWithoutAttribute", "fk_ewa").ifNotExists)
 
 		}
 

@@ -44,11 +44,11 @@ object postgresqlDialect extends SqlIdiom {
 			"   AND COLUMN_NAME = '" + columnName.toLowerCase + "'"
 
 	override def findIndexStatement(tableName: String, indexName: String) =
-		"SELECT COUNT(1) " +
-			"  FROM INFORMATION_SCHEMA.STATISTICS " +
-			" WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-			"   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
-			"   AND INDEX_NAME = '" + indexName.toLowerCase + "'"
+		"SELECT COUNT(1)  " +
+			"	FROM pg_catalog.pg_indexes" +
+			"  WHERE schemaname = CURRENT_SCHEMA" +
+			"	AND tablename = '" + tableName.toLowerCase + "'" +
+			"	AND indexname = '" + indexName.toLowerCase + "'"
 
 	override def findConstraintStatement(tableName: String, constraintName: String): String =
 		"SELECT COUNT(1) " +

@@ -186,8 +186,13 @@ object Marshaller {
 case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])
 sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction
-case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction
-case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction
+case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction {
+	val listTableName = ownerTableName + listName.capitalize
+	val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists)
+}
+case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction {
+	val listTableName = ownerTableName + listName.capitalize
+}
 case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends ModifyStorageAction
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction

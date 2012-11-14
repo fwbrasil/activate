@@ -376,11 +376,13 @@ trait MongoStorage extends MarshalStorage[DB] {
 			case action: StorageAddIndex =>
 				val obj = new BasicDBObject
 				obj.put(action.columnName, 1)
-				coll(action.tableName).ensureIndex(obj)
+				if (!action.ifNotExists || !collHasIndex(action.tableName, action.columnName))
+					coll(action.tableName).createIndex(obj)
 			case action: StorageRemoveIndex =>
 				val obj = new BasicDBObject
 				obj.put(action.columnName, 1)
-				coll(action.tableName).dropIndex(obj)
+				if (!action.ifExists || collHasIndex(action.tableName, action.columnName))
+					coll(action.tableName).dropIndex(obj)
 			case action: StorageAddReference =>
 			// Do nothing!
 			case action: StorageRemoveReference =>
@@ -390,6 +392,9 @@ trait MongoStorage extends MarshalStorage[DB] {
 			case action: StorageRemoveListTable =>
 			// Do nothing!
 		}
+
+	private def collHasIndex(name: String, column: String) =
+		coll(name).getIndexInfo().find(_.containsField(name)).nonEmpty
 
 	private def collectionAndWhere(from: From, where: Where) = {
 		val mongoWhere = query(where.value)
