@@ -48,13 +48,13 @@ object oracleDialect extends SqlIdiom {
 	override def findIndexStatement(tableName: String, indexName: String) =
 		"SELECT COUNT(1) " +
 			"  FROM USER_INDEXES " +
-			" WHERE INDEX_NAME = '" + indexName.toUpperCase + "'"
+			" WHERE INDEX_NAME = '" + normalize(indexName) + "'"
 
 	override def findConstraintStatement(tableName: String, constraintName: String): String =
 		"SELECT COUNT(1) " +
 			"  FROM USER_CONSTRAINTS " +
 			" WHERE TABLE_NAME = '" + normalize(tableName) + "'" +
-			"   AND CONSTRAINT_NAME = '" + constraintName + "'"
+			"   AND CONSTRAINT_NAME = '" + normalize(constraintName) + "'"
 
 	def normalize(string: String) =
 		string.toUpperCase.substring(0, string.length.min(30))

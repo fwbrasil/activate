@@ -15,6 +15,9 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
 import com.mchange.v2.c3p0.ComboPooledDataSource
 
+case class JdbcStatementException(statement: JdbcStatement, exception: Exception)
+	extends Exception("Statement exception: " + statement, exception)
+
 trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 	val dialect: SqlIdiom
@@ -80,10 +83,15 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 		}).getOrElse(true)
 
 	protected[activate] def execute(jdbcStatement: JdbcStatement, connection: Connection) =
-		if (satisfyRestriction(jdbcStatement)) {
-			val stmt = createPreparedStatement(jdbcStatement, connection, true)
-			try stmt.executeBatch
-			finally stmt.close
+		try
+			if (satisfyRestriction(jdbcStatement)) {
+				val stmt = createPreparedStatement(jdbcStatement, connection, true)
+				try stmt.executeBatch
+				finally stmt.close
+			}
+		catch {
+			case e: BatchUpdateException =>
+				throw JdbcStatementException(jdbcStatement, e)
 		}
 
 	protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
