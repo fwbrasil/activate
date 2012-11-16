@@ -90,12 +90,7 @@ trait Entity extends Serializable with EntityValidation {
 
 	private[activate] def uninitialize =
 		this.synchronized {
-			if (initialized) {
-				context.transactional(context.transient) {
-					vars.foreach(_.put(None))
-				}
-				initialized = false
-			}
+			initialized = false
 		}
 
 	private[activate] def initializeGraph: Unit =
