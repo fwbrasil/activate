@@ -135,6 +135,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			}).select(entity)
 		}
 
+	@deprecated("Use select[Entity] where(_.column :== value)")
 	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		allWhereQuery[E](criterias: _*).execute
 
