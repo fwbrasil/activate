@@ -15,7 +15,7 @@ trait StatementsContext {
 	private[activate] def currentTransactionStatements =
 		transactionManager.getActiveTransaction.map(statementsForTransaction).getOrElse(ListBuffer())
 
-	def statementsForTransaction(transaction: Transaction) =
+	private[activate] def statementsForTransaction(transaction: Transaction) =
 		transactionStatements.getOrElseUpdate(transaction, ListBuffer())
 
 	private[activate] def executeMassModification(statement: MassModificationStatement) =

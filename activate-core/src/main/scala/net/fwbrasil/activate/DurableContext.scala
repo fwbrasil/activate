@@ -47,7 +47,7 @@ trait DurableContext {
 				throw new IllegalStateException("Storage doesn't support coordinator")
 		})
 
-	private[activate] def reloadEntities(ids: Set[String]) = {
+	def reloadEntities(ids: Set[String]) = {
 		liveCache.uninitialize(ids)
 		coordinatorClientOption.get.removeNotifications(ids)
 	}
