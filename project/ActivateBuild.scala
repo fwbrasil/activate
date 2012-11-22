@@ -16,6 +16,8 @@ object ActivateBuild extends Build {
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
 	val play = "play" %% "play" % "2.0.2"
+	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.1.0"
+	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.1.0"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
@@ -56,7 +58,8 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateMongo, activateTests, activatePlay),
+    		    activateJdbc, activateMongo, activateTests, activatePlay,
+    		    activateGraph),
     		settings = commonSettings
     	)
 
@@ -104,6 +107,17 @@ object ActivateBuild extends Build {
 		    	  Seq(mongoDriver)
 		    )
     	)
+
+    lazy val activateGraph = 
+    	Project(
+    	    id = "activate-graph",
+    	    base = file("activate-graph"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(blueprintsCore)
+		    )
+    	)
     
 	lazy val activatePlay = 
     	Project(
@@ -121,11 +135,11 @@ object ActivateBuild extends Build {
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo),
+			    activateMongo, activateGraph),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, 
-		    	  	h2, derby, hqsqldb, gfork),
+		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)

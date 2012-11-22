@@ -103,12 +103,11 @@ case class BooleanOperatorCriteria(valueA: StatementBooleanValue, operator: Bool
 }
 
 case class Where(value: Criteria) {
+
 	private[activate] def selectList(list: List[StatementSelectValue[_]]) =
 		Query[Product](From.from,
 			this,
 			Select(list: _*))
-
-	def a(a: Int)(v: Int)(d: Int) = {}
 
 	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1](tuple: T1)(implicit tval1: (=> T1) => StatementSelectValue[T1]) =
