@@ -8,9 +8,7 @@ import org.specs2.runner._
 import net.fwbrasil.activate.storage.graph.GraphContext
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph
 
-object graphPersistenceContext extends GraphContext(new TinkerGraph()) {
-	override protected lazy val runMigrationAtStartup = false
-}
+object graphPersistenceContext extends GraphContext(new Neo4jGraph("/tmp/my_graph"))
 import graphPersistenceContext._
 
 class Person(var name: String) extends Vertex

@@ -1,26 +1,30 @@
 package net.fwbrasil.activate.storage.graph
 
-import net.fwbrasil.activate.storage.marshalling.MarshalStorage
+import com.tinkerpop.blueprints.{ Edge => BPEdge }
 import com.tinkerpop.blueprints.Graph
-import com.tinkerpop.blueprints.{ Edge => BPEdge, Vertex => BPVertex }
-import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
-import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.entity.EntityHelper
+import com.tinkerpop.blueprints.IndexableGraph
+import com.tinkerpop.blueprints.{ Vertex => BPVertex }
+import com.tinkerpop.blueprints.util.wrappers.id.IdGraph
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
-import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
-import net.fwbrasil.activate.storage.marshalling.IntStorageValue
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.storage.marshalling.BigDecimalStorageValue
-import net.fwbrasil.activate.storage.marshalling.LongStorageValue
-import net.fwbrasil.activate.storage.marshalling.StringStorageValue
-import net.fwbrasil.activate.storage.marshalling.DateStorageValue
-import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
-import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
-import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
+import net.fwbrasil.activate.storage.marshalling.DateStorageValue
+import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
+import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
+import net.fwbrasil.activate.storage.marshalling.IntStorageValue
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.LongStorageValue
+import net.fwbrasil.activate.storage.marshalling.MarshalStorage
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import com.tinkerpop.blueprints.KeyIndexableGraph
 
 trait Vertex extends Entity {
 	def ->[E <: Edge[_, _]](f: ((E) => Unit)*) = List()
@@ -30,13 +34,26 @@ trait Edge[A <: Vertex, B <: Vertex] extends Entity {
 	val to: B
 }
 
-class GraphContext[G <: Graph](val graph: G) extends ActivateContext {
+class GraphContext(val graph: Graph) extends ActivateContext {
 	val storage = GraphStorage(graph)
 	type Vertex = net.fwbrasil.activate.storage.graph.Vertex
 	type Edge[A <: Vertex, B <: Vertex] = net.fwbrasil.activate.storage.graph.Edge[A, B]
+
+	override protected lazy val runMigrationAtStartup = false
 }
 
-case class GraphStorage[G <: Graph](graph: G) extends MarshalStorage[G] {
+case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
+
+	lazy val graph: Graph =
+		if (!pGraph.getFeatures.ignoresSuppliedIds)
+			pGraph
+		else
+			pGraph match {
+				case graph: KeyIndexableGraph =>
+					new IdGraph(graph)
+				case other =>
+					throw new UnsupportedOperationException("Graph does not have support for custom IDs and it is not indexable.")
+			}
 
 	def directAccess =
 		graph
@@ -47,7 +64,6 @@ case class GraphStorage[G <: Graph](graph: G) extends MarshalStorage[G] {
 		updateList: List[(Entity, Map[String, StorageValue])],
 		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
-		println(vertexFirst(insertList).map(_._1.getClass))
 		store(vertexFirst(insertList),
 			vertex => {
 				val v = graph.addVertex(vertex.id)
