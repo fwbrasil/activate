@@ -216,9 +216,9 @@ trait SqlIdiom {
 					new SqlStatement(
 						"DELETE FROM " + listTable + " WHERE OWNER = :id", Map("id" -> id))
 				val inserts = value.value.filter(_ => !isDelete).map { list =>
-					list.map { elem =>
+					(0 until list.size).map { i =>
 						new SqlStatement(
-							"INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ") VALUES (:owner, :value)", Map("owner" -> id, "value" -> elem))
+							"INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)", Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
 					}
 				}.flatten
 				List(delete) ++ inserts
@@ -336,7 +336,7 @@ trait SqlIdiom {
 				value.entityValue match {
 					case entityValue: ListEntityValue[_] =>
 						val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
-						val res = concat(value.entitySource.name + "." + propertyName, "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''''")
+						val res = concat(value.entitySource.name + "." + propertyName, "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY POS'")
 						res
 					case other =>
 						value.entitySource.name + "." + escape(propertyName)

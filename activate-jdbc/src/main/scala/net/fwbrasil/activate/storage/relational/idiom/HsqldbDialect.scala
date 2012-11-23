@@ -64,10 +64,10 @@ object hsqldbDialect extends SqlIdiom {
 		action match {
 			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
 				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
-			case StorageCreateListTable(ownerTableName, listName, valueColumn, ifNotExists) =>
+			case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
 				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
 					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
-					toSqlDdl(valueColumn) +
+					toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
 					")"
 			case StorageCreateTable(tableName, columns, ifNotExists) =>
 				"CREATE TABLE " + escape(tableName) + "(\n" +

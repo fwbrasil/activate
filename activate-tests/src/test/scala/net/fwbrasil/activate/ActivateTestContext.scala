@@ -537,6 +537,7 @@ trait ActivateTestContext
 		require(entity.entityWithoutAttributeValue == entityWithoutAttributeValue)
 		require(entity.serializableEntityValue == serializableEntityValue)
 		require(entity.listEntityValue == listEntityValue)
+		require(entity.unitializedList == List() || entity.unitializedList == List("aaaa", "bbbb"))
 	}
 
 	def newTestEntity(
