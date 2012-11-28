@@ -25,6 +25,12 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import com.tinkerpop.blueprints.KeyIndexableGraph
+import com.tinkerpop.blueprints.Element
+import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import java.util.Date
 
 trait Vertex extends Entity {
 	def ->[E <: Edge[_, _]](f: ((E) => Unit)*) = List()
@@ -34,7 +40,7 @@ trait Edge[A <: Vertex, B <: Vertex] extends Entity {
 	val to: B
 }
 
-class GraphContext(val graph: Graph) extends ActivateContext {
+class GraphContext[G <: Graph](val graph: G) extends ActivateContext {
 	val storage = GraphStorage(graph)
 	type Vertex = net.fwbrasil.activate.storage.graph.Vertex
 	type Edge[A <: Vertex, B <: Vertex] = net.fwbrasil.activate.storage.graph.Edge[A, B]
@@ -42,7 +48,9 @@ class GraphContext(val graph: Graph) extends ActivateContext {
 	override protected lazy val runMigrationAtStartup = false
 }
 
-case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
+case class GraphStorage[G <: Graph](pGraph: G) extends MarshalStorage[Graph] {
+
+	val activateSuperNodeId = "1"
 
 	lazy val graph: Graph =
 		if (!pGraph.getFeatures.ignoresSuppliedIds)
@@ -56,7 +64,7 @@ case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
 			}
 
 	def directAccess =
-		graph
+		pGraph
 
 	override def store(
 		statements: List[MassModificationStatement],
@@ -65,11 +73,7 @@ case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
 		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
 		store(vertexFirst(insertList),
-			vertex => {
-				val v = graph.addVertex(vertex.id)
-				println(v.getId)
-				v
-			},
+			vertex => createGraphVertex(vertex),
 			(edge, properties) => {
 				val fromVertex = graph.getVertex(nativeValue(properties("from")))
 				val toVertex = graph.getVertex(nativeValue(properties("to")))
@@ -93,6 +97,16 @@ case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
 			}
 
 	}
+
+	private def createGraphVertex(vertex: Vertex) = {
+		val graphVertex = graph.addVertex(vertex.id)
+		val typeLabel = EntityHelper.getEntityName(vertex.getClass)
+		graph.addEdge(null, superNode, graphVertex, typeLabel)
+		graphVertex
+	}
+
+	private def superNode =
+		Option(graph.getVertex(activateSuperNodeId)).getOrElse(graph.addVertex(activateSuperNodeId))
 
 	private def vertexFirst(list: List[(Entity, Map[String, StorageValue])]) =
 		list.sortBy(each => if (classOf[Vertex].isAssignableFrom(each._1.getClass)) 0 else 1)
@@ -148,7 +162,61 @@ case class GraphStorage(pGraph: Graph) extends MarshalStorage[Graph] {
 	}
 
 	def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
-		List()
+		import scala.collection.JavaConversions._
+		val fromClazz = queryInstance.from.entitySources.onlyOne("Graph storage does not support joins and nested properties.").entityClass
+		val typeLabel = EntityHelper.getEntityName(fromClazz)
+		val vertices = superNode.query.labels(typeLabel).vertices.toList
+		val selectValues = queryInstance.select.values.map(selectValue).toList
+		val result =
+			vertices.map { vertex =>
+				(for (i <- 0 until selectValues.size) yield {
+					val propertyName = selectValues(i)
+					if (propertyName == "id")
+						getStorageValue(vertex.getId, expectedTypes(i))
+					else
+						getStorageValue(vertex.getProperty(selectValues(i)), expectedTypes(i))
+				}).toList
+			}
+		println(result)
+		result
+	}
+
+	def selectValue(value: StatementSelectValue[_]) =
+		value match {
+			case value: StatementEntitySourcePropertyValue[_] =>
+				value.propertyPathNames.onlyOne
+			case value: StatementEntitySourceValue[_] =>
+				"id"
+			case other =>
+				throw new UnsupportedOperationException("Grph storage supports only entity properties inside select clause.")
+		}
+
+	def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {
+			def getValue[T] = Option(obj.asInstanceOf[T])
+		storageValue match {
+			case value: IntStorageValue =>
+				IntStorageValue(getValue[Int])
+			case value: LongStorageValue =>
+				LongStorageValue(getValue[Long])
+			case value: BooleanStorageValue =>
+				BooleanStorageValue(getValue[Boolean])
+			case value: StringStorageValue =>
+				StringStorageValue(getValue[String])
+			case value: FloatStorageValue =>
+				FloatStorageValue(getValue[Double].map(_.floatValue))
+			case value: DateStorageValue =>
+				DateStorageValue(getValue[Date])
+			case value: DoubleStorageValue =>
+				DoubleStorageValue(getValue[Double])
+			case value: BigDecimalStorageValue =>
+				BigDecimalStorageValue(getValue[Double].map(BigDecimal(_)))
+			case value: ListStorageValue =>
+				null
+			case value: ByteArrayStorageValue =>
+				ByteArrayStorageValue(getValue[Array[Byte]])
+			case value: ReferenceStorageValue =>
+				ReferenceStorageValue(getValue[String])
+		}
 	}
 
 }

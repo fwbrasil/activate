@@ -41,8 +41,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			postgresqlContext,
 			h2Context,
 			derbyContext,
-			hsqldbContext,
-			oracleContext
+			hsqldbContext //,
+		//			oracleContext
 		)
 		ret.foreach(_.stop)
 		ret
@@ -76,8 +76,11 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				step
 			} catch {
 				case e: FailureException =>
+
+					e.printStackTrace()
 					throw new IllegalStateException(e.f + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 				case e =>
+					e.printStackTrace()
 					throw new IllegalStateException(e.getMessage + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 			}
 		def contextName = ctx.name

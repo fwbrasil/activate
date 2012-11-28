@@ -24,6 +24,15 @@ class GraphSpecs extends SpecificationWithJUnit {
 				val felipe = new Person("felipe")
 				new Knows(flavio, felipe, 2012)
 			}
+			transactional {
+				all[Person].map(_.name).toSet mustEqual Set("flavio", "felipe")
+				//				val list = query {
+				//					(p: Person, knows: Knows) => where((p.name :== "flavio") :&& (p.id :== knows.from)) select (p.name)
+				//				}
+				val flavio = select[Person].where(_.name :== "flavio").head
+				val felipe = flavio.->[Knows]()
+				//				list mustEqual List("flavio")
+			}
 			ok
 		}
 	}
