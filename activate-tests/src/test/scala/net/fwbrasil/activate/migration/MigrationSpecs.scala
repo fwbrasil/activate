@@ -556,5 +556,33 @@ class MigrationSpecs extends MigrationTest {
 
 		}
 
+		"produce an error if there is a transactional" in {
+			"up" in {
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+							transactional {
+
+							}
+						}
+					}) must throwA[IllegalStateException]
+			}
+
+			"up" in {
+				migrationTest(
+					new TestMigration()(_) {
+						import context._
+						def up = {
+						}
+						override def down = {
+							transactional {
+
+							}
+						}
+					}) must throwA[IllegalStateException]
+			}
+		}
+
 	}
 }

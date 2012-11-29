@@ -159,6 +159,13 @@ abstract class Migration(implicit val context: ActivateContext) {
 	def developers: List[String] = List("not specified")
 
 	private var number: Int = -1
+	private var isCollectingActions = false
+
+	def transactional[A](f: => A): A =
+		if (isCollectingActions)
+			throw new IllegalStateException("Do not use transactional blocks as migration actions, use customScripts.")
+		else
+			context.transactional(f)
 
 	def nextNumber = {
 		number += 1
@@ -175,14 +182,22 @@ abstract class Migration(implicit val context: ActivateContext) {
 		number = -1
 	}
 	private[activate] def upActions = {
-		clear
-		up
-		_actions.toList
+		isCollectingActions = true
+		try {
+			clear
+			up
+			_actions.toList
+		} finally
+			isCollectingActions = false
 	}
 	private[activate] def downActions = {
-		clear
-		down
-		_actions.toList
+		isCollectingActions = true
+		try {
+			clear
+			down
+			_actions.toList
+		} finally
+			isCollectingActions = false
 	}
 	private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
 		timestamp > fromMigration && timestamp <= toMigration
