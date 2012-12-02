@@ -244,6 +244,7 @@ trait ActivateTestContext
 	val emptyEnumerationValue = null
 	val emptyJodaInstantValue = null
 	val emptyOptionValue = None
+	val emptyOptionWithPrimitiveValue = None
 	val emptyEntityWithoutAttributeValue = null
 	val emptyCaseClassEntityValue = null
 	val emptySerializableEntityValue = null
@@ -284,6 +285,7 @@ trait ActivateTestContext
 
 	val fullJodaInstantValue = new DateTime(78317811l)
 	val fullOptionValue = Some("string")
+	val fullOptionWithPrimitiveValue = Some(1)
 	def fullEntityWithoutAttributeValue =
 		all[EntityWithoutAttribute].headOption.getOrElse(
 			new EntityWithoutAttribute)
@@ -315,11 +317,12 @@ trait ActivateTestContext
 		entity.traitValue2 = fullTraitValue2
 		entity.enumerationValue = fullEnumerationValue
 		entity.optionValue = fullOptionValue
+		entity.optionWithPrimitiveValue = fullOptionWithPrimitiveValue
 		entity.entityWithoutAttributeValue = fullEntityWithoutAttributeValue
 		entity.caseClassEntityValue = fullCaseClassEntityValue
 		entity.serializableEntityValue = fullSerializableEntityValue
 		entity.listEntityValue = fullListEntityValue
-		entity.unitializedList = List("aaaa", "bbbb")
+		entity.unitializedList = List(1, 2)
 		entity
 	}
 
@@ -341,6 +344,7 @@ trait ActivateTestContext
 		entity.traitValue2 = emptyTraitValue2
 		entity.enumerationValue = emptyEnumerationValue
 		entity.optionValue = emptyOptionValue
+		entity.optionWithPrimitiveValue = emptyOptionWithPrimitiveValue
 		entity.entityWithoutAttributeValue = emptyEntityWithoutAttributeValue
 		entity.caseClassEntityValue = emptyCaseClassEntityValue
 		entity.serializableEntityValue = emptySerializableEntityValue
@@ -410,6 +414,7 @@ trait ActivateTestContext
 			var enumerationValue: EnumerationValue,
 			lazyValueValue: String,
 			var optionValue: Option[String],
+			var optionWithPrimitiveValue: Option[Int],
 			var entityWithoutAttributeValue: EntityWithoutAttribute,
 			var caseClassEntityValue: CaseClassEntity,
 			var serializableEntityValue: DummySeriablizable,
@@ -435,6 +440,7 @@ trait ActivateTestContext
 			emptyEnumerationValue,
 			emptyLazyValue,
 			emptyOptionValue,
+			emptyOptionWithPrimitiveValue,
 			emptyEntityWithoutAttributeValue,
 			emptyCaseClassEntityValue,
 			emptySerializableEntityValue,
@@ -444,7 +450,7 @@ trait ActivateTestContext
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2
 		var bigStringValue = BigStringGenerator.generated
-		var unitializedList: List[String] = _
+		var unitializedList: List[Int] = _
 		@Alias("customName")
 		var customNamedValue = fullStringValue
 	}
@@ -537,7 +543,7 @@ trait ActivateTestContext
 		require(entity.entityWithoutAttributeValue == entityWithoutAttributeValue)
 		require(entity.serializableEntityValue == serializableEntityValue)
 		require(entity.listEntityValue == listEntityValue)
-		require(entity.unitializedList == List() || entity.unitializedList == List("aaaa", "bbbb"))
+		require(entity.unitializedList == List() || entity.unitializedList == List(1, 2))
 	}
 
 	def newTestEntity(
@@ -559,6 +565,7 @@ trait ActivateTestContext
 		enumerationValue: EnumerationValue = emptyEnumerationValue,
 		lazyValue: String = emptyLazyValue,
 		optionValue: Option[String] = emptyOptionValue,
+		optionWithPrimitiveValue: Option[Int] = emptyOptionWithPrimitiveValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
 		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
@@ -582,6 +589,7 @@ trait ActivateTestContext
 			enumerationValue = enumerationValue,
 			lazyValueValue = lazyValue,
 			optionValue = optionValue,
+			optionWithPrimitiveValue = optionWithPrimitiveValue,
 			entityWithoutAttributeValue = entityWithoutAttributeValue,
 			caseClassEntityValue = caseClassEntityValue,
 			serializableEntityValue = serializableEntityValue,

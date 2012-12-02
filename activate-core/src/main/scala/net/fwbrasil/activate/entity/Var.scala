@@ -15,7 +15,7 @@ class Var[T](value: Option[T], val isMutable: Boolean, val isTransient: Boolean,
 
 	val outerEntity = _outerEntity
 	lazy val tval =
-		if (_valueClass != classOf[List[_]])
+		if (_valueClass != classOf[List[_]] && _valueClass != classOf[Object])
 			EntityValue.tvalFunction[T](_valueClass, classOf[Object])
 		else
 			EntityHelper.getEntityMetadata(outerEntityClass).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[T] => EntityValue[T]]
