@@ -27,6 +27,7 @@ import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.IsNotEqualTo
 import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
 import net.fwbrasil.activate.statement.IsGreaterThan
 import net.fwbrasil.activate.statement.IsLessOrEqualTo
@@ -302,6 +303,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 				getMongoValue(Marshaller.marshalling(value.entityValue))
 			case value: StatementEntityInstanceValue[_] =>
 				getMongoValue(StringStorageValue(Option(value.entityId)))
+			case null =>
+				null
 			case other =>
 				throw new UnsupportedOperationException("Mongo storage doesn't support joins.")
 		}
@@ -346,6 +349,8 @@ trait MongoStorage extends MarshalStorage[DB] {
 				"$lt"
 			case operator: Matcher =>
 				"$regex"
+			case operator: IsNotEqualTo =>
+				"$ne"
 			case operator: IsEqualTo =>
 				throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
 		}

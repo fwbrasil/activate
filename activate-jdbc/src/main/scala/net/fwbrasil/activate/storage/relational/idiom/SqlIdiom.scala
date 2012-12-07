@@ -26,6 +26,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.statement.StatementEntityInstanceValue
 import net.fwbrasil.activate.storage.relational.QueryStorageStatement
 import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.IsNotEqualTo
 import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.storage.relational.DdlStorageStatement
 import net.fwbrasil.activate.statement.query.OrderByCriteria
@@ -301,6 +302,8 @@ trait SqlIdiom {
 				toSqlDml(value)
 			case value: StatementSelectValue[_] =>
 				toSqlDmlSelect(value)
+			case null =>
+				null
 		}
 
 	def toSqlDmlSelect(value: StatementSelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
@@ -372,6 +375,8 @@ trait SqlIdiom {
 		value match {
 			case value: IsEqualTo =>
 				" = "
+			case value: IsNotEqualTo =>
+				" != "
 			case value: IsGreaterThan =>
 				" > "
 			case value: IsLessThan =>

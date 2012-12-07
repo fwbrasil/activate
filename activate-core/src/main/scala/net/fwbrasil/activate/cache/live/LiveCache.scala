@@ -9,6 +9,7 @@ import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.statement.EntitySource
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.IsNotEqualTo
 import net.fwbrasil.activate.statement.StatementSelectValue
 import net.fwbrasil.activate.statement.BooleanOperatorCriteria
 import net.fwbrasil.activate.statement.SimpleValue
@@ -358,6 +359,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		criteria.operator match {
 			case operator: IsEqualTo =>
 				equals(a, b)
+			case operator: IsNotEqualTo =>
+				!equals(a, b)
 			case operator: IsGreaterThan =>
 				(a != null && b != null) &&
 					compare(a, b) > 0
@@ -435,7 +438,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 				executeStatementBooleanValue(value)
 			case value: StatementSelectValue[_] =>
 				executeStatementSelectValue(value)
-
+			case null =>
+				null
 		}
 
 	def executeStatementSelectValue(value: StatementSelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =

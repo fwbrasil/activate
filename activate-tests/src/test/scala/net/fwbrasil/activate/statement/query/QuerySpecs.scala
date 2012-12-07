@@ -112,9 +112,12 @@ class QuerySpecs extends ActivateTest {
 						newEmptyActivateTestEntity
 					}
 					step {
-						val value = true
 						query {
-							(e: ActivateTestEntity) => where(e.booleanValue :== value) select (e)
+							(e: ActivateTestEntity) => where(e.booleanValue :== true) select (e)
+						}.headOption must beSome
+
+						query {
+							(e: ActivateTestEntity) => where(e.stringValue :!= "B") select (e)
 						}.headOption must beSome
 
 						query {

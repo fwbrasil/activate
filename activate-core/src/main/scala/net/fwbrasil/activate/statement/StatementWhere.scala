@@ -21,6 +21,7 @@ trait OperatorContext {
 	implicit def toAnd(value: StatementBooleanValue) = And(value)
 	implicit def toOr(value: StatementBooleanValue) = Or(value)
 	implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsEqualTo(value)
+	implicit def toIsNotEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNotEqualTo(value)
 	implicit def toIsGreaterThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterThan(value)
 	implicit def toIsLessThan[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsLessThan(value)
 	implicit def toIsGreaterOrEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsGreaterOrEqualTo(value)
@@ -54,6 +55,11 @@ case class IsNotNull(valueA: StatementSelectValue[_]) extends SimpleOperator {
 case class IsEqualTo(valueA: StatementSelectValue[_]) extends CompositeOperator {
 	def :==(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
 	override def toString = ":=="
+}
+
+case class IsNotEqualTo(valueA: StatementSelectValue[_]) extends CompositeOperator {
+	def :!=(valueB: StatementValue) = CompositeOperatorCriteria(valueA, this, valueB)
+	override def toString = ":!="
 }
 
 class ComparationOperator() extends CompositeOperator
