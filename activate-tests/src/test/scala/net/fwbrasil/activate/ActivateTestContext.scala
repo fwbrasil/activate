@@ -380,6 +380,10 @@ trait ActivateTestContext
 
 	class EntityWithoutAttribute extends Entity
 
+	class EntityWithUninitializedValue extends Entity {
+		var uninitializedValue: String = _
+	}
+
 	case class CaseClassEntity(
 		var stringValue: String,
 		var entityValue: ActivateTestEntity,
@@ -445,7 +449,6 @@ trait ActivateTestContext
 			emptyCaseClassEntityValue,
 			emptySerializableEntityValue,
 			emptyListEntityValue)
-		lazy val lazyValue: String = lazyValueValue
 		var varInitializedInConstructor = fullStringValue
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2

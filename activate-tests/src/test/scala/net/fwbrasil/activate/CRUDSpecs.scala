@@ -97,6 +97,29 @@ class CRUDSpecs extends ActivateTest {
 					})
 			}
 
+			"create, retreive, modify and delete entity with uninitialized attribute" in {
+				activateTest(
+					(step: StepExecutor) => {
+						import step.ctx._
+						val entityId =
+							step {
+								(new EntityWithUninitializedValue).id
+							}
+						step {
+							byId[EntityWithUninitializedValue](entityId).get.uninitializedValue = fullStringValue
+						}
+						step {
+							byId[EntityWithUninitializedValue](entityId).get.uninitializedValue mustEqual fullStringValue
+						}
+						step {
+							byId[EntityWithUninitializedValue](entityId).get.delete
+						}
+						step {
+							byId[EntityWithUninitializedValue](entityId) must beNone
+						}
+					})
+			}
+
 			"create, retreive and delete case class entity" in {
 				activateTest(
 					(step: StepExecutor) => {
