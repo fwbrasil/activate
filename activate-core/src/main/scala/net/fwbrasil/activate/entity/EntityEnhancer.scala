@@ -168,25 +168,16 @@ object EntityEnhancer extends Logging {
 		if (originalAttribute != null)
 			enhancedField.getFieldInfo.addAttribute(originalAttribute.copy(enhancedField.getFieldInfo.getConstPool(), null))
 		clazz.addField(enhancedField)
-		val originalFieldTypeAndOptionFlag =
-			if (originalField.getType.getName != classOf[Option[_]].getName)
-				(originalField.getType, false)
-			else {
-				val att = originalField.getFieldInfo().getAttribute(SignatureAttribute.tag).asInstanceOf[SignatureAttribute]
-				val sig = att.getSignature
-				val className = sig.substring(15, sig.size - 3).replaceAll("/", ".")
-				(classPool.getCtClass(className), true)
-			}
-
+		val optionFlag = originalField.getType.getName == classOf[Option[_]].getName
 		val entityPropertyMetadataClass = classPool.get(classOf[EntityPropertyMetadata].getName)
 		val metadataField = new CtField(entityPropertyMetadataClass, "metadata_" + name, clazz);
 		metadataField.setModifiers(Modifier.STATIC)
 		clazz.addField(metadataField)
 
-		(enhancedField, originalFieldTypeAndOptionFlag)
+		(enhancedField, (originalField, optionFlag))
 	}
 
-	private def enhanceConstructors(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtClass, Boolean)]) = {
+	private def enhanceConstructors(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtField, Boolean)]) = {
 		for (c <- clazz.getDeclaredConstructors) yield {
 			val codeAttribute = c.getMethodInfo.getCodeAttribute
 				def superCallIndex = codeAttribute.iterator.skipConstructor
@@ -203,15 +194,15 @@ object EntityEnhancer extends Logging {
 					} else {
 						val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
 						if (isEnhancedField) {
-							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-							enhanceFieldAccess(fa, typ, optionFlag)
+							val (originalField, optionFlag) = enhancedFieldsMap.get(fa.getField).get
+							enhanceFieldAccess(fa, originalField, optionFlag)
 						}
 					}
 				}
 			})
 			if (isPrimaryConstructor) {
 				var replace = "setInitialized();\n"
-				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
+				for ((field, optionFlag) <- enhancedFieldsMap) {
 					if (field.getName == "id")
 						replace += "this." + field.getName + " = new " + idVarClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this);\n"
 					else
@@ -220,11 +211,11 @@ object EntityEnhancer extends Logging {
 
 				val localsMap = localVariablesMap(codeAttribute)
 				for (field <- fields) {
-					val (typ, optionFlag) = enhancedFieldsMap.get(field).get
+					val (originalField, optionFlag) = enhancedFieldsMap.get(field).get
 					if (optionFlag)
-						replace += "this." + field.getName + ".put(" + box(typ, localsMap(field.getName).toString) + ");\n"
+						replace += "this." + field.getName + ".put(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
 					else
-						replace += "this." + field.getName + ".putValue(" + box(typ, localsMap(field.getName).toString) + ");\n"
+						replace += "this." + field.getName + ".putValue(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
 				}
 
 				c.insertBeforeBody(replace)
@@ -236,7 +227,7 @@ object EntityEnhancer extends Logging {
 	private def getFieldName(field: CtField) =
 		Option(field.getAnnotation(classOf[Alias]).asInstanceOf[Alias]).map(_.value).getOrElse(field.getName.split('$').last)
 
-	private def enhanceFieldsAccesses(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (javassist.CtClass, Boolean)]): Unit = {
+	private def enhanceFieldsAccesses(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (CtField, Boolean)]): Unit = {
 
 		clazz.instrument(
 			new ExprEditor {
@@ -250,8 +241,8 @@ object EntityEnhancer extends Logging {
 									null
 							}
 						if (field != null && enhancedFieldsMap.contains(field)) {
-							val (typ, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-							enhanceFieldAccess(fa, typ, optionFlag)
+							val (originalField, optionFlag) = enhancedFieldsMap.get(fa.getField).get
+							enhanceFieldAccess(fa, originalField, optionFlag)
 						}
 					}
 				}
@@ -259,12 +250,12 @@ object EntityEnhancer extends Logging {
 			})
 	}
 
-	private def enhanceFieldAccess(fa: FieldAccess, typ: CtClass, optionFlag: Boolean) =
+	private def enhanceFieldAccess(fa: FieldAccess, originalField: CtField, optionFlag: Boolean) =
 		if (fa.isWriter) {
 			if (optionFlag)
-				fa.replace("this." + fa.getFieldName + ".put(" + box(typ, "$") + ");")
+				fa.replace("this." + fa.getFieldName + ".put(" + box(originalField.getType, "$") + ");")
 			else
-				fa.replace("this." + fa.getFieldName + ".putValue(" + box(typ, "$") + ");")
+				fa.replace("this." + fa.getFieldName + ".putValue(" + box(originalField.getType, "$") + ");")
 		} else if (fa.isReader) {
 			if (optionFlag)
 				fa.replace("$_ = ($r) this." + fa.getFieldName + ".get($$);")

@@ -23,7 +23,12 @@ class EntityPropertyMetadata(
 	val genericParameter = {
 		getter.getGenericReturnType match {
 			case typ: ParameterizedType =>
-				val initial = typ.getActualTypeArguments.headOption.map(_.asInstanceOf[Class[_]]).getOrElse(classOf[Object])
+				val initial = typ.getActualTypeArguments.headOption.map(_ match {
+					case typ: ParameterizedType =>
+						typ.getRawType.asInstanceOf[Class[_]]
+					case clazz: Class[_] =>
+						clazz
+				}).getOrElse(classOf[Object])
 				if (initial == classOf[Object]) {
 					val fields = entityMetadata.sClass.sFields
 					val fieldOption = fields.find(_.name == originalName)

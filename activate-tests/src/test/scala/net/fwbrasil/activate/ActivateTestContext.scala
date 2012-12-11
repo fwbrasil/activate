@@ -249,6 +249,7 @@ trait ActivateTestContext
 	val emptyCaseClassEntityValue = null
 	val emptySerializableEntityValue = null
 	val emptyListEntityValue = List[ActivateTestEntity]()
+	val emptyTupleOptionValue = None
 
 	val fullIntValue = 999
 	val fullLongValue = 999l
@@ -299,6 +300,8 @@ trait ActivateTestContext
 
 	def fullListEntityValue = List(fullEntityValue)
 
+	val fullTupleOptionValue = Some(1, 1)
+
 	def setFullEntity(entity: ActivateTestEntity) = {
 		entity.intValue = fullIntValue
 		entity.longValue = fullLongValue
@@ -323,6 +326,7 @@ trait ActivateTestContext
 		entity.serializableEntityValue = fullSerializableEntityValue
 		entity.listEntityValue = fullListEntityValue
 		entity.unitializedList = List(1, 2)
+		entity.tupleOptionValue = fullTupleOptionValue
 		entity
 	}
 
@@ -350,6 +354,7 @@ trait ActivateTestContext
 		entity.serializableEntityValue = emptySerializableEntityValue
 		entity.listEntityValue = emptyListEntityValue
 		entity.unitializedList = List()
+		entity.tupleOptionValue = emptyTupleOptionValue
 		entity
 	}
 
@@ -422,7 +427,8 @@ trait ActivateTestContext
 			var entityWithoutAttributeValue: EntityWithoutAttribute,
 			var caseClassEntityValue: CaseClassEntity,
 			var serializableEntityValue: DummySeriablizable,
-			var listEntityValue: List[ActivateTestEntity]) extends ActivateTestDummyEntity(dummy) {
+			var listEntityValue: List[ActivateTestEntity],
+			var tupleOptionValue: Option[(Int, Int)]) extends ActivateTestDummyEntity(dummy) {
 
 		def this(intValue: Int) = this(
 			false,
@@ -448,7 +454,8 @@ trait ActivateTestContext
 			emptyEntityWithoutAttributeValue,
 			emptyCaseClassEntityValue,
 			emptySerializableEntityValue,
-			emptyListEntityValue)
+			emptyListEntityValue,
+			emptyTupleOptionValue)
 		var varInitializedInConstructor = fullStringValue
 		val valInitializedInConstructor = fullStringValue
 		val calculatedInConstructor = intValue * 2
@@ -479,7 +486,8 @@ trait ActivateTestContext
 		entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = fullCaseClassEntityValue,
 		serializableEntityValue: DummySeriablizable = fullSerializableEntityValue,
-		listEntityValue: List[ActivateTestEntity] = fullListEntityValue) =
+		listEntityValue: List[ActivateTestEntity] = fullListEntityValue,
+		tupleOptionValue: Option[(Int, Int)] = fullTupleOptionValue) =
 
 		validateEmptyTestEntity(
 			entity,
@@ -503,7 +511,8 @@ trait ActivateTestContext
 			entityWithoutAttributeValue,
 			caseClassEntityValue,
 			serializableEntityValue,
-			listEntityValue)
+			listEntityValue,
+			tupleOptionValue)
 
 	def validateEmptyTestEntity(entity: ActivateTestEntity = null,
 		intValue: Int = emptyIntValue,
@@ -526,7 +535,8 @@ trait ActivateTestContext
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
 		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
-		listEntityValue: List[ActivateTestEntity] = emptyListEntityValue) = {
+		listEntityValue: List[ActivateTestEntity] = emptyListEntityValue,
+		tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
 
 		require(entity.intValue == intValue)
 		require(entity.longValue == longValue)
@@ -547,6 +557,7 @@ trait ActivateTestContext
 		require(entity.serializableEntityValue == serializableEntityValue)
 		require(entity.listEntityValue == listEntityValue)
 		require(entity.unitializedList == List() || entity.unitializedList == List(1, 2))
+		require(entity.tupleOptionValue == tupleOptionValue)
 	}
 
 	def newTestEntity(
@@ -572,7 +583,8 @@ trait ActivateTestContext
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
 		caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
 		serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
-		listEntityValue: List[ActivateTestEntity] = emptyListEntityValue) = {
+		listEntityValue: List[ActivateTestEntity] = emptyListEntityValue,
+		tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
 		new ActivateTestEntity(
 			intValue = intValue,
 			longValue = longValue,
@@ -596,6 +608,7 @@ trait ActivateTestContext
 			entityWithoutAttributeValue = entityWithoutAttributeValue,
 			caseClassEntityValue = caseClassEntityValue,
 			serializableEntityValue = serializableEntityValue,
-			listEntityValue = listEntityValue)
+			listEntityValue = listEntityValue,
+			tupleOptionValue = tupleOptionValue)
 	}
 }
