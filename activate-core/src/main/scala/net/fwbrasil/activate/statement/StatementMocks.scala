@@ -17,6 +17,7 @@ import net.fwbrasil.activate.util.uuid.UUIDUtil
 import org.joda.time.base.AbstractInstant
 import java.util.Date
 import scala.collection.mutable.Stack
+import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
 object StatementMocks {
 
@@ -42,25 +43,15 @@ object StatementMocks {
 	def clearFakeVarCalled =
 		_lastFakeVarCalled.set(Stack())
 
-	class FakeVar[P]
-			extends Var[P](None, true, true, null, null, null) {
+	class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: Entity, val originVar: FakeVar[_])
+			extends Var[P](metadata, outerEntity) {
 
-		override lazy val tval = EntityValue.tvalFunction[P](fakeValueClass, classOf[Object])
-		def entityValueMock =
-			(if (name == "id")
-				EntityValue.tvalFunction[P](classOf[String], classOf[Object])
-			else
-				EntityHelper.getEntityMetadata(EntityHelper.concreteClasses(fakeOuterEntityClass.asInstanceOf[Class[Entity]]).head).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[P] => EntityValue[P]])(None)
-		var fakeValueClass: Class[_] = _
-		var originVar: FakeVar[_] = _
-		var fakeOuterEntityClass: Class[_] = _
-		override def outerEntityClass = fakeOuterEntityClass.asInstanceOf[Class[Entity]]
 		override def get: Option[P] = {
 			val value =
-				if (classOf[Entity].isAssignableFrom(fakeValueClass))
-					mockEntity(fakeValueClass.asInstanceOf[Class[Entity]], this)
+				if (classOf[Entity].isAssignableFrom(valueClass))
+					mockEntity(valueClass.asInstanceOf[Class[Entity]], this)
 				else
-					mock(fakeValueClass)
+					mock(valueClass)
 			_lastFakeVarCalled.get.push(this)
 			Option(value.asInstanceOf[P])
 		}
@@ -107,25 +98,13 @@ object StatementMocks {
 		}
 		val entity = newInstance(concreteClass)
 		val entityMetadata = EntityHelper.getEntityMetadata(concreteClass)
-		for (propertyMetadata <- entityMetadata.propertiesMetadata) {
-			val ref = mockVar
-			val typ = propertyMetadata.propertyType
-			val field = propertyMetadata.varField
-			ref.fakeValueClass = typ
-			ref.fakeOuterEntityClass = entityClass
-			ref.originVar = originVar
-			set(ref, "name", propertyMetadata.name)
-			set(ref, "outerEntity", entity)
-			field.set(entity, ref)
-		}
-		val idField = entityMetadata.idField
-		val ref = mockVar
-		ref.fakeValueClass = classOf[String]
-		ref.fakeOuterEntityClass = entityClass
-		ref.originVar = originVar
-		set(ref, "name", "id")
-		set(ref, "outerEntity", entity)
-		idField.set(entity, ref)
+		val context = ActivateContext.contextFor(entityClass)
+		for (propertyMetadata <- entityMetadata.propertiesMetadata)
+			context.transactional(context.transient) {
+				val ref = new FakeVar[Any](propertyMetadata, entity, originVar)
+				val field = propertyMetadata.varField
+				field.set(entity, ref)
+			}
 		entity.asInstanceOf[E]
 	}
 

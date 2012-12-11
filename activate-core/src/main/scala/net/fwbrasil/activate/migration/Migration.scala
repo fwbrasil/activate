@@ -248,7 +248,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 		val metadatas = entitiesMetadatas
 		val tree = new DependencyTree(metadatas.toSet)
 		for (metadata <- metadatas) {
-			for (property <- metadata.propertiesMetadata) {
+			for (property <- metadata.propertiesMetadata if (property.name != "id")) {
 				metadatas.find(_.entityClass == property.propertyType).map(depedencyMetadata =>
 					tree.addDependency(metadata, depedencyMetadata))
 			}
@@ -276,7 +276,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 		val (normalColumns, listColumns) = metadata.propertiesMetadata.partition(_.propertyType != classOf[List[_]])
 		val ownerTable = table(manifestClass(metadata.entityClass))
 		val mainAction = ownerTable.createTable(columns =>
-			for (property <- normalColumns) {
+			for (property <- normalColumns if (property.name != "id")) {
 				columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
 			})
 		val nestedListsActions = listColumns.map { listColumn =>
@@ -288,7 +288,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 
 	private def createInexistentColumnsForEntityMetadata(metadata: EntityMetadata) = {
 		val tableInstance = table(manifestClass(metadata.entityClass))
-		for (property <- metadata.propertiesMetadata)
+		for (property <- metadata.propertiesMetadata if (property.name != "id"))
 			tableInstance.addColumn(columnDef =>
 				columnDef.column(property.name)(manifestClass(property.propertyType), property.tval)).ifNotExists
 	}

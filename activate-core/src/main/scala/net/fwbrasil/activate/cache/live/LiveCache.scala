@@ -223,15 +223,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 			val typ = propertyMetadata.propertyType
 			val field = propertyMetadata.varField
-			val ref = new Var(None, propertyMetadata.isMutable, propertyMetadata.isTransient, typ, propertyMetadata.name, entity)
+			val ref = new Var(propertyMetadata, entity)
 			field.set(entity, ref)
 		}
 
 	private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) = {
 		val idField = entityMetadata.idField
-		val ref = new IdVar(entity)
+		val ref = new IdVar(entityMetadata.idPropertyMetadata, entity, entityId)
 		idField.set(entity, ref)
-		Reflection.set(ref, "id", entityId)
 	}
 
 	private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) =

@@ -89,7 +89,6 @@ object EntityEnhancer extends Logging {
 					}).toMap
 				enhanceConstructors(clazz, enhancedFieldsMap)
 				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
-				createVarTypesField(clazz, classPool, enhancedFieldsMap)
 			} catch {
 				case e =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
@@ -178,24 +177,13 @@ object EntityEnhancer extends Logging {
 				val className = sig.substring(15, sig.size - 3).replaceAll("/", ".")
 				(classPool.getCtClass(className), true)
 			}
+
+		val entityPropertyMetadataClass = classPool.get(classOf[EntityPropertyMetadata].getName)
+		val metadataField = new CtField(entityPropertyMetadataClass, "metadata_" + name, clazz);
+		metadataField.setModifiers(Modifier.STATIC)
+		clazz.addField(metadataField)
+
 		(enhancedField, originalFieldTypeAndOptionFlag)
-	}
-
-	private def createVarTypesField(clazz: CtClass, classPool: ClassPool, enhancedFieldsMap: Map[javassist.CtField, (javassist.CtClass, Boolean)]) = {
-		val init = clazz.makeClassInitializer()
-		val hashMapClass = classPool.get(hashMapClassName)
-
-		val varTypesField = clazz.getDeclaredFields.find(_.getName() == "varTypes").getOrElse {
-			val varTypesField = new CtField(hashMapClass, "varTypes", clazz);
-			varTypesField.setModifiers(Modifier.STATIC)
-			clazz.addField(varTypesField, "new " + hashMapClassName + "();")
-			varTypesField
-		}
-		val initBody =
-			(for ((field, (typ, optionFlag)) <- enhancedFieldsMap)
-				yield "varTypes.put(\"" + field.getName.split('$').last + "\", " + typ.getName + ".class)").mkString(";") + ";"
-
-		init.insertBefore(initBody)
 	}
 
 	private def enhanceConstructors(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtClass, Boolean)]) = {
@@ -224,13 +212,10 @@ object EntityEnhancer extends Logging {
 			if (isPrimaryConstructor) {
 				var replace = "setInitialized();\n"
 				for ((field, (typ, optionFlag)) <- enhancedFieldsMap) {
-					if (field.getName == "id") {
-						replace += "this." + field.getName + " = new " + idVarClassName + "(this);\n"
-						replace += "this.net$fwbrasil$activate$entity$Entity$_setter_$id_$eq(null);\n"
-					} else {
-						val isMutable = !Modifier.isFinal(field.getModifiers)
-						replace += "this." + field.getName + " = new " + varClassName + "(" + isMutable + "," + isTransient(field) + "," + typ.getName + ".class, \"" + getFieldName(field) + "\", this);\n"
-					}
+					if (field.getName == "id")
+						replace += "this." + field.getName + " = new " + idVarClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this);\n"
+					else
+						replace += "this." + field.getName + " = new " + varClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this);\n"
 				}
 
 				val localsMap = localVariablesMap(codeAttribute)

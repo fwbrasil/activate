@@ -10,27 +10,25 @@ object IdVar {
 	}
 }
 
-class IdVar(outerEntity: Entity)
-		extends Var[String](Option(IdVar.generateId(outerEntity.getClass)), false, false, classOf[String], "id", outerEntity) {
+class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId: String)
+		extends Var[String](metadata, outerEntity) {
 
-	var id: String = _
+	def this(metadata: EntityPropertyMetadata, outerEntity: Entity) =
+		this(metadata, outerEntity, IdVar.generateId(outerEntity.getClass))
+
+	super.put(Option(entityId))
 
 	override def getValue() =
-		id
+		entityId
 
 	override def get =
-		Some(id)
+		Some(entityId)
 
-	override def put(value: Option[String]): Unit = {
-		if (value != null && value.nonEmpty && id == null) {
-			super.put(value)
-			id = value.get
-		}
-	}
+	override def put(value: Option[String]) = {}
 
 	override protected def doInitialized[A](f: => A): A = {
 		f
 	}
 
-	override def toString = "id -> " + id
+	override def toString = "id -> " + entityId
 }

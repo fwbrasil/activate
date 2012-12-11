@@ -193,15 +193,18 @@ trait MongoStorage extends MarshalStorage[DB] {
 				select.put(mongoStatementSelectValue(value), 1)
 		val entitySource = queryInstance.from.entitySources.onlyOne
 		val ret = coll.find(where, select)
-		val rows = ret.toArray
-		(for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
-			selectValues(i) match {
-				case value: SimpleValue[_] =>
-					expectedTypes(i)
-				case other =>
-					getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
-			}
-		}).toList).toList
+		try {
+			val rows = ret.toArray
+			(for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
+				selectValues(i) match {
+					case value: SimpleValue[_] =>
+						expectedTypes(i)
+					case other =>
+						getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
+				}
+			}).toList).toList
+		} finally
+			ret.close
 	}
 
 	def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {

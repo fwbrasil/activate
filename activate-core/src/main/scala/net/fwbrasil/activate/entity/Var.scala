@@ -6,22 +6,19 @@ import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class Var[T](value: Option[T], val isMutable: Boolean, val isTransient: Boolean, val _valueClass: Class[_], val name: String, _outerEntity: Entity)
-		extends Ref[T](value)(_outerEntity.context)
+class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity)
+		extends Ref[T](None, true)(_outerEntity.context)
 		with java.io.Serializable {
 
-	def this(isMutable: Boolean, isTransient: Boolean, _valueClass: Class[_], name: String, _outerEntity: Entity) =
-		this(None, isMutable, isTransient, _valueClass, name, _outerEntity)
-
 	val outerEntity = _outerEntity
-	lazy val tval =
-		if (_valueClass != classOf[List[_]] && _valueClass != classOf[Object])
-			EntityValue.tvalFunction[T](_valueClass, classOf[Object])
-		else
-			EntityHelper.getEntityMetadata(outerEntityClass).propertiesMetadata.find(_.name == name).get.tval.asInstanceOf[Option[T] => EntityValue[T]]
+	val name = metadata.name
+	val isTransient = metadata.isTransient
+	val tval = metadata.tval.asInstanceOf[Option[T] => EntityValue[T]]
+	var initialized = false
+
 	def toEntityPropertyValue(value: T) = tval(Option(value))
 	def outerEntityClass = outerEntity.niceClass
-	def valueClass = _valueClass
+	val valueClass = metadata.propertyType
 
 	override def get = doInitialized {
 		if (outerEntity == null)

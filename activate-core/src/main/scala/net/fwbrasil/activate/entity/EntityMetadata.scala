@@ -11,8 +11,7 @@ class EntityPropertyMetadata(
 		val entityMetadata: EntityMetadata,
 		val varField: Field,
 		entityMethods: List[Method],
-		entityClass: Class[Entity],
-		varTypes: Map[String, Class[_]]) {
+		entityClass: Class[Entity]) {
 	val javaName = varField.getName
 	val originalName = javaName.split('$').last
 	val name =
@@ -59,6 +58,13 @@ class EntityPropertyMetadata(
 			.getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
 	varField.setAccessible(true)
 	getter.setAccessible(true)
+
+	if (varField.getDeclaringClass == entityMetadata.entityClass) {
+		val metadataField = entityMetadata.entityClass.getDeclaredField("metadata_" + varField.getName)
+		metadataField.setAccessible(true)
+		metadataField.set(entityMetadata.entityClass, this)
+	}
+
 	override def toString = "Property: " + name
 }
 
@@ -74,27 +80,17 @@ class EntityMetadata(
 	val varFields =
 		allFields.filter(
 			(field: Field) =>
-				classOf[Var[_]] == field.getType
+				classOf[Var[_]].isAssignableFrom(field.getType)
 					&& field.getName != "net$fwbrasil$activate$entity$Entity$$_baseVar")
 	val idField =
 		allFields.find(_.getName == "id").get
 	def isEntityProperty(varField: Field) =
-		varField.getName.split('$').last != "_baseVar" && varField.getName != "id" && allMethods.find(_.getName == varField.getName).nonEmpty
-	val varTypes = {
-		import scala.collection.JavaConversions._
-		var clazz: Class[_] = entityClass
-		var ret = Map[String, Class[_]]()
-		do {
-			val map = Reflection.getStatic(clazz, "varTypes").asInstanceOf[java.util.HashMap[String, Class[_]]]
-			if (map != null)
-				ret ++= map
-			clazz = clazz.getSuperclass
-		} while (clazz != null)
-		ret
-	}
+		varField.getName.split('$').last != "_baseVar" && allMethods.find(_.getName == varField.getName).nonEmpty
 	val propertiesMetadata =
 		(for (varField <- varFields; if (isEntityProperty(varField)))
-			yield new EntityPropertyMetadata(this, varField, allMethods, entityClass, varTypes)).sortBy(_.name)
+			yield new EntityPropertyMetadata(this, varField, allMethods, entityClass)).sortBy(_.name)
+	val idPropertyMetadata =
+		propertiesMetadata.find(_.name == "id").get
 	allMethods.foreach(_.setAccessible(true))
 	allFields.foreach(_.setAccessible(true))
 	lazy val sClass = toSClass(entityClass)

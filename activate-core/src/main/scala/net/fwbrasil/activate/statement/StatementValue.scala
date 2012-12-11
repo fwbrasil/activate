@@ -100,7 +100,7 @@ case class StatementEntitySourcePropertyValue[P](override val entitySource: Enti
 	def propertyPathNames =
 		for (prop <- propertyPathVars)
 			yield prop.name
-	override def entityValue: EntityValue[_] = lastVar.asInstanceOf[StatementMocks.FakeVar[_]].entityValueMock.asInstanceOf[EntityValue[_]]
+	override def entityValue: EntityValue[_] = lastVar.asInstanceOf[StatementMocks.FakeVar[_]].tval(None).asInstanceOf[EntityValue[_]]
 	override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
 }
 
