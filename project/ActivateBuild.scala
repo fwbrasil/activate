@@ -46,7 +46,7 @@ object ActivateBuild extends Build {
 	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
 	/* Mongo */
-	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.7.2"
+	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.10.0"
   	
   	/* Resolvers */
   	val customResolvers = Seq(

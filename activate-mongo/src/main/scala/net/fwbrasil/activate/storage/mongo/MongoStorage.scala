@@ -2,10 +2,8 @@ package net.fwbrasil.activate.storage.mongo
 
 import java.util.Date
 import java.util.IdentityHashMap
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-
 import com.mongodb.BasicDBList
 import com.mongodb.BasicDBObject
 import com.mongodb.DB
@@ -13,7 +11,6 @@ import com.mongodb.DBCollection
 import com.mongodb.DBCursor
 import com.mongodb.DBObject
 import com.mongodb.Mongo
-
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity._
 import net.fwbrasil.activate.entity.Entity
@@ -57,6 +54,7 @@ import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.RichList._
+import com.mongodb.MongoClient
 
 trait MongoStorage extends MarshalStorage[DB] {
 
@@ -69,7 +67,7 @@ trait MongoStorage extends MarshalStorage[DB] {
 		mongoDB
 
 	lazy val mongoDB = {
-		val conn = new Mongo(host, port)
+		val conn = new MongoClient(host, port)
 		val ret = conn.getDB(db)
 		if (authentication.isDefined) {
 			val (user, password) = authentication.get
