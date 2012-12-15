@@ -42,8 +42,6 @@ object ActivateBuild extends Build {
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
 
 	val gfork = "org.gfork" % "gfork" % "0.11"
-
-	def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
   	
 	/* Mongo */
 	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.10.0"
@@ -155,7 +153,6 @@ object ActivateBuild extends Build {
     		scalaVersion := "2.9.1",
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
-    	    testFrameworks ++= Seq(specs2Framework),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
