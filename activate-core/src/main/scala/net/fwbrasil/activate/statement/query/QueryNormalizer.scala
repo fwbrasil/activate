@@ -41,31 +41,30 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 				count
 			}
 		val nestedProperties = findObject[StatementEntitySourcePropertyValue[_]](query) {
-			(obj: Any) =>
-				obj match {
-					case obj: StatementEntitySourcePropertyValue[_] =>
-						obj.propertyPathVars.size > 1
-					case other =>
-						false
-				}
+			_ match {
+				case obj: StatementEntitySourcePropertyValue[_] =>
+					obj.propertyPathVars.size > 1
+				case other =>
+					false
+			}
 		}
 		if (nestedProperties.nonEmpty) {
-			val entitySourceList = ListBuffer[EntitySource]()
+			var entitySourceSet = Set[EntitySource]()
 			val criteriaList = ListBuffer[Criteria]()
 			val normalizeMap = new IdentityHashMap[Any, Any]()
 			for (nested <- nestedProperties) {
 				val (entitySources, criterias, propValue) = normalizePropertyPath(nested, nextNumber)
-				entitySourceList ++= entitySources
+				entitySourceSet ++= entitySources
 				criteriaList ++= criterias
 				normalizeMap.put(nested, propValue)
 			}
-			for (entitySource <- entitySourceList)
+			for (entitySource <- entitySourceSet)
 				normalizeMap.put(entitySource, entitySource)
 			var criteria = deepCopyMapping(query.where.value, normalizeMap)
 			for (i <- 0 until criteriaList.size)
 				criteria = And(criteria) :&& criteriaList(i)
 			normalizeMap.put(query.where.value, criteria)
-			normalizeMap.put(query.from, From(entitySourceList: _*))
+			normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
 			List(deepCopyMapping(query, normalizeMap))
 		} else
 			List(query)

@@ -77,7 +77,6 @@ import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
-import net.fwbrasil.activate.serialization.javaSerializator
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import ch.qos.logback.classic.db.names.TableName
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue

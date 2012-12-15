@@ -5,6 +5,9 @@ import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import org.joda.time.base.AbstractInstant
 import net.fwbrasil.activate.util.Reflection.getObject
+import net.fwbrasil.activate.serialization.SerializationContext
+import net.fwbrasil.activate.serialization.Serializator
+import net.fwbrasil.activate.serialization.javaSerializator
 
 abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable {
 	def emptyValue: V
@@ -108,9 +111,13 @@ case class ReferenceListEntityValue[V](override val value: Option[List[Option[St
 	def emptyValue = List()
 }
 
-case class SerializableEntityValue[S <: Serializable: Manifest](override val value: Option[S])
+case class SerializableEntityValue[S <: Serializable: Manifest](override val value: Option[S], val serializatorOption: Option[Serializator] = None)
 		extends EntityValue[S](value) {
+	def typeManifest = manifest[S]
 	def emptyValue = null.asInstanceOf[S]
+	def forSerializator(s: Serializator) = this.copy(serializatorOption = Some(s))
+	def serializator =
+		serializatorOption.get
 }
 
 object EntityValue extends ValueContext {

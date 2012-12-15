@@ -22,6 +22,9 @@ import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.activate.coordinator.CoordinatorClient
 
+import net.fwbrasil.activate.serialization.xmlSerializator
+import net.fwbrasil.activate.serialization.jsonSerializator
+
 object EnumerationValue extends Enumeration {
 	case class EnumerationValue(name: String) extends Val(name)
 	val value1a = EnumerationValue("v1")
@@ -225,6 +228,10 @@ trait ActivateTestContext
 	override protected[activate] def entityMaterialized(entity: Entity) =
 		if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
 			Reflection.set(entity, "$outer", this)
+
+	override protected lazy val defaultSerializator = xmlSerializator
+	override protected lazy val customSerializators = List(
+		serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializator)
 
 	val emptyIntValue = 0
 	val emptyLongValue = 0l

@@ -33,7 +33,6 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.SerializableEntityValue
 import net.fwbrasil.activate.entity.ListEntityValue
-import net.fwbrasil.activate.serialization.javaSerializator
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.migration.CreateTable
 import net.fwbrasil.activate.migration.RenameTable
@@ -97,7 +96,8 @@ object Marshaller {
 				EnumerationEntityValue(None)
 			}
 			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
-				SerializableEntityValue[Serializable](storageValue.value.map(javaSerializator.fromSerialized[Serializable]))
+				SerializableEntityValue[Serializable](
+					storageValue.value.map(v => entityValue.serializator.fromSerialized(v)(entityValue.typeManifest)))
 			case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
 				val v = storageValue.value.map(list => list.map(e => {
 					unmarshalling(e, entityValue.emptyValueEntityValue).value
@@ -145,7 +145,7 @@ object Marshaller {
 			case value: ListEntityValue[_] =>
 				ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
 			case value: SerializableEntityValue[_] =>
-				ByteArrayStorageValue(value.value.map(javaSerializator.toSerialized))
+				ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
 		}
 
 	def marshalling(action: StorageAction): ModifyStorageAction =

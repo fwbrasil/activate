@@ -5,6 +5,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.uuid.UUIDUtil
+import net.fwbrasil.activate.serialization.SerializationContext
 
 class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity)
 		extends Ref[T](None, true)(_outerEntity.context)
@@ -13,7 +14,20 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity)
 	val outerEntity = _outerEntity
 	val name = metadata.name
 	val isTransient = metadata.isTransient
-	val tval = metadata.tval.asInstanceOf[Option[T] => EntityValue[T]]
+	val baseTVal = metadata.tval
+	lazy val tval = {
+		val empty = baseTVal(None)
+		(empty match {
+			case v: SerializableEntityValue[_] =>
+				val serializator =
+					context.asInstanceOf[SerializationContext].serializatorFor(outerEntityClass, name)
+				(value: Option[T]) =>
+					baseTVal(value).asInstanceOf[SerializableEntityValue[_]].forSerializator(serializator)
+			case other =>
+				baseTVal
+		}).asInstanceOf[Option[T] => EntityValue[T]]
+	}
+
 	var initialized = false
 
 	def toEntityPropertyValue(value: T) = tval(Option(value))

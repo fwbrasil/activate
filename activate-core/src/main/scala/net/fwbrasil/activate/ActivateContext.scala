@@ -19,6 +19,9 @@ import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable.instancesOf
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.coordinator.Coordinator
+import net.fwbrasil.activate.serialization.Serializator
+import net.fwbrasil.activate.statement.StatementMocks
+import net.fwbrasil.activate.serialization.SerializationContext
 
 trait ActivateContext
 		extends EntityContext
@@ -29,7 +32,8 @@ trait ActivateContext
 		with Logging
 		with DelayedInit
 		with DurableContext
-		with StatementsContext {
+		with StatementsContext
+		with SerializationContext {
 
 	info("Initializing context " + contextName)
 

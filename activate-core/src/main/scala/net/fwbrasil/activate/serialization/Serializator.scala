@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.serialization
 
-trait Serializator {
+trait Serializator extends Serializable {
 
-	def toSerialized[T](value: T): Array[Byte]
-	def fromSerialized[T](bytes: Array[Byte]): T
+	def toSerialized[T: Manifest](value: T): Array[Byte]
+	def fromSerialized[T: Manifest](bytes: Array[Byte]): T
 }
