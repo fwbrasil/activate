@@ -13,7 +13,7 @@ import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.radon.ConcurrentTransactionException
 import net.fwbrasil.radon.transaction.TransactionManager
 
-class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: Ref[_]*) extends ConcurrentTransactionException(refs: _*)
+class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
 
 trait DurableContext {
 	this: ActivateContext =>
@@ -57,7 +57,7 @@ trait DurableContext {
 
 			val (readLocksNok, writeLocksNok) = coordinatorClient.tryToAcquireLocks(reads, writes)
 			if (readLocksNok.nonEmpty || writeLocksNok.nonEmpty)
-				throw new ActivateConcurrentTransactionException(readLocksNok ++ writeLocksNok)
+				throw new ActivateConcurrentTransactionException(readLocksNok ++ writeLocksNok, List())
 			try
 				f
 			finally {

@@ -55,7 +55,7 @@ object EntityForm {
 	private def build[T <: Entity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
 		val mock = StatementMocks.mockEntity(erasureOf[T])
 		val map = mappings.map(_(mock)).toList.asInstanceOf[List[(Any, Mapping[Any])]]
-		val stack = StatementMocks.fakeVarCalledStack.reverse
+		val stack = StatementMocks.fakeVarCalledStack.reverse.distinct
 		require(stack.size == map.size)
 		val properties =
 			for (i <- 0 until map.size) yield {

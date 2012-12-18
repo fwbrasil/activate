@@ -89,6 +89,7 @@ object EntityEnhancer extends Logging {
 					}).toMap
 				enhanceConstructors(clazz, enhancedFieldsMap)
 				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
+
 			} catch {
 				case e =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
