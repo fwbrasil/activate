@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.16.1-GA" withSources
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC2"
 	val sreflection = "net.fwbrasil" %% "sreflection" % "0.1"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -149,7 +149,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.2-SNAPSHOT",
+    		version := "1.2-RC2",
     		scalaVersion := "2.9.1",
     		crossScalaVersions := Seq("2.9.1", "2.9.2"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
