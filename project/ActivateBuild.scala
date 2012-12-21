@@ -4,7 +4,7 @@ import Keys._
 object ActivateBuild extends Build {
   	
 	/* Core dependencies */
-  	val javassist = "org.javassist" % "javassist" % "3.16.1-GA" withSources
+  	val javassist = "org.javassist" % "javassist" % "3.17.1-GA" withSources
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC2"
 	val sreflection = "net.fwbrasil" %% "sreflection" % "0.1"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"

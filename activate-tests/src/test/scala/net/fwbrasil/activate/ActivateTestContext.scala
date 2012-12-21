@@ -470,6 +470,7 @@ trait ActivateTestContext
 		var unitializedList: List[Int] = _
 		@Alias("customName")
 		var customNamedValue = fullStringValue
+		var length = 0
 	}
 
 	def validateFullTestEntity(entity: ActivateTestEntity = null,

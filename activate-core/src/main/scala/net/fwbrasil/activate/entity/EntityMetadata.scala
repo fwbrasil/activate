@@ -44,7 +44,11 @@ class EntityPropertyMetadata(
 		val typ = getter.getReturnType
 		if (typ == classOf[Option[_]])
 			genericParameter
-		else
+		else if (typ == classOf[Object]) {
+			val fields = entityMetadata.sClass.sFields
+			val fieldOption = fields.find(_.name == originalName)
+			fieldOption.map(_.fieldType).getOrElse(classOf[Object])
+		} else
 			typ
 	}
 	require(propertyType != null)

@@ -10,6 +10,8 @@ import net.fwbrasil.scala.Tuple29
 import net.fwbrasil.scala.Tuple29
 import net.fwbrasil.scala.Tuple30
 import net.fwbrasil.scala.Tuple31
+import net.fwbrasil.scala.Tuple31
+import net.fwbrasil.scala.Tuple32
 
 object CollectionUtil {
 
@@ -84,6 +86,8 @@ object CollectionUtil {
 				new Tuple30(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24), seq(25), seq(26), seq(27), seq(28), seq(29))
 			case 31 =>
 				new Tuple31(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24), seq(25), seq(26), seq(27), seq(28), seq(29), seq(30))
+			case 32 =>
+				new Tuple32(seq(0), seq(1), seq(2), seq(3), seq(4), seq(5), seq(6), seq(7), seq(8), seq(9), seq(10), seq(11), seq(12), seq(13), seq(14), seq(15), seq(16), seq(17), seq(18), seq(19), seq(20), seq(21), seq(22), seq(23), seq(24), seq(25), seq(26), seq(27), seq(28), seq(29), seq(30), seq(31))
 			case other =>
 				throw new IllegalStateException("Seq has too many itens to be a tuple!")
 		}).asInstanceOf[T]
