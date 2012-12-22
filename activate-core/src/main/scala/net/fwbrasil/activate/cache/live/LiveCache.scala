@@ -169,7 +169,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		})
 
 	private def entitiesFromStorage[S](query: Query[S], initializing: Boolean) = {
-		val fromStorage = storage.fromStorage(query)
 		val fromStorageMaterialized =
 			for (line <- storage.fromStorage(query))
 				yield toTuple[S](for (column <- line)
