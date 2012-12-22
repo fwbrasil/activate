@@ -21,16 +21,37 @@ class InvalidEntityException extends IllegalStateException("Trying to access an 
 
 trait Entity extends Serializable with EntityValidation {
 
-	def delete =
-		if (!isDeleted) {
-			initialize
-			_baseVar.destroy
-			for (ref <- vars; if (ref != _baseVar))
-				ref.destroy
-		}
-
 	@transient
 	private var _baseVar: Var[Any] = null
+
+	@transient
+	private[activate] var _varsMap: JHashMap[String, Var[Any]] = null
+
+	@transient
+	private var _vars: List[Var[Any]] = null
+
+	private def varsMap = {
+		if (_varsMap == null) {
+			_varsMap = new JHashMap[String, Var[Any]]()
+			buildVarsMap
+		}
+		_varsMap
+	}
+
+	private[activate] def buildVarsMap = {
+		// Implementation injected by EntityEnhance
+	}
+
+	private[activate] def putVar(name: String, ref: Var[Any]) =
+		_varsMap.put(name, ref)
+
+	private[activate] def vars = {
+		if (_vars == null) {
+			import scala.collection.JavaConversions._
+			_vars = varsMap.values.toList
+		}
+		_vars
+	}
 
 	private def baseVar = {
 		if (_baseVar == null)
@@ -48,6 +69,14 @@ trait Entity extends Serializable with EntityValidation {
 		vars.find(_.isDirty).isDefined
 
 	val id: String = null
+
+	def delete =
+		if (!isDeleted) {
+			initialize
+			_baseVar.destroy
+			for (ref <- vars; if (ref != _baseVar))
+				ref.destroy
+		}
 
 	def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
 	def creationDate = new Date(creationTimestamp)
@@ -108,49 +137,23 @@ trait Entity extends Serializable with EntityValidation {
 					}
 		}
 
-	private[this] def varsOfTypeEntity =
+	private def varsOfTypeEntity =
 		vars.filterByType[Entity, Var[Entity]]((ref: Var[Any]) => ref.valueClass)
 
 	private[activate] def isInLiveCache =
 		context.liveCache.contains(this)
 
-	private[this] def entityMetadata =
+	private def entityMetadata =
 		EntityHelper.getEntityMetadata(this.niceClass)
 
-	private[this] def varFields =
+	private def varFields =
 		entityMetadata.varFields
-
-	@transient
-	private var _varFieldsMap: JHashMap[String, Var[Any]] = null
-
-	private[this] def buildVarFieldsMap = {
-		val res = new JHashMap[String, Var[Any]]()
-		for (varField <- varFields; ref = varField.get(this).asInstanceOf[Var[Any]]) {
-			if (ref.name == null)
-				throw new IllegalStateException("Ref should have a name! (" + varField.getName() + ")")
-			else
-				res.put(ref.name, ref)
-		}
-		res
-	}
-
-	private[this] def varFieldsMap = {
-		if (_varFieldsMap == null) {
-			_varFieldsMap = buildVarFieldsMap
-		}
-		_varFieldsMap
-	}
-
-	private[activate] def vars = {
-		import scala.collection.JavaConversions._
-		varFieldsMap.values.toList
-	}
 
 	private[activate] def context: ActivateContext =
 		ActivateContext.contextFor(this.niceClass)
 
 	private[fwbrasil] def varNamed(name: String) =
-		varFieldsMap.get(name)
+		varsMap.get(name)
 
 	private[activate] def addToLiveCache =
 		context.liveCache.toCache(this)
@@ -182,7 +185,7 @@ trait Entity extends Serializable with EntityValidation {
 object Entity {
 	var serializeUsingEvelope = true
 	@transient
-	private[this] var _toStringLoopSeen: ThreadLocal[MutableHashSet[Entity]] = _
+	private var _toStringLoopSeen: ThreadLocal[MutableHashSet[Entity]] = _
 	private def toStringLoopSeen =
 		synchronized {
 			if (_toStringLoopSeen == null)

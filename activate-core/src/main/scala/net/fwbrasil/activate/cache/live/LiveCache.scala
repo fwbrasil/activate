@@ -261,10 +261,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def initialize(entity: Entity) = {
 		val vars = entity.vars.toList
-		val varNames = vars.map(_.name)
-		if (varNames != List("id")) {
+		if (vars.size != 1) {
 			val list = produceQuery({ (e: Entity) =>
-				where(e :== entity.id) selectList ((for (name <- varNames) yield toStatementValueRef(e.varNamed(name))).toList)
+				where(e :== entity.id) selectList (e.vars.map(toStatementValueRef).toList)
 			})(manifestClass(entity.niceClass)).execute(true)
 			val row = list.headOption
 			if (row.isDefined) {

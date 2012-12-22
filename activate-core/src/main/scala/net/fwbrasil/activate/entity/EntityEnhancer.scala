@@ -25,6 +25,7 @@ import java.lang.instrument.ClassFileTransformer
 import java.security.ProtectionDomain
 import javassist.CannotCompileException
 import javassist.bytecode.AnnotationsAttribute
+import javassist.CtMethod
 
 object EntityEnhancer extends Logging {
 
@@ -59,7 +60,7 @@ object EntityEnhancer extends Logging {
 		Modifier.isStatic(field.getModifiers)
 
 	def isCandidate(field: CtField) =
-		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && !isStatic(field)
+		!isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && !isStatic(field) && field.getName != "_varsMap"
 
 	def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
 		val lazyValueValueSuffix = "Value"
@@ -89,7 +90,7 @@ object EntityEnhancer extends Logging {
 					}).toMap
 				enhanceConstructors(clazz, enhancedFieldsMap)
 				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
-
+				injectBuildVarsMap(clazz, enhancedFieldsMap, classPool)
 			} catch {
 				case e =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
@@ -100,6 +101,29 @@ object EntityEnhancer extends Logging {
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
+	}
+
+	private def injectBuildVarsMap(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtField, Boolean)], classPool: ClassPool) = {
+		import scala.collection.JavaConversions._
+		val init = enhancedFieldsMap.keys.map(field => {
+			val ann = field.getAnnotation(classOf[Alias]).asInstanceOf[Alias]
+			val fieldName =
+				if (ann != null)
+					ann.value
+				else
+					field.getName
+			"this.putVar(\"" + fieldName + "\", this." + field.getName() + ");"
+		}).mkString("\n")
+		clazz.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).map {
+			_.setBody("{ " + init + "}")
+		}.getOrElse {
+			val unitClass = classPool.get(classOf[Unit].getName)
+			val method = new CtMethod(unitClass, "buildVarsMap", Array(), clazz)
+			method.setModifiers(method.getModifiers() & ~Modifier.ABSTRACT)
+			clazz.addMethod(method)
+			method.setBody("{ super.buildVarsMap(); " + init + "}")
+		}
+
 	}
 
 	def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
