@@ -233,11 +233,12 @@ object EntityEnhancer extends Logging {
 			})
 			if (isPrimaryConstructor) {
 				var replace = "setInitialized();\n"
+				val initializedFields = fields.map(_.getName)
 				for ((field, optionFlag) <- enhancedFieldsMap) {
 					if (field.getName == "id")
 						replace += "this." + field.getName + " = new " + idVarClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this);\n"
 					else
-						replace += "this." + field.getName + " = new " + varClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this);\n"
+						replace += "this." + field.getName + " = new " + varClassName + "(" + clazz.getName + ".metadata_" + field.getName + ", this, " + !initializedFields.contains(field.getName) + ");\n"
 				}
 
 				val localsMap = localVariablesMap(codeAttribute)
