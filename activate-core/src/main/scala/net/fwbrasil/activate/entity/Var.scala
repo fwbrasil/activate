@@ -11,9 +11,6 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize:
 	extends Ref[T](None, initialize)(_outerEntity.context)
 	with java.io.Serializable {
 
-	def this(metadata: EntityPropertyMetadata, _outerEntity: Entity) =
-		this(metadata, _outerEntity, true)
-
 	val outerEntity = _outerEntity
 	val name = metadata.name
 	val isTransient = metadata.isTransient

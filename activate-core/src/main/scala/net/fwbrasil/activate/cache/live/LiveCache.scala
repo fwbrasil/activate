@@ -222,7 +222,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		for (propertyMetadata <- entityMetadata.propertiesMetadata) {
 			val typ = propertyMetadata.propertyType
 			val field = propertyMetadata.varField
-			val ref = new Var(propertyMetadata, entity)
+			val ref = new Var(propertyMetadata, entity, false)
 			field.set(entity, ref)
 		}
 
