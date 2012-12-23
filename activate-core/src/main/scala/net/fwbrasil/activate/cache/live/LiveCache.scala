@@ -244,7 +244,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
 	def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
 		val entity = newInstance[E](entityClass)
-		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+		val entityMetadata = entity.entityMetadata
 		initalizeLazyEntity(entity, entityMetadata, entityId)
 		context.entityMaterialized(entity)
 		entity

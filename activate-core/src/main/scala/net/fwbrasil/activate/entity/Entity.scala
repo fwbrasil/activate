@@ -25,13 +25,8 @@ trait Entity extends Serializable with EntityValidation {
 	@transient
 	private var _vars: List[Var[Any]] = null
 
-	private def varsMap = {
-		//		if (_varsMap == null) {
-		//			_varsMap = new JHashMap[String, Var[Any]]()
-		//			buildVarsMap
-		//		}
+	private[activate] def varsMap =
 		_varsMap
-	}
 
 	private[activate] def buildVarsMap = {
 		// Implementation injected by EntityEnhance
@@ -144,8 +139,10 @@ trait Entity extends Serializable with EntityValidation {
 	private[activate] def isInLiveCache =
 		context.liveCache.contains(this)
 
-	private def entityMetadata =
-		EntityHelper.getEntityMetadata(this.niceClass)
+	private[activate] def entityMetadata: EntityMetadata = {
+		// Injected by EntityEnhancer
+		null
+	}
 
 	private def varFields =
 		entityMetadata.varFields

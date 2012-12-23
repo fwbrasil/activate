@@ -97,7 +97,7 @@ object StatementMocks {
 					"Example: com.app.myContext for com.app.model.MyEntity")
 		}
 		val entity = newInstance(concreteClass)
-		val entityMetadata = EntityHelper.getEntityMetadata(concreteClass)
+		val entityMetadata = entity.entityMetadata
 		val context = ActivateContext.contextFor(entityClass)
 		for (propertyMetadata <- entityMetadata.propertiesMetadata)
 			context.transactional(context.transient) {

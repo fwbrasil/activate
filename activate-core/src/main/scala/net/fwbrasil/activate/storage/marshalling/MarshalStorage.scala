@@ -57,8 +57,11 @@ trait MarshalStorage[T] extends Storage[T] {
 		store(statements, insertList, updateList, deleteList)
 	}
 
-	private[this] def newPropertyMap(entity: Entity) =
-		MutableMap("id" -> (ReferenceStorageValue(Option(entity.id))).asInstanceOf[StorageValue])
+	private[this] def newPropertyMap(entity: Entity) = {
+		val map = MutableMap[String, StorageValue]()
+		map.put("id", ReferenceStorageValue(Option(entity.id)))
+		map
+	}
 
 	override protected[activate] def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
 		val entityValues =

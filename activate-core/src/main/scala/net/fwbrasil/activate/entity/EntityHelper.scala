@@ -3,6 +3,8 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.util.Reflection.toRichClass
+import scala.collection.mutable.SynchronizedMap
+import scala.collection.mutable.HashMap
 
 object EntityHelper {
 
@@ -51,8 +53,10 @@ object EntityHelper {
 	def getEntityClassFromId(entityId: String) =
 		getEntityClassFromIdOption(entityId).get
 
+	private def classHashIdsCache = new HashMap[Class[_], String]() with SynchronizedMap[Class[_], String]
+
 	def getEntityClassHashId(entityClass: Class[_]): String =
-		getEntityClassHashId(getEntityName(entityClass))
+		classHashIdsCache.getOrElseUpdate(entityClass, getEntityClassHashId(getEntityName(entityClass)))
 
 	def getEntityName(entityClass: Class[_]) = {
 		val alias = entityClass.getAnnotation(classOf[Alias])
@@ -72,10 +76,10 @@ object EntityHelper {
 	def getEntityClassHashId(entityName: String): String =
 		normalizeHex(Integer.toHexString(entityName.hashCode).take(8))
 
-	def getEntityMetadataOption(clazz: Class[_]) =
+	private def getEntityMetadataOption(clazz: Class[_]) =
 		entitiesMetadatas.get(getEntityClassHashId(clazz))
 
 	def getEntityMetadata(clazz: Class[_]) =
-		entitiesMetadatas(getEntityClassHashId(clazz))
+		getEntityMetadataOption(clazz).get
 
 }

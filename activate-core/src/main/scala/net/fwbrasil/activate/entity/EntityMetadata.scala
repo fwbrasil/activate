@@ -8,10 +8,10 @@ import java.lang.reflect.ParameterizedType
 import net.fwbrasil.sReflection.SReflection._
 
 class EntityPropertyMetadata(
-		val entityMetadata: EntityMetadata,
-		val varField: Field,
-		entityMethods: List[Method],
-		entityClass: Class[Entity]) {
+	val entityMetadata: EntityMetadata,
+	val varField: Field,
+	entityMethods: List[Method],
+	entityClass: Class[Entity]) {
 	val javaName = varField.getName
 	val originalName = javaName.split('$').last
 	val name =
@@ -78,8 +78,8 @@ class EntityPropertyMetadata(
 }
 
 class EntityMetadata(
-		val name: String,
-		val entityClass: Class[Entity]) {
+	val name: String,
+	val entityClass: Class[Entity]) {
 	val allFields =
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
 	val allMethods =
@@ -103,5 +103,10 @@ class EntityMetadata(
 	allMethods.foreach(_.setAccessible(true))
 	allFields.foreach(_.setAccessible(true))
 	lazy val sClass = toSClass(entityClass)
+
+	val metadataField = entityClass.getDeclaredField("metadata_entity")
+	metadataField.setAccessible(true)
+	metadataField.set(entityClass, this)
+
 	override def toString = "Entity metadata for " + name
 }

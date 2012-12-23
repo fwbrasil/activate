@@ -91,6 +91,7 @@ object EntityEnhancer extends Logging {
 				enhanceConstructors(clazz, enhancedFieldsMap)
 				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
 				injectBuildVarsMap(clazz, enhancedFieldsMap, classPool)
+				injectEntityMetadata(clazz, classPool)
 				clazz.freeze
 			} catch {
 				case e =>
@@ -102,6 +103,21 @@ object EntityEnhancer extends Logging {
 			enhance(clazz.getSuperclass, classPool) + clazz
 		} else
 			Set()
+	}
+
+	private def injectEntityMetadata(clazz: CtClass, classPool: ClassPool) = {
+		val metadataField = new CtField(classPool.get(classOf[EntityMetadata].getName), "metadata_entity", clazz);
+		metadataField.setModifiers(Modifier.STATIC)
+		clazz.addField(metadataField)
+		val method =
+			clazz.getDeclaredMethods.find(_.getName.contains("entityMetadata")).getOrElse {
+				val unitClass = classPool.get(classOf[EntityMetadata].getName)
+				val method = new CtMethod(unitClass, "entityMetadata", Array(), clazz)
+				method.setModifiers(method.getModifiers() & ~Modifier.ABSTRACT)
+				clazz.addMethod(method)
+				method
+			}
+		method.setBody("{ return " + clazz.getName + ".metadata_entity; }")
 	}
 
 	private def injectBuildVarsMap(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtField, Boolean)], classPool: ClassPool) = {

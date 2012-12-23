@@ -71,11 +71,13 @@ trait EntityValidation {
 
 	private[activate] def invariants = {
 		if (_invariants == null) {
-			val metadata = EntityHelper.getEntityMetadata(this.getClass)
-			if (metadata.invariantMethods.nonEmpty)
+			val metadata = this.entityMetadata
+			if (metadata.invariantMethods.nonEmpty) {
 				initializeListener
-			_invariants = for (method <- metadata.invariantMethods)
-				yield (method.getName, method.invoke(this).asInstanceOf[Invariant])
+				_invariants = for (method <- metadata.invariantMethods)
+					yield (method.getName, method.invoke(this).asInstanceOf[Invariant])
+			} else
+				_invariants = List()
 		}
 		_invariants
 	}
