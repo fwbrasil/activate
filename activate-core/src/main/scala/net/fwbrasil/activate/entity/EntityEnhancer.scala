@@ -91,6 +91,7 @@ object EntityEnhancer extends Logging {
 				enhanceConstructors(clazz, enhancedFieldsMap)
 				enhanceFieldsAccesses(clazz, enhancedFieldsMap)
 				injectBuildVarsMap(clazz, enhancedFieldsMap, classPool)
+				clazz.freeze
 			} catch {
 				case e =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
@@ -114,15 +115,20 @@ object EntityEnhancer extends Logging {
 					field.getName
 			"this.putVar(\"" + fieldName + "\", this." + field.getName() + ");"
 		}).mkString("\n")
-		clazz.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).map {
-			_.setBody("{ " + init + "}")
-		}.getOrElse {
-			val unitClass = classPool.get(classOf[Unit].getName)
-			val method = new CtMethod(unitClass, "buildVarsMap", Array(), clazz)
-			method.setModifiers(method.getModifiers() & ~Modifier.ABSTRACT)
-			clazz.addMethod(method)
-			method.setBody("{ super.buildVarsMap(); " + init + "}")
-		}
+		val method =
+			clazz.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).getOrElse {
+				val unitClass = classPool.get(classOf[Unit].getName)
+				val method = new CtMethod(unitClass, "buildVarsMap", Array(), clazz)
+				method.setModifiers(method.getModifiers() & ~Modifier.ABSTRACT)
+				clazz.addMethod(method)
+				method
+			}
+		val callSuper =
+			if (clazz.getSuperclass.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).nonEmpty)
+				"super.buildVarsMap();\n"
+			else
+				""
+		method.setBody("{" + callSuper + init + "}")
 
 	}
 
