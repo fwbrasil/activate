@@ -15,26 +15,21 @@ import java.util.Date
 import org.joda.time.DateTime
 import java.util.{ HashMap => JHashMap }
 
-class InvalidEntityException extends IllegalStateException("Trying to access an invalid entity. " +
-	"It was invalidated by a modification in another application node (vm). " +
-	"You must reload it from the storage by using a query.")
-
 trait Entity extends Serializable with EntityValidation {
 
 	@transient
 	private var _baseVar: Var[Any] = null
 
-	@transient
 	private[activate] var _varsMap: JHashMap[String, Var[Any]] = null
 
 	@transient
 	private var _vars: List[Var[Any]] = null
 
 	private def varsMap = {
-		if (_varsMap == null) {
-			_varsMap = new JHashMap[String, Var[Any]]()
-			buildVarsMap
-		}
+		//		if (_varsMap == null) {
+		//			_varsMap = new JHashMap[String, Var[Any]]()
+		//			buildVarsMap
+		//		}
 		_varsMap
 	}
 
@@ -57,6 +52,12 @@ trait Entity extends Serializable with EntityValidation {
 		if (_baseVar == null)
 			_baseVar = vars.head
 		_baseVar
+	}
+
+	protected def postConstruct = {
+		buildVarsMap
+		validateOnCreate
+		addToLiveCache
 	}
 
 	def isDeleted =

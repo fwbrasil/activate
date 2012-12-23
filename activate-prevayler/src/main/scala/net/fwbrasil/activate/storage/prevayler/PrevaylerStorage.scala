@@ -38,7 +38,7 @@ class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, En
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
-		val factory: PrevaylerFactory)(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
+	val factory: PrevaylerFactory)(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
 
 	protected[activate] var prevayler: Prevayler = _
 
@@ -139,7 +139,7 @@ case class PrevaylerMemoryStorageTransaction(
 	context: ActivateContext,
 	assignments: HashMap[String, HashMap[String, StorageValue]],
 	deletes: HashSet[String])
-		extends PrevaylerTransaction {
+	extends PrevaylerTransaction {
 	def executeOn(system: Object, date: java.util.Date) = {
 		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
 		val liveCache = context.liveCache

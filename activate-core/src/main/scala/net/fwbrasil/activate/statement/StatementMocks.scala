@@ -44,7 +44,7 @@ object StatementMocks {
 		_lastFakeVarCalled.set(Stack())
 
 	class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: Entity, val originVar: FakeVar[_])
-			extends Var[P](metadata, outerEntity) {
+		extends Var[P](metadata, outerEntity) {
 
 		override def get: Option[P] = {
 			val value =
@@ -105,6 +105,7 @@ object StatementMocks {
 				val field = propertyMetadata.varField
 				field.set(entity, ref)
 			}
+		entity.buildVarsMap
 		entity.asInstanceOf[E]
 	}
 

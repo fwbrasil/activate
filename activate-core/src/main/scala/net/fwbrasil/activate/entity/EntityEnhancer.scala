@@ -127,8 +127,8 @@ object EntityEnhancer extends Logging {
 			if (clazz.getSuperclass.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).nonEmpty)
 				"super.buildVarsMap();\n"
 			else
-				""
-		method.setBody("{" + callSuper + init + "}")
+				"this._varsMap = new java.util.HashMap();\n"
+		method.setBody("{\n" + callSuper + init + "}")
 
 	}
 
@@ -250,7 +250,7 @@ object EntityEnhancer extends Logging {
 				}
 
 				c.insertBeforeBody(replace)
-				c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {validateOnCreate();addToLiveCache();}\n")
+				c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {postConstruct();}\n")
 			}
 		}
 	}
