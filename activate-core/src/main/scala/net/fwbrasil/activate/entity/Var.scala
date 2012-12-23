@@ -7,9 +7,12 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.serialization.SerializationContext
 
-class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity)
-		extends Ref[T](None, true)(_outerEntity.context)
-		with java.io.Serializable {
+class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize: Boolean)
+	extends Ref[T](None, initialize)(_outerEntity.context)
+	with java.io.Serializable {
+
+	def this(metadata: EntityPropertyMetadata, _outerEntity: Entity) =
+		this(metadata, _outerEntity, true)
 
 	val outerEntity = _outerEntity
 	val name = metadata.name
@@ -23,7 +26,7 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity)
 					context.asInstanceOf[SerializationContext].serializatorFor(outerEntityClass, name)
 				(value: Option[T]) =>
 					baseTVal(value).asInstanceOf[SerializableEntityValue[_]].forSerializator(serializator)
-			case other =>
+					case other =>
 				baseTVal
 		}).asInstanceOf[Option[T] => EntityValue[T]]
 	}

@@ -238,6 +238,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 			initalizeLazyEntityId(entity, entityMetadata, entityId)
 			entity.setPersisted
 			entity.setNotInitialized
+			entity.buildVarsMap
 			entity.invariants
 		}
 
@@ -246,7 +247,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
 		initalizeLazyEntity(entity, entityMetadata, entityId)
 		context.entityMaterialized(entity)
-		entity.buildVarsMap
 		entity
 	}
 

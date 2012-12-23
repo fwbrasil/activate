@@ -11,7 +11,7 @@ object IdVar {
 }
 
 class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId: String)
-		extends Var[String](metadata, outerEntity) {
+	extends Var[String](metadata, outerEntity, false) {
 
 	def this(metadata: EntityPropertyMetadata, outerEntity: Entity) =
 		this(metadata, outerEntity, IdVar.generateId(outerEntity.getClass))
