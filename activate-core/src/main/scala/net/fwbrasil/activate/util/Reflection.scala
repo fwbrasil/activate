@@ -78,13 +78,13 @@ object Reflection {
 	}
 
 	def set(obj: Object, fieldName: String, value: Object) = {
-		val field = getDeclaredFieldsIncludingSuperClasses(obj.niceClass).filter(_.getName() == fieldName).head
+		val field = getDeclaredFieldsIncludingSuperClasses(obj.getClass).filter(_.getName() == fieldName).head
 		field.setAccessible(true)
 		field.set(obj, value)
 	}
 
 	def get(obj: Object, fieldName: String) = {
-		val fields = getDeclaredFieldsIncludingSuperClasses(obj.niceClass)
+		val fields = getDeclaredFieldsIncludingSuperClasses(obj.getClass)
 		val field = fields.filter(_.getName() == fieldName).head
 		field.setAccessible(true)
 		field.get(obj)
@@ -100,7 +100,7 @@ object Reflection {
 	}
 
 	def invoke(obj: Object, methodName: String, params: Object*) = {
-		val clazz = obj.niceClass
+		val clazz = obj.getClass
 		val method = clazz.getDeclaredMethods().filter(_.toString().contains(methodName)).head
 		method.setAccessible(true)
 		method.invoke(obj, params: _*)
@@ -163,7 +163,7 @@ object Reflection {
 					val values =
 						for (elem <- obj.productIterator.toList)
 							yield deepCopyMapping(elem, map)
-					val constructors = obj.niceClass.getConstructors
+					val constructors = obj.getClass.getConstructors
 					val constructorOption = constructors.headOption
 					if (constructorOption.isDefined) {
 						val constructor = constructorOption.get

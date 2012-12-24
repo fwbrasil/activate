@@ -148,7 +148,7 @@ trait Entity extends Serializable with EntityValidation {
 		entityMetadata.varFields
 
 	private[activate] def context: ActivateContext =
-		ActivateContext.contextFor(this.niceClass)
+		ActivateContext.contextFor(this.getClass)
 
 	private[fwbrasil] def varNamed(name: String) =
 		varsMap.get(name)
@@ -160,7 +160,7 @@ trait Entity extends Serializable with EntityValidation {
 		vars
 
 	override def toString =
-		EntityHelper.getEntityName(this.niceClass) + (
+		EntityHelper.getEntityName(this.getClass) + (
 			try {
 				if (Entity.toStringSeen(this))
 					"(loop id->" + id + ")"

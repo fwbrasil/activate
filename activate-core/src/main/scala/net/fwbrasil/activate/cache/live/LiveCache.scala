@@ -83,7 +83,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entityInstacesMap[E].get(id)
 
 	def contains[E <: Entity](entity: E) = {
-		val map = entityInstacesMap(entity.niceClass)
+		val map = entityInstacesMap(entity.getClass)
 		map.doWithReadLock(map.contains(entity.id))
 	}
 
@@ -104,7 +104,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		val map = entityInstacesMap(entityClass)
 		map.doWithWriteLock {
 			val entity = fEntity()
-			map += (entity.id -> entity)
+			map.put(entity.id, entity)
 			entity
 		}
 	}
@@ -265,7 +265,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		if (vars.size != 1) {
 			val list = produceQuery({ (e: Entity) =>
 				where(e :== entity.id) selectList (e.vars.map(toStatementValueRef).toList)
-			})(manifestClass(entity.niceClass)).execute(true)
+			})(manifestClass(entity.getClass)).execute(true)
 			val row = list.headOption
 			if (row.isDefined) {
 				val tuple = row.get

@@ -175,7 +175,7 @@ object EntityEnhancer extends Logging {
 
 	private def buildClassPool = {
 		val classPool = new ClassPool(false)
-		classPool.appendClassPath(new ClassClassPath(this.niceClass))
+		classPool.appendClassPath(new ClassClassPath(this.getClass))
 		classPool
 	}
 

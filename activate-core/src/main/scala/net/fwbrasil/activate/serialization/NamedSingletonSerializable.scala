@@ -19,7 +19,7 @@ trait NamedSingletonSerializable extends java.io.Serializable {
 
 class NamedSingletonSerializableWrapper(instance: NamedSingletonSerializable) extends java.io.Serializable {
 	val name = instance.name
-	val clazz = instance.niceClass
+	val clazz = instance.getClass
 	protected def readResolve(): Any =
 		NamedSingletonSerializable.instances(clazz.getName)(name)
 }
@@ -41,7 +41,7 @@ object NamedSingletonSerializable {
 	}
 
 	def registerInstance[T <: NamedSingletonSerializable](instance: T) = {
-		implicit val m = manifestClass[T](instance.niceClass)
+		implicit val m = manifestClass[T](instance.getClass)
 		val map = instancesMapOf[T]
 		val option = map.get(instance.name)
 		//		if (option.isDefined && option.get != instance)
