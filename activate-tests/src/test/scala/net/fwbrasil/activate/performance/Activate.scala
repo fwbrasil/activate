@@ -4,7 +4,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 
-class ActivateTestSubjectEntity(var string: String, var string2: String, val integ: Int)
+class ActivateTestSubjectEntity(var string: String, var string2: String, var integ: Int)
 	extends PerformanceTestSubjectEntity with Entity
 
 class Pessoa extends Entity {
@@ -37,6 +37,10 @@ class ActivatePerformanceTestSubject(val fContext: () => ActivateContext) extend
 	}
 	def findAllEntitiesInOneTransaction = transactional {
 		all[ActivateTestSubjectEntity]
+	}
+
+	def modifyAllEntitiesInOneTransaction = transactional {
+		all[ActivateTestSubjectEntity].foreach(_.integ += 1)
 	}
 
 }

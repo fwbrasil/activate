@@ -6,7 +6,7 @@ import org.prevayler.Query
 import org.prevayler.Transaction
 import java.util.Date
 
-class PrevaylerPerformanceTestSubjectEntity(var string: String)
+class PrevaylerPerformanceTestSubjectEntity(var string: String, var integ: Int)
 	extends PerformanceTestSubjectEntity with Serializable
 
 class PrevaylerPerformanceTestSubjectSystem extends Serializable {
@@ -30,7 +30,7 @@ class PrevaylerPerformanceTestSubject extends PerformanceTestSubject {
 			def executeOn(system: Object, date: Date) = {
 				for (i <- 0l until number)
 					system.asInstanceOf[PrevaylerPerformanceTestSubjectSystem].entities +=
-						new PrevaylerPerformanceTestSubjectEntity(i.toString)
+						new PrevaylerPerformanceTestSubjectEntity(i.toString, i.intValue)
 			}
 		})
 	}
@@ -39,6 +39,16 @@ class PrevaylerPerformanceTestSubject extends PerformanceTestSubject {
 		prevayler.execute(new Query {
 			def query(system: Object, date: Date) = {
 				system.asInstanceOf[PrevaylerPerformanceTestSubjectSystem].entities
+			}
+		})
+	}
+
+	def modifyAllEntitiesInOneTransaction = {
+		prevayler.execute(new Query {
+			def query(system: Object, date: Date) = {
+				val entities = system.asInstanceOf[PrevaylerPerformanceTestSubjectSystem].entities
+				entities.foreach(_.integ += 1)
+				new Object
 			}
 		})
 	}

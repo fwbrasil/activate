@@ -10,7 +10,7 @@ import org.prevayler.Query
 object PerformanceTestMain extends App {
 	new PerformanceTest(50000, 2,
 		Map(
-			//			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject),
+			"Prevayler" -> (() => new PrevaylerPerformanceTestSubject),
 			"ActivatePrevayler" -> (() => new ActivatePerformanceTestSubjectPrevayler)))
 }
 
@@ -59,6 +59,11 @@ class PerformanceTest(val entities: Long, threads: Int, val subjects: Map[String
 				subject.findAllEntitiesInOneTransaction
 			}
 		}
+		registerTime(name, "modifyAllEntitiesInOneTransaction") {
+			runInThreads {
+				subject.modifyAllEntitiesInOneTransaction
+			}
+		}
 	}
 
 }
@@ -70,4 +75,5 @@ trait PerformanceTestSubjectEntity {
 trait PerformanceTestSubject {
 	def createEntitiesInOneTransaction(number: Long): Unit
 	def findAllEntitiesInOneTransaction: Unit
+	def modifyAllEntitiesInOneTransaction: Unit
 }
