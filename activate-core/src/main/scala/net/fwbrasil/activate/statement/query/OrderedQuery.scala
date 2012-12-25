@@ -28,14 +28,28 @@ case class OrderByWrapper[S](query: Query[S]) {
 
 	def orderBy(criterias: OrderByCriteria[_]*): Query[S] =
 		if (!criterias.isEmpty)
-			OrderedQuery[S](query.from, query.where, query.select, OrderBy(criterias: _*))
+			new OrderedQuery[S](query.from, query.where, query.select, OrderBy(criterias: _*))
 		else query
 }
 
-case class OrderedQuery[S](override val from: From, override val where: Where, override val select: Select, _orderBy: OrderBy)
+class OrderedQuery[S](override val from: From, override val where: Where, override val select: Select, val _orderBy: OrderBy)
 		extends Query[S](from, where, select) {
 	override def orderByClause = Some(_orderBy)
 	override def toString = super.toString + _orderBy.toString
+
+	override def productElement(n: Int): Any =
+		n match {
+			case 0 => from
+			case 1 => where
+			case 2 => select
+			case 3 => _orderBy
+		}
+	override def productArity: Int = 4
+	override def canEqual(that: Any): Boolean =
+		that.getClass == classOf[OrderedQuery[S]]
+	override def equals(that: Any): Boolean =
+		canEqual(that) &&
+			that.asInstanceOf[OrderedQuery[S]]._orderBy == _orderBy
 }
 
 case class OrderBy(criterias: OrderByCriteria[_]*) {

@@ -65,7 +65,7 @@ case class IfExistsWithCascadeBag(actions: List[IfExists[_]]) {
 		this
 	}
 	def cascade = {
-		actions.foreach(_ match {
+		actions.foreach(_.asInstanceOf[Any] match {
 			case e: Cascade =>
 				e.cascade
 			case _ =>

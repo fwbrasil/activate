@@ -27,8 +27,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			OneTransaction(ctx),
 			MultipleTransactions(ctx),
 			MultipleTransactionsWithReinitialize(ctx),
-			MultipleTransactionsWithReinitializeAndSnapshot(ctx)
-		).filter(_.accept(ctx))
+			MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
 	def contexts = _contexts
 
@@ -37,13 +36,13 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			memoryContext,
 			prevaylerContext,
 			mongoContext,
-			mysqlContext,
-			postgresqlContext,
-			h2Context,
-			derbyContext,
-			hsqldbContext//,
+			mysqlContext //,
+			//			postgresqlContext,
+			//			h2Context,
+			//			derbyContext,
+			//			hsqldbContext//,
 			//oracleContext
-		)
+			)
 		ret.foreach(_.stop)
 		ret
 		val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))

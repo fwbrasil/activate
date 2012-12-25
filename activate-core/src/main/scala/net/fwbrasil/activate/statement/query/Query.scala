@@ -160,7 +160,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 }
 
-case class Query[S](override val from: From, override val where: Where, select: Select) extends Statement(from, where) {
+class Query[S](override val from: From, override val where: Where, val select: Select) extends Statement(from, where) with Product {
 	private[activate] def execute(iniatializing: Boolean): List[S] = {
 		val context =
 			(for (src <- from.entitySources)
@@ -170,6 +170,26 @@ case class Query[S](override val from: From, override val where: Where, select: 
 	def execute: List[S] = execute(false)
 
 	private[activate] def orderByClause: Option[OrderBy] = None
+
+	def productElement(n: Int): Any =
+		n match {
+			case 0 => from
+			case 1 => where
+			case 2 => select
+		}
+	def productArity: Int = 3
+	def canEqual(that: Any): Boolean =
+		that.getClass == classOf[Query[S]]
+	override def equals(that: Any): Boolean =
+		canEqual(that) &&
+			(that match {
+				case v: Query[S] =>
+					v.from == from &&
+						v.where == where &&
+						v.select == select
+				case other =>
+					false
+			})
 
 	override def toString = from + " => where" + where + " select " + select + ""
 }

@@ -66,7 +66,7 @@ trait StatementValueContext extends ValueContext {
 		// Just to evaluate
 		value
 		StatementMocks.lastFakeVarCalled match {
-			case Some(ref: Var[_]) =>
+			case Some(ref: Var[V]) =>
 				toStatementValueRef(ref)
 			case other =>
 				value.getOrElse(null.asInstanceOf[V]) match {
@@ -90,18 +90,41 @@ case class StatementEntityInstanceValue[E <: Entity](val fEntity: () => E) exten
 	override def hashCode = System.identityHashCode(this)
 }
 
-case class StatementEntitySourceValue[V](val entitySource: EntitySource) extends StatementEntityValue[V] {
+class StatementEntitySourceValue[V](val entitySource: EntitySource) extends StatementEntityValue[V] with Product {
 	override def entityValue: EntityValue[_] = EntityInstanceEntityValue(None)(manifestClass(entitySource.entityClass))
 	override def toString = entitySource.name
+
+	def productElement(n: Int): Any =
+		n match {
+			case 0 => entitySource
+		}
+	def productArity: Int = 1
+	def canEqual(that: Any): Boolean =
+		that.getClass == classOf[StatementEntitySourceValue[V]]
+	override def equals(that: Any): Boolean =
+		canEqual(that) &&
+			that.asInstanceOf[StatementEntitySourceValue[V]].entitySource == entitySource
 }
 
-case class StatementEntitySourcePropertyValue[P](override val entitySource: EntitySource, val propertyPathVars: Var[_]*) extends StatementEntitySourceValue[P](entitySource) {
+class StatementEntitySourcePropertyValue[P](override val entitySource: EntitySource, val propertyPathVars: Var[_]*) extends StatementEntitySourceValue[P](entitySource) {
 	def lastVar = propertyPathVars.last
 	def propertyPathNames =
 		for (prop <- propertyPathVars)
 			yield prop.name
 	override def entityValue: EntityValue[_] = lastVar.asInstanceOf[StatementMocks.FakeVar[_]].tval(None).asInstanceOf[EntityValue[_]]
 	override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
+
+	override def productElement(n: Int): Any =
+		n match {
+			case 0 => entitySource
+			case 1 => propertyPathVars
+		}
+	override def productArity: Int = 2
+	override def canEqual(that: Any): Boolean =
+		that.getClass == classOf[StatementEntitySourcePropertyValue[P]]
+	override def equals(that: Any): Boolean =
+		canEqual(that) && super.equals(that) &&
+			that.asInstanceOf[StatementEntitySourcePropertyValue[P]].propertyPathVars == propertyPathVars
 }
 
 case class SimpleValue[V](val fAnyValue: () => V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue[V] {

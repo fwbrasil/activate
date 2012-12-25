@@ -215,12 +215,14 @@ trait SqlIdiom {
 				val delete =
 					new SqlStatement(
 						"DELETE FROM " + listTable + " WHERE OWNER = :id", Map("id" -> id))
-				val inserts = value.value.filter(_ => !isDelete).map { list =>
-					(0 until list.size).map { i =>
-						new SqlStatement(
-							"INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)", Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
-					}
-				}.flatten
+				val inserts =
+					if (!isDelete && value.value.isDefined) {
+						val list = value.value.get
+						(0 until list.size).map { i =>
+							new SqlStatement(
+								"INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)", Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
+						}
+					} else List()
 				List(delete) ++ inserts
 			}.toList.flatten
 		if (isDelete)

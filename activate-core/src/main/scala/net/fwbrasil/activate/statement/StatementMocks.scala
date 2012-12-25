@@ -43,8 +43,10 @@ object StatementMocks {
 	def clearFakeVarCalled =
 		_lastFakeVarCalled.set(Stack())
 
-	class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: Entity, val originVar: FakeVar[_])
-		extends Var[P](metadata, outerEntity, false) {
+	class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: Entity, val _outerEntityClass: Class[Entity], val originVar: FakeVar[_])
+			extends Var[P](metadata, outerEntity, false) {
+
+		override def outerEntityClass = _outerEntityClass
 
 		override def get: Option[P] = {
 			val value =
@@ -101,7 +103,7 @@ object StatementMocks {
 		val context = ActivateContext.contextFor(entityClass)
 		for (propertyMetadata <- entityMetadata.propertiesMetadata)
 			context.transactional(context.transient) {
-				val ref = new FakeVar[Any](propertyMetadata, entity, originVar)
+				val ref = new FakeVar[Any](propertyMetadata, entity, entityClass.asInstanceOf[Class[Entity]], originVar)
 				val field = propertyMetadata.varField
 				field.set(entity, ref)
 			}

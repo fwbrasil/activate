@@ -98,7 +98,7 @@ class GraphUtilSpecs extends Specification {
 						("event", "ticket1"),
 						("event", "ticket2"),
 						("room", "event")),
-					"room", "event", "seat1", "ticket1", "seat2", "ticket2") must beEqualTo(List("room", "event", "seat1", "ticket1", "seat2", "ticket2"))
+					"room", "event", "seat1", "ticket1", "seat2", "ticket2") must beEqualTo(List("room", "seat2", "seat1", "event", "ticket2", "ticket1"))
 			}
 
 			"with internal cycle" in {

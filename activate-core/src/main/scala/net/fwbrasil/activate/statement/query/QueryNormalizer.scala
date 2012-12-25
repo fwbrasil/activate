@@ -65,7 +65,8 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 				criteria = And(criteria) :&& criteriaList(i)
 			normalizeMap.put(query.where.value, criteria)
 			normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
-			List(deepCopyMapping(query, normalizeMap))
+			val result = deepCopyMapping(query, normalizeMap)
+			List(result)
 		} else
 			List(query)
 	}
@@ -81,12 +82,12 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 				} else
 					nested.entitySource
 			if (i != 0) {
-				criterias += (IsEqualTo(StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== StatementEntitySourceValue(entitySource))
+				criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== new StatementEntitySourceValue(entitySource))
 				entitySources += entitySource
 			}
 		}
 		val propValue =
-			StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
+			new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
 		(entitySources, criterias, propValue)
 	}
 

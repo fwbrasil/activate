@@ -97,8 +97,8 @@ class QuerySpecs extends ActivateTest {
 						allWhere[ActivateTestEntity](
 							_.entityValue isNull,
 							_.charValue :== 'A' //, 
-						//							_.enumerationValue isNull
-						).headOption must beNone
+							//							_.enumerationValue isNull
+							).headOption must beNone
 					}
 				})
 		}

@@ -111,19 +111,19 @@ case class BooleanOperatorCriteria(valueA: StatementBooleanValue, operator: Bool
 case class Where(value: Criteria) {
 
 	private[activate] def selectList(list: List[StatementSelectValue[_]]) =
-		Query[Product](From.from,
+		new Query[Product](From.from,
 			this,
 			Select(list: _*))
 
 	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1](tuple: T1)(implicit tval1: (=> T1) => StatementSelectValue[T1]) =
-		Query[T1](From.from,
+		new Query[T1](From.from,
 			this,
 			Select(tuple))
 
 	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2](value1: => T1, value2: => T2)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2]) =
-		Query[Tuple2[T1, T2]](
+		new Query[Tuple2[T1, T2]](
 			From.from,
 			this,
 			Select(tval1(value1),
@@ -131,7 +131,7 @@ case class Where(value: Criteria) {
 
 	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2, T3](value1: => T1, value2: => T2, value3: => T3)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3]) =
-		Query[Tuple3[T1, T2, T3]](
+		new Query[Tuple3[T1, T2, T3]](
 			From.from,
 			this,
 			Select(tval1(value1),
@@ -139,7 +139,7 @@ case class Where(value: Criteria) {
 				tval3(value3)))
 	@implicitNotFound("Can't find a EntityValue implicit converter. Maybe the select type is not supported.")
 	def select[T1, T2, T3, T4](value1: => T1, value2: => T2, value3: => T3, value4: => T4)(implicit tval1: (=> T1) => StatementSelectValue[T1], tval2: (=> T2) => StatementSelectValue[T2], tval3: (=> T3) => StatementSelectValue[T3], tval4: (=> T4) => StatementSelectValue[T4]) =
-		Query[Tuple4[T1, T2, T3, T4]](
+		new Query[Tuple4[T1, T2, T3, T4]](
 			From.from,
 			this,
 			Select(tval1(value1),
