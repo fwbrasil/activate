@@ -53,6 +53,8 @@ trait StatementValueContext extends ValueContext {
 			new StatementEntityInstanceValue(fEntity)
 	}
 
+	import language.implicitConversions
+
 	@implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
 	implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue[V] =
 		toStatementValueEntityValueOption(

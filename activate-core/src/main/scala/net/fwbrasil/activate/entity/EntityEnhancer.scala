@@ -31,11 +31,10 @@ object EntityEnhancer extends Logging {
 
 	val varClassName = classOf[Var[_]].getName
 	val idVarClassName = classOf[IdVar].getName
-	val hashMapClassName = classOf[java.util.HashMap[_, _]].getName
 	val entityClassName = classOf[Entity].getName
 	val entityClassFieldPrefix = entityClassName.replace(".", "$")
-	val scalaVariables = Array("$outer", "bitmap$")
-	val validEntityFields = Array("invariants", "listener")
+	val scalaVariablesPrefixes = Array("$outer", "bitmap$")
+	val entityValidationFields = Array("invariants", "listener")
 
 	def isEntityClass(clazz: CtClass, classPool: ClassPool): Boolean =
 		clazz.getInterfaces.contains(classPool.get(entityClassName)) ||
@@ -48,10 +47,10 @@ object EntityEnhancer extends Logging {
 		field.getType.getName == varClassName
 
 	def isScalaVariable(field: CtField) =
-		scalaVariables.filter((name: String) => field.getName.startsWith(name)).nonEmpty
+		scalaVariablesPrefixes.filter((name: String) => field.getName.startsWith(name)).nonEmpty
 
 	def isValidEntityField(field: CtField) =
-		validEntityFields.filter((name: String) => field.getName == name).nonEmpty
+		entityValidationFields.filter((name: String) => field.getName == name).nonEmpty
 
 	def isTransient(field: CtField) =
 		Modifier.isTransient(field.getModifiers)
@@ -94,7 +93,7 @@ object EntityEnhancer extends Logging {
 				injectEntityMetadata(clazz, classPool)
 				clazz.freeze
 			} catch {
-				case e =>
+				case e: Throwable =>
 					val toThrow = new IllegalStateException("Fail to enhance " + clazz.getName)
 					toThrow.initCause(e)
 					throw toThrow
@@ -164,6 +163,7 @@ object EntityEnhancer extends Logging {
 		import ActivateContext.classLoaderFor
 		for (enhancedEntityClass <- resolved) yield try
 			enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName)).asInstanceOf[Class[Entity]]
+
 		catch {
 			case e: CannotCompileException =>
 				classLoaderFor(enhancedEntityClass.getName).loadClass(enhancedEntityClass.getName).asInstanceOf[Class[Entity]]

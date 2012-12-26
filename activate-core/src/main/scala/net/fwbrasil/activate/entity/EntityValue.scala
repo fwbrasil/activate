@@ -166,6 +166,8 @@ object EntityValue extends ValueContext {
 
 trait ValueContext {
 
+	import language.implicitConversions
+
 	implicit def toIntEntityValue(value: Int) =
 		toIntEntityValueOption(Option(value))
 	implicit def toLongEntityValue(value: Long) =

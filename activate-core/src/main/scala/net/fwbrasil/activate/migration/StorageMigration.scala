@@ -30,6 +30,7 @@ class StorageMigration[A <: ActivateContext](val context: A, val oldStorage: Sto
 	}
 
 	def migrate(step: Int = 1) = logInfo("Migrating storage...") {
+		import language.postfixOps
 		val classes = EntityHelper.metadatas.map(m => EntityHelper.concreteClasses(m.entityClass)).flatten.filter(context.acceptEntity(_)).toSet
 		for (clazz <- classes) {
 			set(context, "storage", oldStorage)

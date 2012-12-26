@@ -104,6 +104,8 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
 				}
 			case None =>
 				throw new IllegalStateException("Time out accessing coordinator server.")
+			case other =>
+				throw new IllegalStateException("Invalid coordinator response.")
 		}
 	}
 }

@@ -60,10 +60,8 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
 		tree.resolve
 	} catch {
 		case e: CyclicReferenceException =>
-			"Let storage cry if necessary!"
+			// Let storage cry if necessary!
 			statements.toList
-		case other =>
-			throw other
 	}
 
 	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =

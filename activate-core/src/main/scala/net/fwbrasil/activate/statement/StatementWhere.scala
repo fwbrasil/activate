@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.statement
 
+import language.existentials
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
 import net.fwbrasil.activate.statement.query.Query
@@ -18,6 +19,8 @@ case class SimpleStatementBooleanValue(value: Boolean)(implicit val tval: Boolea
 }
 
 trait OperatorContext {
+	import language.implicitConversions
+
 	implicit def toAnd(value: StatementBooleanValue) = And(value)
 	implicit def toOr(value: StatementBooleanValue) = Or(value)
 	implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsEqualTo(value)

@@ -10,6 +10,8 @@ import scala.math.Ordering.OptionOrdering
 
 trait OrderedQueryContext {
 
+	import language.implicitConversions
+
 	implicit def abstractInstantOrdering[A <: AbstractInstant]: Ordering[A] = new Ordering[A] {
 		def compare(x: A, y: A) = x.toDate.compareTo(y.toDate)
 	}
@@ -82,14 +84,13 @@ case class OrderBy(criterias: OrderByCriteria[_]*) {
 					else {
 						val ordering = criteria.ordering
 						ordering match {
-							case ordering: OptionOrdering[Any] =>
-								ordering.compare(Option(x), Option(y))
+							case ordering: OptionOrdering[_] =>
+								ordering.asInstanceOf[OptionOrdering[Any]].compare(Option(x), Option(y))
 							case ordering =>
 								ordering.asInstanceOf[Ordering[Any]].compare(x, y)
 						}
 					}
 			}
-			0
 			result
 		}
 	}

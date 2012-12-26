@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.migration
 
+import language.existentials
 import net.fwbrasil.activate.entity.EntityValue
 
 sealed trait MigrationAction {

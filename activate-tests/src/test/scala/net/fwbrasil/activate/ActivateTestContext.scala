@@ -285,7 +285,7 @@ trait ActivateTestContext
 
 	val fullByteArrayValue = "S".getBytes
 	def fullEntityValue =
-		allWhere[ActivateTestEntity](_.dummy :== true).headOption.getOrElse({
+		select[ActivateTestEntity].where(_.dummy :== true).headOption.getOrElse({
 			val entity = newEmptyActivateTestEntity
 			entity.dummy = true
 			entity

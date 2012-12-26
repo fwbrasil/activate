@@ -40,6 +40,8 @@ class EntityForm[T <: Entity](
 
 object EntityForm {
 
+	import language.implicitConversions
+
 	implicit def entityData[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]) =
 		EntityData(entity)(context, m, EntityHelper.getEntityMetadata(erasureOf[T]))
 

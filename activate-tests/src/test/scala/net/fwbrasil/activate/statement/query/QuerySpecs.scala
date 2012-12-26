@@ -48,7 +48,7 @@ class QuerySpecs extends ActivateTest {
 						newEmptyActivateTestEntity
 					}
 					step {
-						allWhere[ActivateTestEntity](
+						select[ActivateTestEntity].where(
 							_.intValue :== fullIntValue,
 							_.longValue :== fullLongValue,
 							_.booleanValue :== fullBooleanValue,
@@ -66,7 +66,7 @@ class QuerySpecs extends ActivateTest {
 							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
 							_.caseClassEntityValue :== fullCaseClassEntityValue).size must beEqualTo(1)
 
-						allWhere[ActivateTestEntity](
+						select[ActivateTestEntity].where(
 							_.intValue isNotNull,
 							_.longValue isNotNull,
 							_.booleanValue isNotNull,
@@ -84,7 +84,7 @@ class QuerySpecs extends ActivateTest {
 							_.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
 							_.caseClassEntityValue :== fullCaseClassEntityValue).size must beEqualTo(1)
 
-						allWhere[ActivateTestEntity](
+						select[ActivateTestEntity].where(
 							_.stringValue isNull,
 							_.bigDecimalValue isNull,
 							_.dateValue isNull,
@@ -94,7 +94,7 @@ class QuerySpecs extends ActivateTest {
 							_.entityWithoutAttributeValue isNull,
 							_.caseClassEntityValue isNull).size must beEqualTo(2)
 
-						allWhere[ActivateTestEntity](
+						select[ActivateTestEntity].where(
 							_.entityValue isNull,
 							_.charValue :== 'A' //, 
 							//							_.enumerationValue isNull
@@ -293,7 +293,7 @@ class QuerySpecs extends ActivateTest {
 						}
 						step {
 							val a = all[ActivateTestEntity]
-							allWhere[ActivateTestEntity](_.traitValue1.attribute :== "1").size must beEqualTo(1)
+							select[ActivateTestEntity].where(_.traitValue1.attribute :== "1").size must beEqualTo(1)
 						}
 					}
 				})
@@ -339,13 +339,13 @@ class QuerySpecs extends ActivateTest {
 								entity.stringValue = stringThatMatch
 							}
 							step {
-								allWhere[ActivateTestEntity](_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
+								select[ActivateTestEntity].where(_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
 							}
 							step {
 								entity.stringValue = stringThatNotMatch
 							}
 							step {
-								allWhere[ActivateTestEntity](_.stringValue like pattern).isEmpty must beTrue
+								select[ActivateTestEntity].where(_.stringValue like pattern).isEmpty must beTrue
 							}
 						}
 					testLike("test", "aaa", "te*")
@@ -368,13 +368,13 @@ class QuerySpecs extends ActivateTest {
 								entity.stringValue = stringThatMatch
 							}
 							step {
-								allWhere[ActivateTestEntity](_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
+								select[ActivateTestEntity].where(_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
 							}
 							step {
 								entity.stringValue = stringThatNotMatch
 							}
 							step {
-								allWhere[ActivateTestEntity](_.stringValue regexp pattern).isEmpty must beTrue
+								select[ActivateTestEntity].where(_.stringValue regexp pattern).isEmpty must beTrue
 							}
 						}
 					testRegexp("my-us3r_n4m3", "th1s1s-wayt00_l0ngt0beausername", "^[a-z0-9_-]{3,16}$")
@@ -399,7 +399,7 @@ class QuerySpecs extends ActivateTest {
 								(entity.id, entity.entityValue.id)
 							}
 						step {
-							allWhere[ActivateTestEntity](_.entityValue.id :== entityValueId).onlyOne.id must beEqualTo(entityId)
+							select[ActivateTestEntity].where(_.entityValue.id :== entityValueId).onlyOne.id must beEqualTo(entityId)
 						}
 					}
 				})

@@ -34,7 +34,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 			connection.commit
 			res
 		} catch {
-			case e =>
+			case e: Throwable =>
 				connection.rollback
 				throw e
 		} finally
@@ -139,7 +139,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 					ps.addBatch
 			}
 		} catch {
-			case e =>
+			case e: Throwable =>
 				ps.close
 				throw e
 		}

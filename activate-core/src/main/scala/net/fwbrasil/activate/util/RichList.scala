@@ -62,6 +62,8 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 
 object RichList {
 
+	import language.implicitConversions
+
 	implicit def toRichList[T: Manifest](list: Iterable[T]): RichList[T] = RichList(list)
 	implicit def yourselfDecorator[T](obj: T) = new {
 		def yourself =

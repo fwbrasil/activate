@@ -15,6 +15,8 @@ abstract class DmlStorageStatement(val entityClass: Class[_], val entityId: Stri
 	override def toString = this.getClass.getSimpleName + "(" + EntityHelper.getEntityName(entityClass) + ", " + entityId + ", " + propertyMap + ")"
 }
 
+import language.existentials
+
 case class InsertDmlStorageStatement(override val entityClass: Class[_], override val entityId: String, override val propertyMap: Map[String, StorageValue])
 	extends DmlStorageStatement(entityClass, entityId, propertyMap)
 

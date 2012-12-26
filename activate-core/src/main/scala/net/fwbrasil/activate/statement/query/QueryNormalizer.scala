@@ -24,6 +24,9 @@ import net.fwbrasil.activate.statement.StatementNormalizer
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
 	def normalizeStatement(query: Query[_]): List[Query[_]] = {
+
+		import language.existentials
+
 		val normalizedPropertyPath = normalizePropertyPath(List(query))
 		val normalizedFrom = normalizeFrom(normalizedPropertyPath)
 		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)

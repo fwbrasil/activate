@@ -54,7 +54,7 @@ trait ActivateContext
 		storage
 
 	protected def storages =
-		List(storage)
+		List[Storage[_]](storage)
 
 	def reinitializeContext =
 		logInfo("reinitializing context " + contextName) {

@@ -13,6 +13,8 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.StatementContext
 
 trait MassDeleteContext extends StatementContext {
+	import language.implicitConversions
+
 	implicit def toDelete(where: Where) =
 		MassDeleteStatement(From.from, where)
 	import From._

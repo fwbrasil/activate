@@ -116,6 +116,8 @@ trait EntityValidation {
 	protected def invariant(exception: Exception)(f: => Boolean) =
 		Invariant(() => f, () => List(), exceptionOption = Some(exception))
 
+	import language.implicitConversions
+
 	protected implicit def toPostCond[R](f: => R) = PostCond(() => f)
 
 	protected def preCondition[R](condition: => Boolean)(f: => R): R =
@@ -134,7 +136,7 @@ trait EntityValidation {
 		try {
 			EntityValidation.validateOnCreate(this)
 		} catch {
-			case e =>
+			case e: Throwable =>
 				delete
 				throw e;
 		}
@@ -151,7 +153,7 @@ trait EntityValidation {
 		}
 	}
 
-	private[this] def invalidInvariants =
+	private def invalidInvariants =
 		for ((name, invariant) <- invariants; if (!invariant.f()))
 			yield (name, invariant.errorParams(), invariant.exceptionOption)
 

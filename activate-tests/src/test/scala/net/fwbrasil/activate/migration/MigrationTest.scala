@@ -61,10 +61,6 @@ class MigrationTest extends ActivateTest {
 						Migration.revert(ctx, migration)
 						migration.validateDown
 					}
-				} catch {
-					case e =>
-						e.printStackTrace
-						throw e
 				} finally {
 					clear
 					stop

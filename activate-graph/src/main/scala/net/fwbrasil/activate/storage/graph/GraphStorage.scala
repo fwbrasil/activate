@@ -83,15 +83,14 @@ case class GraphStorage[G <: Graph](pGraph: G) extends MarshalStorage[Graph] {
 
 		store(updateList,
 			vertex => graph.getVertex(vertex.id),
-			(edge, properties) => graph.getEdge(edge.id)
-		)
+			(edge, properties) => graph.getEdge(edge.id))
 
 		for ((entity, properties) <- edgeFirst(deleteList))
 			entity match {
 				case vertex: Vertex =>
 					val graphVertex = graph.getVertex(vertex.id)
 					graph.removeVertex(graphVertex)
-				case edge: Edge[Vertex, Vertex] =>
+				case edge: Edge[_, _] =>
 					val graphEdge = graph.getEdge(edge.id)
 					graph.removeEdge(graphEdge)
 			}
@@ -124,8 +123,8 @@ case class GraphStorage[G <: Graph](pGraph: G) extends MarshalStorage[Graph] {
 					val graphVertex = vertexProducer(vertex)
 					for ((property, value) <- properties; if property != "id")
 						graphVertex.setProperty(property, nativeValue(value))
-				case edge: Edge[Vertex, Vertex] =>
-					val graphEdge = edgeProducer(edge, properties)
+				case edge: Edge[_, _] =>
+					val graphEdge = edgeProducer(edge.asInstanceOf[Edge[Vertex, Vertex]], properties)
 					for ((property, value) <- properties; if property != "id")
 						graphEdge.setProperty(property, nativeValue(value))
 			}

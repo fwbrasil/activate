@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.statement.mass
 
+import language.existentials
 import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.StatementSelectValue
@@ -13,6 +14,9 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.StatementContext
 
 trait MassUpdateContext extends StatementContext {
+
+	import language.implicitConversions
+
 	implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T]) =
 		UpdateAssigneeDecorator(tval(value))
 	implicit def toWhereDecorator(where: Where) =

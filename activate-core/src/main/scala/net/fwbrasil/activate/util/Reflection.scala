@@ -32,6 +32,8 @@ import net.fwbrasil.activate.ActivateContext
 
 object Reflection {
 
+	import language.implicitConversions
+
 	val objenesis = new ObjenesisStd(false);
 
 	class NiceObject[T](x: T) {
@@ -128,6 +130,8 @@ object Reflection {
 		val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
 		Set(subtypes: _*).asInstanceOf[Set[String]]
 	}
+
+	import language.existentials
 
 	def findObject[R](obj: T forSome { type T <: Any })(f: (Any) => Boolean): Set[R] = {
 		(if (f(obj))

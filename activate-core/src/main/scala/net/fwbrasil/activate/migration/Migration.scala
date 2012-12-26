@@ -38,7 +38,7 @@ object Migration {
 		storageVersionCache.getOrElseUpdate(context.name, {
 			this.execute(context, new StorageVersionMigration)
 			transactional {
-				allWhere[StorageVersion](_.contextName :== context.name)
+				select[StorageVersion].where(_.contextName :== context.name)
 					.headOption
 					.getOrElse(new StorageVersion(context.name, -1, -1))
 			}
@@ -258,10 +258,8 @@ abstract class Migration(implicit val context: ActivateContext) {
 				tree.resolve
 			} catch {
 				case e: CyclicReferenceException =>
-					"Let storage cry if necessary!"
+					// Let storage cry if necessary!
 					metadatas.toList
-				case other =>
-					throw other
 			}
 		val actionList = resolved.map(metadata => {
 			val mainTable = table(manifestClass(metadata.entityClass))

@@ -55,6 +55,8 @@ trait DurableContext {
 	private def runWithCoordinatorIfDefined(reads: => Set[String], writes: => Set[String])(f: => Unit) =
 		coordinatorClientOption.map { coordinatorClient =>
 
+			import language.existentials
+
 			val (readLocksNok, writeLocksNok) = coordinatorClient.tryToAcquireLocks(reads, writes)
 			if (readLocksNok.nonEmpty || writeLocksNok.nonEmpty)
 				throw new ActivateConcurrentTransactionException(readLocksNok ++ writeLocksNok, List())

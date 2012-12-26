@@ -83,6 +83,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 		entityInstacesMap[E].get(id)
 
 	def contains[E <: Entity](entity: E) = {
+		import language.existentials
 		val map = entityInstacesMap(entity.getClass)
 		map.doWithReadLock(map.contains(entity.id))
 	}

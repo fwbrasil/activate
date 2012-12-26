@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.util
 
+import language.implicitConversions
 import scala.reflect.Manifest
 import java.{ lang => jl }
 
@@ -9,10 +10,10 @@ object ManifestUtil {
 		manifestClass(clazz).asInstanceOf[Manifest[C]]
 
 	def manifestToClass[T](manifest: Manifest[T]) =
-		manifest.erasure.asInstanceOf[Class[T]]
+		manifest.runtimeClass.asInstanceOf[Class[T]]
 
 	def erasureOf[T: Manifest] =
-		manifest[T].erasure.asInstanceOf[Class[T]]
+		manifest[T].runtimeClass.asInstanceOf[Class[T]]
 
 	val ByteClass = classOf[scala.Byte]
 	val ShortClass = classOf[scala.Short]

@@ -44,7 +44,6 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			//oracleContext
 			)
 		ret.foreach(_.stop)
-		ret
 		val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
 		if (db == null)
 			ret
@@ -75,11 +74,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 				step
 			} catch {
 				case e: FailureException =>
-
-					e.printStackTrace()
 					throw new IllegalStateException(e.f + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
-				case e =>
-					e.printStackTrace()
+				case e: Throwable =>
 					throw new IllegalStateException(e.getMessage + " (ctx: " + contextName + ", mode: " + modeName + ")", e)
 			}
 		def contextName = ctx.name

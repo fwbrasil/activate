@@ -32,7 +32,7 @@ class RichConstructorSpecs extends ActivateTest {
 							def validateResult(result: List[ActivateTestEntity]) =
 								result.onlyOne.varInitializedInConstructor must beEqualTo(fullStringValue)
 						validateResult(all[ActivateTestEntity])
-						validateResult(allWhere[ActivateTestEntity](_.varInitializedInConstructor :== fullStringValue))
+						validateResult(select[ActivateTestEntity].where(_.varInitializedInConstructor :== fullStringValue))
 						validateResult(query {
 							(e: ActivateTestEntity) => where(e.varInitializedInConstructor :== fullStringValue) select (e)
 						})
@@ -56,7 +56,7 @@ class RichConstructorSpecs extends ActivateTest {
 							def validateResult(result: List[ActivateTestEntity]) =
 								result.onlyOne.valInitializedInConstructor must beEqualTo(fullStringValue)
 						validateResult(all[ActivateTestEntity])
-						validateResult(allWhere[ActivateTestEntity](_.valInitializedInConstructor :== fullStringValue))
+						validateResult(select[ActivateTestEntity].where(_.valInitializedInConstructor :== fullStringValue))
 						validateResult(query {
 							(e: ActivateTestEntity) => where(e.valInitializedInConstructor :== fullStringValue) select (e)
 						})

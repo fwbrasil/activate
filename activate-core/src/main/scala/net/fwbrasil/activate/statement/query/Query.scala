@@ -135,16 +135,21 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 			}).select(entity)
 		}
 
-	@deprecated("Use select[Entity] where(_.column :== value)")
+	@deprecated("Use select[Entity] where(_.column :== value)", since = "1.1")
 	def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+		_allWhere[E](criterias: _*)
+
+	private def _allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
 		allWhereQuery[E](criterias: _*).execute
 
+	import language.postfixOps
+
 	def all[E <: Entity: Manifest] =
-		allWhere[E](_ isNotNull)
+		_allWhere[E](_ isNotNull)
 
 	class SelectEntity[E <: Entity: Manifest] {
 		def where(criterias: ((E) => Criteria)*) =
-			allWhere[E](criterias: _*)
+			_allWhere[E](criterias: _*)
 	}
 
 	def select[E <: Entity: Manifest] = new SelectEntity[E]
@@ -153,7 +158,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
 			fromLiveCache.filterNot(_.isDeletedSnapshot)
-		else allWhere[T](_ :== id).headOption
+		else _allWhere[T](_ :== id).headOption
 	}
 
 	private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]

@@ -62,6 +62,8 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 	protected def mockEntity[E <: Entity: Manifest]: E =
 		mockEntity[E]()
 
+	import language.existentials
+
 	protected def mockEntity[E <: Entity: Manifest](otherEntitySources: T forSome { type T <: Entity }*): E = {
 		var mockEntity = StatementMocks.mockEntity(erasureOf[E])
 		if (otherEntitySources.toSet.contains(mockEntity))

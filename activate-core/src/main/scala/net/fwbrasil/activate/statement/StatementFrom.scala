@@ -4,6 +4,7 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
 import java.util.IdentityHashMap
 import scala.collection.JavaConversions._
+import language.existentials
 
 case class EntitySource(var entityClass: Class[E] forSome { type E <: Entity }, name: String) {
 	override def toString = name + ": " + EntityHelper.getEntityName(entityClass)
