@@ -489,6 +489,7 @@ trait ActivateTestContext
 		entityValue: ActivateTestEntity = fullEntityValue,
 		traitValue1: TraitAttribute = fullTraitValue1,
 		traitValue2: TraitAttribute = fullTraitValue2,
+		enumerationValue: EnumerationValue = fullEnumerationValue,
 		lazyValue: String = fullLazyValue,
 		optionValue: Option[String] = fullOptionValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
@@ -514,6 +515,7 @@ trait ActivateTestContext
 			entityValue,
 			traitValue1,
 			traitValue2,
+			enumerationValue,
 			lazyValue,
 			optionValue,
 			entityWithoutAttributeValue,
@@ -538,6 +540,7 @@ trait ActivateTestContext
 		entityValue: ActivateTestEntity = emptyEntityValue,
 		traitValue1: TraitAttribute = emptyTraitValue1,
 		traitValue2: TraitAttribute = emptyTraitValue2,
+		enumerationValue: EnumerationValue = emptyEnumerationValue,
 		lazyValue: String = emptyLazyValue,
 		optionValue: Option[String] = emptyOptionValue,
 		entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
@@ -560,12 +563,14 @@ trait ActivateTestContext
 		require(entity.entityValue == entityValue)
 		require(entity.traitValue1 == traitValue1)
 		require(entity.traitValue2 == traitValue2)
+		require(entity.enumerationValue == enumerationValue)
 		require(entity.optionValue == optionValue)
 		require(entity.entityWithoutAttributeValue == entityWithoutAttributeValue)
 		require(entity.serializableEntityValue == serializableEntityValue)
 		require(entity.listEntityValue == listEntityValue)
 		require(entity.unitializedList == List() || entity.unitializedList == List(1, 2))
 		require(entity.tupleOptionValue == tupleOptionValue)
+
 	}
 
 	def newTestEntity(

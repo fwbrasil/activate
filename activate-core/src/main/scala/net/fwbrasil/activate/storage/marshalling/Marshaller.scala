@@ -93,7 +93,7 @@ object Marshaller {
 					val obj = getObject[Enumeration](enumerationObjectClass)
 					Option(obj.withName(stringValue.value.get))
 				} else None
-				EnumerationEntityValue(None)
+				EnumerationEntityValue(value)
 			}
 			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
 				SerializableEntityValue[Serializable](
