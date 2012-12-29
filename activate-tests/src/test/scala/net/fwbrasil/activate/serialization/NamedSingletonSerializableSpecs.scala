@@ -4,7 +4,6 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.radon.dsl.actor._
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ThreadUtil._
 
