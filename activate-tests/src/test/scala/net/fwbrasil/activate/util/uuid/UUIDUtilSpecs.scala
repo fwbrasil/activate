@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.util.uuid
 
-import net.fwbrasil.radon.dsl.actor._
+import net.fwbrasil.activate.util.ThreadUtil._
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
@@ -12,35 +12,25 @@ class UUIDUtilSpecs extends Specification {
 
 	"UUIDUtil" should {
 		"generate unique UUIDs" in {
-			new ActorDsl with ManyActors with OneActorPerThread {
-				override lazy val actorsPoolSize = 5
-				val ids =
-					inParallelActors {
-						UUIDUtil.generateUUID
-					}
-				inMainActor {
-					ids.toSet.size must beEqualTo(actorsPoolSize)
+			val ids =
+				runWithThreads(10) {
+					UUIDUtil.generateUUID
 				}
-			} must not beNull
+			ids.toSet.size must beEqualTo(10)
 		}
 
 		"generate unique hascodes from UUIDs" in {
-			new ActorDsl with ManyActors with OneActorPerThread {
-				override lazy val actorsPoolSize = 10
-				val loops = 20
-				val ids =
-					(for (i <- 0 until loops) yield ProfillingUtil.profile("group: " + i) {
-						val ids = inParallelActors {
-							UUIDUtil.generateUUID.hashCode
-						}
-						ids.toSet.size must beEqualTo(actorsPoolSize)
-						ids
-					}).flatten
+			val loops = 20
+			val ids =
+				(for (i <- 0 until loops) yield ProfillingUtil.profile("group: " + i) {
+					val ids = runWithThreads(10) {
+						UUIDUtil.generateUUID.hashCode
+					}
+					ids.toSet.size must beEqualTo(10)
+					ids
+				}).flatten
 
-				inMainActor {
-					ids.toSet.size must beEqualTo(actorsPoolSize * loops)
-				}
-			} must not beNull
+			ids.toSet.size must beEqualTo(10 * loops)
 		}
 
 	}

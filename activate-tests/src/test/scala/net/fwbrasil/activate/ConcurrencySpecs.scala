@@ -4,7 +4,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.RichList.toRichList
-import net.fwbrasil.radon.dsl.actor._
+import net.fwbrasil.activate.util.ThreadUtil._
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
@@ -23,17 +23,14 @@ class ConcurrencySpecs extends ActivateTest {
 					(step: StepExecutor) => {
 						import step.ctx._
 						step {
-							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 200
-								inParallelActors {
-									transactional {
-										new TraitAttribute1("1")
-									}
+							runWithThreads() {
+								transactional {
+									new TraitAttribute1("1")
 								}
 							}
 						}
 						step {
-							all[TraitAttribute1].size must beEqualTo(200)
+							all[TraitAttribute1].size must beEqualTo(100)
 							all[TraitAttribute1].map(_.attribute).toSet must beEqualTo(Set("1"))
 						}
 					})
@@ -49,13 +46,10 @@ class ConcurrencySpecs extends ActivateTest {
 								entity.id
 							}
 						step {
-							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 200
-								inParallelActors {
-									transactional {
-										val entity = byId[ActivateTestEntity](entityId).get
-										entity.intValue must beEqualTo(1)
-									}
+							runWithThreads() {
+								transactional {
+									val entity = byId[ActivateTestEntity](entityId).get
+									entity.intValue must beEqualTo(1)
 								}
 							}
 						}
@@ -77,18 +71,15 @@ class ConcurrencySpecs extends ActivateTest {
 						step {
 							val entity = byId[ActivateTestEntity](entityId).get
 							entity.intValue must beEqualTo(0)
-							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 200
-								inParallelActors {
-									transactional {
-										val entity = byId[ActivateTestEntity](entityId).get
-										entity.intValue += 1
-									}
+							runWithThreads() {
+								transactional {
+									val entity = byId[ActivateTestEntity](entityId).get
+									entity.intValue += 1
 								}
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(200)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
 						}
 					})
 			}
@@ -103,18 +94,15 @@ class ConcurrencySpecs extends ActivateTest {
 								entity.id
 							}
 						step {
-							new ActorDsl with ManyActors with OneActorPerThread {
-								override lazy val actorsPoolSize = 200
-								inParallelActors {
-									transactional {
-										val entity = byId[ActivateTestEntity](entityId).get
-										entity.intValue += 1
-									}
+							runWithThreads() {
+								transactional {
+									val entity = byId[ActivateTestEntity](entityId).get
+									entity.intValue += 1
 								}
 							}
 						}
 						step {
-							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(200)
+							all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
 						}
 					})
 			}

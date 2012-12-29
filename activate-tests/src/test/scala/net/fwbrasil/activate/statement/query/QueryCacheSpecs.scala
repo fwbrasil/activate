@@ -1,12 +1,12 @@
 package net.fwbrasil.activate.statement.query
 
+import net.fwbrasil.activate.util.ThreadUtil._
 import java.util.Date
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
-import net.fwbrasil.radon.dsl.actor._
 import net.fwbrasil.activate.ActivateTestContext
 
 @RunWith(classOf[JUnitRunner])
@@ -28,17 +28,14 @@ class QueryCacheSpecs extends ActivateTest {
 							newEmptyActivateTestEntity.id
 						}
 					step {
-						new ActorDsl with ManyActors with OneActorPerThread {
-							override lazy val actorsPoolSize = 5
-							inParallelActors {
-								val result =
-									transactional {
-										query {
-											(e: ActivateTestEntity) => where(e isNotNull) select (e)
-										}
+						runWithThreads() {
+							val result =
+								transactional {
+									query {
+										(e: ActivateTestEntity) => where(e isNotNull) select (e)
 									}
-								result.onlyOne.id must beEqualTo(entityId)
-							}
+								}
+							result.onlyOne.id must beEqualTo(entityId)
 						}
 					}
 				})
