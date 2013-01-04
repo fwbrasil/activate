@@ -79,20 +79,20 @@ class EntityData[T <: Entity](val data: List[(String, Any)])(
 
 	def updateEntity(id: String): T = tryUpdate(id).get
 
-  def tryUpdate(id: String): Option[T] = context.transactional {
-    context.byId(id).map { entity =>
-      val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
-      for ((property, value) <- data) {
-        val ref = entity.varNamed(property)
-        val propertyMetadata = metadatasMap(property)
-        if (propertyMetadata.isOption)
-          ref.put(value.asInstanceOf[Option[_]])
-        else
-          ref.putValue(value)
-      }
-      entity
-    }
-  }
+	def tryUpdate(id: String): Option[T] = context.transactional {
+		context.byId[T](id).map { entity =>
+			val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
+			for ((property, value) <- data) {
+				val ref = entity.varNamed(property)
+				val propertyMetadata = metadatasMap(property)
+				if (propertyMetadata.isOption)
+					ref.put(value.asInstanceOf[Option[_]])
+				else
+					ref.putValue(value)
+			}
+			entity
+		}
+	}
 
 	def createEntity = context.transactional {
 		val entityClass = erasureOf[T]

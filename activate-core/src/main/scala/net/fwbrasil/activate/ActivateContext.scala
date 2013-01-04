@@ -81,7 +81,7 @@ trait ActivateContext
 	private[activate] def initialize[E <: Entity](entity: E) =
 		liveCache.initialize(entity)
 
-	protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
+	def acceptEntity[E <: Entity](entityClass: Class[E]) =
 		contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
 	protected val contextEntities: Option[List[Class[_ <: Entity]]] = None

@@ -19,6 +19,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import scala.collection.mutable.Stack
 import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.entity.EntityHelper
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
 
@@ -154,7 +155,10 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 	def select[E <: Entity: Manifest] = new SelectEntity[E]
 
-	def byId[T <: Entity: Manifest](id: => String): Option[T] = {
+	def byId[T <: Entity](id: => String): Option[T] = {
+		val entityClass = EntityHelper.getEntityClassFromId(id)
+		println(entityClass)
+		implicit val manifestT = manifestClass[T](entityClass)
 		val fromLiveCache = liveCache.byId[T](id)
 		if (fromLiveCache.isDefined)
 			fromLiveCache.filterNot(_.isDeletedSnapshot)

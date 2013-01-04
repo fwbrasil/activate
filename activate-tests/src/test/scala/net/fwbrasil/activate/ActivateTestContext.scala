@@ -204,21 +204,7 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-		extends ActivateContext {
-
-	private[this] var running = false
-
-	private[activate] def start = synchronized {
-		ActivateContext.contextCache.clear
-		running = true
-	}
-
-	private[activate] def stop = synchronized {
-		running = false
-	}
-
-	override protected[activate] def acceptEntity[E <: Entity](entityClass: Class[E]) =
-		running
+		extends StoppableActivateContext {
 
 	override protected lazy val runMigrationAtStartup = false
 
