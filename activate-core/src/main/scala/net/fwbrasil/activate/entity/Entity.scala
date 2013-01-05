@@ -161,16 +161,17 @@ trait Entity extends Serializable with EntityValidation {
 
 	override def toString =
 		EntityHelper.getEntityName(this.getClass) + (
-			try {
-				if (Entity.toStringSeen(this))
-					"(loop id->" + id + ")"
-				else if (initialized)
+			if (Entity.toStringSeen(this))
+				"(loop id->" + id + ")"
+			else {
+				if (initialized)
 					context.transactional {
 						"(" + toStringVars.mkString(", ") + ")"
 					}
 				else
 					"(uninitialized id->" + id + ")"
-			} finally { Entity.toStringRemoveSeen(this) })
+				Entity.toStringRemoveSeen(this)
+			})
 
 	protected def writeReplace(): AnyRef =
 		if (Entity.serializeUsingEvelope)
@@ -198,7 +199,7 @@ object Entity {
 		set += entity
 		ret
 	}
-	def toStringRemoveSeen(entity: Entity) =
+	def toStringRemoveSeen(entity: Entity) = //{}
 		toStringLoopSeen.get -= entity
 }
 

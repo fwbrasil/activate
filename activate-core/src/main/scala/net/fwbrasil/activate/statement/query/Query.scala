@@ -155,15 +155,15 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
 	def select[E <: Entity: Manifest] = new SelectEntity[E]
 
-	def byId[T <: Entity](id: => String): Option[T] = {
-		val entityClass = EntityHelper.getEntityClassFromId(id)
-		println(entityClass)
-		implicit val manifestT = manifestClass[T](entityClass)
-		val fromLiveCache = liveCache.byId[T](id)
-		if (fromLiveCache.isDefined)
-			fromLiveCache.filterNot(_.isDeletedSnapshot)
-		else _allWhere[T](_ :== id).headOption
-	}
+	def byId[T <: Entity](id: => String): Option[T] =
+		EntityHelper.getEntityClassFromIdOption(id).flatMap {
+			entityClass =>
+				implicit val manifestT = manifestClass[T](entityClass)
+				val fromLiveCache = liveCache.byId[T](id)
+				if (fromLiveCache.isDefined)
+					fromLiveCache.filterNot(_.isDeletedSnapshot)
+				else _allWhere[T](_ :== id).headOption
+		}
 
 	private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]
 

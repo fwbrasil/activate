@@ -396,6 +396,18 @@ trait ActivateTestContext
 	@Alias("sne")
 	class ShortNameEntity(var string: String) extends Entity
 
+	class Box(var contains: List[Num] = Nil) extends Entity {
+		def add(n: Int) = {
+			val num = new Num(this, n)
+			contains = num :: contains
+			num
+		}
+	}
+
+	class Num(
+		val container: Box,
+		var num: Int) extends Entity
+
 	class ActivateTestEntity(
 			dummy: Boolean = false,
 			var intValue: Int,

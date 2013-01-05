@@ -21,6 +21,8 @@ object ActivateBuild extends Build {
 	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.1.0"
 	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3"
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
+	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
+
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
@@ -72,7 +74,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      sreflection, xstream, jettison)
+		    	      sreflection, xstream, jettison, scalaActors)
 		    )
 		)
 
