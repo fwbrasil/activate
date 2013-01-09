@@ -117,6 +117,9 @@ object ActivateContext {
 	private[activate] var useContextCache = true
 
 	private[activate] var currentClassLoader = this.getClass.getClassLoader
+	
+	private[activate] def loadClass(className: String) =
+	  classLoaderFor(className).loadClass(className)
 
 	private[activate] def classLoaderFor(className: String) =
 		if (className.startsWith("net.fwbrasil.activate"))

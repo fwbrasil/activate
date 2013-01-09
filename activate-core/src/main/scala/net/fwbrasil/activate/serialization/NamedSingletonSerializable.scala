@@ -5,6 +5,7 @@ import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
+import net.fwbrasil.activate.ActivateContext
 
 trait NamedSingletonSerializable extends java.io.Serializable {
 
@@ -35,7 +36,7 @@ object NamedSingletonSerializable {
 
 	def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
 		val ret = MutableHashSet[T]()
-		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(Class.forName(clazz))))
+		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(ActivateContext.loadClass(clazz))))
 			ret ++= instancesMap.values.asInstanceOf[Iterable[T]]
 		ret
 	}

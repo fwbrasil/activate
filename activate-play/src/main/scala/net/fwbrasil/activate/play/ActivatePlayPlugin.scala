@@ -15,18 +15,14 @@ import play.Play
 class ActivatePlayPlugin(app: play.Application) extends Plugin {
 
 	override def onStart = {
+		ActivateContext.currentClassLoader = Play.application().classloader()
 		Migration.storageVersionCache.clear
 		Migration.migrationsCache.clear
 		Migration.storageVersionCache.clear
 		Reflection.reflectionsCache.clear
 		StatementMocks.entityMockCache.clear
-		ActivateContext.currentClassLoader = Play.application().classloader()
-		val contexts = NamedSingletonSerializable.instancesOf[ActivateContext]
+		ActivateContext.clearContextCache
 		EntityHelper.clearMetadatas
-		for (context <- contexts) {
-			EntityHelper.initialize(context.getClass)
-			context.runStartupMigration
-		}
 	}
 }
 

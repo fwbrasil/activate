@@ -164,13 +164,15 @@ trait Entity extends Serializable with EntityValidation {
 			if (Entity.toStringSeen(this))
 				"(loop id->" + id + ")"
 			else {
-				if (initialized)
-					context.transactional {
-						"(" + toStringVars.mkString(", ") + ")"
-					}
-				else
-					"(uninitialized id->" + id + ")"
+				val varsString =
+					if (initialized) {
+						context.transactional {
+							"(" + toStringVars.mkString(", ") + ")"
+						}
+					} else
+						"(uninitialized id->" + id + ")"
 				Entity.toStringRemoveSeen(this)
+				varsString
 			})
 
 	protected def writeReplace(): AnyRef =
