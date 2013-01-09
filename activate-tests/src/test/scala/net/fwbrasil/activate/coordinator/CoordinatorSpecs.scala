@@ -28,7 +28,7 @@ class CoordinatorTestContext extends ActivateTestContext {
 	val storage = new PooledJdbcRelationalStorage {
 		val jdbcDriver = "org.postgresql.Driver"
 		val user = "postgres"
-		val password = ""
+		val password = "postgres"
 		val url = "jdbc:postgresql://127.0.0.1/activate_test"
 		val dialect = postgresqlDialect
 	}
