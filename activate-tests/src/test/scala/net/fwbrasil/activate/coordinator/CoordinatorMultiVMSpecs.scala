@@ -23,6 +23,7 @@ case class Runner(entityId: String, numOfVMs: Int, numOfThreads: Int, numOfTrans
 	}
 	def fork(server: Boolean) =
 		JvmFork.fork(128, 1024, Some("-Dactivate.coordinator.serverHost=localhost")) {
+			multiVMTestContext.start
 			runThreads
 		}
 	def runThreads = {
@@ -31,7 +32,7 @@ case class Runner(entityId: String, numOfVMs: Int, numOfThreads: Int, numOfTrans
 				yield new Thread {
 				override def run =
 					for (i <- 0 until numOfTransactions)
-						multiVMTestContext.run {
+						multiVMTestContext.transactional {
 							byId[ActivateTestEntity](entityId).get.intValue += 1
 						}
 			}
@@ -49,14 +50,16 @@ class CoordinatorMultiVMSpecs extends ActivateTest {
 			val numOfThreads = 4
 			val numOfTransactions = 30
 
+			start
+
 			val entityId =
-				run {
+				transactional {
 					newEmptyActivateTestEntity.id
 				}
 
 			Runner(entityId, numOfVMs, numOfThreads, numOfTransactions).run
 
-			val i = run {
+			val i = transactional {
 				byId[ActivateTestEntity](entityId).get.intValue
 			}
 			i mustEqual (numOfVMs * numOfThreads * numOfTransactions)
