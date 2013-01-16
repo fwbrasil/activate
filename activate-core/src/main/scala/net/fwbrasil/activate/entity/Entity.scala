@@ -64,7 +64,7 @@ trait Entity extends Serializable with EntityValidation {
 	def isDirty =
 		vars.find(_.isDirty).isDefined
 
-	val id: String = null
+	final val id: String = null
 
 	def delete =
 		if (!isDeleted) {
