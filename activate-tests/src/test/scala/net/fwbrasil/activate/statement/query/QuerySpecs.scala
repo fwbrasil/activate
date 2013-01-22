@@ -333,21 +333,21 @@ class QuerySpecs extends ActivateTest {
 						step {
 							newFullActivateTestEntity.id
 						}
-						def entity = byId[ActivateTestEntity](entityId).get
-						def testLike(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
-							step {
-								entity.stringValue = stringThatMatch
-							}
-							step {
-								select[ActivateTestEntity].where(_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
-							}
-							step {
-								entity.stringValue = stringThatNotMatch
-							}
-							step {
-								select[ActivateTestEntity].where(_.stringValue like pattern).isEmpty must beTrue
-							}
+					def entity = byId[ActivateTestEntity](entityId).get
+					def testLike(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+						step {
+							entity.stringValue = stringThatMatch
 						}
+						step {
+							select[ActivateTestEntity].where(_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
+						}
+						step {
+							entity.stringValue = stringThatNotMatch
+						}
+						step {
+							select[ActivateTestEntity].where(_.stringValue like pattern).isEmpty must beTrue
+						}
+					}
 					testLike("test", "aaa", "te*")
 					testLike("test", "aaa", "te*t")
 					testLike("test", "aaa", "te?t")
@@ -362,21 +362,21 @@ class QuerySpecs extends ActivateTest {
 						step {
 							newFullActivateTestEntity.id
 						}
-						def entity = byId[ActivateTestEntity](entityId).get
-						def testRegexp(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
-							step {
-								entity.stringValue = stringThatMatch
-							}
-							step {
-								select[ActivateTestEntity].where(_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
-							}
-							step {
-								entity.stringValue = stringThatNotMatch
-							}
-							step {
-								select[ActivateTestEntity].where(_.stringValue regexp pattern).isEmpty must beTrue
-							}
+					def entity = byId[ActivateTestEntity](entityId).get
+					def testRegexp(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+						step {
+							entity.stringValue = stringThatMatch
 						}
+						step {
+							select[ActivateTestEntity].where(_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
+						}
+						step {
+							entity.stringValue = stringThatNotMatch
+						}
+						step {
+							select[ActivateTestEntity].where(_.stringValue regexp pattern).isEmpty must beTrue
+						}
+					}
 					testRegexp("my-us3r_n4m3", "th1s1s-wayt00_l0ngt0beausername", "^[a-z0-9_-]{3,16}$")
 					testRegexp("myp4ssw0rd", "mypa$$w0rd", "^[a-z0-9_-]{6,18}$")
 					testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
@@ -512,5 +512,6 @@ class QuerySpecs extends ActivateTest {
 					}
 				})
 		}
+
 	}
 }

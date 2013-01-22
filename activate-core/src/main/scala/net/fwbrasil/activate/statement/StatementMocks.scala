@@ -76,11 +76,7 @@ object StatementMocks {
 			case "java.lang.String" => "mock"
 			case "[B" => Array[Byte]()
 			case other =>
-				if (classOf[Enumeration#Value].isAssignableFrom(clazz)) {
-					null
-				} else if (classOf[AbstractInstant].isAssignableFrom(clazz)) {
-					materializeJodaInstant(clazz, new Date)
-				} else newInstance(clazz)
+				null
 		}
 	}
 
