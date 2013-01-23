@@ -11,7 +11,7 @@ import java.sql.Connection
 import com.mongodb.DB
 import org.prevayler.Prevayler
 import net.fwbrasil.activate.ActivateTestContext
-import org.prevayler.Query
+import org.prevayler.{ Transaction => PrevaylerTransaction }
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorageSystem
 
 @RunWith(classOf[JUnitRunner])
@@ -43,13 +43,14 @@ class StorageDirectAccessSpecs extends ActivateTest {
 								val cursor = mongoDB.getCollection("ActivateTestEntity").find
 								cursor.next.get("_id") must beEqualTo(id)
 								cursor.hasNext must beFalse
-							case prevayler: Prevayler =>
-								prevayler.execute(new Query {
-									override def query(system: Object, date: Date) = {
-										val sys = system.asInstanceOf[PrevaylerStorageSystem]
-										sys.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
-									}
-								})
+							case prevayler: Prevayler[_] =>
+								prevayler.asInstanceOf[Prevayler[PrevaylerStorageSystem]]
+									.execute(new PrevaylerTransaction[PrevaylerStorageSystem] {
+										override def executeOn(system: PrevaylerStorageSystem, date: Date) = {
+											val sys = system.asInstanceOf[PrevaylerStorageSystem]
+											sys.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
+										}
+									})
 						}
 					}
 				})

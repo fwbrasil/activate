@@ -25,9 +25,9 @@ object ActivateBuild extends Build {
 
 	
 	/* Prevayler */
-	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.5"
-	val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.5"
-	val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.5"
+	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
+	val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.6"
+	val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.6"
 	
 	/* Tests */
 	val junit = "junit" % "junit" % "4.4" % "test"

@@ -38,12 +38,13 @@ class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, En
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
-	val factory: PrevaylerFactory)(implicit val context: ActivateContext) extends MarshalStorage[Prevayler] with Logging {
+	val factory: PrevaylerFactory[PrevaylerStorageSystem])(implicit val context: ActivateContext)
+		extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] with Logging {
 
-	protected[activate] var prevayler: Prevayler = _
+	protected[activate] var prevayler: Prevayler[PrevaylerStorageSystem] = _
 
 	def this(prevalenceDirectory: String)(implicit context: ActivateContext) = this({
-		val res = new PrevaylerFactory()
+		val res = new PrevaylerFactory[PrevaylerStorageSystem]()
 		res.configurePrevalenceDirectory(prevalenceDirectory)
 		res
 	})
@@ -58,9 +59,8 @@ class PrevaylerStorage(
 
 	protected[activate] def initialize = {
 		prevalentSystem = new PrevaylerStorageSystem()
-		factory.configureTransactionFiltering(false)
 		factory.configurePrevalentSystem(prevalentSystem)
-		prevayler = factory.create
+		prevayler = factory.create()
 		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
 		prevalentSystem.values.foreach(Reflection.initializeBitmaps)
 		prevalentSystem.values.foreach(_.invariants)
@@ -72,10 +72,10 @@ class PrevaylerStorage(
 
 	private def hackPrevaylerToActAsARedoLogOnly = {
 		val publisher = Reflection.get(prevayler, "_publisher").asInstanceOf[AbstractPublisher]
-		val guard = Reflection.get(prevayler, "_guard").asInstanceOf[PrevalentSystemGuard]
+		val guard = Reflection.get(prevayler, "_guard").asInstanceOf[PrevalentSystemGuard[PrevaylerStorageSystem]]
 		val journalSerializer = Reflection.get(prevayler, "_journalSerializer").asInstanceOf[Serializer]
 		publisher.cancelSubscription(guard)
-		val dummyCapsule = new DummyTransactionCapsule(journalSerializer)
+		val dummyCapsule = new DummyTransactionCapsule
 		publisher.addSubscriber(new TransactionSubscriber {
 			def receive(transactionTimestamp: TransactionTimestamp) = {
 				guard.receive(
@@ -139,16 +139,15 @@ case class PrevaylerMemoryStorageTransaction(
 	context: ActivateContext,
 	assignments: HashMap[String, HashMap[String, StorageValue]],
 	deletes: HashSet[String])
-	extends PrevaylerTransaction {
-	def executeOn(system: Object, date: java.util.Date) = {
-		val storage = system.asInstanceOf[scala.collection.mutable.HashMap[String, Entity]]
+		extends PrevaylerTransaction[PrevaylerStorageSystem] {
+	def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
 		val liveCache = context.liveCache
 
 		for ((entityId, changeSet) <- assignments)
-			storage += (entityId -> liveCache.materializeEntity(entityId))
+			system += (entityId -> liveCache.materializeEntity(entityId))
 
 		for (entityId <- deletes)
-			storage -= entityId
+			system -= entityId
 
 		for ((entityId, changeSet) <- assignments) {
 			val entity = liveCache.materializeEntity(entityId)

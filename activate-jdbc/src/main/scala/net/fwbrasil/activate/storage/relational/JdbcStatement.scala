@@ -1,8 +1,11 @@
 package net.fwbrasil.activate.storage.relational
 
-import net.fwbrasil.activate.storage.marshalling.StorageValue
-import scala.collection.mutable.ListBuffer
 import java.util.regex.Pattern
+
+import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
+
+import net.fwbrasil.activate.storage.marshalling.StorageValue
 
 trait JdbcStatement {
 	val statement: String
@@ -56,17 +59,19 @@ class BatchSqlStatement(
 	val statement: String,
 	val bindsList: List[Map[String, StorageValue]],
 	val restrictionQuery: Option[(String, Int)])
-		extends JdbcStatement 
-		
+		extends JdbcStatement
+
 object BatchSqlStatement {
-	def group(sqlStatements: List[SqlStatement]): List[JdbcStatement] = {
-		sqlStatements match {
-			case Nil =>
-				List()
-			case head :: tail =>
-				val (tailToGroup, others) = tail.span(_.isCompatible(head))
-				val toGroup = List(head) ++ tailToGroup
-				List(new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery)) ++ group(others)
+
+	@tailrec def group(sqlStatements: List[SqlStatement], grouped: List[BatchSqlStatement] = List()): List[JdbcStatement] = {
+		if (sqlStatements.isEmpty)
+			grouped
+		else {
+			val (head :: tail) = sqlStatements
+			val (tailToGroup, others) = tail.span(_.isCompatible(head))
+			val toGroup = List(head) ++ tailToGroup
+			val batch = new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery)
+			group(others, grouped ++ List(batch))
 		}
 	}
 }
