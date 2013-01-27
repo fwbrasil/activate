@@ -5,12 +5,12 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC4"
-	val sreflection = "net.fwbrasil" %% "sreflection" % "0.2"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-SNAPSHOT"
+	val sreflection = "net.fwbrasil" %% "sreflection" % "0.3-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
-	val reflections = "org.reflections" % "reflections" % "0.9.8" 
+	val reflections = "org.reflections" % "reflections" % "0.9.8" exclude("javassist", "javassist") exclude("dom4j", "dom4j")
 	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "1.0.1"
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
@@ -19,10 +19,9 @@ object ActivateBuild extends Build {
 	val play = "play" %% "play" % "2.1-RC1"
 	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.1.0"
 	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.1.0"
-	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3"
+	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3" exclude("xpp3", "xpp3_min")
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
 	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
-
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -74,7 +73,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      sreflection, xstream, jettison, scalaActors)
+		    	      sreflection, xstream, scalaActors, jettison)
 		    )
 		)
 
@@ -130,8 +129,7 @@ object ActivateBuild extends Build {
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(play),
-		    crossScalaVersions := Seq("2.9.1")
+		    	  Seq(play)
 		    )
     	)
 
@@ -149,9 +147,9 @@ object ActivateBuild extends Build {
 		)
     	
     def commonSettings = 
-    	Defaults.defaultSettings ++ Seq(
+    	Defaults.defaultSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.2-RC4",
+    		version := "1.2-SNAPSHOT",
     		scalaVersion := "2.10.0",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
