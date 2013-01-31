@@ -244,7 +244,7 @@ trait SqlIdiom {
 				digestLists(update, propertyMap =>
 					new SqlStatement(
 						"UPDATE " + toTableName(update.entityClass) +
-							" SET " + (for (key <- propertyMap.keys) yield escape(key) + " = :" + key).mkString(", ") +
+							" SET " + (for (key <- propertyMap.keys if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
 							" WHERE ID = :id",
 						propertyMap))
 			case delete: DeleteDmlStorageStatement =>

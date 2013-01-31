@@ -39,7 +39,7 @@ class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, En
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
 	val factory: PrevaylerFactory[PrevaylerStorageSystem])(implicit val context: ActivateContext)
-		extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] with Logging {
+		extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] {
 
 	protected[activate] var prevayler: Prevayler[PrevaylerStorageSystem] = _
 
@@ -128,8 +128,7 @@ class PrevaylerStorage(
 	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
 		List()
 
-	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
-		logWarn("PrevaylerStorage ignores Migration actions (only customScritps are executed)") {}
+	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {}
 
 	override def isMemoryStorage = true
 
