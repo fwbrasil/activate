@@ -27,7 +27,7 @@ class UnsupportedEntityTableWithouIdSpecs extends ActivateTest {
 						val cars = all[Car]
 						for (car <- cars)
 							println(car.color)
-					}
+					} must throwA[IllegalArgumentException]
 				})
 		}
 	}
