@@ -37,10 +37,10 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			prevaylerContext,
 			mongoContext,
 			mysqlContext,
-			postgresqlContext,
-			h2Context,
-			derbyContext,
-			hsqldbContext //,
+			postgresqlContext //,
+			//			h2Context,
+			//			derbyContext,
+			//			hsqldbContext //,
 			//oracleContext
 			)
 		ret.foreach(_.stop)
@@ -138,14 +138,14 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 			import ctx._
 			start
 			runMigration
-				def clear = transactional {
-					all[ActivateTestEntity].foreach(_.delete)
-					all[TraitAttribute].foreach(_.delete)
-					all[EntityWithoutAttribute].foreach(_.delete)
-					all[CaseClassEntity].foreach(_.delete)
-					all[SimpleEntity].foreach(_.delete)
-					all[ShortNameEntity].foreach(_.delete)
-				}
+			def clear = transactional {
+				all[ActivateTestEntity].foreach(_.delete)
+				all[TraitAttribute].foreach(_.delete)
+				all[EntityWithoutAttribute].foreach(_.delete)
+				all[CaseClassEntity].foreach(_.delete)
+				all[SimpleEntity].foreach(_.delete)
+				all[ShortNameEntity].foreach(_.delete)
+			}
 			try {
 				for (executor <- executors(ctx)) {
 					clear

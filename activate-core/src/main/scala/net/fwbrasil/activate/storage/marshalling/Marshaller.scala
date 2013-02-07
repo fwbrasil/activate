@@ -96,7 +96,7 @@ object Marshaller {
 				EnumerationEntityValue(value)
 			}
 			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
-				SerializableEntityValue[Serializable](
+				SerializableEntityValue[Any](
 					storageValue.value.map(v => entityValue.serializator.fromSerialized(v)(entityValue.typeManifest)))
 			case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
 				val v = storageValue.value.map(list => list.map(e => {

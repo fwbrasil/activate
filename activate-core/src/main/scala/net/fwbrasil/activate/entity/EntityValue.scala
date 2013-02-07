@@ -111,7 +111,7 @@ case class ReferenceListEntityValue[V](override val value: Option[List[Option[St
 	def emptyValue = List()
 }
 
-case class SerializableEntityValue[S <: Serializable: Manifest](override val value: Option[S], val serializatorOption: Option[Serializator] = None)
+case class SerializableEntityValue[S: Manifest](override val value: Option[S], val serializatorOption: Option[Serializator] = None)
 		extends EntityValue[S](value) {
 	def typeManifest = manifest[S]
 	def emptyValue = null.asInstanceOf[S]
@@ -154,7 +154,7 @@ object EntityValue extends ValueContext {
 				((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
 			else if (classOf[List[_]].isAssignableFrom(clazz))
 				(value: Option[List[Any]]) => toListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
-			else if (classOf[Serializable].isAssignableFrom(clazz))
+			else if (classOf[Serializable].isAssignableFrom(clazz) || clazz.isArray)
 				(value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
 			else
 				null).asInstanceOf[(Option[T]) => EntityValue[T]])

@@ -44,6 +44,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 	private def getConnectionWithoutAutoCommit = {
 		val con = getConnection
 		con.setAutoCommit(false)
+		con.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED)
 		con
 	}
 

@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 
-trait JdbcStatement {
+trait JdbcStatement extends Serializable {
 	val statement: String
 	val restrictionQuery: Option[(String, Int)]
 	val bindsList: List[Map[String, StorageValue]]

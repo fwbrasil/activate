@@ -5,13 +5,13 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
-import net.fwbrasil.sReflection.SReflection._
+import net.fwbrasil.smirror._
 
 class EntityPropertyMetadata(
-	val entityMetadata: EntityMetadata,
-	val varField: Field,
-	entityMethods: List[Method],
-	entityClass: Class[Entity]) {
+		val entityMetadata: EntityMetadata,
+		val varField: Field,
+		entityMethods: List[Method],
+		entityClass: Class[Entity]) {
 	val javaName = varField.getName
 	val originalName = javaName.split('$').last
 	val name =
@@ -30,10 +30,10 @@ class EntityPropertyMetadata(
 						clazz
 				}).getOrElse(classOf[Object])
 				if (initial == classOf[Object]) {
-					val fields = entityMetadata.sClass.sFields
+					val fields = entityMetadata.sClass.fields
 					val fieldOption = fields.find(_.name == originalName)
-					val res = fieldOption.flatMap(_.genericParameters.headOption)
-					res.getOrElse(classOf[Object])
+					val res = fieldOption.flatMap(_.typeArguments.headOption)
+					res.flatMap(_.javaClassOption).getOrElse(classOf[Object])
 				} else
 					initial
 			case other =>
@@ -45,9 +45,9 @@ class EntityPropertyMetadata(
 		if (typ == classOf[Option[_]])
 			genericParameter
 		else if (typ == classOf[Object]) {
-			val fields = entityMetadata.sClass.sFields
+			val fields = entityMetadata.sClass.fields
 			val fieldOption = fields.find(_.name == originalName)
-			fieldOption.map(_.fieldType).getOrElse(classOf[Object])
+			fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
 		} else
 			typ
 	}
@@ -78,8 +78,8 @@ class EntityPropertyMetadata(
 }
 
 class EntityMetadata(
-	val name: String,
-	val entityClass: Class[Entity]) {
+		val name: String,
+		val entityClass: Class[Entity]) {
 	val allFields =
 		Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
 	val allMethods =
@@ -102,7 +102,7 @@ class EntityMetadata(
 		propertiesMetadata.find(_.name == "id").get
 	allMethods.foreach(_.setAccessible(true))
 	allFields.foreach(_.setAccessible(true))
-	lazy val sClass = toSClass(entityClass)
+	lazy val sClass = sClassOf(entityClass)
 
 	val metadataField = entityClass.getDeclaredField("metadata_entity")
 	metadataField.setAccessible(true)

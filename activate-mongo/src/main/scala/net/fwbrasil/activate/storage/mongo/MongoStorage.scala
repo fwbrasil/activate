@@ -206,7 +206,7 @@ trait MongoStorage extends MarshalStorage[DB] {
 	}
 
 	def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {
-			def getValue[T] = Option(obj.asInstanceOf[T])
+		def getValue[T] = Option(obj.asInstanceOf[T])
 		storageValue match {
 			case value: IntStorageValue =>
 				IntStorageValue(getValue[Int])

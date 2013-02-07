@@ -83,6 +83,41 @@ class ConcurrencySpecs extends ActivateTest {
 						}
 					})
 			}
+
+			"shared concurrent modification" in {
+				activateTest(
+					(step: StepExecutor) => {
+						import step.ctx._
+						val threads = 300
+						val (entityId1, entityId2) =
+							step {
+								val entity1 = newEmptyActivateTestEntity
+								entity1.intValue = 1000
+								val entity2 = newEmptyActivateTestEntity
+								entity2.intValue = 0
+								(entity1.id, entity2.id)
+							}
+						step {
+							val entity1 = byId[ActivateTestEntity](entityId1).get
+							val entity2 = byId[ActivateTestEntity](entityId2).get
+							entity1.intValue must beEqualTo(1000)
+							entity2.intValue must beEqualTo(0)
+							runWithThreads(threads) {
+								transactional {
+									val entity1 = byId[ActivateTestEntity](entityId1).get
+									val entity2 = byId[ActivateTestEntity](entityId2).get
+									entity1.intValue -= 1
+									entity2.intValue += 1
+								}
+							}
+						}
+						step {
+							byId[ActivateTestEntity](entityId1).get.intValue mustEqual (1000 - threads)
+							byId[ActivateTestEntity](entityId2).get.intValue mustEqual (threads)
+						}
+					})
+			}
+
 			"concurrent initialization and modification" in {
 				activateTest(
 					(step: StepExecutor) => {
