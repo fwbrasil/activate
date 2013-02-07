@@ -19,8 +19,10 @@ class UnsupportedEntityTableWithouIdSpecs extends ActivateTest {
 				(step: StepExecutor) => {
 					import step.ctx._
 					val conn = storage.asInstanceOf[JdbcRelationalStorage].directAccess
+					conn.setAutoCommit(true)
 					Try(conn.createStatement().executeUpdate("DROP TABLE CAR"))
 					conn.createStatement().executeUpdate("CREATE TABLE CAR(ID BIGINT, COLOR VARCHAR(45))")
+					conn.createStatement().executeUpdate("INSERT INTO CAR VALUES (1, 'BLACK')")
 					transactional {
 						val cars = all[Car]
 						for (car <- cars)
