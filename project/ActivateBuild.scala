@@ -16,7 +16,7 @@ object ActivateBuild extends Build {
 	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
-	val play = "play" %% "play" % "2.1-RC1"
+	val play = "play" %% "play" % "2.1.0"
 	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.2.0"
 	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.2.0"
 	val gremlin = "com.tinkerpop.gremlin" % "gremlin-java" % "2.2.0"

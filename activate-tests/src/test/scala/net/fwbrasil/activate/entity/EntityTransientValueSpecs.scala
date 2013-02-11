@@ -1,0 +1,53 @@
+package net.fwbrasil.activate.entity
+
+import org.specs2.mutable._
+import org.junit.runner._
+import org.specs2.runner._
+import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.prevaylerContext
+import net.fwbrasil.activate.memoryContext
+
+@RunWith(classOf[JUnitRunner])
+class EntityTransientValueSpecs extends ActivateTest {
+
+    override def executors(ctx: ActivateTestContext) =
+        super.executors(ctx).filter(e =>
+            e.isInstanceOf[MultipleTransactionsWithReinitialize] ||
+                e.isInstanceOf[MultipleTransactionsWithReinitializeAndSnapshot])
+
+    override def contexts = super.contexts.filter(_ != memoryContext)
+
+    "Entity transient value" should {
+        "be null after context reinitialize if it is not lazy" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    if (step.ctx != prevaylerContext || step.isInstanceOf[MultipleTransactionsWithReinitializeAndSnapshot]) {
+                        val entityId =
+                            step {
+                                newEmptyActivateTestEntity.id
+                            }
+                        step {
+                            val entity = byId[ActivateTestEntity](entityId).get
+                            entity.transientValue must beNull
+                        }
+                    }
+                })
+        }
+        "be reinitialized after context reinitialize if it is lazy" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            newEmptyActivateTestEntity.id
+                        }
+                    step {
+                        val entity = byId[ActivateTestEntity](entityId).get
+                        entity.transientLazyValue must not beNull
+                    }
+                })
+        }
+    }
+}

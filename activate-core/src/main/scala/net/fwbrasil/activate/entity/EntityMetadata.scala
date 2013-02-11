@@ -63,8 +63,11 @@ class EntityPropertyMetadata(
     val isOption =
         getter.getReturnType == classOf[Option[_]]
     val tval =
-        EntityValue.tvalFunctionOption[Any](propertyType, genericParameter)
-            .getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
+        if (isTransient)
+            null
+        else
+            EntityValue.tvalFunctionOption[Any](propertyType, genericParameter)
+                .getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
     varField.setAccessible(true)
     getter.setAccessible(true)
 
@@ -98,6 +101,8 @@ class EntityMetadata(
     val propertiesMetadata =
         (for (varField <- varFields; if (isEntityProperty(varField)))
             yield new EntityPropertyMetadata(this, varField, allMethods, entityClass)).sortBy(_.name)
+    val persistentPropertiesMetadata =
+        propertiesMetadata.filter(!_.isTransient)
     val idPropertyMetadata =
         propertiesMetadata.find(_.name == "id").get
     allMethods.foreach(_.setAccessible(true))
