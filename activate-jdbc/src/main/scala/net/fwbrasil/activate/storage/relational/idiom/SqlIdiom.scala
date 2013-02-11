@@ -89,6 +89,8 @@ import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.statement.query.OrderedQuery
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -271,18 +273,32 @@ trait SqlIdiom {
 
     def toSqlDml(query: Query[_]): SqlStatement = {
         implicit val binds = MutableMap[StorageValue, String]()
-        new SqlStatement("SELECT " + toSqlDml(query.select) +
-            " FROM " + toSqlDml(query.from) + " WHERE " + toSqlDml(query.where) + toSqlDmlOrderBy(query.orderByClause), (Map() ++ binds) map { _.swap })
+        new SqlStatement(
+            "SELECT " + toSqlDml(query.select) +
+                " FROM " + toSqlDml(query.from) +
+                " WHERE " + toSqlDml(query.where) +
+                toSqlDmlOrderBy(query),
+            (Map() ++ binds) map { _.swap })
     }
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)
             yield toSqlDmlSelect(value)).mkString(", ");
 
-    def toSqlDmlOrderBy(orderBy: Option[OrderBy])(implicit binds: MutableMap[StorageValue, String]): String = {
-        if (orderBy.isDefined)
-            " ORDER BY " + toSqlDml(orderBy.get.criterias: _*)
-        else ""
+    def toSqlDmlOrderBy(query: Query[_])(implicit binds: MutableMap[StorageValue, String]): String = {
+        def orderByString = " ORDER BY " + toSqlDml(query.orderByClause.get.criterias: _*)
+        query match {
+            case query: LimitedOrderedQuery[_] =>
+                orderByString + " " + toSqlDmlLimit(query.limit, query.skipOption)
+            case query: OrderedQuery[_] =>
+                orderByString
+            case other =>
+                ""
+        }
+    }
+
+    def toSqlDmlLimit(limit: Int, skipOption: Option[Int]): String = {
+        ""
     }
 
     def toSqlDml(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =

@@ -20,13 +20,11 @@ import net.fwbrasil.activate.statement.IsEqualTo
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.statement.StatementNormalizer
+import language.existentials
 
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
     def normalizeStatement(query: Query[_]): List[Query[_]] = {
-
-        import language.existentials
-
         val normalizedPropertyPath = normalizePropertyPath(List(query))
         val normalizedFrom = normalizeFrom(normalizedPropertyPath)
         val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)

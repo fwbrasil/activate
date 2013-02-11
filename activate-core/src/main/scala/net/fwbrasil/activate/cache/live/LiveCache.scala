@@ -173,8 +173,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
     private def entitiesFromStorage[S](query: Query[S], initializing: Boolean) = {
         val fromStorageMaterialized =
             for (line <- storage.fromStorage(query))
-                yield toTuple[S](for (column <- line)
-                yield materialize(column, initializing))
+                yield for (column <- line)
+                yield materialize(column, initializing)
         filterInvalid(fromStorageMaterialized)
     }
 
@@ -197,11 +197,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
             materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
     }
 
-    def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
-        val result = entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
-        query.orderByClause.map(order =>
-            result.sorted(order.ordering)).getOrElse(result)
-    }
+    def executeQuery[S](query: Query[S], iniatializing: Boolean): List[List[Any]] =
+        entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
@@ -281,8 +278,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
         }
     }
 
-    def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[S] = {
-        val result = ListBuffer[S]()
+    def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[List[Any]] = {
+        val result = ListBuffer[List[Any]]()
         for (entitySourcesInstances <- entitySourcesInstancesCombined)
             result ++= executeQueryWithEntitySourcesMap(query, entitySourceInstancesMap(query.from, entitySourcesInstances))
         result.toList
@@ -302,12 +299,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
         result.toMap
     }
 
-    def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[S] = {
+    def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[List[Any]] = {
         val satisfyWhere = executeCriteria(query.where.value)(entitySourceInstancesMap)
         if (satisfyWhere) {
             List(executeSelect[S](query.select.values: _*)(entitySourceInstancesMap))
         } else
-            List[S]()
+            List[List[Any]]()
     }
 
     def executeMassModificationWithEntitySourcesMap[S](statement: MassModificationStatement, entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
@@ -321,11 +318,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
             }
     }
 
-    def executeSelect[S](values: StatementSelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): S = {
+    def executeSelect[S](values: StatementSelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): List[Any] = {
         val list = ListBuffer[Any]()
         for (value <- values)
             list += executeStatementSelectValue(value)
-        CollectionUtil.toTuple(list)
+        list.toList
     }
 
     def executeUpdateAssignment[S](updateAssignments: UpdateAssignment*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {

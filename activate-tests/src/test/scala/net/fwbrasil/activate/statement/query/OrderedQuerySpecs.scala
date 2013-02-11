@@ -182,26 +182,6 @@ class OrderedQuerySpecs extends ActivateTest {
                 })
         }
 
-        "perform query with empty order by" in {
-            activateTest(
-                (step: StepExecutor) => {
-                    import step.ctx._
-                    step {
-                        val a =
-                            query {
-                                (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity)
-                            }
-                        val b =
-                            query {
-                                (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy ()
-                            }
-                        a must beEqualTo(b)
-                    }
-                })
-        }
-
         "perform query with multiple order by" in {
             activateTest(
                 (step: StepExecutor) => {
@@ -238,6 +218,42 @@ class OrderedQuerySpecs extends ActivateTest {
                             (entity: ActivateTestEntity) =>
                                 where(entity isNotNull) select (entity) orderBy (entity.stringValue)
                         }.toList.map(_.stringValue) must beEqualTo(expected)
+                    }
+                })
+        }
+
+        "perform normalized query with order by" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        new TraitAttribute1("a")
+                        new TraitAttribute2("b")
+                        new TraitAttribute1("c")
+                        new TraitAttribute2("d")
+                    }
+                    step {
+                        query {
+                            (e: TraitAttribute) => where(e isNotNull) select (e.attribute) orderBy (e.attribute)
+                        } mustEqual (List("a", "b", "c", "d"))
+                    }
+                })
+        }
+
+        "support skip" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val expected = List(null, "a", "b", "c")
+                    step {
+                        expected.randomize.foreach(v =>
+                            newEmptyActivateTestEntity.stringValue = v)
+                    }
+                    step {
+                        query {
+                            (entity: ActivateTestEntity) =>
+                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) skip (1)
+                        }.toList.map(_.stringValue) must beEqualTo(List("a", "b"))
                     }
                 })
         }

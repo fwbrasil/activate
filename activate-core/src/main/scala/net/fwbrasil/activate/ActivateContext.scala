@@ -22,6 +22,7 @@ import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.activate.serialization.Serializator
 import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.serialization.SerializationContext
+import net.fwbrasil.activate.util.CollectionUtil
 
 trait ActivateContext
         extends EntityContext
@@ -68,9 +69,16 @@ trait ActivateContext
         transactionManager.getRequiredActiveTransaction
 
     private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
-        (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
-            QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
-        }).flatten
+        val result =
+            (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
+                liveCache.executeQuery(normalized, iniatializing)
+            }).flatten
+        QueryNormalizer.denormalizeSelectWithOrderBy(query,
+            query.orderByClause.map(order => {
+                val sorted = result.sorted(order.ordering)
+                sorted
+            }).getOrElse(result)
+                .map(CollectionUtil.toTuple[S](_)))
     }
 
     private[activate] def name = contextName

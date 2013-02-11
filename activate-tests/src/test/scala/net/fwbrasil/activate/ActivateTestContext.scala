@@ -359,7 +359,7 @@ trait ActivateTestContext
     class SimpleEntity(var intValue: Int) extends Entity
 
     trait TraitAttribute extends Entity {
-        def attribute: String
+        var attribute: String
     }
 
     class TraitAttribute1 private (var attribute: String, val dummy: String) extends TraitAttribute {
@@ -368,7 +368,7 @@ trait ActivateTestContext
         def testTraitAttribute = attribute
     }
 
-    class TraitAttribute2(val attribute: String) extends TraitAttribute {
+    class TraitAttribute2(var attribute: String) extends TraitAttribute {
         def testTraitAttribute = attribute
     }
 

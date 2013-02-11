@@ -147,5 +147,8 @@ object mySqlDialect extends SqlIdiom {
             case value: ReferenceStorageValue =>
                 "VARCHAR(45)"
         }
+
+    override def toSqlDmlLimit(limit: Int, skipOption: Option[Int]): String =
+        "LIMIT " + limit + skipOption.map(s => " OFFSET " + s).getOrElse("")
 }
 
