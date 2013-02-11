@@ -9,27 +9,27 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class UnsupportedEntityTableWithouIdSpecs extends ActivateTest {
 
-	class Car(var color: String) extends Entity
+    class Car(var color: String) extends Entity
 
-	override def contexts = super.contexts.filter(_.name == "mysqlContext")
+    override def contexts = super.contexts.filter(_.name == "mysqlContext")
 
-	"Tables without the Activate ID column" should {
-		"not produce error with the all query" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					val conn = storage.asInstanceOf[JdbcRelationalStorage].directAccess
-					conn.setAutoCommit(true)
-					Try(conn.createStatement().executeUpdate("DROP TABLE CAR"))
-					conn.createStatement().executeUpdate("CREATE TABLE CAR(ID BIGINT, COLOR VARCHAR(45))")
-					conn.createStatement().executeUpdate("INSERT INTO CAR VALUES (1, 'BLACK')")
-					transactional {
-						val cars = all[Car]
-						for (car <- cars)
-							println(car.color)
-					} must throwA[IllegalArgumentException]
-				})
-		}
-	}
+    "Tables without the Activate ID column" should {
+        "not produce error with the all query" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val conn = storage.asInstanceOf[JdbcRelationalStorage].directAccess
+                    conn.setAutoCommit(true)
+                    Try(conn.createStatement().executeUpdate("DROP TABLE CAR"))
+                    conn.createStatement().executeUpdate("CREATE TABLE CAR(ID BIGINT, COLOR VARCHAR(45))")
+                    conn.createStatement().executeUpdate("INSERT INTO CAR VALUES (1, 'BLACK')")
+                    transactional {
+                        val cars = all[Car]
+                        for (car <- cars)
+                            println(car.color)
+                    } must throwA[IllegalArgumentException]
+                })
+        }
+    }
 
 }

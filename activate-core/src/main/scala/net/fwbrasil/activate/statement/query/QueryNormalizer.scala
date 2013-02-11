@@ -23,103 +23,103 @@ import net.fwbrasil.activate.statement.StatementNormalizer
 
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
-	def normalizeStatement(query: Query[_]): List[Query[_]] = {
+    def normalizeStatement(query: Query[_]): List[Query[_]] = {
 
-		import language.existentials
+        import language.existentials
 
-		val normalizedPropertyPath = normalizePropertyPath(List(query))
-		val normalizedFrom = normalizeFrom(normalizedPropertyPath)
-		val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
-		normalizedSelectWithOrderBy
-	}
+        val normalizedPropertyPath = normalizePropertyPath(List(query))
+        val normalizedFrom = normalizeFrom(normalizedPropertyPath)
+        val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
+        normalizedSelectWithOrderBy
+    }
 
-	def normalizePropertyPath[S](queryList: List[Query[S]]): List[Query[S]] =
-		(for (query <- queryList)
-			yield normalizePropertyPath(query)).flatten
+    def normalizePropertyPath[S](queryList: List[Query[S]]): List[Query[S]] =
+        (for (query <- queryList)
+            yield normalizePropertyPath(query)).flatten
 
-	def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
-		var count = 0
-			def nextNumber = {
-				count += 1
-				count
-			}
-		val nestedProperties = findObject[StatementEntitySourcePropertyValue[_]](query) {
-			_ match {
-				case obj: StatementEntitySourcePropertyValue[_] =>
-					obj.propertyPathVars.size > 1
-				case other =>
-					false
-			}
-		}
-		if (nestedProperties.nonEmpty) {
-			var entitySourceSet = Set[EntitySource]()
-			val criteriaList = ListBuffer[Criteria]()
-			val normalizeMap = new IdentityHashMap[Any, Any]()
-			for (nested <- nestedProperties) {
-				val (entitySources, criterias, propValue) = normalizePropertyPath(nested, nextNumber)
-				entitySourceSet ++= entitySources
-				criteriaList ++= criterias
-				normalizeMap.put(nested, propValue)
-			}
-			for (entitySource <- entitySourceSet)
-				normalizeMap.put(entitySource, entitySource)
-			var criteria = deepCopyMapping(query.where.value, normalizeMap)
-			for (i <- 0 until criteriaList.size)
-				criteria = And(criteria) :&& criteriaList(i)
-			normalizeMap.put(query.where.value, criteria)
-			normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
-			val result = deepCopyMapping(query, normalizeMap)
-			List(result)
-		} else
-			List(query)
-	}
+    def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
+        var count = 0
+        def nextNumber = {
+            count += 1
+            count
+        }
+        val nestedProperties = findObject[StatementEntitySourcePropertyValue[_]](query) {
+            _ match {
+                case obj: StatementEntitySourcePropertyValue[_] =>
+                    obj.propertyPathVars.size > 1
+                case other =>
+                    false
+            }
+        }
+        if (nestedProperties.nonEmpty) {
+            var entitySourceSet = Set[EntitySource]()
+            val criteriaList = ListBuffer[Criteria]()
+            val normalizeMap = new IdentityHashMap[Any, Any]()
+            for (nested <- nestedProperties) {
+                val (entitySources, criterias, propValue) = normalizePropertyPath(nested, nextNumber)
+                entitySourceSet ++= entitySources
+                criteriaList ++= criterias
+                normalizeMap.put(nested, propValue)
+            }
+            for (entitySource <- entitySourceSet)
+                normalizeMap.put(entitySource, entitySource)
+            var criteria = deepCopyMapping(query.where.value, normalizeMap)
+            for (i <- 0 until criteriaList.size)
+                criteria = And(criteria) :&& criteriaList(i)
+            normalizeMap.put(query.where.value, criteria)
+            normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
+            val result = deepCopyMapping(query, normalizeMap)
+            List(result)
+        } else
+            List(query)
+    }
 
-	def normalizePropertyPath(nested: StatementEntitySourcePropertyValue[_], nextNumber: => Int) = {
-		val entitySources = ListBuffer[EntitySource](nested.entitySource)
-		val criterias = ListBuffer[Criteria]()
-		for (i <- 0 until nested.propertyPathVars.size) {
-			val prop = nested.propertyPathVars(i)
-			val entitySource =
-				if (i != 0) {
-					EntitySource(prop.outerEntityClass, "t" + nextNumber)
-				} else
-					nested.entitySource
-			if (i != 0) {
-				criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== new StatementEntitySourceValue(entitySource))
-				entitySources += entitySource
-			}
-		}
-		val propValue =
-			new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
-		(entitySources, criterias, propValue)
-	}
+    def normalizePropertyPath(nested: StatementEntitySourcePropertyValue[_], nextNumber: => Int) = {
+        val entitySources = ListBuffer[EntitySource](nested.entitySource)
+        val criterias = ListBuffer[Criteria]()
+        for (i <- 0 until nested.propertyPathVars.size) {
+            val prop = nested.propertyPathVars(i)
+            val entitySource =
+                if (i != 0) {
+                    EntitySource(prop.outerEntityClass, "t" + nextNumber)
+                } else
+                    nested.entitySource
+            if (i != 0) {
+                criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== new StatementEntitySourceValue(entitySource))
+                entitySources += entitySource
+            }
+        }
+        val propValue =
+            new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
+        (entitySources, criterias, propValue)
+    }
 
-	def normalizeSelectWithOrderBy[S](queryList: List[Query[S]]): List[Query[_]] =
-		for (query <- queryList)
-			yield normalizeSelectWithOrderBy(query)
+    def normalizeSelectWithOrderBy[S](queryList: List[Query[S]]): List[Query[_]] =
+        for (query <- queryList)
+            yield normalizeSelectWithOrderBy(query)
 
-	def normalizeSelectWithOrderBy[S](query: Query[S]): Query[_] = {
-		val orderByOption = query.orderByClause
-		if (orderByOption.isDefined) {
-			val orderByValues = orderByOption.get.criterias.map(_.value)
-			val select = query.select
-			val newSelect = Select(select.values ++ orderByValues: _*)
-			val map = new IdentityHashMap[Any, Any]()
-			map.put(select, newSelect)
-			deepCopyMapping(query, map)
-		} else query
-	}
+    def normalizeSelectWithOrderBy[S](query: Query[S]): Query[_] = {
+        val orderByOption = query.orderByClause
+        if (orderByOption.isDefined) {
+            val orderByValues = orderByOption.get.criterias.map(_.value)
+            val select = query.select
+            val newSelect = Select(select.values ++ orderByValues: _*)
+            val map = new IdentityHashMap[Any, Any]()
+            map.put(select, newSelect)
+            deepCopyMapping(query, map)
+        } else query
+    }
 
-	def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: List[S]): List[S] = {
-		val orderByOption = originalQuery.orderByClause
-		val ret = if (orderByOption.isDefined) {
-			val size = originalQuery.select.values.size
-			var list = ListBuffer[S]()
-			for (row <- result)
-				list += toTuple[S](for (i <- 0 until size) yield row.asInstanceOf[Product].productElement(i))
-			list.toList
-		} else result.toList
-		ret
-	}
+    def denormalizeSelectWithOrderBy[S](originalQuery: Query[S], result: List[S]): List[S] = {
+        val orderByOption = originalQuery.orderByClause
+        val ret = if (orderByOption.isDefined) {
+            val size = originalQuery.select.values.size
+            var list = ListBuffer[S]()
+            for (row <- result)
+                list += toTuple[S](for (i <- 0 until size) yield row.asInstanceOf[Product].productElement(i))
+            list.toList
+        } else result.toList
+        ret
+    }
 
 }

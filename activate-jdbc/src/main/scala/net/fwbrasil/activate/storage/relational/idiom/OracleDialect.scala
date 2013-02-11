@@ -31,120 +31,120 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 
 object oracleDialect extends SqlIdiom {
-	def toSqlDmlRegexp(value: String, regex: String) =
-		"REGEXP_LIKE(" + value + ", " + regex + ")"
+    def toSqlDmlRegexp(value: String, regex: String) =
+        "REGEXP_LIKE(" + value + ", " + regex + ")"
 
-	override def findTableStatement(tableName: String) =
-		"SELECT COUNT(1) " +
-			"  FROM USER_TABLES " +
-			" WHERE TABLE_NAME = '" + normalize(tableName) + "'"
+    override def findTableStatement(tableName: String) =
+        "SELECT COUNT(1) " +
+            "  FROM USER_TABLES " +
+            " WHERE TABLE_NAME = '" + normalize(tableName) + "'"
 
-	override def findTableColumnStatement(tableName: String, columnName: String) =
-		"SELECT COUNT(1) " +
-			"  FROM USER_TAB_COLUMNS " +
-			" WHERE TABLE_NAME = '" + normalize(tableName) + "' " +
-			"   AND COLUMN_NAME = '" + normalize(columnName) + "'"
+    override def findTableColumnStatement(tableName: String, columnName: String) =
+        "SELECT COUNT(1) " +
+            "  FROM USER_TAB_COLUMNS " +
+            " WHERE TABLE_NAME = '" + normalize(tableName) + "' " +
+            "   AND COLUMN_NAME = '" + normalize(columnName) + "'"
 
-	override def findIndexStatement(tableName: String, indexName: String) =
-		"SELECT COUNT(1) " +
-			"  FROM USER_INDEXES " +
-			" WHERE INDEX_NAME = '" + normalize(indexName) + "'"
+    override def findIndexStatement(tableName: String, indexName: String) =
+        "SELECT COUNT(1) " +
+            "  FROM USER_INDEXES " +
+            " WHERE INDEX_NAME = '" + normalize(indexName) + "'"
 
-	override def findConstraintStatement(tableName: String, constraintName: String): String =
-		"SELECT COUNT(1) " +
-			"  FROM USER_CONSTRAINTS " +
-			" WHERE TABLE_NAME = '" + normalize(tableName) + "'" +
-			"   AND CONSTRAINT_NAME = '" + normalize(constraintName) + "'"
+    override def findConstraintStatement(tableName: String, constraintName: String): String =
+        "SELECT COUNT(1) " +
+            "  FROM USER_CONSTRAINTS " +
+            " WHERE TABLE_NAME = '" + normalize(tableName) + "'" +
+            "   AND CONSTRAINT_NAME = '" + normalize(constraintName) + "'"
 
-	def normalize(string: String) =
-		string.toUpperCase.substring(0, string.length.min(30))
+    def normalize(string: String) =
+        string.toUpperCase.substring(0, string.length.min(30))
 
-	override def escape(string: String) =
-		"\"" + normalize(string) + "\""
+    override def escape(string: String) =
+        "\"" + normalize(string) + "\""
 
-	override def toSqlDdl(action: ModifyStorageAction): String = {
-		action match {
-			case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
-				"DROP TABLE " + escape(ownerTableName + listName.capitalize)
-			case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
-				"CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
-					"	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
-					toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
-					")"
-			case StorageCreateTable(tableName, columns, ifNotExists) =>
-				"CREATE TABLE " + escape(tableName) + "(\n" +
-					"	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
-					columns.map(toSqlDdl).mkString(", \n") +
-					")"
-			case StorageRenameTable(oldName, newName, ifExists) =>
-				"ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
-			case StorageRemoveTable(name, ifExists, isCascade) =>
-				"DROP TABLE " + escape(name) + (if (isCascade) " CASCADE constraints" else "")
-			case StorageAddColumn(tableName, column, ifNotExists) =>
-				"ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
-			case StorageRenameColumn(tableName, oldName, column, ifExists) =>
-				"ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
-			case StorageRemoveColumn(tableName, name, ifExists) =>
-				"ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
-			case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
-				"CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
-			case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-				"DROP INDEX " + escape(name)
-			case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
-			case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-				"ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
-		}
-	}
+    override def toSqlDdl(action: ModifyStorageAction): String = {
+        action match {
+            case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+                "DROP TABLE " + escape(ownerTableName + listName.capitalize)
+            case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
+                "CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+                    toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
+                    ")"
+            case StorageCreateTable(tableName, columns, ifNotExists) =>
+                "CREATE TABLE " + escape(tableName) + "(\n" +
+                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+                    columns.map(toSqlDdl).mkString(", \n") +
+                    ")"
+            case StorageRenameTable(oldName, newName, ifExists) =>
+                "ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
+            case StorageRemoveTable(name, ifExists, isCascade) =>
+                "DROP TABLE " + escape(name) + (if (isCascade) " CASCADE constraints" else "")
+            case StorageAddColumn(tableName, column, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
+            case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+            case StorageRemoveColumn(tableName, name, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
+            case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
+                "CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
+            case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
+                "DROP INDEX " + escape(name)
+            case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
+            case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
+        }
+    }
 
-	def concat(strings: String*) =
-		strings.mkString(" || ")
+    def concat(strings: String*) =
+        strings.mkString(" || ")
 
-	val emptyString = "" + '\u0000'
+    val emptyString = "" + '\u0000'
 
-	override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
-		storageValue match {
-			case value: StringStorageValue =>
-				setValue(ps, (v: String) => if (v == "") ps.setString(i, emptyString) else ps.setString(i, v), i, value.value, Types.VARCHAR)
-			case other =>
-				super.setValue(ps, i, other)
-		}
-	}
+    override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
+        storageValue match {
+            case value: StringStorageValue =>
+                setValue(ps, (v: String) => if (v == "") ps.setString(i, emptyString) else ps.setString(i, v), i, value.value, Types.VARCHAR)
+            case other =>
+                super.setValue(ps, i, other)
+        }
+    }
 
-	override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
-		storageValue match {
-			case value: StringStorageValue =>
-				val value = getValue(resultSet, resultSet.getString(i)).map(string => if (string == emptyString) "" else string)
-				StringStorageValue(value)
-			case other =>
-				super.getValue(resultSet, i, storageValue, connection)
-		}
-	}
+    override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
+        storageValue match {
+            case value: StringStorageValue =>
+                val value = getValue(resultSet, resultSet.getString(i)).map(string => if (string == emptyString) "" else string)
+                StringStorageValue(value)
+            case other =>
+                super.getValue(resultSet, i, storageValue, connection)
+        }
+    }
 
-	override def toSqlDdl(storageValue: StorageValue): String =
-		storageValue match {
-			case value: IntStorageValue =>
-				"INTEGER"
-			case value: LongStorageValue =>
-				"DECIMAL"
-			case value: BooleanStorageValue =>
-				"NUMBER(1)"
-			case value: StringStorageValue =>
-				"VARCHAR2(4000)"
-			case value: FloatStorageValue =>
-				"DOUBLE PRECISION"
-			case value: DateStorageValue =>
-				"TIMESTAMP"
-			case value: DoubleStorageValue =>
-				"DOUBLE PRECISION"
-			case value: BigDecimalStorageValue =>
-				"DECIMAL"
-			case value: ListStorageValue =>
-				"INTEGER"
-			case value: ByteArrayStorageValue =>
-				"BLOB"
-			case value: ReferenceStorageValue =>
-				"VARCHAR2(45)"
-		}
+    override def toSqlDdl(storageValue: StorageValue): String =
+        storageValue match {
+            case value: IntStorageValue =>
+                "INTEGER"
+            case value: LongStorageValue =>
+                "DECIMAL"
+            case value: BooleanStorageValue =>
+                "NUMBER(1)"
+            case value: StringStorageValue =>
+                "VARCHAR2(4000)"
+            case value: FloatStorageValue =>
+                "DOUBLE PRECISION"
+            case value: DateStorageValue =>
+                "TIMESTAMP"
+            case value: DoubleStorageValue =>
+                "DOUBLE PRECISION"
+            case value: BigDecimalStorageValue =>
+                "DECIMAL"
+            case value: ListStorageValue =>
+                "INTEGER"
+            case value: ByteArrayStorageValue =>
+                "BLOB"
+            case value: ReferenceStorageValue =>
+                "VARCHAR2(45)"
+        }
 
 }

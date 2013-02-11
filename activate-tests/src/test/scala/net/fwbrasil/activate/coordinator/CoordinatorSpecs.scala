@@ -16,30 +16,30 @@ import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
 class CoordinatorTestContext extends ActivateTestContext {
 
-	System.setProperty("activate.coordinator.server", "true")
-	Coordinator.timeout = 1000
+    System.setProperty("activate.coordinator.server", "true")
+    Coordinator.timeout = 1000
 
-	protected override lazy val coordinatorClientOption =
-		if (storage.isMemoryStorage)
-			None
-		else
-			Coordinator.clientOption(this)
+    protected override lazy val coordinatorClientOption =
+        if (storage.isMemoryStorage)
+            None
+        else
+            Coordinator.clientOption(this)
 
-	val storage = new PooledJdbcRelationalStorage {
-		val jdbcDriver = "org.postgresql.Driver"
-		val user = "postgres"
-		val password = "postgres"
-		val url = "jdbc:postgresql://127.0.0.1/activate_test"
-		val dialect = postgresqlDialect
-	}
-	stop
-	def run[A](f: => A) = {
-		start
-		try
-			transactional(f)
-		finally
-			stop
-	}
+    val storage = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "org.postgresql.Driver"
+        val user = "postgres"
+        val password = "postgres"
+        val url = "jdbc:postgresql://127.0.0.1/activate_test"
+        val dialect = postgresqlDialect
+    }
+    stop
+    def run[A](f: => A) = {
+        start
+        try
+            transactional(f)
+        finally
+            stop
+    }
 
 }
 
@@ -49,77 +49,77 @@ object ctx2 extends CoordinatorTestContext
 @RunWith(classOf[JUnitRunner])
 class CoordinatorSpecs extends ActivateTest {
 
-	"Coordinator" should {
-		"detect concurrent modification (write)" in synchronized {
-			val (entityCtx1, entityCtx2) = prepareEntity
-			ctx2.run {
-				import ctx2._
-				entityCtx2.intValue = 3
-			}
-			ctx1.run {
-				import ctx1._
-				entityCtx1.intValue
-			} mustEqual 3
-		}
-		"detect concurrent modification (read+write)" in synchronized {
-			val (entityCtx1, entityCtx2) = prepareEntity
-			ctx2.run {
-				import ctx2._
-				entityCtx2.intValue += 1
-			}
-			ctx1.run {
-				import ctx1._
-				entityCtx1.intValue += 1
-			}
-			ctx1.run {
-				import ctx1._
-				entityCtx1.intValue
-			} mustEqual 3
-		}
-		"detect concurrent delete (read)" in synchronized {
-			val (entityCtx1, entityCtx2) = prepareEntity
-			ctx2.run {
-				import ctx2._
-				entityCtx2.delete
-			}
-			(ctx1.run {
-				import ctx1._
-				entityCtx1.intValue
-			}) must throwA[IllegalStateException]
-		}
-		"detect concurrent delete (read/write)" in synchronized {
-			val (entityCtx1, entityCtx2) = prepareEntity
-			ctx2.run {
-				import ctx2._
-				entityCtx2.delete
-			}
-			(ctx1.run {
-				import ctx1._
-				entityCtx1.intValue += 1
-			}) must throwA[IllegalStateException]
-		}
-		"timeout while connecting to the server" in synchronized {
-			val remoteActor = select(Node("199.9.9.9", 9999), Coordinator.actorName)
-			(new CoordinatorClient(ctx2, remoteActor)) must throwA[IllegalStateException]
-		}
-	}
+    "Coordinator" should {
+        "detect concurrent modification (write)" in synchronized {
+            val (entityCtx1, entityCtx2) = prepareEntity
+            ctx2.run {
+                import ctx2._
+                entityCtx2.intValue = 3
+            }
+            ctx1.run {
+                import ctx1._
+                entityCtx1.intValue
+            } mustEqual 3
+        }
+        "detect concurrent modification (read+write)" in synchronized {
+            val (entityCtx1, entityCtx2) = prepareEntity
+            ctx2.run {
+                import ctx2._
+                entityCtx2.intValue += 1
+            }
+            ctx1.run {
+                import ctx1._
+                entityCtx1.intValue += 1
+            }
+            ctx1.run {
+                import ctx1._
+                entityCtx1.intValue
+            } mustEqual 3
+        }
+        "detect concurrent delete (read)" in synchronized {
+            val (entityCtx1, entityCtx2) = prepareEntity
+            ctx2.run {
+                import ctx2._
+                entityCtx2.delete
+            }
+            (ctx1.run {
+                import ctx1._
+                entityCtx1.intValue
+            }) must throwA[IllegalStateException]
+        }
+        "detect concurrent delete (read/write)" in synchronized {
+            val (entityCtx1, entityCtx2) = prepareEntity
+            ctx2.run {
+                import ctx2._
+                entityCtx2.delete
+            }
+            (ctx1.run {
+                import ctx1._
+                entityCtx1.intValue += 1
+            }) must throwA[IllegalStateException]
+        }
+        "timeout while connecting to the server" in synchronized {
+            val remoteActor = select(Node("199.9.9.9", 9999), Coordinator.actorName)
+            (new CoordinatorClient(ctx2, remoteActor)) must throwA[IllegalStateException]
+        }
+    }
 
-	private def prepareEntity = {
-		ctx1.contextName
-		ctx2.contextName
-		val (entityCtx1, entityId) =
-			ctx1.run {
-				import ctx1._
-				val entity = newEmptyActivateTestEntity
-				entity.intValue = 1
-				(entity, entity.id)
-			}
-		val entityCtx2 = ctx2.run {
-			import ctx2._
-			byId[ActivateTestEntity](entityId).get
-		}
-		entityCtx1 mustNotEqual (entityCtx2)
-		(entityCtx1, entityCtx2)
-	}
+    private def prepareEntity = {
+        ctx1.contextName
+        ctx2.contextName
+        val (entityCtx1, entityId) =
+            ctx1.run {
+                import ctx1._
+                val entity = newEmptyActivateTestEntity
+                entity.intValue = 1
+                (entity, entity.id)
+            }
+        val entityCtx2 = ctx2.run {
+            import ctx2._
+            byId[ActivateTestEntity](entityId).get
+        }
+        entityCtx1 mustNotEqual (entityCtx2)
+        (entityCtx1, entityCtx2)
+    }
 
 }

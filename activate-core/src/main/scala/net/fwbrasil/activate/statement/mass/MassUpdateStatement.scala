@@ -15,37 +15,37 @@ import net.fwbrasil.activate.statement.StatementContext
 
 trait MassUpdateContext extends StatementContext {
 
-	import language.implicitConversions
+    import language.implicitConversions
 
-	implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T]) =
-		UpdateAssigneeDecorator(tval(value))
-	implicit def toWhereDecorator(where: Where) =
-		WhereUpdateDecorator(where)
-	import From._
-	def produceUpdate[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
-		runAndClearFrom {
-			f(mockEntity[E1])
-		}
-	def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): Unit =
-		executeStatementWithCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
+    implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T]) =
+        UpdateAssigneeDecorator(tval(value))
+    implicit def toWhereDecorator(where: Where) =
+        WhereUpdateDecorator(where)
+    import From._
+    def produceUpdate[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
+        runAndClearFrom {
+            f(mockEntity[E1])
+        }
+    def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): Unit =
+        executeStatementWithCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
 
 }
 
 case class WhereUpdateDecorator(where: Where) {
-	def set(assignments: UpdateAssignment*) =
-		MassUpdateStatement(From.from, where, assignments: _*)
+    def set(assignments: UpdateAssignment*) =
+        MassUpdateStatement(From.from, where, assignments: _*)
 }
 
 case class UpdateAssigneeDecorator(assignee: StatementSelectValue[_]) {
-	def :=[T](value: => T)(implicit tval: (=> T) => StatementValue) =
-		UpdateAssignment(assignee, tval(value))
+    def :=[T](value: => T)(implicit tval: (=> T) => StatementValue) =
+        UpdateAssignment(assignee, tval(value))
 }
 case class UpdateAssignment(assignee: StatementSelectValue[_], value: StatementValue) {
-	override def toString = assignee.toString + " := " + value.toString
+    override def toString = assignee.toString + " := " + value.toString
 }
 
 case class MassUpdateStatement(override val from: From, override val where: Where, assignments: UpdateAssignment*)
-		extends MassModificationStatement(from, where) {
+        extends MassModificationStatement(from, where) {
 
-	override def toString = from + " => where" + where + " set " + assignments.mkString(", ") + ""
+    override def toString = from + " => where" + where + " set " + assignments.mkString(", ") + ""
 }

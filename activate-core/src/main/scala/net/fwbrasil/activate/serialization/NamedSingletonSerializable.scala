@@ -9,45 +9,45 @@ import net.fwbrasil.activate.ActivateContext
 
 trait NamedSingletonSerializable extends java.io.Serializable {
 
-	private[activate] def name: String
+    private[activate] def name: String
 
-	NamedSingletonSerializable.registerInstance(this)
+    NamedSingletonSerializable.registerInstance(this)
 
-	protected def writeReplace(): AnyRef =
-		new NamedSingletonSerializableWrapper(this)
+    protected def writeReplace(): AnyRef =
+        new NamedSingletonSerializableWrapper(this)
 
 }
 
 class NamedSingletonSerializableWrapper(instance: NamedSingletonSerializable) extends java.io.Serializable {
-	val name = instance.name
-	val clazz = instance.getClass
-	protected def readResolve(): Any =
-		NamedSingletonSerializable.instances(clazz.getName)(name)
+    val name = instance.name
+    val clazz = instance.getClass
+    protected def readResolve(): Any =
+        NamedSingletonSerializable.instances(clazz.getName)(name)
 }
 
 object NamedSingletonSerializable {
-	val instances =
-		new MutableHashMap[String, MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[String, MutableHashMap[String, NamedSingletonSerializable]]
+    val instances =
+        new MutableHashMap[String, MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[String, MutableHashMap[String, NamedSingletonSerializable]]
 
-	private[this] def instancesMapOf[T: Manifest] =
-		instances.getOrElseUpdate(
-			erasureOf[T].getName,
-			new MutableHashMap[String, NamedSingletonSerializable]()).asInstanceOf[MutableHashMap[String, T]]
+    private[this] def instancesMapOf[T: Manifest] =
+        instances.getOrElseUpdate(
+            erasureOf[T].getName,
+            new MutableHashMap[String, NamedSingletonSerializable]()).asInstanceOf[MutableHashMap[String, T]]
 
-	def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
-		val ret = MutableHashSet[T]()
-		for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(ActivateContext.loadClass(clazz))))
-			ret ++= instancesMap.values.asInstanceOf[Iterable[T]]
-		ret
-	}
+    def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
+        val ret = MutableHashSet[T]()
+        for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(ActivateContext.loadClass(clazz))))
+            ret ++= instancesMap.values.asInstanceOf[Iterable[T]]
+        ret
+    }
 
-	def registerInstance[T <: NamedSingletonSerializable](instance: T) = {
-		implicit val m = manifestClass[T](instance.getClass)
-		val map = instancesMapOf[T]
-		val option = map.get(instance.name)
-		//		if (option.isDefined && option.get != instance)
-		//			warn("Duplicate singleton!")
-		map += (instance.name -> instance)
-	}
+    def registerInstance[T <: NamedSingletonSerializable](instance: T) = {
+        implicit val m = manifestClass[T](instance.getClass)
+        val map = instancesMapOf[T]
+        val option = map.get(instance.name)
+        //		if (option.isDefined && option.get != instance)
+        //			warn("Duplicate singleton!")
+        map += (instance.name -> instance)
+    }
 
 }

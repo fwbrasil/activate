@@ -16,42 +16,42 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
 
 class TransientMemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
-	override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
+    override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
 }
 
 class TransientMemoryStorage extends Storage[HashSet[Entity]] {
 
-	val storageSet = new TransientMemoryStorageSet
+    val storageSet = new TransientMemoryStorageSet
 
-	def directAccess =
-		storageSet
+    def directAccess =
+        storageSet
 
-	override def reinitialize =
-		for (entity <- storageSet)
-			entity.addToLiveCache
+    override def reinitialize =
+        for (entity <- storageSet)
+            entity.addToLiveCache
 
-	override def toStorage(
-		statements: List[MassModificationStatement],
-		assignments: List[(Var[Any], EntityValue[Any])],
-		deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
+    override def toStorage(
+        statements: List[MassModificationStatement],
+        assignments: List[(Var[Any], EntityValue[Any])],
+        deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
 
-		for ((ref, value) <- assignments)
-			if (ref.outerEntity != null)
-				storageSet += ref.outerEntity
-		for ((entity, map) <- deletes)
-			storageSet -= entity
-	}
+        for ((ref, value) <- assignments)
+            if (ref.outerEntity != null)
+                storageSet += ref.outerEntity
+        for ((entity, map) <- deletes)
+            storageSet -= entity
+    }
 
-	override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
-		List()
+    override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
+        List()
 
-	override def isMemoryStorage = true
+    override def isMemoryStorage = true
 
-	override def migrate(action: StorageAction): Unit = {}
+    override def migrate(action: StorageAction): Unit = {}
 
 }
 
 object TransientMemoryStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-		new TransientMemoryStorage
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new TransientMemoryStorage
 }

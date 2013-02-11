@@ -20,7 +20,7 @@ case class GetPendingNotifications(contextId: String) extends CoordinatorServerR
 case class RemoveNotifications(contextId: String, entityIds: Set[String]) extends CoordinatorServerRequestMessage
 
 trait CoordinatorServerReponseMessage extends CoordinatorServerMessage {
-	val request: CoordinatorServerRequestMessage
+    val request: CoordinatorServerRequestMessage
 }
 
 case class Success(request: CoordinatorServerRequestMessage) extends CoordinatorServerReponseMessage
@@ -32,65 +32,65 @@ case class LockFail(request: CoordinatorServerRequestMessage, readLocksNok: Set[
 case class UnlockFail(request: CoordinatorServerRequestMessage, readUnlocksNok: Set[String], writeUnlocksNok: Set[String]) extends CoordinatorServerReponseMessage
 
 class CoordinatorService extends LockManager
-	with NotificationManager with Logging
+    with NotificationManager with Logging
 
 object coordinatorServiceSingleton extends CoordinatorService
 
 class CoordinatorServer
-		extends DaemonActor
-		with Logging {
+        extends DaemonActor
+        with Logging {
 
-	import coordinatorServiceSingleton._
+    import coordinatorServiceSingleton._
 
-	start
+    start
 
-	info("Coordinator server started.")
+    info("Coordinator server started.")
 
-	def act {
-		alive(Coordinator.port)
-		register(Coordinator.actorName, self)
-		loop {
-			receive {
-				case msg: RegisterContext =>
-					runAndReplyIfSuccess(msg)(registerContext(msg.contextId))
-				case msg: DeregisterContext =>
-					runAndReplyIfSuccess(msg)(deregisterContext(msg.contextId))
-				case msg: TryToAcquireLocks =>
-					runAndReply(msg)(tryToAcquireLocks(msg.contextId, msg.reads, msg.writes)) {
-						failed =>
-							if (failed._1.isEmpty && failed._2.isEmpty)
-								Success(msg)
-							else
-								LockFail(msg, failed._1, failed._2)
-					}
+    def act {
+        alive(Coordinator.port)
+        register(Coordinator.actorName, self)
+        loop {
+            receive {
+                case msg: RegisterContext =>
+                    runAndReplyIfSuccess(msg)(registerContext(msg.contextId))
+                case msg: DeregisterContext =>
+                    runAndReplyIfSuccess(msg)(deregisterContext(msg.contextId))
+                case msg: TryToAcquireLocks =>
+                    runAndReply(msg)(tryToAcquireLocks(msg.contextId, msg.reads, msg.writes)) {
+                        failed =>
+                            if (failed._1.isEmpty && failed._2.isEmpty)
+                                Success(msg)
+                            else
+                                LockFail(msg, failed._1, failed._2)
+                    }
 
-				case msg: ReleaseLocks =>
-					runAndReply(msg)(releaseLocks(msg.contextId, msg.reads, msg.writes)) {
-						failed =>
-							if (failed._1.isEmpty && failed._2.isEmpty)
-								Success(msg)
-							else
-								UnlockFail(msg, failed._1, failed._2)
-					}
-				case msg: GetPendingNotifications =>
-					runAndReply(msg)(getPendingNotifications(msg.contextId))(PendingNotifications(msg, _))
-				case msg: RemoveNotifications =>
-					runAndReplyIfSuccess(msg)(removeNotifications(msg.contextId, msg.entityIds))
-			}
-		}
-	}
+                case msg: ReleaseLocks =>
+                    runAndReply(msg)(releaseLocks(msg.contextId, msg.reads, msg.writes)) {
+                        failed =>
+                            if (failed._1.isEmpty && failed._2.isEmpty)
+                                Success(msg)
+                            else
+                                UnlockFail(msg, failed._1, failed._2)
+                    }
+                case msg: GetPendingNotifications =>
+                    runAndReply(msg)(getPendingNotifications(msg.contextId))(PendingNotifications(msg, _))
+                case msg: RemoveNotifications =>
+                    runAndReplyIfSuccess(msg)(removeNotifications(msg.contextId, msg.entityIds))
+            }
+        }
+    }
 
-	private def runAndReplyIfSuccess[R](msg: CoordinatorServerRequestMessage)(fAction: => R): Unit =
-		runAndReply(msg)(fAction)(_ => new Success(msg))
+    private def runAndReplyIfSuccess[R](msg: CoordinatorServerRequestMessage)(fAction: => R): Unit =
+        runAndReply(msg)(fAction)(_ => new Success(msg))
 
-	private def runAndReply[R](msg: CoordinatorServerRequestMessage)(fAction: => R)(fResponse: (R) => CoordinatorServerReponseMessage): Unit =
-		reply(
-			try
-				fResponse(fAction)
-			catch {
-				case e =>
-					Failure(msg, e)
-			})
+    private def runAndReply[R](msg: CoordinatorServerRequestMessage)(fAction: => R)(fResponse: (R) => CoordinatorServerReponseMessage): Unit =
+        reply(
+            try
+                fResponse(fAction)
+            catch {
+                case e =>
+                    Failure(msg, e)
+            })
 
 }
 

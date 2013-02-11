@@ -16,57 +16,57 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
-	override protected[activate] def store(
-		statementList: List[MassModificationStatement],
-		insertList: List[(Entity, Map[String, StorageValue])],
-		updateList: List[(Entity, Map[String, StorageValue])],
-		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+    override protected[activate] def store(
+        statementList: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
-		val statements =
-			statementList.map(ModifyStorageStatement(_))
+        val statements =
+            statementList.map(ModifyStorageStatement(_))
 
-		val inserts =
-			for ((entity, propertyMap) <- insertList)
-				yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+        val inserts =
+            for ((entity, propertyMap) <- insertList)
+                yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
-		val insertsResolved = resolveDependencies(inserts.toSet)
+        val insertsResolved = resolveDependencies(inserts.toSet)
 
-		val updates =
-			for ((entity, propertyMap) <- updateList)
-				yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+        val updates =
+            for ((entity, propertyMap) <- updateList)
+                yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
-		val deletes =
-			for ((entity, propertyMap) <- deleteList)
-				yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+        val deletes =
+            for ((entity, propertyMap) <- deleteList)
+                yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
-		val deletesResolved = resolveDependencies(deletes.toSet).reverse
+        val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
-		val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
+        val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
 
-		executeStatements(sqls)
-	}
+        executeStatements(sqls)
+    }
 
-	protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
-		val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
-		val tree = new DependencyTree[DmlStorageStatement](statements)
-		for (insertA <- statements) {
-			for ((propertyName, propertyValue) <- insertA.propertyMap)
-				if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
-					val entityIdB = propertyValue.value.get.asInstanceOf[String]
-					if (entityInsertMap.contains(entityIdB))
-						tree.addDependency(entityInsertMap(entityIdB), insertA)
-				}
-		}
-		tree.resolve
-	} catch {
-		case e: CyclicReferenceException =>
-			// Let storage cry if necessary!
-			statements.toList
-	}
+    protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
+        val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
+        val tree = new DependencyTree[DmlStorageStatement](statements)
+        for (insertA <- statements) {
+            for ((propertyName, propertyValue) <- insertA.propertyMap)
+                if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
+                    val entityIdB = propertyValue.value.get.asInstanceOf[String]
+                    if (entityInsertMap.contains(entityIdB))
+                        tree.addDependency(entityInsertMap(entityIdB), insertA)
+                }
+        }
+        tree.resolve
+    } catch {
+        case e: CyclicReferenceException =>
+            // Let storage cry if necessary!
+            statements.toList
+    }
 
-	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
-		executeStatements(List(DdlStorageStatement(action)))
+    override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
+        executeStatements(List(DdlStorageStatement(action)))
 
-	protected[activate] def executeStatements(sqls: List[StorageStatement]): Unit
+    protected[activate] def executeStatements(sqls: List[StorageStatement]): Unit
 
 }

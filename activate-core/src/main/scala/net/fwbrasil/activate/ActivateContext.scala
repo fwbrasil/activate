@@ -24,127 +24,127 @@ import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.serialization.SerializationContext
 
 trait ActivateContext
-		extends EntityContext
-		with QueryContext
-		with MassUpdateContext
-		with MassDeleteContext
-		with NamedSingletonSerializable
-		with Logging
-		with DelayedInit
-		with DurableContext
-		with StatementsContext
-		with SerializationContext {
+        extends EntityContext
+        with QueryContext
+        with MassUpdateContext
+        with MassDeleteContext
+        with NamedSingletonSerializable
+        with Logging
+        with DelayedInit
+        with DurableContext
+        with StatementsContext
+        with SerializationContext {
 
-	info("Initializing context " + contextName)
+    info("Initializing context " + contextName)
 
-	type Migration = net.fwbrasil.activate.migration.Migration
-	type ManualMigration = net.fwbrasil.activate.migration.ManualMigration
+    type Migration = net.fwbrasil.activate.migration.Migration
+    type ManualMigration = net.fwbrasil.activate.migration.ManualMigration
 
-	EntityHelper.initialize(this.getClass)
+    EntityHelper.initialize(this.getClass)
 
-	private[activate] val liveCache = new LiveCache(this)
-	private[activate] val properties =
-		new ActivateProperties(None, "activate")
+    private[activate] val liveCache = new LiveCache(this)
+    private[activate] val properties =
+        new ActivateProperties(None, "activate")
 
-	implicit val context = this: this.type
+    implicit val context = this: this.type
 
-	val storage: Storage[_]
+    val storage: Storage[_]
 
-	protected def storageFor(entity: Entity) =
-		storage
+    protected def storageFor(entity: Entity) =
+        storage
 
-	protected def storages =
-		List[Storage[_]](storage)
+    protected def storages =
+        List[Storage[_]](storage)
 
-	def reinitializeContext =
-		logInfo("reinitializing context " + contextName) {
-			liveCache.reinitialize
-			clearStatements
-			storages.foreach(_.reinitialize)
-			reinitializeCoordinator
-		}
+    def reinitializeContext =
+        logInfo("reinitializing context " + contextName) {
+            liveCache.reinitialize
+            clearStatements
+            storages.foreach(_.reinitialize)
+            reinitializeCoordinator
+        }
 
-	def currentTransaction =
-		transactionManager.getRequiredActiveTransaction
+    def currentTransaction =
+        transactionManager.getRequiredActiveTransaction
 
-	private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
-		(for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
-			QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
-		}).flatten
-	}
+    private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
+        (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
+            QueryNormalizer.denormalizeSelectWithOrderBy(query, liveCache.executeQuery(normalized, iniatializing))
+        }).flatten
+    }
 
-	private[activate] def name = contextName
+    private[activate] def name = contextName
 
-	lazy val contextName =
-		this.getClass.getSimpleName.split('$').last
+    lazy val contextName =
+        this.getClass.getSimpleName.split('$').last
 
-	private[activate] def initialize[E <: Entity](entity: E) =
-		liveCache.initialize(entity)
+    private[activate] def initialize[E <: Entity](entity: E) =
+        liveCache.initialize(entity)
 
-	def acceptEntity[E <: Entity](entityClass: Class[E]) =
-		contextEntities.map(_.contains(entityClass)).getOrElse(true)
+    def acceptEntity[E <: Entity](entityClass: Class[E]) =
+        contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
-	protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
+    protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
 
-	protected[activate] def execute(action: StorageAction) =
-		storage.migrate(action)
+    protected[activate] def execute(action: StorageAction) =
+        storage.migrate(action)
 
-	protected[activate] def runMigration =
-		Migration.update(this)
+    protected[activate] def runMigration =
+        Migration.update(this)
 
-	protected lazy val runMigrationAtStartup = true
+    protected lazy val runMigrationAtStartup = true
 
-	def delayedInit(x: => Unit): Unit = {
-		x
-		runStartupMigration
-	}
+    def delayedInit(x: => Unit): Unit = {
+        x
+        runStartupMigration
+    }
 
-	private[activate] def runStartupMigration =
-		if (runMigrationAtStartup)
-			if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
-				runMigration
-			else
-				warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
+    private[activate] def runStartupMigration =
+        if (runMigrationAtStartup)
+            if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
+                runMigration
+            else
+                warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
 
-	protected[activate] def entityMaterialized(entity: Entity) = {}
+    protected[activate] def entityMaterialized(entity: Entity) = {}
 
-	override def toString = "ActivateContext: " + name
+    override def toString = "ActivateContext: " + name
 
 }
 
 object ActivateContext {
 
-	private[activate] var useContextCache = true
+    private[activate] var useContextCache = true
 
-	private[activate] var currentClassLoader = this.getClass.getClassLoader
-	
-	private[activate] def loadClass(className: String) =
-	  classLoaderFor(className).loadClass(className)
+    private[activate] var currentClassLoader = this.getClass.getClassLoader
 
-	private[activate] def classLoaderFor(className: String) =
-		if (className.startsWith("net.fwbrasil.activate"))
-			classOf[Entity].getClassLoader()
-		else
-			currentClassLoader
+    private[activate] def loadClass(className: String) =
+        classLoaderFor(className).loadClass(className)
 
-	private[activate] val contextCache =
-		new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
+    private[activate] def classLoaderFor(className: String) =
+        if (className.startsWith("net.fwbrasil.activate"))
+            classOf[Entity].getClassLoader()
+        else
+            currentClassLoader
 
-	private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
-		if (!useContextCache)
-			context(entityClass)
-		else
-			contextCache.getOrElseUpdate(entityClass, context(entityClass))
+    private[activate] val contextCache =
+        new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
 
-	def clearContextCache =
-		contextCache.clear
+    private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
+        if (!useContextCache)
+            context(entityClass)
+        else
+            contextCache.getOrElseUpdate(entityClass, context(entityClass))
 
-	private def context[E <: Entity](entityClass: Class[E]) =
-		instancesOf[ActivateContext]
-			.filter(_.acceptEntity(entityClass))
-			.onlyOne("\nThere should be one and only one context that accepts " + entityClass + ".\n" +
-				"Maybe the context isn't initialized or you must override the contextEntities val on your context.\n" +
-				"Important: The context definition must be declared in a base package of the entities packages.\n" +
-				"Example: com.app.myContext for com.app.model.MyEntity")
+    def clearContextCache =
+        contextCache.clear
+
+    private def context[E <: Entity](entityClass: Class[E]) =
+        instancesOf[ActivateContext]
+            .filter(_.acceptEntity(entityClass))
+            .onlyOne("\nThere should be one and only one context that accepts " + entityClass + ".\n" +
+                "Maybe the context isn't initialized or you must override the contextEntities val on your context.\n" +
+                "Important: The context definition must be declared in a base package of the entities packages.\n" +
+                "Example: com.app.myContext for com.app.model.MyEntity")
 
 }

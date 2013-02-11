@@ -15,42 +15,42 @@ import scala.util.Random.nextLong
 @RunWith(classOf[JUnitRunner])
 class PaginatedQuerySpecs extends ActivateTest {
 
-	"Query framework" should {
-		"support paginated queries" in {
-			for (numberOfEntities <- List(0, 2, 60)) {
-				activateTest(
-					(step: StepExecutor) => {
-						import step.ctx._
-						val numbers = (0 until numberOfEntities).toList
-						step {
-							numbers.foreach(newEmptyActivateTestEntity.intValue = _)
-						}
-						step {
-								def test(pageSize: Int) = {
-									val pagination =
-										paginatedQuery {
-											(e: ActivateTestEntity) => where(e isNotNull) select (e) orderBy (e.intValue)
-										}.navigator(pageSize)
-									val expectedNumberOfPages =
-										(numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
-									pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
-									val expectedPages = numbers.grouped(pageSize).toList
-									pagination.toList.map(_.map(_.intValue)) must beEqualTo(expectedPages)
-									pagination.page(-1) must throwA[IndexOutOfBoundsException]
-									if (pagination.numberOfPages > 0) {
-										pagination.page(0)
-										pagination.page(expectedNumberOfPages - 1)
-									} else
-										pagination.page(0) must throwA[IndexOutOfBoundsException]
-									pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
-								}
-							for (i <- 1 until 6)
-								test(pageSize = i)
-						}
-					})
-			}
-			true must beTrue
-		}
-	}
+    "Query framework" should {
+        "support paginated queries" in {
+            for (numberOfEntities <- List(0, 2, 60)) {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val numbers = (0 until numberOfEntities).toList
+                        step {
+                            numbers.foreach(newEmptyActivateTestEntity.intValue = _)
+                        }
+                        step {
+                            def test(pageSize: Int) = {
+                                val pagination =
+                                    paginatedQuery {
+                                        (e: ActivateTestEntity) => where(e isNotNull) select (e) orderBy (e.intValue)
+                                    }.navigator(pageSize)
+                                val expectedNumberOfPages =
+                                    (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
+                                pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
+                                val expectedPages = numbers.grouped(pageSize).toList
+                                pagination.toList.map(_.map(_.intValue)) must beEqualTo(expectedPages)
+                                pagination.page(-1) must throwA[IndexOutOfBoundsException]
+                                if (pagination.numberOfPages > 0) {
+                                    pagination.page(0)
+                                    pagination.page(expectedNumberOfPages - 1)
+                                } else
+                                    pagination.page(0) must throwA[IndexOutOfBoundsException]
+                                pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
+                            }
+                            for (i <- 1 until 6)
+                                test(pageSize = i)
+                        }
+                    })
+            }
+            true must beTrue
+        }
+    }
 
 }

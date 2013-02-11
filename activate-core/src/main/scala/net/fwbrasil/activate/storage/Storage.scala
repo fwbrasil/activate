@@ -16,35 +16,35 @@ import scala.annotation.implicitNotFound
 
 trait Storage[T] {
 
-	protected[activate] def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
-	protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
+    protected[activate] def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
+    protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
-	def directAccess: T
+    def directAccess: T
 
-	def isMemoryStorage = false
-	def hasStaticScheme = !isMemoryStorage
-	def supportComplexQueries = true
-	protected[activate] def reinitialize = {
+    def isMemoryStorage = false
+    def hasStaticScheme = !isMemoryStorage
+    def supportComplexQueries = true
+    protected[activate] def reinitialize = {
 
-	}
-	protected[activate] def migrate(action: StorageAction): Unit
-	protected[activate] def prepareDatabase = {}
+    }
+    protected[activate] def migrate(action: StorageAction): Unit
+    protected[activate] def prepareDatabase = {}
 }
 
 trait StorageFactory {
-	def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_]
+    def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_]
 }
 
 object StorageFactory {
-	@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
-	def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
-		import scala.collection.JavaConversions._
-		val properties =
-			new ActivateProperties(Option(context.properties), "storage")
-		val factoryClassName =
-			properties.getProperty(name, "factory")
-		val storageFactory =
-			Reflection.getCompanionObject[StorageFactory](Class.forName(factoryClassName)).get
-		storageFactory.buildStorage(properties.childProperties(name))
-	}
+    @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
+    def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
+        import scala.collection.JavaConversions._
+        val properties =
+            new ActivateProperties(Option(context.properties), "storage")
+        val factoryClassName =
+            properties.getProperty(name, "factory")
+        val storageFactory =
+            Reflection.getCompanionObject[StorageFactory](Class.forName(factoryClassName)).get
+        storageFactory.buildStorage(properties.childProperties(name))
+    }
 }

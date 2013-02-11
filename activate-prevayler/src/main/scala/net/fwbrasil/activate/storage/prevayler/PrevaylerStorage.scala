@@ -38,138 +38,138 @@ class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, En
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
-	val factory: PrevaylerFactory[PrevaylerStorageSystem])(implicit val context: ActivateContext)
-		extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] {
+    val factory: PrevaylerFactory[PrevaylerStorageSystem])(implicit val context: ActivateContext)
+        extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] {
 
-	protected[activate] var prevayler: Prevayler[PrevaylerStorageSystem] = _
+    protected[activate] var prevayler: Prevayler[PrevaylerStorageSystem] = _
 
-	def this(prevalenceDirectory: String)(implicit context: ActivateContext) = this({
-		val res = new PrevaylerFactory[PrevaylerStorageSystem]()
-		res.configurePrevalenceDirectory(prevalenceDirectory)
-		res
-	})
-	def this()(implicit context: ActivateContext) = this("activate")
+    def this(prevalenceDirectory: String)(implicit context: ActivateContext) = this({
+        val res = new PrevaylerFactory[PrevaylerStorageSystem]()
+        res.configurePrevalenceDirectory(prevalenceDirectory)
+        res
+    })
+    def this()(implicit context: ActivateContext) = this("activate")
 
-	def directAccess =
-		prevayler
+    def directAccess =
+        prevayler
 
-	protected[activate] var prevalentSystem: PrevaylerStorageSystem = _
+    protected[activate] var prevalentSystem: PrevaylerStorageSystem = _
 
-	initialize
+    initialize
 
-	protected[activate] def initialize = {
-		prevalentSystem = new PrevaylerStorageSystem()
-		factory.configurePrevalentSystem(prevalentSystem)
-		prevayler = factory.create()
-		prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
-		prevalentSystem.values.foreach(Reflection.initializeBitmaps)
-		prevalentSystem.values.foreach(_.invariants)
-		hackPrevaylerToActAsARedoLogOnly
-		for (entity <- prevalentSystem.values) {
-			context.liveCache.toCache(entity)
-		}
-	}
+    protected[activate] def initialize = {
+        prevalentSystem = new PrevaylerStorageSystem()
+        factory.configurePrevalentSystem(prevalentSystem)
+        prevayler = factory.create()
+        prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
+        prevalentSystem.values.foreach(Reflection.initializeBitmaps)
+        prevalentSystem.values.foreach(_.invariants)
+        hackPrevaylerToActAsARedoLogOnly
+        for (entity <- prevalentSystem.values) {
+            context.liveCache.toCache(entity)
+        }
+    }
 
-	private def hackPrevaylerToActAsARedoLogOnly = {
-		val publisher = Reflection.get(prevayler, "_publisher").asInstanceOf[AbstractPublisher]
-		val guard = Reflection.get(prevayler, "_guard").asInstanceOf[PrevalentSystemGuard[PrevaylerStorageSystem]]
-		val journalSerializer = Reflection.get(prevayler, "_journalSerializer").asInstanceOf[Serializer]
-		publisher.cancelSubscription(guard)
-		val dummyCapsule = new DummyTransactionCapsule
-		publisher.addSubscriber(new TransactionSubscriber {
-			def receive(transactionTimestamp: TransactionTimestamp) = {
-				guard.receive(
-					new TransactionTimestamp(
-						dummyCapsule,
-						transactionTimestamp.systemVersion,
-						transactionTimestamp.executionTime))
-			}
-		})
-	}
+    private def hackPrevaylerToActAsARedoLogOnly = {
+        val publisher = Reflection.get(prevayler, "_publisher").asInstanceOf[AbstractPublisher]
+        val guard = Reflection.get(prevayler, "_guard").asInstanceOf[PrevalentSystemGuard[PrevaylerStorageSystem]]
+        val journalSerializer = Reflection.get(prevayler, "_journalSerializer").asInstanceOf[Serializer]
+        publisher.cancelSubscription(guard)
+        val dummyCapsule = new DummyTransactionCapsule
+        publisher.addSubscriber(new TransactionSubscriber {
+            def receive(transactionTimestamp: TransactionTimestamp) = {
+                guard.receive(
+                    new TransactionTimestamp(
+                        dummyCapsule,
+                        transactionTimestamp.systemVersion,
+                        transactionTimestamp.executionTime))
+            }
+        })
+    }
 
-	def snapshot =
-		try {
-			Entity.serializeUsingEvelope = false
-			prevayler.takeSnapshot
-		} finally {
-			Entity.serializeUsingEvelope = true
-		}
+    def snapshot =
+        try {
+            Entity.serializeUsingEvelope = false
+            prevayler.takeSnapshot
+        } finally {
+            Entity.serializeUsingEvelope = true
+        }
 
-	override protected[activate] def reinitialize =
-		initialize
+    override protected[activate] def reinitialize =
+        initialize
 
-	override protected[activate] def store(
-		statements: List[MassModificationStatement],
-		insertList: List[(Entity, Map[String, StorageValue])],
-		updateList: List[(Entity, Map[String, StorageValue])],
-		deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
-		// Just ignore mass statements!
-		val inserts =
-			(for ((entity, propertyMap) <- insertList)
-				yield (entity.id -> propertyMap.toList))
-		val updates =
-			(for ((entity, propertyMap) <- updateList)
-				yield (entity.id -> propertyMap.toList))
-		val deletes =
-			for ((entity, propertyMap) <- deleteList)
-				yield entity.id
-		val assignments =
-			new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
+    override protected[activate] def store(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+        // Just ignore mass statements!
+        val inserts =
+            (for ((entity, propertyMap) <- insertList)
+                yield (entity.id -> propertyMap.toList))
+        val updates =
+            (for ((entity, propertyMap) <- updateList)
+                yield (entity.id -> propertyMap.toList))
+        val deletes =
+            for ((entity, propertyMap) <- deleteList)
+                yield entity.id
+        val assignments =
+            new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
 
-		prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
+        prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 
-		for ((entityId, changeSet) <- assignments)
-			prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))
+        for ((entityId, changeSet) <- assignments)
+            prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))
 
-		for (entityId <- deletes)
-			prevalentSystem -= entityId
-	}
+        for (entityId <- deletes)
+            prevalentSystem -= entityId
+    }
 
-	protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
-		List()
+    protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
+        List()
 
-	override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {}
+    override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {}
 
-	override def isMemoryStorage = true
+    override def isMemoryStorage = true
 
 }
 
 case class PrevaylerMemoryStorageTransaction(
-	context: ActivateContext,
-	assignments: HashMap[String, HashMap[String, StorageValue]],
-	deletes: HashSet[String])
-		extends PrevaylerTransaction[PrevaylerStorageSystem] {
-	def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
-		val liveCache = context.liveCache
+    context: ActivateContext,
+    assignments: HashMap[String, HashMap[String, StorageValue]],
+    deletes: HashSet[String])
+        extends PrevaylerTransaction[PrevaylerStorageSystem] {
+    def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
+        val liveCache = context.liveCache
 
-		for ((entityId, changeSet) <- assignments)
-			system += (entityId -> liveCache.materializeEntity(entityId))
+        for ((entityId, changeSet) <- assignments)
+            system += (entityId -> liveCache.materializeEntity(entityId))
 
-		for (entityId <- deletes)
-			system -= entityId
+        for (entityId <- deletes)
+            system -= entityId
 
-		for ((entityId, changeSet) <- assignments) {
-			val entity = liveCache.materializeEntity(entityId)
-			entity.setInitialized
-			for ((varName, value) <- changeSet; if (varName != "id")) {
-				val ref = entity.varNamed(varName)
-				val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
-				ref.setRefContent(Option(liveCache.materialize(entityValue, true)))
-			}
-		}
+        for ((entityId, changeSet) <- assignments) {
+            val entity = liveCache.materializeEntity(entityId)
+            entity.setInitialized
+            for ((varName, value) <- changeSet; if (varName != "id")) {
+                val ref = entity.varNamed(varName)
+                val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
+                ref.setRefContent(Option(liveCache.materialize(entityValue, true)))
+            }
+        }
 
-		for (entityId <- deletes) {
-			val entity = liveCache.materializeEntity(entityId)
-			liveCache.delete(entityId)
-			entity.setInitialized
-			for (ref <- entity.vars)
-				ref.destroyInternal
-		}
+        for (entityId <- deletes) {
+            val entity = liveCache.materializeEntity(entityId)
+            liveCache.delete(entityId)
+            entity.setInitialized
+            for (ref <- entity.vars)
+                ref.destroyInternal
+        }
 
-	}
+    }
 }
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {
-	override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-		properties.get("prevalenceDirectory").map(new PrevaylerStorage(_)).getOrElse(new PrevaylerStorage())
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        properties.get("prevalenceDirectory").map(new PrevaylerStorage(_)).getOrElse(new PrevaylerStorage())
 }

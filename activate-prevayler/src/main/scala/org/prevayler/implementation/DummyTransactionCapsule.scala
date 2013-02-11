@@ -4,8 +4,8 @@ import org.prevayler.foundation.serialization.Serializer
 import java.util.Date
 
 class DummyTransactionCapsule
-		extends TransactionCapsule(null) {
+        extends TransactionCapsule(null) {
 
-	override def executeOn(prevalentSystem: Object, executionTime: Date, journalSerializer: Serializer) = {}
+    override def executeOn(prevalentSystem: Object, executionTime: Date, journalSerializer: Serializer) = {}
 
 }

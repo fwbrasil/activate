@@ -9,70 +9,70 @@ import net.fwbrasil.activate.ActivateTestContext
 @RunWith(classOf[JUnitRunner])
 class EntityLazySpecs extends ActivateTest {
 
-	override def executors(ctx: ActivateTestContext) =
-		List(MultipleTransactionsWithReinitialize(ctx))
+    override def executors(ctx: ActivateTestContext) =
+        List(MultipleTransactionsWithReinitialize(ctx))
 
-	override def contexts =
-		super.contexts.filter(!_.storage.isMemoryStorage)
+    override def contexts =
+        super.contexts.filter(!_.storage.isMemoryStorage)
 
-	"Lazy entities" should {
-		"lazy load" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					val (fullId, emptyId) = step {
-						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-					}
-					step {
-						for (entity <- all[ActivateTestEntity]) {
-							entity.isPersisted must beTrue
-							entity.isInitialized must beFalse
-							entity.id must not beNull;
-							for (ref <- entity.vars) {
-								ref.context must not beNull;
-								ref.name must not beNull;
-								ref.outerEntity != null must beTrue;
-							}
-						}
-					}
-				})
-		}
+    "Lazy entities" should {
+        "lazy load" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val (fullId, emptyId) = step {
+                        (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+                    }
+                    step {
+                        for (entity <- all[ActivateTestEntity]) {
+                            entity.isPersisted must beTrue
+                            entity.isInitialized must beFalse
+                            entity.id must not beNull;
+                            for (ref <- entity.vars) {
+                                ref.context must not beNull;
+                                ref.name must not beNull;
+                                ref.outerEntity != null must beTrue;
+                            }
+                        }
+                    }
+                })
+        }
 
-		"lazy load and initialize" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					val (fullId, emptyId) = step {
-						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-					}
-					step {
-						for (entity <- all[ActivateTestEntity])
-							entity.isInitialized must beFalse
-						for (entity <- all[ActivateTestEntity])
-							entity.initialize
-						for (entity <- all[ActivateTestEntity])
-							entity.isInitialized must beTrue
-					}
-				})
-		}
+        "lazy load and initialize" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val (fullId, emptyId) = step {
+                        (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+                    }
+                    step {
+                        for (entity <- all[ActivateTestEntity])
+                            entity.isInitialized must beFalse
+                        for (entity <- all[ActivateTestEntity])
+                            entity.initialize
+                        for (entity <- all[ActivateTestEntity])
+                            entity.isInitialized must beTrue
+                    }
+                })
+        }
 
-		"lazy load and initialize by a var" in {
-			activateTest(
-				(step: StepExecutor) => {
-					import step.ctx._
-					val (fullId, emptyId) = step {
-						(newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
-					}
-					step {
-						for (entity <- all[ActivateTestEntity])
-							entity.isInitialized must beFalse
-						for (entity <- all[ActivateTestEntity])
-							entity.vars.head.get
-						for (entity <- all[ActivateTestEntity])
-							entity.isInitialized must beTrue
-					}
-				})
-		}
-	}
+        "lazy load and initialize by a var" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val (fullId, emptyId) = step {
+                        (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+                    }
+                    step {
+                        for (entity <- all[ActivateTestEntity])
+                            entity.isInitialized must beFalse
+                        for (entity <- all[ActivateTestEntity])
+                            entity.vars.head.get
+                        for (entity <- all[ActivateTestEntity])
+                            entity.isInitialized must beTrue
+                    }
+                })
+        }
+    }
 
 }

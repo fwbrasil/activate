@@ -53,145 +53,145 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 
 object Marshaller {
 
-	def unmarshalling(storageValue: StorageValue, entityValue: EntityValue[_]): EntityValue[_] =
-		(storageValue, entityValue) match {
-			case (storageValue: IntStorageValue, entityValue: IntEntityValue) =>
-				IntEntityValue(storageValue.value)
-			case (storageValue: LongStorageValue, entityValue: LongEntityValue) =>
-				LongEntityValue(storageValue.value)
-			case (storageValue: BooleanStorageValue, entityValue: BooleanEntityValue) =>
-				BooleanEntityValue(storageValue.value)
-			case (storageValue: StringStorageValue, entityValue: CharEntityValue) =>
-				CharEntityValue(storageValue.value.map(_.charAt(0)))
-			case (storageValue: StringStorageValue, entityValue: StringEntityValue) =>
-				StringEntityValue(storageValue.value)
-			case (storageValue: FloatStorageValue, entityValue: FloatEntityValue) =>
-				FloatEntityValue(storageValue.value)
-			case (storageValue: DoubleStorageValue, entityValue: DoubleEntityValue) =>
-				DoubleEntityValue(storageValue.value)
-			case (storageValue: BigDecimalStorageValue, entityValue: BigDecimalEntityValue) =>
-				BigDecimalEntityValue(storageValue.value)
-			case (storageValue: DateStorageValue, entityValue: DateEntityValue) =>
-				DateEntityValue(storageValue.value)
-			case (storageValue: DateStorageValue, entityValue: JodaInstantEntityValue[_]) =>
-				JodaInstantEntityValue(storageValue.value.map((date: Date) => materializeJodaInstant(entityValue.instantClass, date)))
-			case (storageValue: DateStorageValue, entityValue: CalendarEntityValue) =>
-				CalendarEntityValue(storageValue.value.map((v: Date) => {
-					val calendar = Calendar.getInstance
-					calendar.setTime(v)
-					calendar
-				}))
-			case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
-				ByteArrayEntityValue(storageValue.value)
-			case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
-				EntityInstanceReferenceValue(storageValue.value)(entityValue.entityManifest)
-			case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
-				val value = if (stringValue.value.isDefined) {
-					val enumerationValueClass = enumerationValue.enumerationClass
-					val enumerationClass = enumerationValueClass.getEnclosingClass
-					val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
-					val obj = getObject[Enumeration](enumerationObjectClass)
-					Option(obj.withName(stringValue.value.get))
-				} else None
-				EnumerationEntityValue(value)
-			}
-			case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
-				SerializableEntityValue[Any](
-					storageValue.value.map(v => entityValue.serializator.fromSerialized(v)(entityValue.typeManifest)))
-			case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
-				val v = storageValue.value.map(list => list.map(e => {
-					unmarshalling(e, entityValue.emptyValueEntityValue).value
-				}))
-				if (entityValue.emptyValueEntityValue.isInstanceOf[EntityInstanceEntityValue[_]])
-					ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[String]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
-				else
-					ListEntityValue[Any](v.map(_.map(_.orNull)))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
-			case other =>
-				throw new IllegalStateException("Invalid storage value.")
-		}
+    def unmarshalling(storageValue: StorageValue, entityValue: EntityValue[_]): EntityValue[_] =
+        (storageValue, entityValue) match {
+            case (storageValue: IntStorageValue, entityValue: IntEntityValue) =>
+                IntEntityValue(storageValue.value)
+            case (storageValue: LongStorageValue, entityValue: LongEntityValue) =>
+                LongEntityValue(storageValue.value)
+            case (storageValue: BooleanStorageValue, entityValue: BooleanEntityValue) =>
+                BooleanEntityValue(storageValue.value)
+            case (storageValue: StringStorageValue, entityValue: CharEntityValue) =>
+                CharEntityValue(storageValue.value.map(_.charAt(0)))
+            case (storageValue: StringStorageValue, entityValue: StringEntityValue) =>
+                StringEntityValue(storageValue.value)
+            case (storageValue: FloatStorageValue, entityValue: FloatEntityValue) =>
+                FloatEntityValue(storageValue.value)
+            case (storageValue: DoubleStorageValue, entityValue: DoubleEntityValue) =>
+                DoubleEntityValue(storageValue.value)
+            case (storageValue: BigDecimalStorageValue, entityValue: BigDecimalEntityValue) =>
+                BigDecimalEntityValue(storageValue.value)
+            case (storageValue: DateStorageValue, entityValue: DateEntityValue) =>
+                DateEntityValue(storageValue.value)
+            case (storageValue: DateStorageValue, entityValue: JodaInstantEntityValue[_]) =>
+                JodaInstantEntityValue(storageValue.value.map((date: Date) => materializeJodaInstant(entityValue.instantClass, date)))
+            case (storageValue: DateStorageValue, entityValue: CalendarEntityValue) =>
+                CalendarEntityValue(storageValue.value.map((v: Date) => {
+                    val calendar = Calendar.getInstance
+                    calendar.setTime(v)
+                    calendar
+                }))
+            case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
+                ByteArrayEntityValue(storageValue.value)
+            case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
+                EntityInstanceReferenceValue(storageValue.value)(entityValue.entityManifest)
+            case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
+                val value = if (stringValue.value.isDefined) {
+                    val enumerationValueClass = enumerationValue.enumerationClass
+                    val enumerationClass = enumerationValueClass.getEnclosingClass
+                    val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+                    val obj = getObject[Enumeration](enumerationObjectClass)
+                    Option(obj.withName(stringValue.value.get))
+                } else None
+                EnumerationEntityValue(value)
+            }
+            case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
+                SerializableEntityValue[Any](
+                    storageValue.value.map(v => entityValue.serializator.fromSerialized(v)(entityValue.typeManifest)))
+            case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
+                val v = storageValue.value.map(list => list.map(e => {
+                    unmarshalling(e, entityValue.emptyValueEntityValue).value
+                }))
+                if (entityValue.emptyValueEntityValue.isInstanceOf[EntityInstanceEntityValue[_]])
+                    ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[String]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+                else
+                    ListEntityValue[Any](v.map(_.map(_.orNull)))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+            case other =>
+                throw new IllegalStateException("Invalid storage value.")
+        }
 
-	def marshalling(implicit entityValue: EntityValue[_]): StorageValue =
-		entityValue match {
-			case value: IntEntityValue =>
-				IntStorageValue(value.value)
-			case value: LongEntityValue =>
-				LongStorageValue(value.value)
-			case value: BooleanEntityValue =>
-				BooleanStorageValue(value.value)
-			case value: CharEntityValue =>
-				StringStorageValue(value.value.map(_.toString))
-			case value: StringEntityValue =>
-				StringStorageValue(value.value)
-			case value: FloatEntityValue =>
-				FloatStorageValue(value.value)
-			case value: DoubleEntityValue =>
-				DoubleStorageValue(value.value)
-			case value: BigDecimalEntityValue =>
-				BigDecimalStorageValue(value.value)
-			case value: DateEntityValue =>
-				DateStorageValue(value.value)
-			case value: JodaInstantEntityValue[_] =>
-				DateStorageValue(value.value.map(_.toDate))
-			case value: CalendarEntityValue =>
-				DateStorageValue(value.value.map(_.getTime))
-			case value: ByteArrayEntityValue =>
-				ByteArrayStorageValue(value.value)
-			case value: EntityInstanceEntityValue[_] =>
-				ReferenceStorageValue(value.value.map(_.id))
-			case value: EntityInstanceReferenceValue[_] =>
-				ReferenceStorageValue(value.value)
-			case value: EnumerationEntityValue[_] =>
-				StringStorageValue(value.value.map(_.toString))
-			case value: ListEntityValue[_] =>
-				ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
-			case value: SerializableEntityValue[_] =>
-				ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
-		}
+    def marshalling(implicit entityValue: EntityValue[_]): StorageValue =
+        entityValue match {
+            case value: IntEntityValue =>
+                IntStorageValue(value.value)
+            case value: LongEntityValue =>
+                LongStorageValue(value.value)
+            case value: BooleanEntityValue =>
+                BooleanStorageValue(value.value)
+            case value: CharEntityValue =>
+                StringStorageValue(value.value.map(_.toString))
+            case value: StringEntityValue =>
+                StringStorageValue(value.value)
+            case value: FloatEntityValue =>
+                FloatStorageValue(value.value)
+            case value: DoubleEntityValue =>
+                DoubleStorageValue(value.value)
+            case value: BigDecimalEntityValue =>
+                BigDecimalStorageValue(value.value)
+            case value: DateEntityValue =>
+                DateStorageValue(value.value)
+            case value: JodaInstantEntityValue[_] =>
+                DateStorageValue(value.value.map(_.toDate))
+            case value: CalendarEntityValue =>
+                DateStorageValue(value.value.map(_.getTime))
+            case value: ByteArrayEntityValue =>
+                ByteArrayStorageValue(value.value)
+            case value: EntityInstanceEntityValue[_] =>
+                ReferenceStorageValue(value.value.map(_.id))
+            case value: EntityInstanceReferenceValue[_] =>
+                ReferenceStorageValue(value.value)
+            case value: EnumerationEntityValue[_] =>
+                StringStorageValue(value.value.map(_.toString))
+            case value: ListEntityValue[_] =>
+                ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
+            case value: SerializableEntityValue[_] =>
+                ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
+        }
 
-	def marshalling(action: StorageAction): ModifyStorageAction =
-		action match {
-			case action: CreateTable =>
-				StorageCreateTable(action.tableName, marshalling(action.columns), action.onlyIfNotExists)
-			case action: CreateListTable =>
-				StorageCreateListTable(action.ownerTableName, action.listName, marshalling(action.valueColumn), StorageColumn("POS", new IntStorageValue(None), None), action.onlyIfNotExists)
-			case action: RemoveListTable =>
-				StorageRemoveListTable(action.ownerTableName, action.listName, action.onlyIfExists)
-			case action: RenameTable =>
-				StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
-			case action: RemoveTable =>
-				StorageRemoveTable(action.name, action.onlyIfExists, action.isCascade)
-			case action: AddColumn =>
-				StorageAddColumn(action.tableName, marshalling(action.column), action.onlyIfNotExists)
-			case action: RenameColumn =>
-				StorageRenameColumn(action.tableName, action.oldName, marshalling(action.column), action.onlyIfExists)
-			case action: RemoveColumn =>
-				StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
-			case action: AddIndex =>
-				StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
-			case action: RemoveIndex =>
-				StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
-			case action: AddReference =>
-				StorageAddReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfNotExists)
-			case action: RemoveReference =>
-				StorageRemoveReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfExists)
-		}
+    def marshalling(action: StorageAction): ModifyStorageAction =
+        action match {
+            case action: CreateTable =>
+                StorageCreateTable(action.tableName, marshalling(action.columns), action.onlyIfNotExists)
+            case action: CreateListTable =>
+                StorageCreateListTable(action.ownerTableName, action.listName, marshalling(action.valueColumn), StorageColumn("POS", new IntStorageValue(None), None), action.onlyIfNotExists)
+            case action: RemoveListTable =>
+                StorageRemoveListTable(action.ownerTableName, action.listName, action.onlyIfExists)
+            case action: RenameTable =>
+                StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
+            case action: RemoveTable =>
+                StorageRemoveTable(action.name, action.onlyIfExists, action.isCascade)
+            case action: AddColumn =>
+                StorageAddColumn(action.tableName, marshalling(action.column), action.onlyIfNotExists)
+            case action: RenameColumn =>
+                StorageRenameColumn(action.tableName, action.oldName, marshalling(action.column), action.onlyIfExists)
+            case action: RemoveColumn =>
+                StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
+            case action: AddIndex =>
+                StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
+            case action: RemoveIndex =>
+                StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
+            case action: AddReference =>
+                StorageAddReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfNotExists)
+            case action: RemoveReference =>
+                StorageRemoveReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfExists)
+        }
 
-	def marshalling(columns: List[Column[_]]): List[StorageColumn] =
-		columns.map(marshalling)
+    def marshalling(columns: List[Column[_]]): List[StorageColumn] =
+        columns.map(marshalling)
 
-	def marshalling(column: Column[_]): StorageColumn =
-		StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
+    def marshalling(column: Column[_]): StorageColumn =
+        StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
 }
 
 case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])
 sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction
 case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, orderColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction {
-	val listTableName = ownerTableName + listName.capitalize
-	val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists)
+    val listTableName = ownerTableName + listName.capitalize
+    val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists)
 }
 case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction {
-	val listTableName = ownerTableName + listName.capitalize
+    val listTableName = ownerTableName + listName.capitalize
 }
 case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends ModifyStorageAction

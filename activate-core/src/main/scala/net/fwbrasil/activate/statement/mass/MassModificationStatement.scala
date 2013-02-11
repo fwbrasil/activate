@@ -8,18 +8,18 @@ import net.fwbrasil.activate.statement.StatementNormalizer
 import net.fwbrasil.activate.ActivateContext
 
 abstract class MassModificationStatement(from: From, where: Where)
-		extends Statement(from, where) {
+        extends Statement(from, where) {
 
-	def execute: Unit = {
-		val context =
-			(for (src <- from.entitySources)
-				yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
-		context.executeMassModification(this)
-	}
+    def execute: Unit = {
+        val context =
+            (for (src <- from.entitySources)
+                yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
+        context.executeMassModification(this)
+    }
 }
 
 object MassModificationStatementNormalizer extends StatementNormalizer[MassModificationStatement] {
 
-	def normalizeStatement(statement: MassModificationStatement): List[MassModificationStatement] =
-		normalizeFrom(List(statement))
+    def normalizeStatement(statement: MassModificationStatement): List[MassModificationStatement] =
+        normalizeFrom(List(statement))
 }
