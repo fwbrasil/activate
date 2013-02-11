@@ -6,7 +6,7 @@ object ActivateBuild extends Build {
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-SNAPSHOT"
-	val smirror = "net.fwbrasil" %% "smirror" % "0.1-SNAPSHOT"
+	val smirror = "net.fwbrasil" %% "smirror" % "0.2"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
@@ -17,8 +17,9 @@ object ActivateBuild extends Build {
 	val jodaTime = "joda-time" % "joda-time" % "2.0"
 	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
 	val play = "play" %% "play" % "2.1-RC1"
-	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.1.0"
-	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.1.0"
+	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.2.0"
+	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.2.0"
+	val gremlin = "com.tinkerpop.gremlin" % "gremlin-java" % "2.2.0"
 	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3" exclude("xpp3", "xpp3_min")
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
 	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
@@ -118,7 +119,7 @@ object ActivateBuild extends Build {
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(blueprintsCore)
+		    	  Seq(blueprintsCore, gremlin)
 		    )
     	)
     
