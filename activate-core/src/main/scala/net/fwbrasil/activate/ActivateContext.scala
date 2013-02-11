@@ -69,16 +69,17 @@ trait ActivateContext
         transactionManager.getRequiredActiveTransaction
 
     private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
-        val result =
+        val results =
             (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
                 liveCache.executeQuery(normalized, iniatializing)
             }).flatten
-        QueryNormalizer.denormalizeSelectWithOrderBy(query,
-            query.orderByClause.map(order => {
-                val sorted = result.sorted(order.ordering)
-                sorted
-            }).getOrElse(result)
-                .map(CollectionUtil.toTuple[S](_)))
+        val orderedResuts =
+            query.orderByClause
+                .map(order => results.sorted(order.ordering))
+                .getOrElse(results)
+        QueryNormalizer
+            .denormalizeSelectWithOrderBy(query, orderedResuts)
+            .map(CollectionUtil.toTuple[S])
     }
 
     private[activate] def name = contextName
