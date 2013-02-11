@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.entity
 
+import language.existentials
 import net.fwbrasil.activate.util.Reflection
 import java.lang.reflect.Field
 import java.lang.reflect.Method

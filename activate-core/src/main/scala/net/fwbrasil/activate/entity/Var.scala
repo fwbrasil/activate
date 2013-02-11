@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.entity
 
+import language.existentials
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction

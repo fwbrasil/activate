@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.cache.live
 
+import language.existentials
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.statement.IsLessThan
 import net.fwbrasil.activate.statement.StatementEntityValue
