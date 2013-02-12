@@ -215,11 +215,15 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
 
 trait EntityContext extends ValueContext with TransactionContext {
 
+    EntityHelper.initialize(this.getClass)
+
     type Entity = net.fwbrasil.activate.entity.Entity
     type Alias = net.fwbrasil.activate.entity.Alias
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
     private[activate] val liveCache: LiveCache
     private[activate] def initialize[E <: Entity](entity: E)
+
+    protected[activate] def entityMaterialized(entity: Entity) = {}
 
 }

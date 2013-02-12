@@ -103,7 +103,15 @@ case class ListEntityValue[V](override val value: Option[List[V]])(implicit val 
     def valueManifest = manifest[V]
     def emptyValueEntityValue = tval(None)
     def valueEntityValue(value: V) = tval(Option(value))
-    def emptyValue = List()
+    def emptyValue = List[V]()
+}
+
+case class SetEntityValue[V](override val value: Option[Set[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
+        extends EntityValue[Set[V]](value) {
+    def valueManifest = manifest[V]
+    def emptyValueEntityValue = tval(None)
+    def valueEntityValue(value: V) = tval(Option(value))
+    def emptyValue = Set[V]()
 }
 
 case class ReferenceListEntityValue[V](override val value: Option[List[Option[String]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])

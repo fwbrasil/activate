@@ -23,6 +23,7 @@ import net.fwbrasil.activate.serialization.Serializator
 import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.serialization.SerializationContext
 import net.fwbrasil.activate.util.CollectionUtil
+import net.fwbrasil.activate.migration.MigrationContext
 
 trait ActivateContext
         extends EntityContext
@@ -34,14 +35,10 @@ trait ActivateContext
         with DelayedInit
         with DurableContext
         with StatementsContext
-        with SerializationContext {
+        with SerializationContext
+        with MigrationContext {
 
     info("Initializing context " + contextName)
-
-    type Migration = net.fwbrasil.activate.migration.Migration
-    type ManualMigration = net.fwbrasil.activate.migration.ManualMigration
-
-    EntityHelper.initialize(this.getClass)
 
     private[activate] val liveCache = new LiveCache(this)
     private[activate] val properties =
@@ -80,28 +77,6 @@ trait ActivateContext
         contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
     protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
-
-    protected[activate] def execute(action: StorageAction) =
-        storage.migrate(action)
-
-    protected[activate] def runMigration =
-        Migration.update(this)
-
-    protected lazy val runMigrationAtStartup = true
-
-    def delayedInit(x: => Unit): Unit = {
-        x
-        runStartupMigration
-    }
-
-    private[activate] def runStartupMigration =
-        if (runMigrationAtStartup)
-            if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
-                runMigration
-            else
-                warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
-
-    protected[activate] def entityMaterialized(entity: Entity) = {}
 
     override def toString = "ActivateContext: " + name
 
