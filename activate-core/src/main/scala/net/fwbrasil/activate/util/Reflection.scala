@@ -36,11 +36,9 @@ object Reflection {
 
     val objenesis = new ObjenesisStd(false);
 
-    class NiceObject[T](x: T) {
+    implicit class NiceObject[T](val x: T) extends AnyVal {
         def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
     }
-
-    implicit def toNiceObject[T](x: T): NiceObject[T] = new NiceObject(x)
 
     class RichClass[T](clazz: Class[T]) {
         def isConcreteClass = !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface

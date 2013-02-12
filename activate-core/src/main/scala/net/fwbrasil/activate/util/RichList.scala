@@ -4,7 +4,7 @@ import language.implicitConversions
 import scala.util.Random
 import java.lang.Comparable
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 
 case class RichList[T: Manifest](iterable: Iterable[T]) {
 

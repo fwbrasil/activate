@@ -23,8 +23,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.CollectionUtil
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
-
-    val storage: Storage[_]
+    this: ActivateContext =>
 
     private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
         val results =

@@ -39,8 +39,7 @@ import java.util.Arrays.{ equals => arrayEquals }
 import net.fwbrasil.activate.util.CollectionUtil.toTuple
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.util.Reflection.newInstance
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.util.ManifestUtil.manifestToClass
 import net.fwbrasil.activate.util.RichList._
@@ -111,16 +110,16 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }
 
     def isQueriable(entity: Entity, isMassModification: Boolean) =
-        entity.isInitialized && !entity.isDeletedSnapshot && (isMassModification || storage.isMemoryStorage || !entity.isPersisted || entity.isDirty)
+        entity.isInitialized && !entity.isDeletedSnapshot && (isMassModification || storageFor(entity.niceClass).isMemoryStorage || !entity.isPersisted || entity.isDirty)
 
     def fromCache[E <: Entity](entityClass: Class[E], isMassModification: Boolean) = {
         val map = entityInstacesMap(entityClass)
         map.doWithReadLock {
             val entities = map.values.filter(isQueriable(_, isMassModification)).toList
-            if (!storage.isMemoryStorage)
-                for (entity <- entities)
-                    if (!entity.isPersisted)
-                        entity.initializeGraph
+            for (entity <- entities)
+                if (!storageFor(entity.niceClass).isMemoryStorage &&
+                    !entity.isPersisted)
+                    entity.initializeGraph
             entities
         }
     }

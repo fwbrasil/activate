@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.serialization
 
 import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, SynchronizedMap, HashSet => MutableHashSet }
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass

@@ -40,19 +40,18 @@ trait ActivateContext
 
     info("Initializing context " + contextName)
 
-    private[activate] val liveCache = new LiveCache(this)
     private[activate] val properties =
         new ActivateProperties(None, "activate")
 
     implicit val context = this: this.type
 
-    val storage: Storage[_]
-
-    protected def storageFor(entity: Entity) =
-        storage
+    val storagee: Storage[_]
 
     protected def storages =
-        List[Storage[_]](storage)
+        List[Storage[_]](storagee)
+
+    private[activate] def storageFor[E <: Entity](entityClass: Class[E]): Storage[_] =
+        storagee
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
@@ -69,9 +68,6 @@ trait ActivateContext
 
     lazy val contextName =
         this.getClass.getSimpleName.split('$').last
-
-    private[activate] def initialize[E <: Entity](entity: E) =
-        liveCache.initialize(entity)
 
     def acceptEntity[E <: Entity](entityClass: Class[E]) =
         contextEntities.map(_.contains(entityClass)).getOrElse(true)

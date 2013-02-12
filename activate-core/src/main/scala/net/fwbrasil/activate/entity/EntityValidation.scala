@@ -4,7 +4,7 @@ import net.fwbrasil.radon.ref.RefListener
 import scala.collection.SeqLike
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.util.ReferenceWeakKeyMap
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.radon.transaction.Transaction
 import scala.collection.mutable.SynchronizedMap

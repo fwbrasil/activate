@@ -4,9 +4,7 @@ import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.cache.live.LiveCache
-import net.fwbrasil.activate.util.Reflection
-import net.fwbrasil.activate.util.Reflection.toNiceObject
-import net.fwbrasil.activate.util.Reflection.toRichClass
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -214,6 +212,7 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
 }
 
 trait EntityContext extends ValueContext with TransactionContext {
+    this: ActivateContext =>
 
     EntityHelper.initialize(this.getClass)
 
@@ -221,8 +220,9 @@ trait EntityContext extends ValueContext with TransactionContext {
     type Alias = net.fwbrasil.activate.entity.Alias
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
-    private[activate] val liveCache: LiveCache
-    private[activate] def initialize[E <: Entity](entity: E)
+    private[activate] val liveCache = new LiveCache(this)
+    private[activate] def initialize[E <: Entity](entity: E): Unit =
+        liveCache.initialize(entity)
 
     protected[activate] def entityMaterialized(entity: Entity) = {}
 

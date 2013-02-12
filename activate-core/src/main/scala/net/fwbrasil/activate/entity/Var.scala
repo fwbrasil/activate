@@ -4,7 +4,7 @@ import language.existentials
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.serialization.SerializationContext
 

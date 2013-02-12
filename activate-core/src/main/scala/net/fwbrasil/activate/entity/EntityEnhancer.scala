@@ -9,7 +9,7 @@ import javassist.ClassClassPath
 import java.lang.management.ManagementFactory
 import javassist.Modifier
 import net.fwbrasil.activate.util.Reflection
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import javassist.expr.FieldAccess
