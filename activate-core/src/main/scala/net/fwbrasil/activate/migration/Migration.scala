@@ -30,7 +30,7 @@ object Migration {
                 createTableForEntity[StorageVersion]
                     .ifNotExists
                 customScript {
-                    ctx.storage.prepareDatabase
+                    ctx.storages.foreach(_.prepareDatabase)
                 }
             }
         }

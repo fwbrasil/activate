@@ -4,7 +4,7 @@ import net.fwbrasil.activate.storage.prevayler._
 import net.fwbrasil.activate.storage.relational._
 import net.fwbrasil.activate.storage.memory._
 import net.fwbrasil.activate.serialization.javaSerializator
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._

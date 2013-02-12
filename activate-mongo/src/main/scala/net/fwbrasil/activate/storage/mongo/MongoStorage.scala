@@ -52,7 +52,7 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.RichList._
 import com.mongodb.MongoClient
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery

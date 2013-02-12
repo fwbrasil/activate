@@ -1,6 +1,6 @@
 package net.fwbrasil.activate
 
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect

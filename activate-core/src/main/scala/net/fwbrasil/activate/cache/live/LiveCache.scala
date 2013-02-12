@@ -171,7 +171,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     private def entitiesFromStorage[S](query: Query[S], initializing: Boolean) = {
         val fromStorageMaterialized =
-            for (line <- storage.fromStorage(query))
+            for (line <- storageFor(query).fromStorage(query))
                 yield for (column <- line)
                 yield materialize(column, initializing)
         filterInvalid(fromStorageMaterialized)

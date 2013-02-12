@@ -8,7 +8,7 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.util.GraphUtil._
-import net.fwbrasil.activate.util.Reflection.toNiceObject
+import net.fwbrasil.activate.util.Reflection._
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction

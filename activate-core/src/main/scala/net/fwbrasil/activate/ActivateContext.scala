@@ -45,13 +45,17 @@ trait ActivateContext
 
     implicit val context = this: this.type
 
-    val storagee: Storage[_]
+    val storage: Storage[_]
 
-    protected def storages =
-        List[Storage[_]](storagee)
+    protected[activate] def storages =
+        List[Storage[_]](storage)
 
     private[activate] def storageFor[E <: Entity](entityClass: Class[E]): Storage[_] =
-        storagee
+        storage
+
+    private[activate] def storageFor(query: Query[_]): Storage[_] =
+        query.from.entitySources.map(source => storageFor(source.entityClass))
+            .toSet.onlyOne(storages => "Query $query uses entities from different storages: $storages.")
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {

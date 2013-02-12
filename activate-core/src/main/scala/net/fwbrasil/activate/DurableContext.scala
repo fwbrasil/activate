@@ -43,8 +43,8 @@ trait DurableContext {
 
     protected def startCoordinator =
         coordinatorClientOption.map(coordinatorClient => {
-            if (storage.isMemoryStorage)
-                throw new IllegalStateException("Storage doesn't support coordinator")
+            if (storages.forall(!_.isMemoryStorage))
+                throw new IllegalStateException("Memory storages doesn't support coordinator")
         })
 
     def reloadEntities(ids: Set[String]) = {
