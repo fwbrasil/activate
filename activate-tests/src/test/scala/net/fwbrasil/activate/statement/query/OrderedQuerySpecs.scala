@@ -240,7 +240,7 @@ class OrderedQuerySpecs extends ActivateTest {
                 })
         }
 
-        "support skip" in {
+        "support limit" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
@@ -252,8 +252,12 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) skip (1)
-                        }.toList.map(_.stringValue) must beEqualTo(List("a", "b"))
+                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2)
+                        }.toList.map(_.stringValue) must beEqualTo(List(null, "a"))
+                        query {
+                            (entity: ActivateTestEntity) =>
+                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10)
+                        }.toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
                     }
                 })
         }

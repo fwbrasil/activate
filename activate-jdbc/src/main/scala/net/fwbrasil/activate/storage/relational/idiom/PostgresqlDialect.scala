@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.idiom
 
+import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
 import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
@@ -26,6 +27,7 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
+import net.fwbrasil.activate.statement.query.OrderByCriteria
 
 object postgresqlDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -96,8 +98,11 @@ object postgresqlDialect extends SqlIdiom {
         }
     }
 
-    def concat(strings: String*) =
+    override def concat(strings: String*) =
         "CONCAT(" + strings.mkString(", ") + ")"
+
+    override def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
+        super.toSqlDml(criteria) + " NULLS FIRST"
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {

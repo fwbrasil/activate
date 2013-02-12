@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.idiom
 
+import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
 import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
@@ -29,6 +30,8 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import java.sql.Connection
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 
 object oracleDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -61,6 +64,17 @@ object oracleDialect extends SqlIdiom {
 
     override def escape(string: String) =
         "\"" + normalize(string) + "\""
+
+    override def toSqlDmlLimit(limit: Int): String =
+        ""
+
+    override def toSqlDmlQueryString(query: Query[_])(implicit binds: MutableMap[StorageValue, String]) =
+        query match {
+            case query: LimitedOrderedQuery[_] =>
+                "SELECT * FROM (" + super.toSqlDmlQueryString(query) + ") WHERE ROWNUM<" + query.limit
+            case query =>
+                super.toSqlDmlQueryString(query)
+        }
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

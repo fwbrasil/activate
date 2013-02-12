@@ -274,12 +274,15 @@ trait SqlIdiom {
     def toSqlDml(query: Query[_]): SqlStatement = {
         implicit val binds = MutableMap[StorageValue, String]()
         new SqlStatement(
-            "SELECT " + toSqlDml(query.select) +
-                " FROM " + toSqlDml(query.from) +
-                " WHERE " + toSqlDml(query.where) +
-                toSqlDmlOrderBy(query),
+            toSqlDmlQueryString(query),
             (Map() ++ binds) map { _.swap })
     }
+
+    def toSqlDmlQueryString(query: Query[_])(implicit binds: MutableMap[StorageValue, String]) =
+        "SELECT " + toSqlDml(query.select) +
+            " FROM " + toSqlDml(query.from) +
+            " WHERE " + toSqlDml(query.where) +
+            toSqlDmlOrderBy(query)
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)
@@ -289,7 +292,7 @@ trait SqlIdiom {
         def orderByString = " ORDER BY " + toSqlDml(query.orderByClause.get.criterias: _*)
         query match {
             case query: LimitedOrderedQuery[_] =>
-                orderByString + " " + toSqlDmlLimit(query.limit, query.skipOption)
+                orderByString + " " + toSqlDmlLimit(query.limit)
             case query: OrderedQuery[_] =>
                 orderByString
             case other =>
@@ -297,9 +300,8 @@ trait SqlIdiom {
         }
     }
 
-    def toSqlDmlLimit(limit: Int, skipOption: Option[Int]): String = {
-        ""
-    }
+    def toSqlDmlLimit(limit: Int): String =
+        "LIMIT " + limit
 
     def toSqlDml(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (criteria <- criterias)

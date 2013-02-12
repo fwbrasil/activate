@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.util
 
+import language.implicitConversions
 import scala.util.Random
 import java.lang.Comparable
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
@@ -61,8 +62,6 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 }
 
 object RichList {
-
-    import language.implicitConversions
 
     implicit def toRichList[T: Manifest](list: Iterable[T]): RichList[T] = RichList(list)
     implicit def yourselfDecorator[T](obj: T) = new {

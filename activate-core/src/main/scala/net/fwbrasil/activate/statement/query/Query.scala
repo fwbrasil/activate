@@ -20,10 +20,32 @@ import java.lang.reflect.Modifier
 import scala.collection.mutable.Stack
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.util.CollectionUtil
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
 
     val storage: Storage[_]
+
+    private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
+        val results =
+            (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
+                liveCache.executeQuery(normalized, iniatializing)
+            }).flatten
+        val orderedResuts =
+            query.orderByClause
+                .map(order => results.sorted(order.ordering))
+                .getOrElse(results)
+        val tuples =
+            QueryNormalizer
+                .denormalizeSelectWithOrderBy(query, orderedResuts)
+                .map(CollectionUtil.toTuple[S])
+        query match {
+            case query: LimitedOrderedQuery[_] =>
+                tuples.take(query.limit)
+            case other =>
+                tuples
+        }
+    }
 
     private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
         runAndClearFrom {
@@ -164,8 +186,6 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
                     fromLiveCache.filterNot(_.isDeletedSnapshot)
                 else _allWhere[T](_ :== id).headOption
         }
-
-    private[activate] def executeQuery[S](query: Query[S], initializing: Boolean): List[S]
 
 }
 

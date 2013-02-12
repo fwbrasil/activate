@@ -31,6 +31,7 @@ import java.sql.SQLException
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.statement.query.OrderByCriteria
 
 object derbyRegex {
     def regexp(src: String, pattern: String) = {
@@ -137,8 +138,14 @@ object derbyDialect extends SqlIdiom {
         }
     }
 
-    def concat(strings: String*) =
+    override def concat(strings: String*) =
         strings.mkString(" || ")
+
+    override def toSqlDmlLimit(limit: Int): String =
+        s"FETCH FIRST $limit ROWS ONLY"
+
+    override def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
+        super.toSqlDml(criteria) + " NULLS FIRST"
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {

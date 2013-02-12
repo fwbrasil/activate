@@ -119,7 +119,7 @@ object mySqlDialect extends SqlIdiom {
         }
     }
 
-    def concat(strings: String*) =
+    override def concat(strings: String*) =
         "CONCAT(" + strings.mkString(", ") + ")"
 
     override def toSqlDdl(storageValue: StorageValue): String =
@@ -148,7 +148,5 @@ object mySqlDialect extends SqlIdiom {
                 "VARCHAR(45)"
         }
 
-    override def toSqlDmlLimit(limit: Int, skipOption: Option[Int]): String =
-        "LIMIT " + limit + skipOption.map(s => " OFFSET " + s).getOrElse("")
 }
 

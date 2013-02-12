@@ -84,7 +84,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
         entityInstacesMap[E].get(id)
 
     def contains[E <: Entity](entity: E) = {
-        import language.existentials
         val map = entityInstacesMap(entity.getClass)
         map.doWithReadLock(map.contains(entity.id))
     }
@@ -154,7 +153,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     private def entitiesFromCache[S](query: Query[S]) = {
         val entities = entitySourceInstancesCombined(false, query.from)
-        executeQueryWithEntitySources(query, entities)
+        val res = executeQueryWithEntitySources(query, entities)
+        res
     }
 
     object invalid

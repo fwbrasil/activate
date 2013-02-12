@@ -24,7 +24,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(
-            OneTransaction(ctx),
+            //            OneTransaction(ctx),
             MultipleTransactions(ctx),
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
@@ -33,14 +33,14 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-            //            memoryContext,
-            //            prevaylerContext,
-            //            mongoContext,
-            mysqlContext //,
-            //            postgresqlContext,
-            //            h2Context,
-            //            derbyContext,
-            //            hsqldbContext //,
+            memoryContext,
+            prevaylerContext,
+            mongoContext,
+            mysqlContext,
+            postgresqlContext,
+            derbyContext,
+            h2Context,
+            hsqldbContext //,
             //oracleContext
             )
         ret.foreach(_.stop)

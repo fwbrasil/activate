@@ -37,12 +37,8 @@ class LimitedOrderedQuery[S](
     override val where: Where,
     override val select: Select,
     override val _orderBy: OrderBy,
-    val limit: Int,
-    val skipOption: Option[Int] = None)
+    val limit: Int)
         extends OrderedQuery[S](from, where, select, _orderBy) {
-
-    def skip(pSkip: Int) =
-        new LimitedOrderedQuery[S](from, where, select, _orderBy, limit, Some(pSkip))
 
     override def productElement(n: Int): Any =
         n match {
@@ -51,17 +47,13 @@ class LimitedOrderedQuery[S](
             case 2 => select
             case 3 => _orderBy
             case 4 => limit
-            case 5 => skipOption
         }
-    override def productArity: Int = 6
+    override def productArity: Int = 5
     override def canEqual(that: Any): Boolean =
         that.getClass == classOf[LimitedOrderedQuery[S]]
     override def equals(that: Any): Boolean =
-        canEqual(that) && super.equals(that) && {
-            val thatCast = that.asInstanceOf[LimitedOrderedQuery[S]]
-            thatCast.limit == limit &&
-                thatCast.skipOption == skipOption
-        }
+        canEqual(that) && super.equals(that) &&
+            that.asInstanceOf[LimitedOrderedQuery[S]].limit == limit
 }
 
 class OrderedQuery[S](
@@ -149,10 +141,5 @@ case class OrderByDirectionWrapper[T](value: StatementSelectValue[T])(implicit o
 }
 
 case class OrderByCriteria[T](value: StatementSelectValue[T], direction: OrderByDirection, ordering: Ordering[T]) {
-    //	def ordering =
-    //		if (direction == orderByAscendingDirection)
-    //			_ordering
-    //		else
-    //			_ordering.reverse
     override def toString = value.toString() + " " + direction.toString
 }

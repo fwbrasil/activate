@@ -55,6 +55,9 @@ import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.util.Reflection.toNiceObject
 import net.fwbrasil.activate.util.RichList._
 import com.mongodb.MongoClient
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.statement.query.OrderedQuery
+import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 
 trait MongoStorage extends MarshalStorage[DB] {
 
@@ -191,6 +194,8 @@ trait MongoStorage extends MarshalStorage[DB] {
                 select.put(mongoStatementSelectValue(value), 1)
         val entitySource = queryInstance.from.entitySources.onlyOne
         val ret = coll.find(where, select)
+        orderQueryIfNecessary(queryInstance, ret)
+        limitQueryIfNecessary(queryInstance, ret)
         try {
             val rows = ret.toArray
             (for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
@@ -408,6 +413,30 @@ trait MongoStorage extends MarshalStorage[DB] {
         val mongoCollection = coll(entitySource.entityClass)
         (mongoCollection, mongoWhere)
     }
+
+    private def limitQueryIfNecessary(queryInstance: Query[_], ret: DBCursor) =
+        queryInstance match {
+            case q: LimitedOrderedQuery[_] =>
+                ret.limit(q.limit)
+            case other =>
+        }
+
+    private def orderQueryIfNecessary(queryInstance: Query[_], ret: DBCursor) =
+        queryInstance match {
+            case q: OrderedQuery[_] =>
+                val order = new BasicDBObject
+                for (criteria <- q.orderByClause.get.criterias) {
+                    val property = mongoStatementSelectValue(criteria.value)
+                    val direction =
+                        if (criteria.direction == orderByAscendingDirection)
+                            1
+                        else
+                            -1
+                    order.put(property, direction)
+                }
+                ret.sort(order)
+            case other =>
+        }
 
 }
 
