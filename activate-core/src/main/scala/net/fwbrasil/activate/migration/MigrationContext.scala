@@ -10,7 +10,7 @@ trait MigrationContext {
     type ManualMigration = net.fwbrasil.activate.migration.ManualMigration
 
     protected[activate] def execute(action: StorageAction) =
-        storage.migrate(action)
+        action.storage.migrate(action)
 
     protected[activate] def runMigration =
         Migration.update(this)

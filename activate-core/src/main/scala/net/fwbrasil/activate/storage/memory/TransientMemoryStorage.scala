@@ -32,13 +32,13 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
 
     override def toStorage(
         statements: List[MassModificationStatement],
-        assignments: List[(Var[Any], EntityValue[Any])],
-        deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
+        insertList: List[(Entity, Map[String, EntityValue[Any]])],
+        updateList: List[(Entity, Map[String, EntityValue[Any]])],
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Unit = {
 
-        for ((ref, value) <- assignments)
-            if (ref.outerEntity != null)
-                storageSet += ref.outerEntity
-        for ((entity, map) <- deletes)
+        for ((entity, properties) <- insertList)
+            storageSet += entity
+        for ((entity, properties) <- deleteList)
             storageSet -= entity
     }
 

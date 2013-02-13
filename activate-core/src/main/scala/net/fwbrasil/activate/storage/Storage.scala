@@ -14,9 +14,14 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.annotation.implicitNotFound
 
-trait Storage[T] {
+trait Storage[+T] {
 
-    protected[activate] def toStorage(statements: List[MassModificationStatement], assignments: List[(Var[Any], EntityValue[Any])], deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {}
+    protected[activate] def toStorage(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, EntityValue[Any]])],
+        updateList: List[(Entity, Map[String, EntityValue[Any]])],
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Unit = {}
+
     protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
     def directAccess: T

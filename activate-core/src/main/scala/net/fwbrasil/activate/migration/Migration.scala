@@ -309,65 +309,67 @@ abstract class Migration(implicit val context: ActivateContext) {
         referencesForEntityMetadata(metadata).map(reference =>
             table(manifestClass(metadata.entityClass)).removeReference(reference._1, reference._2, reference._3))
 
-    case class Table(name: String) {
+    case class Table(name: String, storage: Storage[_]) {
 
         def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable = {
             val columns = new ColumnDef()
             definitions.foreach(_(columns))
-            addAction(CreateTable(Migration.this, nextNumber, name, columns.definitions))
+            addAction(CreateTable(Migration.this, storage, nextNumber, name, columns.definitions))
         }
         def removeTable: RemoveTable =
-            addAction(RemoveTable(Migration.this, nextNumber, name))
+            addAction(RemoveTable(Migration.this, storage, nextNumber, name))
 
         def renameTable(newName: String): RenameTable =
-            addAction(RenameTable(Migration.this, nextNumber, name, newName))
+            addAction(RenameTable(Migration.this, storage, nextNumber, name, newName))
 
         def addColumn(definition: (ColumnDef) => Unit): AddColumn = {
             val columns = new ColumnDef()
             definition(columns)
-            addAction(AddColumn(Migration.this, nextNumber, name, columns.definitions.onlyOne))
+            addAction(AddColumn(Migration.this, storage, nextNumber, name, columns.definitions.onlyOne))
         }
 
         def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn = {
             val columns = new ColumnDef()
             newColumn(columns)
             val definition = columns.definitions.head
-            addAction(RenameColumn(Migration.this, nextNumber, name, oldName, definition))
+            addAction(RenameColumn(Migration.this, storage, nextNumber, name, oldName, definition))
         }
 
         def removeColumn(columnName: String): RemoveColumn =
-            addAction(RemoveColumn(Migration.this, nextNumber, name, columnName))
+            addAction(RemoveColumn(Migration.this, storage, nextNumber, name, columnName))
 
         def addIndex(columnName: String, indexName: String): AddIndex =
-            addAction(AddIndex(Migration.this, nextNumber, name, columnName, indexName))
+            addAction(AddIndex(Migration.this, storage, nextNumber, name, columnName, indexName))
         def removeIndex(columnName: String, indexName: String): RemoveIndex =
-            addAction(RemoveIndex(Migration.this, nextNumber, name, columnName, indexName))
+            addAction(RemoveIndex(Migration.this, storage, nextNumber, name, columnName, indexName))
 
         def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference =
             addReference(columnName, referencedTable.name, constraintName)
         private[activate] def addReference(columnName: String, referencedTable: String, constraintName: String): AddReference =
-            addAction(AddReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
+            addAction(AddReference(Migration.this, storage, nextNumber, name, columnName, referencedTable, constraintName))
 
         def removeReference(columnName: String, referencedTable: Table, constraintName: String): RemoveReference =
             removeReference(columnName, referencedTable.name, constraintName)
         private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
-            addAction(RemoveReference(Migration.this, nextNumber, name, columnName, referencedTable, constraintName))
+            addAction(RemoveReference(Migration.this, storage, nextNumber, name, columnName, referencedTable, constraintName))
 
         def createNestedListTableOf[T](listName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
             val addColumnAction = addColumn(_.column[List[T]](listName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
-            val addTableAction = addAction(CreateListTable(Migration.this, nextNumber, name, listName, Column("value", None)))
+            val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, listName, Column("value", None)))
             IfNotExistsBag(List(addColumnAction, addTableAction))
         }
         def removeNestedListTable(listName: String) = {
             val removeColumnAction = removeColumn(listName)
-            val removeTableAction = addAction(RemoveListTable(Migration.this, nextNumber, name, listName))
+            val removeTableAction = addAction(RemoveListTable(Migration.this, storage, nextNumber, name, listName))
             IfExistsBag(List(removeColumnAction, removeTableAction))
         }
     }
     def table[E <: Entity: Manifest]: Table =
-        table(EntityHelper.getEntityName(erasureOf[E]))
+        table(EntityHelper.getEntityName(erasureOf[E]), context.storageFor(erasureOf[E]))
+    def table(name: String, storage: Storage[_]): Table =
+        Table(name, storage)
     def table(name: String): Table =
-        Table(name)
+        Table(name, context.storage)
     def customScript(f: => Unit) =
         addAction(CustomScriptAction(this, nextNumber, () => context.transactional(f)))
     def up: Unit

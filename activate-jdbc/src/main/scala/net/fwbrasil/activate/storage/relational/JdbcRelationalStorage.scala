@@ -15,8 +15,8 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
 import com.mchange.v2.c3p0.ComboPooledDataSource
 
-case class JdbcStatementException(statement: JdbcStatement, exception: Exception)
-    extends Exception("Statement exception: " + statement, exception)
+case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
+    extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
 
 trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
@@ -92,7 +92,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             }
         catch {
             case e: BatchUpdateException =>
-                throw JdbcStatementException(jdbcStatement, e)
+                throw JdbcStatementException(jdbcStatement, e, e.getNextException)
         }
 
     protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =

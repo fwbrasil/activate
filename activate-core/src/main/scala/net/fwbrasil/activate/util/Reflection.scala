@@ -5,7 +5,6 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Date
-import java.util.IdentityHashMap
 import org.joda.time.base.AbstractInstant
 import org.objenesis.ObjenesisStd
 import org.reflections.Reflections
@@ -148,7 +147,7 @@ object Reflection {
             }).asInstanceOf[Set[R]]
     }
 
-    def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: IdentityHashMap[A, B]): T = {
+    def deepCopyMapping[T, A <: Any, B <: Any](obj: T, map: java.util.IdentityHashMap[A, B]): T = {
         val substitute = map.get(obj.asInstanceOf[A])
         if (substitute != null) {
             substitute.asInstanceOf[T]

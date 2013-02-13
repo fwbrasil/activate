@@ -82,6 +82,9 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize:
         this
     }
 
+    private[activate] def snapshotWithoutTransaction =
+        super.snapshot
+
     override def toString = name + " -> " + get.getOrElse("")
 }
 

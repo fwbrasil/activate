@@ -62,6 +62,7 @@ case class RichList[T: Manifest](iterable: Iterable[T]) {
 
     def mapBy[R](f: (T) => R): Map[R, T] =
         list.map((v) => (f(v), v)).toMap
+
 }
 
 object RichList {

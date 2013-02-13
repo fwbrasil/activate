@@ -20,48 +20,23 @@ trait MarshalStorage[T] extends Storage[T] {
 
     override protected[activate] def toStorage(
         statements: List[MassModificationStatement],
-        assignments: List[(Var[Any], EntityValue[Any])],
-        deletes: List[(Entity, List[(Var[Any], EntityValue[Any])])]): Unit = {
+        insertList: List[(Entity, Map[String, EntityValue[Any]])],
+        updateList: List[(Entity, Map[String, EntityValue[Any]])],
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])]) =
+        store(
+            statements,
+            marshalling(insertList),
+            marshalling(updateList),
+            marshalling(deleteList))
 
-        import Marshaller._
+    private def marshalling(list: List[(Entity, Map[String, EntityValue[Any]])]) =
+        list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> ReferenceStorageValue(Some(tuple._1.id)))))
 
-        def propertyMap(map: IdentityHashMap[Entity, MutableMap[String, StorageValue]], entity: Entity) =
-            if (!map.containsKey(entity)) {
-                val propertyMap = newPropertyMap(entity)
-                map.put(entity, propertyMap)
-                propertyMap
-            } else
-                map.get(entity)
-
-        // This code is ugly, but is faster! :(			
-        val insertMap = new IdentityHashMap[Entity, MutableMap[String, StorageValue]]()
-        val updateMap = new IdentityHashMap[Entity, MutableMap[String, StorageValue]]()
-        for ((ref, value) <- assignments) {
-            val entity = ref.outerEntity
-            val propertyName = ref.name
-            if (!entity.isPersisted)
-                propertyMap(insertMap, entity).put(propertyName, marshalling(value))
-            else
-                propertyMap(updateMap, entity).put(propertyName, marshalling(value))
-        }
-
-        val deleteList =
-            deletes.map(tuple => (tuple._1, tuple._2.map(t => (t._1.name, marshalling(t._2))).toMap))
-
-        val insertList =
-            insertMap.toList.map(tuple => (tuple._1, tuple._2.toMap))
-
-        val updateList =
-            updateMap.toList.map(tuple => (tuple._1, tuple._2.toMap))
-
-        store(statements, insertList, updateList, deleteList)
-    }
-
-    private[this] def newPropertyMap(entity: Entity) = {
-        val map = MutableMap[String, StorageValue]()
-        map.put("id", ReferenceStorageValue(Option(entity.id)))
-        map
-    }
+    protected[activate] def store(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])]): Unit
 
     override protected[activate] def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
         val entityValues =
@@ -69,18 +44,12 @@ trait MarshalStorage[T] extends Storage[T] {
                 yield value.entityValue
         val expectedTypes =
             (for (value <- entityValues)
-                yield marshalling(value)).toList
+                yield Marshaller.marshalling(value)).toList
         val result = query(queryInstance, expectedTypes)
         (for (line <- result)
             yield (for (i <- 0 until line.size)
-            yield unmarshalling(line(i), entityValues(i))).toList)
+            yield Marshaller.unmarshalling(line(i), entityValues(i))).toList)
     }
-
-    protected[activate] def store(
-        statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Unit
 
     protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]]
 

@@ -2,6 +2,7 @@ package net.fwbrasil.activate.migration
 
 import language.existentials
 import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.storage.Storage
 
 sealed trait MigrationAction {
     private[activate] def revertAction: MigrationAction
@@ -29,12 +30,14 @@ case class CustomScriptAction(migration: Migration, number: Int, f: () => Unit) 
 
 sealed trait StorageAction extends MigrationAction {
     val migration: Migration
+    val storage: Storage[_]
     val number: Int
     private[activate] def revertAction: StorageAction
 }
 
 case class CreateTable(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     columns: List[Column[_]])
@@ -42,7 +45,7 @@ case class CreateTable(
         with IfNotExists[CreateTable] {
     private[activate] def revertAction = {
         val revertAction =
-            RemoveTable(migration, number, tableName)
+            RemoveTable(migration, storage, number, tableName)
         if (onlyIfNotExists)
             revertAction.ifExists
         revertAction
@@ -51,6 +54,7 @@ case class CreateTable(
 
 case class CreateListTable(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     ownerTableName: String,
     listName: String,
@@ -58,11 +62,12 @@ case class CreateListTable(
         extends StorageAction
         with IfNotExists[CreateListTable] {
     private[activate] def revertAction =
-        RemoveListTable(migration, number, ownerTableName, listName)
+        RemoveListTable(migration, storage, number, ownerTableName, listName)
 }
 
 case class RemoveListTable(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     ownerTableName: String,
     listName: String)
@@ -75,6 +80,7 @@ case class RemoveListTable(
 
 case class RenameTable(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     oldName: String,
     newName: String)
@@ -82,7 +88,7 @@ case class RenameTable(
         with IfExists[RenameTable] {
     private[activate] def revertAction = {
         val revertAction =
-            RenameTable(migration, number, newName, oldName)
+            RenameTable(migration, storage, number, newName, oldName)
         if (onlyIfExists)
             revertAction.ifExists
         revertAction
@@ -90,6 +96,7 @@ case class RenameTable(
 }
 case class RemoveTable(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     name: String)
         extends StorageAction
@@ -100,6 +107,7 @@ case class RemoveTable(
 }
 case class AddColumn(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     column: Column[_])
@@ -107,7 +115,7 @@ case class AddColumn(
         with IfNotExists[AddColumn] {
     private[activate] def revertAction = {
         val revertAction =
-            RemoveColumn(migration, number, tableName, column.name)
+            RemoveColumn(migration, storage, number, tableName, column.name)
         if (onlyIfNotExists)
             revertAction.ifExists
         revertAction
@@ -116,6 +124,7 @@ case class AddColumn(
 }
 case class RenameColumn(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     oldName: String,
@@ -126,6 +135,7 @@ case class RenameColumn(
         val revertAction =
             RenameColumn(
                 migration,
+                storage,
                 number,
                 tableName,
                 column.name,
@@ -140,6 +150,7 @@ case class RenameColumn(
 }
 case class RemoveColumn(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     name: String)
@@ -150,6 +161,7 @@ case class RemoveColumn(
 }
 case class AddIndex(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     columnName: String,
@@ -160,6 +172,7 @@ case class AddIndex(
         val revertAction =
             RemoveIndex(
                 migration,
+                storage,
                 number,
                 tableName,
                 columnName,
@@ -172,6 +185,7 @@ case class AddIndex(
 }
 case class RemoveIndex(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     columnName: String,
@@ -181,7 +195,7 @@ case class RemoveIndex(
     private[activate] def revertAction = {
         val revertAction =
             AddIndex(
-                migration,
+                migration, storage,
                 number,
                 tableName,
                 columnName,
@@ -193,6 +207,7 @@ case class RemoveIndex(
 }
 case class AddReference(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     columnName: String,
@@ -202,7 +217,14 @@ case class AddReference(
         with IfNotExists[AddReference] {
     private[activate] def revertAction = {
         val revertAction =
-            RemoveReference(migration, number, tableName, columnName, referencedTable, constraintName)
+            RemoveReference(
+                migration,
+                storage,
+                number,
+                tableName,
+                columnName,
+                referencedTable,
+                constraintName)
         if (onlyIfNotExists)
             revertAction.ifExists
         revertAction
@@ -211,6 +233,7 @@ case class AddReference(
 
 case class RemoveReference(
     migration: Migration,
+    storage: Storage[_],
     number: Int,
     tableName: String,
     columnName: String,
@@ -220,7 +243,14 @@ case class RemoveReference(
         with IfExists[RemoveReference] {
     private[activate] def revertAction = {
         val revertAction =
-            AddReference(migration, number, tableName, columnName, referencedTable, constraintName)
+            AddReference(
+                migration,
+                storage,
+                number,
+                tableName,
+                columnName,
+                referencedTable,
+                constraintName)
         if (onlyIfExists)
             revertAction.ifNotExists
         revertAction

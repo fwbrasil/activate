@@ -1,6 +1,8 @@
 package net.fwbrasil.activate
 
-import java.util.IdentityHashMap
+import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.util.IdentityHashMap._
+import net.fwbrasil.activate.util.IdentityHashMap
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.EntityValidation
@@ -12,6 +14,12 @@ import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.radon.ConcurrentTransactionException
 import net.fwbrasil.radon.transaction.TransactionManager
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.util.Reflection._
+import net.fwbrasil.activate.storage.Storage
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
 
@@ -73,52 +81,90 @@ trait DurableContext {
     override def makeDurable(transaction: Transaction) = {
         lazy val statements = statementsForTransaction(transaction)
 
-        val (assignments, deletes) = filterVars(transaction.assignments)
+        val (inserts, updates, deletes) = filterVars(transaction.assignments)
 
-        val assignmentsEntities = assignments.map(_._1.outerEntity)
-        val deletedEntities = deletes.map(_._1)
-        val entities = assignmentsEntities ::: deletedEntities
+        val entities = inserts.keys.toList ++ updates.keys.toList ++ deletes.keys.toList
 
         lazy val writes = entities.map(_.id).toSet
         lazy val reads = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
 
         runWithCoordinatorIfDefined(reads, writes) {
-            if (assignments.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+            if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
                 validateTransactionEnd(transaction, entities)
-                storage.toStorage(statements.toList, assignments, deletes)
-                setPersisted(assignmentsEntities)
-                deleteFromLiveCache(deletedEntities)
+                store(statements.toList, inserts, updates, deletes)
+                setPersisted(inserts.keys)
+                deleteFromLiveCache(deletes.keys)
                 statements.clear
             }
         }
     }
 
-    private[this] def setPersisted(entities: List[Entity]) =
+    private def store(
+        statements: List[MassModificationStatement],
+        insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
+
+        val statementsByStorage =
+            statements.groupBy(s => storageFor(s.from.entitySources.onlyOne.entityClass)).withDefault(s => List())
+        val insertsByStorage =
+            insertList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
+        val updatesByStorage =
+            updateList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
+        val deletesByStorage =
+            deleteList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
+        //                verifyMassSatatements(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage)
+        val storages = (statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
+            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList.sortBy(s => if (s == storage) -1 else 0)
+        var exceptionOption: Option[Throwable] = None
+        val storagesToRollback =
+            storages.takeWhile { storage =>
+                Try(storage.toStorage(
+                    statementsByStorage(storage),
+                    insertsByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
+                    updatesByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
+                    deletesByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList)) match {
+                    case Success(unit) =>
+                        true
+                    case Failure(exception) =>
+                        exceptionOption = Some(exception)
+                        false
+                }
+            }
+        exceptionOption.map { exception =>
+            storagesToRollback.foreach { storage =>
+                val deletes = insertsByStorage(storage)
+                val updates = updatesByStorage(storage).map(tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, tuple._1.tval(tuple._1.snapshotWithoutTransaction)))))
+                val inserts = deletesByStorage(storage)
+                storage.toStorage(
+                    List(),
+                    inserts.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
+                    updates.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
+                    deletes.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList)
+            }
+            throw exception
+        }
+    }
+
+    private[this] def setPersisted(entities: Iterable[Entity]) =
         entities.foreach(_.setPersisted)
 
-    private[this] def deleteFromLiveCache(entities: List[Entity]) =
+    private[this] def deleteFromLiveCache(entities: Iterable[Entity]) =
         entities.foreach(liveCache.delete)
 
-    private[this] def filterVars(pAssignments: List[(Ref[Any], Option[Any], Boolean)]) = {
-        // Assume that all assignments are of Vars for performance reasons (could be Ref)
-        val varAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]].filterNot(_._1.isTransient)
-
-        val (assignmentsDelete, assignmentsUpdate) = varAssignments.map(e => (e._1, e._1.tval(e._2), e._3)).partition(_._3)
-
-        val deletes = new IdentityHashMap[Entity, ListBuffer[(Var[Any], EntityValue[Any])]]()
-
-        for ((ref, value, destroyed) <- assignmentsDelete) {
-            val entity = ref.outerEntity
-            if (entity.isPersisted) {
-                if (!deletes.containsKey(entity))
-                    deletes.put(entity, ListBuffer())
-                deletes.get(entity) += (ref -> value)
-            }
+    private def filterVars(pAssignments: List[(Ref[Any], Option[Any], Boolean)]) = {
+        def normalize(assignments: List[(Var[Any], Option[Any], Boolean)]) = {
+            val map = new IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]
+            for ((ref, valueOption, isTransient) <- assignments)
+                map.getOrElseUpdate(ref.outerEntity, new IdentityHashMap).put(ref, ref.tval(valueOption))
+            map
         }
-
-        import scala.collection.JavaConversions._
-        (assignmentsUpdate.map(e => (e._1, e._2)),
-            deletes.toList.map(tuple => (tuple._1, tuple._2.toList)))
+        // Assume that all assignments are of Vars for performance reasons (could be Ref)
+        val persistentAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]].filterNot(_._1.isTransient)
+        val (deleteAssignments, modifyAssignments) = persistentAssignments.partition(_._3)
+        val deleteAssignmentsNormalized = normalize(deleteAssignments)
+        val (insertStatementsNormalized, updateStatementsNormalized) = normalize(modifyAssignments).partition(tuple => !tuple._1.isPersisted)
+        (insertStatementsNormalized, updateStatementsNormalized, deleteAssignmentsNormalized)
     }
 
     private def validateTransactionEnd(transaction: Transaction, entities: List[Entity]) = {
@@ -126,9 +172,25 @@ trait DurableContext {
         if (toValidate.nonEmpty) {
             val nestedTransaction = new NestedTransaction(transaction)
             try transactional(nestedTransaction) {
+                // Missing a toSet here! Be careful with entity hash
                 toValidate.foreach(_.validate)
             } finally
                 nestedTransaction.rollback
         }
     }
+
+    private def verifyMassSatatements(
+        statementsByStorage: Map[Storage[_], List[MassModificationStatement]],
+        assignmentsByStorage: Map[Storage[_], List[(Var[Any], EntityValue[Any])]],
+        deletesByStorage: Map[Storage[_], List[(Entity, List[(Var[Any], EntityValue[Any])])]]) =
+        if (statementsByStorage.size != 0)
+            if (statementsByStorage.size > 1)
+                throw new UnsupportedOperationException("It is not possible to have mass statements from different storages in the same transaction.")
+            else {
+                val statementStorage = statementsByStorage.keys.onlyOne
+                if ((assignmentsByStorage.keys.toSet - statementStorage).nonEmpty ||
+                    (deletesByStorage.keys.toSet - statementStorage).nonEmpty)
+                    throw new UnsupportedOperationException("If there is a mass statement, all entities modifications must be to the same storage.")
+            }
+
 }
