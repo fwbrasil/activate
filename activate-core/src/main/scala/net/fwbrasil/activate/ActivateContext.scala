@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import language.implicitConversions
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.statement.mass.MassDeleteContext
 import net.fwbrasil.activate.entity.EntityContext
@@ -48,14 +49,21 @@ trait ActivateContext
     val storage: Storage[_]
 
     protected[activate] def storages =
-        List[Storage[_]](storage)
-
-    private[activate] def storageFor[E <: Entity](entityClass: Class[E]): Storage[_] =
-        storage
+        (additionalStorages.keys.toSet + storage).toList
 
     private[activate] def storageFor(query: Query[_]): Storage[_] =
         query.from.entitySources.map(source => storageFor(source.entityClass))
-            .toSet.onlyOne(storages => "Query $query uses entities from different storages: $storages.")
+            .toSet.onlyOne(storages => s"Query $query uses entities from different storages: $storages.")
+
+    private[activate] def storageFor[E <: Entity](entityClass: Class[E]): Storage[Any] =
+        additionalStoragesByEntityClasses.getOrElse(
+            entityClass.asInstanceOf[Class[Entity]],
+            storage.asInstanceOf[Storage[Any]])
+
+    private lazy val additionalStoragesByEntityClasses =
+        (for ((storage, classes) <- additionalStorages.asInstanceOf[Map[Storage[Any], Set[Class[Entity]]]]) yield classes.map((_, storage))).flatten.toMap
+
+    def additionalStorages = Map[Storage[_], Set[Class[_ <: Entity]]]()
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {

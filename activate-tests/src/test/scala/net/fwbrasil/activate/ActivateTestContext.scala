@@ -73,7 +73,7 @@ abstract class ActivateTestMigrationCustomColumnType(
     val timestamp = ActivateTestMigration.timestamp + 1
 
     def up = {
-        table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
+        table[ctx.ActivateTestEntity].removeColumn("bigStringValue").ifExists
         table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
     }
 
@@ -192,6 +192,57 @@ object mongoContext extends ActivateTestContext {
     }
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
+
+object polyglotContext extends ActivateTestContext {
+    val postgre = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "org.postgresql.Driver"
+        val user = "postgres"
+        val password = "postgres"
+        val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
+        val dialect = postgresqlDialect
+    }
+    val mysql = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "com.mysql.jdbc.Driver"
+        val user = "root"
+        val password = ""
+        val url = "jdbc:mysql://127.0.0.1/activate_test_polyglot"
+        val dialect = mySqlDialect
+    }
+    val prevayler = new PrevaylerStorage("testPrevalenceBase/testPolyglotPrevaylerMemoryStorage" + (new java.util.Date).getTime)
+    val mongo = new MongoStorage {
+        override val authentication = Option(("activate_test", "activate_test"))
+        override val host = "localhost"
+        override val port = 27017
+        override val db = "activate_test_polyglot"
+    }
+    val derby = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
+        val user = ""
+        val password = ""
+        val url = "jdbc:derby:memory:activate_test_derby_polygot;create=true"
+        val dialect = derbyDialect
+    }
+    val h2 = new SimpleJdbcRelationalStorage {
+        val jdbcDriver = "org.h2.Driver"
+        val user = "sa"
+        val password = ""
+        val url = "jdbc:h2:mem:activate_test_h2_polyglot;DB_CLOSE_DELAY=-1"
+        val dialect = h2Dialect
+    }
+    val memory = new TransientMemoryStorage
+    val storage = postgre
+    override def additionalStorages = Map(
+        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
+        memory -> Set(classOf[SimpleEntity], classOf[EntityWithoutAttribute]),
+        prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]),
+        h2 -> Set(classOf[EntityWithUninitializedValue]),
+        mongo -> Set(classOf[Box]),
+        derby -> Set(classOf[Num]))
+}
+class PolyglotActivateTestMigration extends ActivateTestMigration()(polyglotContext)
+class PolyglotActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(polyglotContext) {
+    override def bigStringType = "TEXT"
+}
 
 object BigStringGenerator {
     val generated = {

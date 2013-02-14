@@ -302,8 +302,13 @@ abstract class Migration(implicit val context: ActivateContext) {
             table(manifestClass(metadata.entityClass)).addReference(reference._1, reference._2, reference._3))
 
     private def referencesForEntityMetadata(metadata: EntityMetadata) =
-        for (property <- metadata.persistentPropertiesMetadata; if (classOf[Entity].isAssignableFrom(property.propertyType) && !property.propertyType.isInterface && !Modifier.isAbstract(property.propertyType.getModifiers)))
-            yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))
+        for (
+            property <- metadata.persistentPropertiesMetadata;
+            if (classOf[Entity].isAssignableFrom(property.propertyType) &&
+                !property.propertyType.isInterface &&
+                !Modifier.isAbstract(property.propertyType.getModifiers) &&
+                context.storageFor(metadata.entityClass) == context.storageFor(property.propertyType.asInstanceOf[Class[Entity]]))
+        ) yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))
 
     private def removeReferencesForEntityMetadata(metadata: EntityMetadata) =
         referencesForEntityMetadata(metadata).map(reference =>

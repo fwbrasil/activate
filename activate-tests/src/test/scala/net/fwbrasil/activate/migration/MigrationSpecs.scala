@@ -10,9 +10,12 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.entity.Entity
 import java.util.NoSuchElementException
 import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
+
+    override def contexts = super.contexts.filter(_ != polyglotContext)
 
     "Migration" should {
 

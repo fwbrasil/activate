@@ -13,12 +13,16 @@ import org.prevayler.Prevayler
 import net.fwbrasil.activate.ActivateTestContext
 import org.prevayler.{ Transaction => PrevaylerTransaction }
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorageSystem
+import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class StorageDirectAccessSpecs extends ActivateTest {
 
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filterNot(_.isInstanceOf[OneTransaction])
+
+    override def contexts =
+        super.contexts.filter(_ != polyglotContext)
 
     "Activate" should {
         "provide direct access to the storage" in {

@@ -14,7 +14,7 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.annotation.implicitNotFound
 
-trait Storage[+T] {
+trait Storage[T] {
 
     protected[activate] def toStorage(
         statements: List[MassModificationStatement],

@@ -113,9 +113,9 @@ trait DurableContext {
             updateList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
         val deletesByStorage =
             deleteList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
-        //                verifyMassSatatements(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage)
         val storages = (statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
             updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList.sortBy(s => if (s == storage) -1 else 0)
+        verifyMassSatatements(storages, statementsByStorage)
         var exceptionOption: Option[Throwable] = None
         val storagesToRollback =
             storages.takeWhile { storage =>
@@ -180,16 +180,14 @@ trait DurableContext {
     }
 
     private def verifyMassSatatements(
-        statementsByStorage: Map[Storage[_], List[MassModificationStatement]],
-        assignmentsByStorage: Map[Storage[_], List[(Var[Any], EntityValue[Any])]],
-        deletesByStorage: Map[Storage[_], List[(Entity, List[(Var[Any], EntityValue[Any])])]]) =
+        storages: List[Storage[_]],
+        statementsByStorage: Map[Storage[Any], List[MassModificationStatement]]) =
         if (statementsByStorage.size != 0)
             if (statementsByStorage.size > 1)
                 throw new UnsupportedOperationException("It is not possible to have mass statements from different storages in the same transaction.")
             else {
                 val statementStorage = statementsByStorage.keys.onlyOne
-                if ((assignmentsByStorage.keys.toSet - statementStorage).nonEmpty ||
-                    (deletesByStorage.keys.toSet - statementStorage).nonEmpty)
+                if ((storages.toSet - statementStorage).nonEmpty)
                     throw new UnsupportedOperationException("If there is a mass statement, all entities modifications must be to the same storage.")
             }
 

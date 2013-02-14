@@ -14,6 +14,8 @@ import net.fwbrasil.activate.util.RichList._
 import scala.actors.remote.NetKernel
 import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
+import net.fwbrasil.activate.mongoContext
+
 class CoordinatorTestContext extends ActivateTestContext {
 
     System.setProperty("activate.coordinator.server", "true")
@@ -25,13 +27,8 @@ class CoordinatorTestContext extends ActivateTestContext {
         else
             Coordinator.clientOption(this)
 
-    val storage = new PooledJdbcRelationalStorage {
-        val jdbcDriver = "org.postgresql.Driver"
-        val user = "postgres"
-        val password = "postgres"
-        val url = "jdbc:postgresql://127.0.0.1/activate_test"
-        val dialect = postgresqlDialect
-    }
+    val storage = mongoContext.storage
+
     stop
     def run[A](f: => A) = {
         start

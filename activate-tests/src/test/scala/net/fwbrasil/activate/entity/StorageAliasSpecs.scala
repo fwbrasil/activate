@@ -8,12 +8,13 @@ import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import com.mongodb.BasicDBObject
+import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class StorageAliasSpecs extends ActivateTest {
 
     override def contexts =
-        super.contexts.filter(!_.storage.isMemoryStorage)
+        super.contexts.filter(ctx => ctx != polyglotContext && !ctx.storage.isMemoryStorage)
 
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
