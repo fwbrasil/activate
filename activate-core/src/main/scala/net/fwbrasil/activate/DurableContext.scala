@@ -81,7 +81,9 @@ trait DurableContext {
     override def makeDurable(transaction: Transaction) = {
         lazy val statements = statementsForTransaction(transaction)
 
-        val (inserts, updates, deletes) = filterVars(transaction.assignments)
+        val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
+
+        val deletes = deletesUnfiltered.filter(_._1.isPersisted)
 
         val entities = inserts.keys.toList ++ updates.keys.toList ++ deletes.keys.toList
 
@@ -93,7 +95,7 @@ trait DurableContext {
                 validateTransactionEnd(transaction, entities)
                 store(statements.toList, inserts, updates, deletes)
                 setPersisted(inserts.keys)
-                deleteFromLiveCache(deletes.keys)
+                deleteFromLiveCache(deletesUnfiltered.keys)
                 statements.clear
             }
         }

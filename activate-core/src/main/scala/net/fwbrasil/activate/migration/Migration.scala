@@ -149,6 +149,8 @@ abstract class ManualMigration(implicit context: ActivateContext) extends Migrat
     def timestamp = -2l
     override private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
         false
+    def execute = Migration.execute(context, this)
+    def revert = Migration.revert(context, this)
 }
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")

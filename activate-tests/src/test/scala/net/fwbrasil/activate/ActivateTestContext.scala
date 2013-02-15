@@ -193,6 +193,17 @@ object mongoContext extends ActivateTestContext {
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
+//object db2Context extends ActivateTestContext {
+//    val storage = new PooledJdbcRelationalStorage {
+//        val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
+//        val user = "db2admin"
+//        val password = "db2admin"
+//        val url = "jdbc:db2://localhost:50000/SAMPLE"
+//        val dialect = derbyDialect
+//    }
+//}
+//class DB2ActivateTestMigration extends ActivateTestMigration()(db2Context)
+
 object polyglotContext extends ActivateTestContext {
     val postgre = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
@@ -232,12 +243,12 @@ object polyglotContext extends ActivateTestContext {
     val memory = new TransientMemoryStorage
     val storage = postgre
     override def additionalStorages = Map(
-        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
-        memory -> Set(classOf[SimpleEntity], classOf[EntityWithoutAttribute]),
-        prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]),
+        derby -> Set(classOf[Num]),
         h2 -> Set(classOf[EntityWithUninitializedValue]),
+        memory -> Set(classOf[SimpleEntity], classOf[EntityWithoutAttribute]),
         mongo -> Set(classOf[Box]),
-        derby -> Set(classOf[Num]))
+        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
+        prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]))
 }
 class PolyglotActivateTestMigration extends ActivateTestMigration()(polyglotContext)
 class PolyglotActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(polyglotContext) {
