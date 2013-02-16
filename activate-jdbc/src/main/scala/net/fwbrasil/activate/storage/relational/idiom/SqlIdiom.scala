@@ -216,13 +216,15 @@ trait SqlIdiom {
                 val listTable = toTableName(statement.entityClass, name.capitalize)
                 val delete =
                     new SqlStatement(
-                        "DELETE FROM " + listTable + " WHERE OWNER = :id", Map("id" -> id))
+                        statement = "DELETE FROM " + listTable + " WHERE OWNER = :id",
+                        binds = Map("id" -> id))
                 val inserts =
                     if (!isDelete && value.value.isDefined) {
                         val list = value.value.get
                         (0 until list.size).map { i =>
                             new SqlStatement(
-                                "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)", Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
+                                statement = "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)",
+                                binds = Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
                         }
                     } else List()
                 List(delete) ++ inserts
@@ -238,23 +240,26 @@ trait SqlIdiom {
             case insert: InsertDmlStorageStatement =>
                 digestLists(insert, propertyMap =>
                     new SqlStatement(
-                        "INSERT INTO " + toTableName(insert.entityClass) +
+                        statement = "INSERT INTO " + toTableName(insert.entityClass) +
                             " (" + propertyMap.keys.toList.map(escape).mkString(", ") + ") " +
                             " VALUES (:" + propertyMap.keys.mkString(", :") + ")",
-                        propertyMap))
+                        binds = propertyMap,
+                        expectedNumberOfAffectedRowsOption = Some(1)))
             case update: UpdateDmlStorageStatement =>
                 digestLists(update, propertyMap =>
                     new SqlStatement(
-                        "UPDATE " + toTableName(update.entityClass) +
+                        statement = "UPDATE " + toTableName(update.entityClass) +
                             " SET " + (for (key <- propertyMap.keys if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
                             " WHERE ID = :id",
-                        propertyMap))
+                        binds = propertyMap,
+                        expectedNumberOfAffectedRowsOption = Some(1)))
             case delete: DeleteDmlStorageStatement =>
                 digestLists(delete, propertyMap =>
                     new SqlStatement(
-                        "DELETE FROM " + toTableName(delete.entityClass) +
+                        statement = "DELETE FROM " + toTableName(delete.entityClass) +
                             " WHERE ID = '" + delete.entityId + "'",
-                        propertyMap))
+                        binds = propertyMap,
+                        expectedNumberOfAffectedRowsOption = Some(1)))
             case ddl: DdlStorageStatement =>
                 toSqlDdlAction(ddl.action)
             case modify: ModifyStorageStatement =>
@@ -432,53 +437,53 @@ trait SqlIdiom {
         action match {
             case action: StorageCreateListTable =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
                     toSqlDdlAction(action.addOwnerIndexAction)
             case action: StorageRemoveListTable =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
             case action: StorageCreateTable =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
             case action: StorageRenameTable =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
             case action: StorageRemoveTable =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
             case action: StorageAddColumn =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
             case action: StorageRenameColumn =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
             case action: StorageRemoveColumn =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddIndex =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
             case action: StorageRemoveIndex =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddReference =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
             case action: StorageRemoveReference =>
                 List(new SqlStatement(
-                    toSqlDdl(action),
-                    ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
 
     def toSqlModify(statement: ModifyStorageStatement) = {

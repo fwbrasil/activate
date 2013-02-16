@@ -520,6 +520,12 @@ class MigrationSpecs extends MigrationTest {
             migrationTest(
                 new TestMigration()(_) {
                     import context._
+                    def up = {
+                        createTableForEntity[TraitAttribute1].ifNotExists
+                    }
+                },
+                new TestMigration()(_) {
+                    import context._
                     def attributes =
                         transactional(all[TraitAttribute1].map(_.attribute).toSet)
                     def up = {

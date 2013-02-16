@@ -86,8 +86,16 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         try
             if (satisfyRestriction(jdbcStatement)) {
                 val stmt = createPreparedStatement(jdbcStatement, connection, true)
-                try stmt.executeBatch
-                finally stmt.close
+                try {
+                    val result = stmt.executeBatch
+                    val expectedResult = jdbcStatement.expectedNumbersOfAffectedRowsOption
+                    require(result.size == expectedResult.size)
+                    for (i <- 0 until result.size) {
+                        expectedResult(i).map { expected =>
+                            require(result(i) == expected)
+                        }
+                    }
+                } finally stmt.close
             }
         catch {
             case e: BatchUpdateException =>

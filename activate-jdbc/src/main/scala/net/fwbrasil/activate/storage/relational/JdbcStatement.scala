@@ -11,6 +11,7 @@ trait JdbcStatement extends Serializable {
     val statement: String
     val restrictionQuery: Option[(String, Int)]
     val bindsList: List[Map[String, StorageValue]]
+    def expectedNumbersOfAffectedRowsOption: List[Option[Int]]
 
     def toIndexedBind = {
         val pattern = Pattern.compile("(:[a-zA-Z0-9_]*)")
@@ -34,18 +35,13 @@ trait JdbcStatement extends Serializable {
 
 class SqlStatement(
     val statement: String,
-    val binds: Map[String, StorageValue],
-    val restrictionQuery: Option[(String, Int)])
+    val binds: Map[String, StorageValue] = Map(),
+    val restrictionQuery: Option[(String, Int)] = None,
+    val expectedNumberOfAffectedRowsOption: Option[Int] = None)
         extends JdbcStatement {
 
-    def this(statement: String, restrictionQuery: Option[(String, Int)]) =
-        this(statement, Map(), restrictionQuery)
-
-    def this(statement: String) =
-        this(statement, Map(), None)
-
-    def this(statement: String, binds: Map[String, StorageValue]) =
-        this(statement, binds, None)
+    override def expectedNumbersOfAffectedRowsOption =
+        List(expectedNumberOfAffectedRowsOption)
 
     val bindsList = List(binds)
 
@@ -58,7 +54,8 @@ class SqlStatement(
 class BatchSqlStatement(
     val statement: String,
     val bindsList: List[Map[String, StorageValue]],
-    val restrictionQuery: Option[(String, Int)])
+    val restrictionQuery: Option[(String, Int)],
+    override val expectedNumbersOfAffectedRowsOption: List[Option[Int]])
         extends JdbcStatement
 
 object BatchSqlStatement {
@@ -70,7 +67,8 @@ object BatchSqlStatement {
             val (head :: tail) = sqlStatements
             val (tailToGroup, others) = tail.span(_.isCompatible(head))
             val toGroup = List(head) ++ tailToGroup
-            val batch = new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery)
+            val expectedNumberOfAffectedRows = toGroup.map(_.expectedNumbersOfAffectedRowsOption).flatten
+            val batch = new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery, expectedNumberOfAffectedRows)
             group(others, grouped ++ List(batch))
         }
     }

@@ -82,13 +82,10 @@ object db2Dialect extends SqlIdiom {
                 List(
                     fromSuper,
                     new SqlStatement(
-                        "COMMIT",
-                        Map(),
-                        None),
+                        statement = "COMMIT"),
                     new SqlStatement(
-                        s"Call Sysproc.admin_cmd ('reorg Table ${removeColumn.tableName}')",
-                        Map(),
-                        ifExistsRestriction(findTableStatement(removeColumn.tableName), true)))
+                        statement = s"Call Sysproc.admin_cmd ('reorg Table ${removeColumn.tableName}')",
+                        restrictionQuery = ifExistsRestriction(findTableStatement(removeColumn.tableName), true)))
             case other => super.toSqlDdlAction(other)
         }
 
