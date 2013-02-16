@@ -42,6 +42,7 @@ object ActivateBuild extends Build {
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
+	val db2jcc = "com.ibm.db2" % "db2jcc4" % "10.0.1"
 
 	val gfork = "org.gfork" % "gfork" % "0.11"
   	
@@ -141,7 +142,7 @@ object ActivateBuild extends Build {
 			    activateMongo, activateGraph),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
-		    	  Seq(junit, specs2, mysql, objbd6, postgresql, 
+		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
 		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )

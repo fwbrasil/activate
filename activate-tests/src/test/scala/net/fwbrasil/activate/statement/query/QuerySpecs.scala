@@ -6,6 +6,7 @@ import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.db2Context
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -329,62 +330,66 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val entityId =
-                        step {
-                            newFullActivateTestEntity.id
+                    if (step.ctx != db2Context) { //UnsupportedOperationException
+                        val entityId =
+                            step {
+                                newFullActivateTestEntity.id
+                            }
+                        def entity = byId[ActivateTestEntity](entityId).get
+                        def testLike(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+                            step {
+                                entity.stringValue = stringThatMatch
+                            }
+                            step {
+                                select[ActivateTestEntity].where(_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
+                            }
+                            step {
+                                entity.stringValue = stringThatNotMatch
+                            }
+                            step {
+                                select[ActivateTestEntity].where(_.stringValue like pattern).isEmpty must beTrue
+                            }
                         }
-                    def entity = byId[ActivateTestEntity](entityId).get
-                    def testLike(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
-                        step {
-                            entity.stringValue = stringThatMatch
-                        }
-                        step {
-                            select[ActivateTestEntity].where(_.stringValue like pattern).onlyOne.id must beEqualTo(entityId)
-                        }
-                        step {
-                            entity.stringValue = stringThatNotMatch
-                        }
-                        step {
-                            select[ActivateTestEntity].where(_.stringValue like pattern).isEmpty must beTrue
-                        }
+                        testLike("test", "aaa", "te*")
+                        testLike("test", "aaa", "te*t")
+                        testLike("test", "aaa", "te?t")
+                        testLike("test", "aaa", "????")
                     }
-                    testLike("test", "aaa", "te*")
-                    testLike("test", "aaa", "te*t")
-                    testLike("test", "aaa", "te?t")
-                    testLike("test", "aaa", "????")
                 })
         }
         "support regexp" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val entityId =
-                        step {
-                            newFullActivateTestEntity.id
+                    if (step.ctx != db2Context) { //UnsupportedOperationException
+                        val entityId =
+                            step {
+                                newFullActivateTestEntity.id
+                            }
+                        def entity = byId[ActivateTestEntity](entityId).get
+                        def testRegexp(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
+                            step {
+                                entity.stringValue = stringThatMatch
+                            }
+                            step {
+                                select[ActivateTestEntity].where(_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
+                            }
+                            step {
+                                entity.stringValue = stringThatNotMatch
+                            }
+                            step {
+                                select[ActivateTestEntity].where(_.stringValue regexp pattern).isEmpty must beTrue
+                            }
                         }
-                    def entity = byId[ActivateTestEntity](entityId).get
-                    def testRegexp(stringThatMatch: String, stringThatNotMatch: String, pattern: String) = {
-                        step {
-                            entity.stringValue = stringThatMatch
-                        }
-                        step {
-                            select[ActivateTestEntity].where(_.stringValue regexp pattern).onlyOne.id must beEqualTo(entityId)
-                        }
-                        step {
-                            entity.stringValue = stringThatNotMatch
-                        }
-                        step {
-                            select[ActivateTestEntity].where(_.stringValue regexp pattern).isEmpty must beTrue
-                        }
+                        testRegexp("my-us3r_n4m3", "th1s1s-wayt00_l0ngt0beausername", "^[a-z0-9_-]{3,16}$")
+                        testRegexp("myp4ssw0rd", "mypa$$w0rd", "^[a-z0-9_-]{6,18}$")
+                        testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+                        testRegexp("my-title-here", "my_title_here", "^[a-z0-9-]+$")
+                        testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
+                        testRegexp("test1string", "teststring", "^.*[0-9].*$")
+                        testRegexp("test1str2ing", "teststring", "^.*[0-9].*$")
+                        testRegexp("test12str3ing", "teststring", "^.*[0-9].*$")
                     }
-                    testRegexp("my-us3r_n4m3", "th1s1s-wayt00_l0ngt0beausername", "^[a-z0-9_-]{3,16}$")
-                    testRegexp("myp4ssw0rd", "mypa$$w0rd", "^[a-z0-9_-]{6,18}$")
-                    testRegexp("#a3c113", "#4d82h4", "^#?([a-f0-9]{6}|[a-f0-9]{3})$")
-                    testRegexp("my-title-here", "my_title_here", "^[a-z0-9-]+$")
-                    testRegexp("john@doe.com", "john@doe.something", "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$")
-                    testRegexp("test1string", "teststring", "^.*[0-9].*$")
-                    testRegexp("test1str2ing", "teststring", "^.*[0-9].*$")
-                    testRegexp("test12str3ing", "teststring", "^.*[0-9].*$")
                 })
         }
 

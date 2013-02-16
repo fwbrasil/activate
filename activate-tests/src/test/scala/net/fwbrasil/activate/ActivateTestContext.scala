@@ -21,9 +21,9 @@ import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.activate.coordinator.CoordinatorClient
-
 import net.fwbrasil.activate.serialization.xmlSerializator
 import net.fwbrasil.activate.serialization.jsonSerializator
+import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -94,9 +94,9 @@ class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 object oracleContext extends ActivateTestContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-        val user = "ACTIVATE_TEST"
-        val password = "ACTIVATE_TEST"
-        val url = "jdbc:oracle:thin:@192.168.1.77:1521:orcl"
+        val user = "activate_test"
+        val password = "activate_test"
+        val url = "jdbc:oracle:thin:@192.168.1.11:1521:orcl"
         val dialect = oracleDialect
     }
 }
@@ -175,7 +175,6 @@ object derbyContext extends ActivateTestContext {
         val url = "jdbc:derby:memory:activate_test_derby;create=true"
         val dialect = derbyDialect
     }
-    val permanentConnectionToHoldMemoryDatabase = storage.getConnection
 }
 
 class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
@@ -193,16 +192,19 @@ object mongoContext extends ActivateTestContext {
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
-//object db2Context extends ActivateTestContext {
-//    val storage = new PooledJdbcRelationalStorage {
-//        val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
-//        val user = "db2admin"
-//        val password = "db2admin"
-//        val url = "jdbc:db2://localhost:50000/SAMPLE"
-//        val dialect = derbyDialect
-//    }
-//}
-//class DB2ActivateTestMigration extends ActivateTestMigration()(db2Context)
+object db2Context extends ActivateTestContext {
+    val storage = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
+        val user = "db2inst1"
+        val password = "db2inst1"
+        val url = "jdbc:db2://192.168.1.11:50000/ACTTST"
+        val dialect = db2Dialect
+    }
+}
+class Db2ActivateTestMigration extends ActivateTestMigration()(db2Context)
+class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
+    override def bigStringType = "CLOB"
+}
 
 object polyglotContext extends ActivateTestContext {
     val postgre = new PooledJdbcRelationalStorage {
