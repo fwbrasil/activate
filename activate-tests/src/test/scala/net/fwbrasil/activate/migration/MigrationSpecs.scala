@@ -520,23 +520,12 @@ class MigrationSpecs extends MigrationTest {
             migrationTest(
                 new TestMigration()(_) {
                     import context._
-                    def up = {
-                        createTableForAllEntities
-                        customScript {
-                            new TraitAttribute1("a")
-                        }
-                    }
-                    override def down = {
-                        removeAllEntitiesTables
-                    }
-                },
-                new TestMigration()(_) {
-                    import context._
                     def attributes =
                         transactional(all[TraitAttribute1].map(_.attribute).toSet)
                     def up = {
                         customScript {
                             update {
+                                new TraitAttribute1("x")
                                 (e: TraitAttribute1) => where(e isNotNull) set (e.attribute := "b")
                             }
                         }
@@ -547,6 +536,7 @@ class MigrationSpecs extends MigrationTest {
                     override def down = {
                         customScript {
                             update {
+                                new TraitAttribute1("x")
                                 (e: TraitAttribute1) => where(e isNotNull) set (e.attribute := "a")
                             }
                         }

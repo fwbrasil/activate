@@ -99,7 +99,8 @@ trait MongoStorage extends MarshalStorage[DB] {
         for ((entity, properties) <- deleteList) {
             val query = new BasicDBObject()
             query.put("_id", entity.id)
-            coll(entity).remove(query)
+            val result = coll(entity).remove(query)
+            require(result.getN == 1)
         }
 
     private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
@@ -113,7 +114,8 @@ trait MongoStorage extends MarshalStorage[DB] {
             }
             val update = new BasicDBObject
             update.put("$set", set)
-            coll(entity).update(query, update)
+            val result = coll(entity).update(query, update)
+            require(result.getN == 1)
         }
 
     private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {

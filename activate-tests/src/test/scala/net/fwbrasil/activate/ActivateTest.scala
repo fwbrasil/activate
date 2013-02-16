@@ -36,14 +36,15 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             //            polyglotContext,
             //            memoryContext,
             //            prevaylerContext,
-            //            mongoContext,
+            mongoContext //,
             //            mysqlContext,
             //            postgresqlContext,
             //            derbyContext,
             //            h2Context,
             //            hsqldbContext //,
             //            oracleContext 
-            db2Context)
+            //            db2Context
+            )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
         if (db == null)

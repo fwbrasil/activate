@@ -20,6 +20,7 @@ import net.fwbrasil.activate.storage.Storage
 import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 
 class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
 
@@ -79,11 +80,10 @@ trait DurableContext {
         }.getOrElse(f)
 
     override def makeDurable(transaction: Transaction) = {
-        lazy val statements = statementsForTransaction(transaction)
+        val statements = statementsForTransaction(transaction)
 
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-
-        val deletes = deletesUnfiltered.filter(_._1.isPersisted)
+        val deletes = filterDeletes(statements, deletesUnfiltered)
 
         val entities = inserts.keys.toList ++ updates.keys.toList ++ deletes.keys.toList
 
@@ -192,5 +192,30 @@ trait DurableContext {
                 if ((storages.toSet - statementStorage).nonEmpty)
                     throw new UnsupportedOperationException("If there is a mass statement, all entities modifications must be to the same storage.")
             }
+
+    private def filterDeletes(
+        statements: ListBuffer[MassModificationStatement],
+        deletesUnfiltered: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
+
+        val persistentDeletes = deletesUnfiltered.filter(_._1.isPersisted)
+
+        val massDeletes = statements.collect {
+            case statement: MassDeleteStatement =>
+                statement
+        }
+
+        lazy val deletesByEntityClass = persistentDeletes.map(_._1).groupBy(_.getClass)
+        val deletedByMassStatement =
+            massDeletes.toList.map { massDelete =>
+                transactional(transient) {
+                    val entitySource = massDelete.from.entitySources.onlyOne
+                    deletesByEntityClass.get(entitySource.entityClass).map {
+                        _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                    }.getOrElse(List())
+                }
+            }.flatten
+
+        persistentDeletes -- deletedByMassStatement
+    }
 
 }

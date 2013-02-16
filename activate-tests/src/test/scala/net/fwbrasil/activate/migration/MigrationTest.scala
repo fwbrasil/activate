@@ -54,10 +54,12 @@ class MigrationTest extends ActivateTest {
                 val migrations = registers.map(_(ctx))
                 try {
                     for (migration <- migrations) {
+                        ctx.reinitializeContext
                         Migration.execute(ctx, migration)
                         migration.validateUp
                     }
                     for (migration <- migrations.reverse) {
+                        ctx.reinitializeContext
                         Migration.revert(ctx, migration)
                         migration.validateDown
                     }
