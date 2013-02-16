@@ -383,6 +383,31 @@ class MigrationSpecs extends MigrationTest {
                             table[TraitAttribute1].addIndex("attribute", "att_idx").ifNotExists
                     })
 
+            "Table.addIndexes (unique)" in
+                migrationTest(
+                    new TestMigration()(_) {
+                        import context._
+                        def up =
+                            createTableForEntity[TraitAttribute1]
+                    },
+                    new TestMigration()(_) {
+                        import context._
+                        def up =
+                            table[TraitAttribute1].addIndex("attribute", "att_idx", unique = true)
+                        override def validateUp = {
+                            transactional(new TraitAttribute1("a"))
+                            transactional(new TraitAttribute1("a")) must throwA[Exception]
+                            transactional {
+                                new TraitAttribute1("a")
+                                new TraitAttribute1("a")
+                            } must throwA[Exception]
+                        }
+                        override def validateDown = {
+                            transactional(new TraitAttribute1("a"))
+                            transactional(new TraitAttribute1("a"))
+                        }
+                    })
+
         }
 
         "RemoveIndex" in {

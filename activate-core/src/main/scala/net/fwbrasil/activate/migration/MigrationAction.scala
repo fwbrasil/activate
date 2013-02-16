@@ -165,7 +165,8 @@ case class AddIndex(
     number: Int,
     tableName: String,
     columnName: String,
-    indexName: String)
+    indexName: String,
+    unique: Boolean)
         extends StorageAction
         with IfNotExists[AddIndex] {
     private[activate] def revertAction = {
@@ -176,7 +177,8 @@ case class AddIndex(
                 number,
                 tableName,
                 columnName,
-                indexName)
+                indexName,
+                unique)
         if (onlyIfNotExists)
             revertAction.ifExists
         revertAction
@@ -189,7 +191,8 @@ case class RemoveIndex(
     number: Int,
     tableName: String,
     columnName: String,
-    name: String)
+    name: String,
+    unique: Boolean)
         extends StorageAction
         with IfExists[RemoveIndex] {
     private[activate] def revertAction = {
@@ -199,7 +202,8 @@ case class RemoveIndex(
                 number,
                 tableName,
                 columnName,
-                name)
+                name,
+                unique)
         if (onlyIfExists)
             revertAction.ifNotExists
         revertAction

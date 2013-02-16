@@ -345,10 +345,10 @@ abstract class Migration(implicit val context: ActivateContext) {
         def removeColumn(columnName: String): RemoveColumn =
             addAction(RemoveColumn(Migration.this, storage, nextNumber, name, columnName))
 
-        def addIndex(columnName: String, indexName: String): AddIndex =
-            addAction(AddIndex(Migration.this, storage, nextNumber, name, columnName, indexName))
-        def removeIndex(columnName: String, indexName: String): RemoveIndex =
-            addAction(RemoveIndex(Migration.this, storage, nextNumber, name, columnName, indexName))
+        def addIndex(columnName: String, indexName: String, unique: Boolean = false): AddIndex =
+            addAction(AddIndex(Migration.this, storage, nextNumber, name, columnName, indexName, unique))
+        def removeIndex(columnName: String, indexName: String, unique: Boolean = false): RemoveIndex =
+            addAction(RemoveIndex(Migration.this, storage, nextNumber, name, columnName, indexName, unique))
 
         def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference =
             addReference(columnName, referencedTable.name, constraintName)

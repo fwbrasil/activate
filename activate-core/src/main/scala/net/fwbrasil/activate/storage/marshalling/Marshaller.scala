@@ -167,7 +167,7 @@ object Marshaller {
             case action: RemoveColumn =>
                 StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
             case action: AddIndex =>
-                StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists)
+                StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists, action.unique)
             case action: RemoveIndex =>
                 StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
             case action: AddReference =>
@@ -188,7 +188,7 @@ sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction
 case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, orderColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction {
     val listTableName = ownerTableName + listName.capitalize
-    val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists)
+    val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists, false)
 }
 case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction {
     val listTableName = ownerTableName + listName.capitalize
@@ -198,7 +198,7 @@ case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean)
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction
 case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends ModifyStorageAction
-case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean) extends ModifyStorageAction
+case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean, unique: Boolean) extends ModifyStorageAction
 case class StorageRemoveIndex(tableName: String, columnName: String, name: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageAddReference(tableName: String, columnName: String, referencedTable: String, constraintName: String, ifNotExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveReference(tableName: String, columnName: String, referencedTable: String, constraintName: String, ifExists: Boolean) extends ModifyStorageAction

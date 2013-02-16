@@ -85,8 +85,8 @@ object h2Dialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(oldName) + " RENAME TO " + escape(column.name)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
-            case StorageAddIndex(tableName, columnName, indexName, ifNotExists) =>
-                "CREATE INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
+            case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
+                "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
             case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
                 "DROP INDEX " + escape(name)
             case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
