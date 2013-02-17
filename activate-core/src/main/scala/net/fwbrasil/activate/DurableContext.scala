@@ -101,31 +101,36 @@ trait DurableContext {
         }
     }
 
+    private def groupByStorage[T](iterable: Iterable[T])(f: T => Class[_ <: Entity]) =
+        iterable.groupBy(v => storageFor(f(v))).mapValues(_.toList).withDefault(v => List())
+
+    private def mapVarsToName(list: List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]) =
+        list.map(tuple => (tuple._1, tuple._2.map(tuple => (tuple._1.name, tuple._2)).toMap)).toList
+
     private def store(
         statements: List[MassModificationStatement],
         insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
         updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
         deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
 
-        val statementsByStorage =
-            statements.groupBy(s => storageFor(s.from.entitySources.onlyOne.entityClass)).withDefault(s => List())
-        val insertsByStorage =
-            insertList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
-        val updatesByStorage =
-            updateList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
-        val deletesByStorage =
-            deleteList.groupBy(tuple => storageFor(tuple._1.niceClass)).withDefault(s => Map())
+        val statementsByStorage = groupByStorage(statements)(_.from.entitySources.onlyOne.entityClass)
+        val insertsByStorage = groupByStorage(insertList)(_._1.niceClass)
+        val updatesByStorage = groupByStorage(updateList)(_._1.niceClass)
+        val deletesByStorage = groupByStorage(deleteList)(_._1.niceClass)
+
         val storages = (statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
             updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList.sortBy(s => if (s == storage) -1 else 0)
+
         verifyMassSatatements(storages, statementsByStorage)
+
         var exceptionOption: Option[Throwable] = None
         val storagesToRollback =
             storages.takeWhile { storage =>
                 Try(storage.toStorage(
                     statementsByStorage(storage),
-                    insertsByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
-                    updatesByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
-                    deletesByStorage(storage).mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList)) match {
+                    mapVarsToName(insertsByStorage(storage)),
+                    mapVarsToName(updatesByStorage(storage)),
+                    mapVarsToName(deletesByStorage(storage)))) match {
                     case Success(unit) =>
                         true
                     case Failure(exception) =>
@@ -133,6 +138,7 @@ trait DurableContext {
                         false
                 }
             }
+
         exceptionOption.map { exception =>
             storagesToRollback.foreach { storage =>
                 val deletes = insertsByStorage(storage)
@@ -140,9 +146,9 @@ trait DurableContext {
                 val inserts = deletesByStorage(storage)
                 storage.toStorage(
                     List(),
-                    inserts.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
-                    updates.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList,
-                    deletes.mapValues(_.map(tuple => (tuple._1.name, tuple._2)).toMap).toList)
+                    mapVarsToName(inserts),
+                    mapVarsToName(updates),
+                    mapVarsToName(deletes))
             }
             throw exception
         }
