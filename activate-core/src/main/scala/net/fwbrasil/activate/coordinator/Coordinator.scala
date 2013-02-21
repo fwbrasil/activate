@@ -23,7 +23,7 @@ object Coordinator {
     val isServerVM =
         System.getProperty("activate.coordinator.server") == "true"
 
-    lazy val serverOption =
+    val serverOption =
         if (isServerVM)
             Option(new CoordinatorServer)
         else

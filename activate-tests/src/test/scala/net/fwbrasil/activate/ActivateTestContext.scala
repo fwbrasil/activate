@@ -270,7 +270,7 @@ object BigStringGenerator {
 trait ActivateTestContext
         extends StoppableActivateContext {
 
-    override protected lazy val runMigrationAtStartup = false
+    override protected val runMigrationAtStartup = false
 
     protected override lazy val coordinatorClientOption: Option[CoordinatorClient] =
         None
@@ -280,7 +280,7 @@ trait ActivateTestContext
             Reflection.set(entity, "$outer", this)
 
     override protected val defaultSerializator = xmlSerializator
-    override protected lazy val customSerializators = List(
+    override protected def customSerializators = List(
         serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializator)
 
     val emptyIntValue = 0

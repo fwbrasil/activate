@@ -15,7 +15,7 @@ trait StoppableActivateContext extends ActivateContext {
         running = false
     }
 
-    override protected lazy val runMigrationAtStartup = false
+    override protected val runMigrationAtStartup = false
     override def acceptEntity[E <: Entity](entityClass: Class[E]) =
         running
 

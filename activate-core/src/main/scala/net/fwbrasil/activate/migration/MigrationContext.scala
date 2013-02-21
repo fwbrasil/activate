@@ -20,7 +20,7 @@ trait MigrationContext {
         runStartupMigration
     }
 
-    protected lazy val runMigrationAtStartup = true
+    protected val runMigrationAtStartup = true
 
     private[activate] def runStartupMigration =
         if (runMigrationAtStartup)

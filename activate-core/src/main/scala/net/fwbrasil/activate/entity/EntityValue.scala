@@ -119,13 +119,13 @@ case class ReferenceListEntityValue[V](override val value: Option[List[Option[St
     def emptyValue = List()
 }
 
-case class SerializableEntityValue[S: Manifest](override val value: Option[S], val serializatorOption: Option[Serializator] = None)
+case class SerializableEntityValue[S: Manifest](override val value: Option[S], val serializatorOption: () => Option[Serializator] = () => None)
         extends EntityValue[S](value) {
     def typeManifest = manifest[S]
     def emptyValue = null.asInstanceOf[S]
-    def forSerializator(s: Serializator) = this.copy(serializatorOption = Some(s))
+    def forSerializator(s: => Serializator) = this.copy(serializatorOption = () => Some(s))
     def serializator =
-        serializatorOption.get
+        serializatorOption().get
 }
 
 object EntityValue extends ValueContext {

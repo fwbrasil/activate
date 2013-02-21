@@ -1,6 +1,7 @@
 package net.fwbrasil.activate
 
 import language.implicitConversions
+import net.fwbrasil.scala.UnsafeLazy._
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.statement.mass.MassDeleteContext
 import net.fwbrasil.activate.entity.EntityContext
@@ -60,8 +61,8 @@ trait ActivateContext
             entityClass.asInstanceOf[Class[Entity]],
             storage.asInstanceOf[Storage[Any]])
 
-    private lazy val additionalStoragesByEntityClasses =
-        (for ((storage, classes) <- additionalStorages.asInstanceOf[Map[Storage[Any], Set[Class[Entity]]]]) yield classes.map((_, storage))).flatten.toMap
+    private val additionalStoragesByEntityClasses =
+        unsafeLazy((for ((storage, classes) <- additionalStorages.asInstanceOf[Map[Storage[Any], Set[Class[Entity]]]]) yield classes.map((_, storage))).flatten.toMap)
 
     def additionalStorages = Map[Storage[_], Set[Class[_ <: Entity]]]()
 
@@ -78,7 +79,7 @@ trait ActivateContext
 
     private[activate] def name = contextName
 
-    lazy val contextName =
+    def contextName =
         this.getClass.getSimpleName.split('$').last
 
     def acceptEntity[E <: Entity](entityClass: Class[E]) =

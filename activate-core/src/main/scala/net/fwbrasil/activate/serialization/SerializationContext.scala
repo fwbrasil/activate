@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.serialization
 
+import net.fwbrasil.scala.UnsafeLazy._
 import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.SerializableEntityValue
@@ -32,9 +33,10 @@ trait SerializationContext {
         customSerializatorsMap.getOrElse((clazz, property), defaultSerializator)
 
     protected val defaultSerializator: Serializator = jsonSerializator
-    protected lazy val customSerializators = List[Map[(Class[_ <: Entity], String), Serializator]]()
 
-    private lazy val customSerializatorsMap =
-        customSerializators.flatten.toMap
+    private val customSerializatorsMap =
+        unsafeLazy(customSerializators.flatten.toMap)
+
+    protected def customSerializators = List[Map[(Class[_ <: Entity], String), Serializator]]()
 
 }

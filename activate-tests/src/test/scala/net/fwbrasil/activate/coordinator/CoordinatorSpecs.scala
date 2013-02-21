@@ -21,13 +21,13 @@ class CoordinatorTestContext extends ActivateTestContext {
     System.setProperty("activate.coordinator.server", "true")
     Coordinator.timeout = 1000
 
+    val storage = mongoContext.storage
+
     protected override lazy val coordinatorClientOption =
         if (storage.isMemoryStorage)
             None
         else
             Coordinator.clientOption(this)
-
-    val storage = mongoContext.storage
 
     stop
     def run[A](f: => A) = {

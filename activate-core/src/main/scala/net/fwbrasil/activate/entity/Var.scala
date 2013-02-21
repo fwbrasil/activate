@@ -16,17 +16,21 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize:
     val name = metadata.name
     val isTransient = metadata.isTransient
     val baseTVal = metadata.tval
-    lazy val tval = {
-        val empty = baseTVal(None)
-        (empty match {
-            case v: SerializableEntityValue[_] =>
-                val serializator =
-                    context.asInstanceOf[SerializationContext].serializatorFor(outerEntityClass, name)
-                (value: Option[T]) =>
-                    baseTVal(value).asInstanceOf[SerializableEntityValue[_]].forSerializator(serializator)
-                    case other =>
-                baseTVal
-        }).asInstanceOf[Option[T] => EntityValue[T]]
+    val tval = {
+        if (baseTVal == null)
+            null
+        else {
+            val empty = baseTVal(None)
+            (empty match {
+                case v: SerializableEntityValue[_] =>
+                    (value: Option[T]) =>
+                        baseTVal(value).asInstanceOf[SerializableEntityValue[_]].forSerializator {
+                            context.asInstanceOf[SerializationContext].serializatorFor(outerEntityClass, name)
+                        }
+                        case other =>
+                    baseTVal
+            }).asInstanceOf[Option[T] => EntityValue[T]]
+        }
     }
 
     var initialized = false
