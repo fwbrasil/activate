@@ -31,7 +31,7 @@ trait SerializationContext {
     private[activate] def serializatorFor(clazz: Class[_ <: Entity], property: String) =
         customSerializatorsMap.getOrElse((clazz, property), defaultSerializator)
 
-    protected lazy val defaultSerializator: Serializator = jsonSerializator
+    protected val defaultSerializator: Serializator = jsonSerializator
     protected lazy val customSerializators = List[Map[(Class[_ <: Entity], String), Serializator]]()
 
     private lazy val customSerializatorsMap =

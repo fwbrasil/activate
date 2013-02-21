@@ -116,7 +116,7 @@ class PrevaylerStorage(
         val assignments =
             new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
 
-        prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes.toList)))
+        prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 
         for ((entityId, changeSet) <- assignments)
             prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))

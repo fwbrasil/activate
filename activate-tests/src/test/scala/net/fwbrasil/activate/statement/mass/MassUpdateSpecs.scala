@@ -14,7 +14,7 @@ class MassUpdateSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        newFullActivateTestEntity
+                        newEmptyActivateTestEntity
                     }
                     val newValue = 789
                     step {
@@ -32,7 +32,7 @@ class MassUpdateSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     val id = step {
-                        newFullActivateTestEntity.id
+                        newEmptyActivateTestEntity.id
                     }
                     val newValue = 789
                     step {
@@ -50,7 +50,7 @@ class MassUpdateSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        (1 to 10).foreach(i => newFullActivateTestEntity)
+                        (1 to 10).foreach(i => newEmptyActivateTestEntity)
                     }
                     val newValue = 789
                     step {
@@ -71,7 +71,7 @@ class MassUpdateSpecs extends ActivateTest {
                     import step.ctx._
                     val ids =
                         step {
-                            (1 to 10).map(i => newFullActivateTestEntity.id)
+                            (1 to 10).map(i => newEmptyActivateTestEntity.id)
                         }
                     val newValue = 789
                     step {

@@ -394,14 +394,15 @@ class MigrationSpecs extends MigrationTest {
                         import context._
                         def up =
                             table[TraitAttribute1].addIndex("attribute", "att_idx", unique = true)
-                        override def validateUp = {
-                            transactional(new TraitAttribute1("a"))
-                            transactional(new TraitAttribute1("a")) must throwA[Exception]
-                            transactional {
-                                new TraitAttribute1("a")
-                                new TraitAttribute1("a")
-                            } must throwA[Exception]
-                        }
+                        override def validateUp =
+                            if (!storage.isMemoryStorage) {
+                                transactional(new TraitAttribute1("a"))
+                                transactional(new TraitAttribute1("a")) must throwA[Exception]
+                                transactional {
+                                    new TraitAttribute1("a")
+                                    new TraitAttribute1("a")
+                                } must throwA[Exception]
+                            }
                         override def validateDown = {
                             transactional(new TraitAttribute1("a"))
                             transactional(new TraitAttribute1("a"))

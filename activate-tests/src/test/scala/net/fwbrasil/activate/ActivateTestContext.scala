@@ -109,7 +109,7 @@ object mysqlContext extends ActivateTestContext {
     System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
     System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
     System.getProperties.put("activate.storage.mysql.user", "root")
-    System.getProperties.put("activate.storage.mysql.password", "")
+    System.getProperties.put("activate.storage.mysql.password", "root")
     System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/activate_test")
     System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
     val storage =
@@ -217,7 +217,7 @@ object polyglotContext extends ActivateTestContext {
     val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
         val user = "root"
-        val password = ""
+        val password = "root"
         val url = "jdbc:mysql://127.0.0.1/activate_test_polyglot"
         val dialect = mySqlDialect
     }
@@ -279,7 +279,7 @@ trait ActivateTestContext
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)
 
-    override protected lazy val defaultSerializator = xmlSerializator
+    override protected val defaultSerializator = xmlSerializator
     override protected lazy val customSerializators = List(
         serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializator)
 

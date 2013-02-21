@@ -389,10 +389,11 @@ trait MongoStorage extends MarshalStorage[DB] {
             case action: StorageAddIndex =>
                 val obj = new BasicDBObject
                 obj.put(action.columnName, 1)
+                val options = new BasicDBObject
                 if (action.unique)
-                    obj.put("unique", true)
+                    options.put("unique", true)
                 if (!action.ifNotExists || !collHasIndex(action.tableName, action.columnName))
-                    coll(action.tableName).createIndex(obj)
+                    coll(action.tableName).ensureIndex(obj, options)
             case action: StorageRemoveIndex =>
                 val obj = new BasicDBObject
                 obj.put(action.columnName, 1)

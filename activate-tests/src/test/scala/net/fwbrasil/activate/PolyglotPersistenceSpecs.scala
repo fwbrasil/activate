@@ -12,6 +12,9 @@ import net.fwbrasil.activate.migration.Migration
 @RunWith(classOf[JUnitRunner])
 class PolyglotPersistenceSpecs extends ActivateTest {
 
+    override def executors(ctx: ActivateTestContext) =
+        super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
+
     override def contexts = List(polyglotContext)
 
     import polyglotContext._

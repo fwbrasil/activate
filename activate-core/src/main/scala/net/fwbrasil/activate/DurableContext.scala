@@ -215,9 +215,13 @@ trait DurableContext {
             massDeletes.toList.map { massDelete =>
                 transactional(transient) {
                     val entitySource = massDelete.from.entitySources.onlyOne
-                    deletesByEntityClass.get(entitySource.entityClass).map {
-                        _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
-                    }.getOrElse(List())
+                    val entityClass = entitySource.entityClass
+                    val storage = storageFor(entityClass)
+                    if (!storage.isMemoryStorage)
+                        deletesByEntityClass.get(entityClass).map {
+                            _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                        }.getOrElse(List())
+                    else List()
                 }
             }.flatten
 
