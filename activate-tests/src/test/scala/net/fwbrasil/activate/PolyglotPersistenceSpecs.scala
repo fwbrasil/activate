@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.util.ThreadUtil.runWithThreads
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
@@ -150,6 +151,34 @@ class PolyglotPersistenceSpecs extends ActivateTest {
                         } must throwA[IllegalStateException]
                     })
         }
+
+        "handle concurrent distributed transactions" in
+            activateTest(
+                (step: StepExecutor) => {
+                    step {
+                        clearStorages
+                        createEntitiesForAllStorages
+                    }
+                    val numbers = 100
+                    def entityA = all[ActivateTestEntity].head // mysql
+                    def entityB = all[SimpleEntity].head // memory
+                    step {
+                        entityA.intValue = numbers
+                        entityB.intValue = 0
+                    }
+                    step {
+                        runWithThreads(numbers) {
+                            transactional {
+                                entityA.intValue -= 1
+                                entityB.intValue += 1
+                            }
+                        }
+                    }
+                    step {
+                        entityA.intValue mustEqual (0)
+                        entityB.intValue mustEqual (numbers)
+                    }
+                })
     }
 
     private val migration =
