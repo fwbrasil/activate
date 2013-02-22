@@ -38,7 +38,7 @@ object ActivateBuild extends Build {
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
-	val c3po = "com.mchange" % "c3p0" % "0.9.2-pre4"
+	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
@@ -97,7 +97,7 @@ object ActivateBuild extends Build {
     		dependencies = Seq(activateCore),
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(c3po)
+		    	  Seq(boneCP)
 		    )
     	)
                            

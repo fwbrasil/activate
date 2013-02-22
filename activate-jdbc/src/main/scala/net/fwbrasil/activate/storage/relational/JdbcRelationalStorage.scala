@@ -15,7 +15,8 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
-import com.mchange.v2.c3p0.ComboPooledDataSource
+import com.jolbox.bonecp.BoneCP
+import com.jolbox.bonecp.BoneCPConfig
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -181,25 +182,32 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
     val user: String
     val password: String
 
-    private var _dataSource: ComboPooledDataSource = _
+    private var _connectionPool: BoneCP = _
 
     override def delayedInit(body: => Unit) = {
         body
-        _dataSource = new ComboPooledDataSource
-        _dataSource.setDriverClass(jdbcDriver)
-        _dataSource.setJdbcUrl(url)
-        _dataSource.setUser(user)
-        _dataSource.setPassword(password)
+        initConnectionPool
     }
 
-    def dataSource =
-        _dataSource
+    def connectionPool =
+        _connectionPool
 
-    override protected[activate] def reinitialize =
-        _dataSource.hardReset
+    override def reinitialize = {
+        _connectionPool.shutdown
+        initConnectionPool
+    }
 
     override def getConnection =
-        _dataSource.getConnection
+        _connectionPool.getConnection
+
+    private def initConnectionPool = {
+        Class.forName(jdbcDriver)
+        val config = new BoneCPConfig
+        config.setJdbcUrl(url)
+        config.setUsername(user)
+        config.setPassword(password)
+        _connectionPool = new BoneCP(config)
+    }
 
 }
 

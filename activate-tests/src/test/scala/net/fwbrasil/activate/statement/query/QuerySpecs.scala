@@ -6,7 +6,6 @@ import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
-import net.fwbrasil.activate.db2Context
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -330,7 +329,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != db2Context) { //UnsupportedOperationException
+                    if (step.ctx.name != "db2Context") { //UnsupportedOperationException
                         val entityId =
                             step {
                                 newFullActivateTestEntity.id
@@ -361,7 +360,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != db2Context) { //UnsupportedOperationException
+                    if (step.ctx.name != "db2Context") { //UnsupportedOperationException
                         val entityId =
                             step {
                                 newFullActivateTestEntity.id
