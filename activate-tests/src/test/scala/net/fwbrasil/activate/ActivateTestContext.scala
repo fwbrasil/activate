@@ -270,9 +270,7 @@ object BigStringGenerator {
 trait ActivateTestContext
         extends StoppableActivateContext {
 
-    override protected val runMigrationAtStartup = false
-
-    protected override lazy val coordinatorClientOption: Option[CoordinatorClient] =
+    protected override val coordinatorClientOption: Option[CoordinatorClient] =
         None
 
     override protected[activate] def entityMaterialized(entity: Entity) =

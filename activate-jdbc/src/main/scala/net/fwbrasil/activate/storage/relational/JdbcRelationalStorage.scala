@@ -1,5 +1,7 @@
 package net.fwbrasil.activate.storage.relational
 
+import language.existentials
+import net.fwbrasil.scala.UnsafeLazy._
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -156,41 +158,48 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
 }
 
-trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage {
-
-    val jdbcDriver: String
-    val url: String
-    val user: String
-    val password: String
-    private lazy val clazz = Class.forName(jdbcDriver)
-
-    override def getConnection = {
-        clazz
-        DriverManager.getConnection(url, user, password)
-    }
-}
-
-trait PooledJdbcRelationalStorage extends JdbcRelationalStorage {
+trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit {
 
     val jdbcDriver: String
     val url: String
     val user: String
     val password: String
 
-    lazy val dataSource = {
-        val dataSource = new ComboPooledDataSource
-        dataSource.setDriverClass(jdbcDriver)
-        dataSource.setJdbcUrl(url)
-        dataSource.setUser(user)
-        dataSource.setPassword(password)
-        dataSource
+    override def delayedInit(body: => Unit) {
+        body
+        Class.forName(jdbcDriver)
     }
-
-    override protected[activate] def reinitialize =
-        dataSource.hardReset
 
     override def getConnection =
-        dataSource.getConnection
+        DriverManager.getConnection(url, user, password)
+}
+
+trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit {
+
+    val jdbcDriver: String
+    val url: String
+    val user: String
+    val password: String
+
+    private var _dataSource: ComboPooledDataSource = _
+
+    override def delayedInit(body: => Unit) = {
+        body
+        _dataSource = new ComboPooledDataSource
+        _dataSource.setDriverClass(jdbcDriver)
+        _dataSource.setJdbcUrl(url)
+        _dataSource.setUser(user)
+        _dataSource.setPassword(password)
+    }
+
+    def dataSource =
+        _dataSource
+
+    override protected[activate] def reinitialize =
+        _dataSource.hardReset
+
+    override def getConnection =
+        _dataSource.getConnection
 
 }
 
@@ -205,34 +214,34 @@ trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 }
 
 object PooledJdbcRelationalStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
-        new PooledJdbcRelationalStorage {
-            val jdbcDriver = properties("jdbcDriver")
-            val url = properties("url")
-            val user = properties("user")
-            val password = properties("password")
-            val dialect = SqlIdiom.dialect(properties("dialect"))
-        }
+    class PooledJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends PooledJdbcRelationalStorage {
+        val jdbcDriver = properties("jdbcDriver")
+        val url = properties("url")
+        val user = properties("user")
+        val password = properties("password")
+        val dialect = SqlIdiom.dialect(properties("dialect"))
     }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new PooledJdbcRelationalStorageFromFactory(properties)
 }
 
 object SimpleJdbcRelationalStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
-        new SimpleJdbcRelationalStorage {
-            val jdbcDriver = properties("jdbcDriver")
-            val url = properties("url")
-            val user = properties("user")
-            val password = properties("password")
-            val dialect = SqlIdiom.dialect(properties("dialect"))
-        }
+    class SimpleJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends SimpleJdbcRelationalStorage {
+        val jdbcDriver = properties("jdbcDriver")
+        val url = properties("url")
+        val user = properties("user")
+        val password = properties("password")
+        val dialect = SqlIdiom.dialect(properties("dialect"))
     }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new SimpleJdbcRelationalStorageFromFactory(properties)
 }
 
 object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
-        new DataSourceJdbcRelationalStorage {
-            val dataSourceName = properties("dataSourceName")
-            val dialect = SqlIdiom.dialect(properties("dialect"))
-        }
+    class DataSourceJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends DataSourceJdbcRelationalStorage {
+        val dataSourceName = properties("dataSourceName")
+        val dialect = SqlIdiom.dialect(properties("dialect"))
     }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new DataSourceJdbcRelationalStorageFromFactory(properties)
 }

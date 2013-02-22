@@ -59,7 +59,7 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 
-trait MongoStorage extends MarshalStorage[DB] {
+trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
     val host: String
     val port: Int = 27017
@@ -69,14 +69,17 @@ trait MongoStorage extends MarshalStorage[DB] {
     def directAccess =
         mongoDB
 
-    lazy val mongoDB = {
+    private var mongoDB: DB = _
+
+    override def delayedInit(body: => Unit) = {
+        body
         val conn = new MongoClient(host, port)
-        val ret = conn.getDB(db)
+        mongoDB = conn.getDB(db)
         if (authentication.isDefined) {
             val (user, password) = authentication.get
-            ret.authenticate(user, password.toArray[Char])
+            mongoDB.authenticate(user, password.toArray[Char])
         }
-        ret
+        mongoDB
     }
 
     override def supportComplexQueries = false
@@ -446,13 +449,13 @@ trait MongoStorage extends MarshalStorage[DB] {
 }
 
 object MongoStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] = {
-        new MongoStorage {
-            override val host = properties("host")
-            override val port = Integer.parseInt(properties("port"))
-            override val db = properties("db")
-            override val authentication =
-                properties.get("user").map(user => (user, properties("password")))
-        }
+    class MongoStorageFromFactory(properties: Map[String, String]) extends MongoStorage {
+        override val host = properties("host")
+        override val port = Integer.parseInt(properties("port"))
+        override val db = properties("db")
+        override val authentication =
+            properties.get("user").map(user => (user, properties("password")))
     }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new MongoStorageFromFactory(properties)
 }

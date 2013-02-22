@@ -53,7 +53,7 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
     private def deregisterContext =
         sendAndExpectSuccess(DeregisterContext(contextId))
 
-    def tryToAcquireLocks(reads: Set[String], writes: Set[String]) = {
+    def tryToAcquireLocks(reads: Set[String], writes: Set[String]) =
         if (reads.isEmpty && writes.isEmpty)
             (Set(), Set())
         else
@@ -63,7 +63,6 @@ class CoordinatorClient(val context: DurableContext, val server: AbstractActor) 
                 case LockFail(request, readLocksNok, writeLocksNok) =>
                     (readLocksNok, writeLocksNok)
             })
-    }
 
     def releaseLocks(reads: Set[String], writes: Set[String]) =
         sendAndExpect(ReleaseLocks(contextId, reads, writes), _ match {

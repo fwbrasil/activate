@@ -41,7 +41,7 @@ trait DurableContext {
             }
         }
 
-    protected lazy val coordinatorClientOption =
+    protected val coordinatorClientOption =
         Coordinator.clientOption(this)
 
     protected def reinitializeCoordinator = {

@@ -8,28 +8,24 @@ import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
-import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import scala.actors.remote.NetKernel
 import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
 import net.fwbrasil.activate.mongoContext
+import net.fwbrasil.activate.StoppableActivateContext
 
-class CoordinatorTestContext extends ActivateTestContext {
+class CoordinatorTestContext extends StoppableActivateContext {
 
-    System.setProperty("activate.coordinator.server", "true")
     Coordinator.timeout = 1000
+
+    class IntEntity extends Entity {
+        var intValue = 0
+    }
 
     val storage = mongoContext.storage
 
-    protected override lazy val coordinatorClientOption =
-        if (storage.isMemoryStorage)
-            None
-        else
-            Coordinator.clientOption(this)
-
-    stop
     def run[A](f: => A) = {
         start
         try
@@ -45,6 +41,8 @@ object ctx2 extends CoordinatorTestContext
 
 @RunWith(classOf[JUnitRunner])
 class CoordinatorSpecs extends ActivateTest {
+
+    System.setProperty("activate.coordinator.server", "true")
 
     "Coordinator" should {
         "detect concurrent modification (write)" in synchronized {
@@ -107,13 +105,13 @@ class CoordinatorSpecs extends ActivateTest {
         val (entityCtx1, entityId) =
             ctx1.run {
                 import ctx1._
-                val entity = newEmptyActivateTestEntity
+                val entity = new IntEntity
                 entity.intValue = 1
                 (entity, entity.id)
             }
         val entityCtx2 = ctx2.run {
             import ctx2._
-            byId[ActivateTestEntity](entityId).get
+            byId[IntEntity](entityId).get
         }
         entityCtx1 mustNotEqual (entityCtx2)
         (entityCtx1, entityCtx2)
