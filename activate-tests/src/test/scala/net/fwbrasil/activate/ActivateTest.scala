@@ -139,16 +139,16 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
         for (ctx <- contexts) {
             import ctx._
             start
-            runMigration
-            def clear = transactional {
-                all[ActivateTestEntity].foreach(_.delete)
-                all[TraitAttribute].foreach(_.delete)
-                all[EntityWithoutAttribute].foreach(_.delete)
-                all[CaseClassEntity].foreach(_.delete)
-                all[SimpleEntity].foreach(_.delete)
-                all[ShortNameEntity].foreach(_.delete)
-            }
             try {
+                runMigration
+                def clear = transactional {
+                    all[ActivateTestEntity].foreach(_.delete)
+                    all[TraitAttribute].foreach(_.delete)
+                    all[EntityWithoutAttribute].foreach(_.delete)
+                    all[CaseClassEntity].foreach(_.delete)
+                    all[SimpleEntity].foreach(_.delete)
+                    all[ShortNameEntity].foreach(_.delete)
+                }
                 for (executor <- executors(ctx)) {
                     clear
                     f(executor)

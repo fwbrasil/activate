@@ -34,7 +34,7 @@ class MigrationTest extends ActivateTest {
                     }
                     if (ctx.storage.isInstanceOf[PooledJdbcRelationalStorage])
                         ctx.storage.asInstanceOf[PooledJdbcRelationalStorage].reinitialize
-                    ActivateContext.clearContextCache
+                    ActivateContext.clearCaches()
                     Migration.migrationsCache.clear
                     Migration.storageVersionCache.clear
                 }

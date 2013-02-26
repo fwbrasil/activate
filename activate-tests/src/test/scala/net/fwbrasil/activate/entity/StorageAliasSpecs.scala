@@ -82,14 +82,24 @@ class StorageAliasSpecs extends ActivateTest {
 
     private def querySqlForString(sql: String, storage: JdbcRelationalStorage)(implicit context: ActivateTestContext) = {
         val conn = storage.directAccess
-        val rs = conn.prepareStatement(sql).executeQuery()
-        rs.next()
-        val string = rs.getString(1)
-        if (rs.next())
-            throw new IllegalStateException("Not a single result query")
-        rs.close
-        conn.close
-        string
+        try {
+            val stmt = conn.prepareStatement(sql)
+            try {
+                val rs = stmt.executeQuery()
+                try {
+                    rs.next()
+                    val string = rs.getString(1)
+                    if (rs.next())
+                        throw new IllegalStateException("Not a single result query")
+                    string
+                } finally
+                    rs.close
+            } finally
+                stmt.close
+        } finally {
+            conn.rollback
+            conn.close
+        }
     }
 
 }

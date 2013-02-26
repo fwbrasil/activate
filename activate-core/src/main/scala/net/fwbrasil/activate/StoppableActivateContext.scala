@@ -1,13 +1,15 @@
 package net.fwbrasil.activate
 
 import net.fwbrasil.activate.migration.Migration
+import net.fwbrasil.activate.entity.EntityHelper
 
 trait StoppableActivateContext extends ActivateContext {
 
     var running = false
 
     def start = synchronized {
-        ActivateContext.clearContextCache
+        ActivateContext.clearCaches()
+        EntityHelper.initialize(this.getClass)
         running = true
         Migration.update(this)
     }

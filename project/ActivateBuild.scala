@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC5"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.2"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -23,6 +23,7 @@ object ActivateBuild extends Build {
 	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3" exclude("xpp3", "xpp3_min")
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
 	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
+	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -38,7 +39,7 @@ object ActivateBuild extends Build {
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
-	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
+	val boneCP = "com.jolbox" % "bonecp" % "0.8.0-rc1"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
@@ -75,7 +76,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      smirror, xstream, scalaActors, jettison)
+		    	      smirror, xstream, scalaActors, jettison, findBugs)
 		    )
 		)
 
@@ -151,7 +152,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.2-SNAPSHOT",
+    		version := "1.2-RC5",
     		scalaVersion := "2.10.0",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,

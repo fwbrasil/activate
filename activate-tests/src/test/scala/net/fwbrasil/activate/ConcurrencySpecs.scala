@@ -16,6 +16,8 @@ class ConcurrencySpecs extends ActivateTest {
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
+    val threads = 100
+
     "Activate" should {
         "be consistent" in {
             "concurrent creation" in {
@@ -23,14 +25,14 @@ class ConcurrencySpecs extends ActivateTest {
                     (step: StepExecutor) => {
                         import step.ctx._
                         step {
-                            runWithThreads() {
+                            runWithThreads(threads) {
                                 transactional {
                                     new TraitAttribute1("1")
                                 }
                             }
                         }
                         step {
-                            all[TraitAttribute1].size must beEqualTo(100)
+                            all[TraitAttribute1].size must beEqualTo(threads)
                             all[TraitAttribute1].map(_.attribute).toSet must beEqualTo(Set("1"))
                         }
                     })
@@ -46,7 +48,7 @@ class ConcurrencySpecs extends ActivateTest {
                                 entity.id
                             }
                         step {
-                            runWithThreads() {
+                            runWithThreads(threads) {
                                 transactional {
                                     val entity = byId[ActivateTestEntity](entityId).get
                                     entity.intValue must beEqualTo(1)
@@ -69,9 +71,11 @@ class ConcurrencySpecs extends ActivateTest {
                                 entity.id
                             }
                         step {
-                            val entity = byId[ActivateTestEntity](entityId).get
-                            entity.intValue must beEqualTo(0)
-                            runWithThreads() {
+                            transactional(requiresNew) {
+                                val entity = byId[ActivateTestEntity](entityId).get
+                                entity.intValue must beEqualTo(0)
+                            }
+                            runWithThreads(threads) {
                                 transactional {
                                     val entity = byId[ActivateTestEntity](entityId).get
                                     entity.intValue += 1
@@ -79,7 +83,7 @@ class ConcurrencySpecs extends ActivateTest {
                             }
                         }
                         step {
-                            all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
+                            all[ActivateTestEntity].onlyOne.intValue must beEqualTo(threads)
                         }
                     })
             }
@@ -88,7 +92,6 @@ class ConcurrencySpecs extends ActivateTest {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._
-                        val threads = 300
                         val (entityId1, entityId2) =
                             step {
                                 val entity1 = newEmptyActivateTestEntity
@@ -98,10 +101,12 @@ class ConcurrencySpecs extends ActivateTest {
                                 (entity1.id, entity2.id)
                             }
                         step {
-                            val entity1 = byId[ActivateTestEntity](entityId1).get
-                            val entity2 = byId[ActivateTestEntity](entityId2).get
-                            entity1.intValue must beEqualTo(1000)
-                            entity2.intValue must beEqualTo(0)
+                            transactional(requiresNew) {
+                                val entity1 = byId[ActivateTestEntity](entityId1).get
+                                val entity2 = byId[ActivateTestEntity](entityId2).get
+                                entity1.intValue must beEqualTo(1000)
+                                entity2.intValue must beEqualTo(0)
+                            }
                             runWithThreads(threads) {
                                 transactional {
                                     val entity1 = byId[ActivateTestEntity](entityId1).get
@@ -129,7 +134,7 @@ class ConcurrencySpecs extends ActivateTest {
                                 entity.id
                             }
                         step {
-                            runWithThreads() {
+                            runWithThreads(threads) {
                                 transactional {
                                     val entity = byId[ActivateTestEntity](entityId).get
                                     entity.intValue += 1
@@ -137,7 +142,7 @@ class ConcurrencySpecs extends ActivateTest {
                             }
                         }
                         step {
-                            all[ActivateTestEntity].onlyOne.intValue must beEqualTo(100)
+                            all[ActivateTestEntity].onlyOne.intValue must beEqualTo(threads)
                         }
                     })
             }

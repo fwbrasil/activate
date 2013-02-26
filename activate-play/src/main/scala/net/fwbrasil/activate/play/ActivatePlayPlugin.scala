@@ -16,13 +16,7 @@ class ActivatePlayPlugin(app: play.Application) extends Plugin {
 
     override def onStart = {
         ActivateContext.currentClassLoader = Play.application().classloader()
-        Migration.storageVersionCache.clear
-        Migration.migrationsCache.clear
-        Migration.storageVersionCache.clear
-        Reflection.reflectionsCache.clear
-        StatementMocks.entityMockCache.clear
-        ActivateContext.clearContextCache
-        EntityHelper.clearMetadatas
+        ActivateContext.clearCaches(forClassReload = true)
     }
 }
 

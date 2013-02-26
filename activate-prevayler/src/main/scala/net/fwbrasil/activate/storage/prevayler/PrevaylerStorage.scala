@@ -33,6 +33,9 @@ import java.util.Date
 import org.prevayler.foundation.serialization.Serializer
 import org.prevayler.implementation.TransactionCapsule
 import org.prevayler.implementation.DummyTransactionCapsule
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
+import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.cache.live.LiveCache
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
 
@@ -128,7 +131,17 @@ class PrevaylerStorage(
     protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
         List()
 
-    override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {}
+    override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
+        action match {
+            case action: StorageRemoveTable =>
+                val idsByEntityName = prevalentSystem.keys.toList.groupBy(id =>
+                    EntityHelper.getEntityName(EntityHelper.getEntityClassFromId(id)))
+                val idsToRemove = idsByEntityName.getOrElse(action.name, List())
+                prevayler.execute(PrevaylerMemoryStorageTransaction(context, new HashMap, new HashSet(idsToRemove)))
+                PrevaylerMemoryStorageTransaction.destroyEntity(new HashSet(idsToRemove), context.liveCache)
+                prevalentSystem --= idsToRemove
+            case _ =>
+        }
 
     override def isMemoryStorage = true
 
@@ -158,15 +171,20 @@ case class PrevaylerMemoryStorageTransaction(
             }
         }
 
-        for (entityId <- deletes) {
+        PrevaylerMemoryStorageTransaction.destroyEntity(deletes, liveCache)
+
+    }
+}
+
+object PrevaylerMemoryStorageTransaction {
+    def destroyEntity(entityIds: HashSet[String], liveCache: LiveCache) =
+        for (entityId <- entityIds) {
             val entity = liveCache.materializeEntity(entityId)
             liveCache.delete(entityId)
             entity.setInitialized
             for (ref <- entity.vars)
                 ref.destroyInternal
         }
-
-    }
 }
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {

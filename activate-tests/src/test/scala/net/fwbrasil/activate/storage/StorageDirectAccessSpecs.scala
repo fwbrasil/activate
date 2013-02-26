@@ -38,11 +38,16 @@ class StorageDirectAccessSpecs extends ActivateTest {
                             case memorySet: TransientMemoryStorageSet =>
                                 memorySet.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                             case jdbcConnection: Connection =>
-                                val stmt = jdbcConnection.createStatement
-                                val result = stmt.executeQuery("SELECT ID FROM ActivateTestEntity")
-                                result.next must beTrue
-                                result.getString(1) must beEqualTo(id)
-                                result.next must beFalse
+                                try {
+                                    val stmt = jdbcConnection.createStatement
+                                    val result = stmt.executeQuery("SELECT ID FROM ActivateTestEntity")
+                                    result.next must beTrue
+                                    result.getString(1) must beEqualTo(id)
+                                    result.next must beFalse
+                                } finally {
+                                    jdbcConnection.rollback
+                                    jdbcConnection.close
+                                }
                             case mongoDB: DB =>
                                 val cursor = mongoDB.getCollection("ActivateTestEntity").find
                                 cursor.next.get("_id") must beEqualTo(id)

@@ -26,6 +26,7 @@ import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.serialization.SerializationContext
 import net.fwbrasil.activate.util.CollectionUtil
 import net.fwbrasil.activate.migration.MigrationContext
+import net.fwbrasil.activate.util.Reflection
 
 trait ActivateContext
         extends EntityContext
@@ -115,8 +116,17 @@ object ActivateContext {
         else
             contextCache.getOrElseUpdate(entityClass, context(entityClass))
 
-    def clearContextCache =
+    def clearCaches(forClassReload: Boolean = false) = {
+        Migration.storageVersionCache.clear
+        Migration.storageVersionCache.clear
+        StatementMocks.entityMockCache.clear
         contextCache.clear
+        if (forClassReload) {
+            Migration.migrationsCache.clear
+            EntityHelper.clearMetadatas
+            Reflection.reflectionsCache.clear
+        }
+    }
 
     private def context[E <: Entity](entityClass: Class[E]) =
         instancesOf[ActivateContext]
