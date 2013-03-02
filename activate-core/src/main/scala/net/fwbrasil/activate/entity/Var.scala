@@ -8,14 +8,19 @@ import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.serialization.SerializationContext
 
-class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize: Boolean)
-        extends Ref[T](None, initialize)(_outerEntity.context)
+class Var[T](
+    val name: String,
+    val isTransient: Boolean,
+    val baseTVal: Option[Any] => EntityValue[Any],
+    val valueClass: Class[_],
+    val outerEntity: Entity,
+    initialize: Boolean)
+        extends Ref[T](None, initialize)(outerEntity.context)
         with java.io.Serializable {
 
-    val outerEntity = _outerEntity
-    val name = metadata.name
-    val isTransient = metadata.isTransient
-    val baseTVal = metadata.tval
+    def this(metadata: EntityPropertyMetadata, outerEntity: Entity, initialize: Boolean) =
+        this(metadata.name, metadata.isTransient, metadata.tval, metadata.propertyType, outerEntity, initialize)
+
     val tval = {
         if (baseTVal == null)
             null
@@ -37,7 +42,6 @@ class Var[T](metadata: EntityPropertyMetadata, _outerEntity: Entity, initialize:
 
     def toEntityPropertyValue(value: T) = tval(Option(value))
     def outerEntityClass = outerEntity.niceClass
-    val valueClass = metadata.propertyType
 
     override def get = doInitialized {
         if (outerEntity == null)

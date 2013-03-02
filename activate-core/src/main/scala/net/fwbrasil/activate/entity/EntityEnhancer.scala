@@ -43,6 +43,10 @@ object EntityEnhancer extends Logging {
     def isEntityTraitField(field: CtField) =
         field.getName.startsWith(entityClassFieldPrefix)
 
+    def isDisabledVersionVar(field: CtField) =
+        field.getName == "version" &&
+            !VersionVar.isActive
+
     def isVarField(field: CtField) =
         field.getType.getName == varClassName
 
@@ -56,7 +60,13 @@ object EntityEnhancer extends Logging {
         Modifier.isStatic(field.getModifiers)
 
     def isCandidate(field: CtField) =
-        !isEntityTraitField(field) && !isVarField(field) && !isScalaVariable(field) && !isValidEntityField(field) && !isStatic(field) && field.getName != "_varsMap"
+        !isDisabledVersionVar(field) &&
+            !isEntityTraitField(field) &&
+            !isVarField(field) &&
+            !isScalaVariable(field) &&
+            !isValidEntityField(field) &&
+            !isStatic(field) &&
+            field.getName != "_varsMap"
 
     def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
         val lazyValueValueSuffix = "Value"

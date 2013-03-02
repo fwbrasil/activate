@@ -30,6 +30,7 @@ object Migration {
             def up = {
                 createTableForEntity[StorageVersion]
                     .ifNotExists
+                createInexistentColumnsForEntity[StorageVersion]
                 customScript {
                     ctx.storages.foreach(_.prepareDatabase)
                 }

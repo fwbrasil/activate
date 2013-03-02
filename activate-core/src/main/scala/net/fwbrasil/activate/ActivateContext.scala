@@ -94,8 +94,6 @@ trait ActivateContext
 
 object ActivateContext {
 
-    private[activate] var useContextCache = true
-
     private var currentClassLoader = this.getClass.getClassLoader
 
     private[activate] def setClassLoader(classLoader: ClassLoader) = {
@@ -117,10 +115,7 @@ object ActivateContext {
         new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
 
     private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
-        if (!useContextCache)
-            context(entityClass)
-        else
-            contextCache.getOrElseUpdate(entityClass, context(entityClass))
+        contextCache.getOrElseUpdate(entityClass, context(entityClass))
 
     def clearCaches(forClassReload: Boolean = false) = {
         Migration.storageVersionCache.clear

@@ -23,6 +23,8 @@ trait Entity extends Serializable with EntityValidation {
     @transient
     private var _vars: List[Var[Any]] = null
 
+    final var version: Long = 0l
+
     private[activate] def varsMap =
         _varsMap
 
