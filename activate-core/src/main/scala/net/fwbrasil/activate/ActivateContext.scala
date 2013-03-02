@@ -96,7 +96,13 @@ object ActivateContext {
 
     private[activate] var useContextCache = true
 
-    private[activate] var currentClassLoader = this.getClass.getClassLoader
+    private var currentClassLoader = this.getClass.getClassLoader
+
+    private[activate] def setClassLoader(classLoader: ClassLoader) = {
+        if (currentClassLoader != classLoader)
+            clearCaches(true)
+        currentClassLoader = classLoader
+    }
 
     private[activate] def loadClass(className: String) =
         classLoaderFor(className).loadClass(className)
