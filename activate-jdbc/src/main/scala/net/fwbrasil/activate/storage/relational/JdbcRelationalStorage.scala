@@ -17,6 +17,8 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
 import com.jolbox.bonecp.BoneCP
 import com.jolbox.bonecp.BoneCPConfig
+import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -85,19 +87,14 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             }
         }).getOrElse(true)
 
-    protected[activate] def execute(jdbcStatement: JdbcStatement, connection: Connection) =
+    def execute(jdbcStatement: JdbcStatement, connection: Connection) =
         try
             if (satisfyRestriction(jdbcStatement)) {
                 val stmt = createPreparedStatement(jdbcStatement, connection, true)
                 try {
                     val result = stmt.executeBatch
-                    val expectedResult = jdbcStatement.expectedNumbersOfAffectedRowsOption
-                    require(result.size == expectedResult.size)
-                    for (i <- 0 until result.size) {
-                        expectedResult(i).map { expected =>
-                            require(result(i) == expected)
-                        }
-                    }
+                    verifyStaleData(jdbcStatement, result)
+
                 } finally stmt.close
             }
         catch {
@@ -155,6 +152,24 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 throw e
         }
         ps
+    }
+
+    private def verifyStaleData(jdbcStatement: JdbcStatement, result: Array[Int]): Unit = {
+        val expectedResult = jdbcStatement.expectedNumbersOfAffectedRowsOption
+        require(result.size == expectedResult.size)
+        val invalidIds =
+            (for (i <- 0 until result.size) yield {
+                expectedResult(i).filter(_ != result(i)).map(_ => i)
+            }).flatten
+                .map(jdbcStatement.bindsList(_).get("id")).flatten
+                .collect {
+                    case StringStorageValue(Some(value: String)) =>
+                        value
+                    case ReferenceStorageValue(Some(value: String)) =>
+                        value
+                }
+        if (invalidIds.nonEmpty)
+            staleDataException(invalidIds.toSet)
     }
 
 }

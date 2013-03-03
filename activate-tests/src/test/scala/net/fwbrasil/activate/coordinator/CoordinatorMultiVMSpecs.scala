@@ -22,7 +22,7 @@
 //        tasks.map(_.join)
 //    }
 //    def fork(server: Boolean) =
-//        JvmFork.fork(128, 1024, Some("-Dactivate.coordinator.serverHost=localhost")) {
+//        JvmFork.fork(128, 1024, None /*Some("-Dactivate.coordinator.serverHost=localhost")*/ ) {
 //            multiVMTestContext.start
 //            runThreads
 //        }
@@ -60,7 +60,8 @@
 //            Runner(entityId, numOfVMs, numOfThreads, numOfTransactions).run
 //
 //            val i = transactional {
-//                byId[IntEntity](entityId).get.intValue
+//                val entity = byId[IntEntity](entityId).get
+//                entity.intValue
 //            }
 //
 //            stop

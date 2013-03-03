@@ -13,6 +13,7 @@ import net.fwbrasil.activate.ActivateProperties
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.annotation.implicitNotFound
+import net.fwbrasil.activate.ActivateConcurrentTransactionException
 
 trait Storage[T] {
 
@@ -34,6 +35,8 @@ trait Storage[T] {
     }
     protected[activate] def migrate(action: StorageAction): Unit
     protected[activate] def prepareDatabase = {}
+    protected def staleDataException(entityIds: Set[String]) =
+        throw new ActivateConcurrentTransactionException(entityIds, List())
 }
 
 trait StorageFactory {

@@ -21,7 +21,7 @@ class EntitySerializationSpecs extends ActivateTest {
                             javaSerializator.toSerialized(newEmptyActivateTestEntity)
                         }
                     step {
-                        all[ActivateTestEntity].onlyOne must beEqualTo(javaSerializator.fromSerialized[ActivateTestEntity](serialized))
+                        (all[ActivateTestEntity].onlyOne == javaSerializator.fromSerialized[ActivateTestEntity](serialized)) must beTrue
                     }
                 })
         }

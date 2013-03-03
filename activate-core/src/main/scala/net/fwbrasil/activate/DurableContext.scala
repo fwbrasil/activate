@@ -59,7 +59,7 @@ trait DurableContext {
 
     def reloadEntities(ids: Set[String]) = {
         liveCache.uninitialize(ids)
-        coordinatorClientOption.get.removeNotifications(ids)
+        coordinatorClientOption.map(_.removeNotifications(ids))
     }
 
     private def runWithCoordinatorIfDefined(reads: => Set[String], writes: => Set[String])(f: => Unit) =

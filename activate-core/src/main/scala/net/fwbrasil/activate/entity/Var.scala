@@ -61,6 +61,9 @@ class Var[T](
             super.put(value)
         }
 
+    def getValueWithoutInitialize() =
+        super.get.getOrElse(null.asInstanceOf[T])
+
     def putWithoutInitialize(value: Option[T]) =
         super.put(value)
 

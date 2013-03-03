@@ -15,6 +15,7 @@ import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.StoppableActivateContext
+import net.fwbrasil.activate.mysqlContext
 
 class CoordinatorTestContext extends StoppableActivateContext {
 
@@ -24,7 +25,7 @@ class CoordinatorTestContext extends StoppableActivateContext {
         var intValue = 0
     }
 
-    val storage = mongoContext.storage
+    val storage = mysqlContext.storage
 
     def run[A](f: => A) = {
         start

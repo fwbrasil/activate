@@ -115,10 +115,10 @@ trait Entity extends Serializable with EntityValidation {
                 initializing = false
             }
         }
-        if (!initializing && forWrite && Entity.isVersionVarActive) {
+        if (!initializing && Entity.isVersionVarActive && isPersisted) {
             val versionVar = _varsMap.get("version").asInstanceOf[Var[Long]]
             if (!versionVar.isDirty)
-                versionVar.putValueWithoutInitialize(versionVar.getValue + 1l)
+                versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
         }
     }
 
