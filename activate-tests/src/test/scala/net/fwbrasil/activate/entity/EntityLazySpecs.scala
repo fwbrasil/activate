@@ -49,7 +49,7 @@ class EntityLazySpecs extends ActivateTest {
                         for (entity <- all[ActivateTestEntity])
                             entity.isInitialized must beFalse
                         for (entity <- all[ActivateTestEntity])
-                            entity.initialize
+                            entity.initialize(forWrite = false)
                         for (entity <- all[ActivateTestEntity])
                             entity.isInitialized must beTrue
                     }

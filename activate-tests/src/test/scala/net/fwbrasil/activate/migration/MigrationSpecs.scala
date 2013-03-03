@@ -71,10 +71,12 @@ class MigrationSpecs extends MigrationTest {
                     new TestMigration()(_) {
                         import context._
                         def up = {
-                            table[EntityWithoutAttribute].createTable()
+                            table[EntityWithoutAttribute].createTable(
+                                _.column[Long]("version"))
                             table[TraitAttribute1].createTable(
                                 _.column[String]("attribute"),
-                                _.column[String]("dummy"))
+                                _.column[String]("dummy"),
+                                _.column[Long]("version"))
                         }
                         override def down = {}
                         override def validateUp = {
@@ -103,10 +105,12 @@ class MigrationSpecs extends MigrationTest {
                     new TestMigration()(_) {
                         import context._
                         def up = {
-                            table("EntityWithoutAttribute").createTable()
+                            table("EntityWithoutAttribute").createTable(
+                                _.column[Long]("version"))
                             table("TraitAttribute1").createTable(
                                 _.column[String]("attribute"),
-                                _.column[String]("dummy"))
+                                _.column[String]("dummy"),
+                                _.column[Long]("version"))
                         }
                         override def validateUp = {
                             transactional(new EntityWithoutAttribute)
@@ -162,7 +166,7 @@ class MigrationSpecs extends MigrationTest {
                     })
 
         }
-        //
+
         "RemoveTable" in {
 
             "removeAllEntitiesTables" in {
@@ -219,7 +223,9 @@ class MigrationSpecs extends MigrationTest {
                     new TestMigration()(_) {
                         import context._
                         def up = {
-                            table[TraitAttribute1].createTable(_.column[String]("dummy"))
+                            table[TraitAttribute1].createTable(
+                                _.column[String]("dummy"),
+                                _.column[Long]("version"))
                         }
                         override def validateUp = {
                             validateSchemaError(new TraitAttribute1("a"))
@@ -245,7 +251,9 @@ class MigrationSpecs extends MigrationTest {
                         import context._
                         def up = {
                             table[TraitAttribute1]
-                                .createTable(_.column[String]("dummy"))
+                                .createTable(
+                                    _.column[String]("dummy"),
+                                    _.column[Long]("version"))
                                 .ifNotExists
 
                             createTableForAllEntities
@@ -274,7 +282,9 @@ class MigrationSpecs extends MigrationTest {
                     new TestMigration()(_) {
                         import context._
                         def up = {
-                            table[TraitAttribute1].createTable(_.column[String]("dummy"))
+                            table[TraitAttribute1].createTable(
+                                _.column[String]("dummy"),
+                                _.column[Long]("version"))
                         }
                         override def validateUp = {
                             validateSchemaError(new TraitAttribute1("a"))
@@ -283,7 +293,8 @@ class MigrationSpecs extends MigrationTest {
                     new TestMigration()(_) {
                         import context._
                         def up = {
-                            table[TraitAttribute1].addColumn(_.column[String]("attribute"))
+                            table[TraitAttribute1].addColumn(
+                                _.column[String]("attribute"))
                         }
                         override def validateUp = {
                             transactional(new TraitAttribute1("a"))

@@ -26,7 +26,7 @@ class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId:
 
     override def put(value: Option[String]) = {}
 
-    override protected def doInitialized[A](f: => A): A = {
+    override protected def doInitialized[A](forWrite: Boolean)(f: => A): A = {
         f
     }
 

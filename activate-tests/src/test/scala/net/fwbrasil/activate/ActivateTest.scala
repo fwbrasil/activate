@@ -24,8 +24,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(
-            OneTransaction(ctx),
-            MultipleTransactions(ctx),
+            //            OneTransaction(ctx),
+            //            MultipleTransactions(ctx),
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 

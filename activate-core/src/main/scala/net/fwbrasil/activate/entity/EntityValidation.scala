@@ -104,7 +104,7 @@ trait EntityValidation {
         _listener
     }
     private[this] def initializeListener: Unit =
-        for (ref <- vars)
+        for (ref <- vars if ref.name != "version")
             ref.addWeakListener(listener)
 
     protected def invariant(f: => Boolean) =

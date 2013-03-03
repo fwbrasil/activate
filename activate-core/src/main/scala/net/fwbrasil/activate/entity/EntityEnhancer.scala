@@ -45,7 +45,7 @@ object EntityEnhancer extends Logging {
 
     def isDisabledVersionVar(field: CtField) =
         field.getName == "version" &&
-            !VersionVar.isActive
+            !Entity.isVersionVarActive
 
     def isVarField(field: CtField) =
         field.getType.getName == varClassName
@@ -255,7 +255,7 @@ object EntityEnhancer extends Logging {
                 }
             })
             if (isPrimaryConstructor) {
-                var replace = "setInitialized();\n"
+                var replace = "setNotInitialized();\nsetInitializing();\n"
                 val initializedFields = fields.map(_.getName)
                 for ((field, optionFlag) <- enhancedFieldsMap) {
                     if (field.getName == "id")
@@ -268,13 +268,13 @@ object EntityEnhancer extends Logging {
                 for (field <- fields) {
                     val (originalField, optionFlag) = enhancedFieldsMap.get(field).get
                     if (optionFlag)
-                        replace += "this." + field.getName + ".put(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
+                        replace += "this." + field.getName + ".putWithoutInitialize(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
                     else
-                        replace += "this." + field.getName + ".putValue(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
+                        replace += "this." + field.getName + ".putValueWithoutInitialize(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
                 }
 
                 c.insertBeforeBody(replace)
-                c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {postConstruct();}\n")
+                c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {setInitialized();postConstruct();}\n")
             }
         }
     }

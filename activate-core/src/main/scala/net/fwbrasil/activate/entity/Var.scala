@@ -43,11 +43,12 @@ class Var[T](
     def toEntityPropertyValue(value: T) = tval(Option(value))
     def outerEntityClass = outerEntity.niceClass
 
-    override def get = doInitialized {
-        if (outerEntity == null)
-            throw new IllegalStateException("Var isnt bound to an Entity.")
-        super.get
-    }
+    override def get =
+        doInitialized(forWrite = false) {
+            if (outerEntity == null)
+                throw new IllegalStateException("Var isnt bound to an Entity.")
+            super.get
+        }
 
     // Better performance than use Source.!
     def getValue() =
@@ -55,24 +56,33 @@ class Var[T](
     def putValue(value: T) =
         put(Option(value))
 
-    override def put(value: Option[T]): Unit = doInitialized {
+    override def put(value: Option[T]): Unit =
+        doInitialized(forWrite = true) {
+            super.put(value)
+        }
+
+    def putWithoutInitialize(value: Option[T]) =
         super.put(value)
-    }
 
-    override def destroy: Unit = doInitialized {
-        super.destroy
-    }
+    def putValueWithoutInitialize(value: T) =
+        putWithoutInitialize(Option(value))
 
-    override def isDestroyed: Boolean = doInitialized {
-        super.isDestroyed
-    }
+    override def destroy: Unit =
+        doInitialized(forWrite = true) {
+            super.destroy
+        }
+
+    override def isDestroyed: Boolean =
+        doInitialized(forWrite = false) {
+            super.isDestroyed
+        }
 
     private[activate] def isDestroyedSnapshot: Boolean = {
         super.isDestroyed
     }
 
-    protected def doInitialized[A](f: => A): A = {
-        if (outerEntity != null) outerEntity.initialize
+    protected def doInitialized[A](forWrite: Boolean)(f: => A): A = {
+        if (outerEntity != null) outerEntity.initialize(forWrite)
         f
     }
 

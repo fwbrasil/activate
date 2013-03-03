@@ -235,6 +235,14 @@ trait SqlIdiom {
             List(mainStatement) ++ listUpdates
     }
 
+    def versionCondition(propertyMap: Map[String, StorageValue]) = {
+        propertyMap.get("version") match {
+            case Some(newVersion: LongStorageValue) =>
+                " AND VERSION = :version - 1"
+            case other =>
+        }
+    }
+
     def toSqlStatement(statement: StorageStatement): List[SqlStatement] =
         statement match {
             case insert: InsertDmlStorageStatement =>
@@ -250,14 +258,14 @@ trait SqlIdiom {
                     new SqlStatement(
                         statement = "UPDATE " + toTableName(update.entityClass) +
                             " SET " + (for (key <- propertyMap.keys if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
-                            " WHERE ID = :id",
+                            " WHERE ID = :id" + versionCondition(propertyMap),
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case delete: DeleteDmlStorageStatement =>
                 digestLists(delete, propertyMap =>
                     new SqlStatement(
                         statement = "DELETE FROM " + toTableName(delete.entityClass) +
-                            " WHERE ID = '" + delete.entityId + "'",
+                            " WHERE ID = '" + delete.entityId + "'" + versionCondition(propertyMap),
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case ddl: DdlStorageStatement =>

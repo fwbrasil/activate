@@ -29,10 +29,8 @@ class UnsupportedEntityTableWithouIdSpecs extends ActivateTest {
                             for (car <- cars)
                                 println(car.color)
                         } must throwA[IllegalArgumentException]
-                    } finally {
-                        conn.rollback
+                    } finally
                         conn.close
-                    }
                 })
         }
     }

@@ -68,7 +68,7 @@ trait Entity extends Serializable with EntityValidation {
 
     def delete =
         if (!isDeleted) {
-            initialize
+            initialize(forWrite = true)
             _baseVar.destroy
             for (ref <- vars; if (ref != _baseVar))
                 ref.destroy
@@ -79,8 +79,8 @@ trait Entity extends Serializable with EntityValidation {
     def creationDateTime = new DateTime(creationTimestamp)
 
     private var persistedflag = false
-    private var initialized = true
-    private var initializing = false
+    private var initialized = false
+    private var initializing = true
 
     private[activate] def setPersisted =
         persistedflag = true
@@ -94,6 +94,9 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def setNotInitialized =
         initialized = false
 
+    private[activate] def setInitializing =
+        initializing = true
+
     private[activate] def setInitialized = {
         initializing = false
         initialized = true
@@ -103,7 +106,7 @@ trait Entity extends Serializable with EntityValidation {
         initialized
 
     // Cyclic initializing
-    private[activate] def initialize =
+    private[activate] def initialize(forWrite: Boolean) = {
         this.synchronized {
             if (!initialized && !initializing && id != null) {
                 initializing = true
@@ -112,6 +115,12 @@ trait Entity extends Serializable with EntityValidation {
                 initializing = false
             }
         }
+        if (!initializing && forWrite && Entity.isVersionVarActive) {
+            val versionVar = _varsMap.get("version").asInstanceOf[Var[Long]]
+            if (!versionVar.isDirty)
+                versionVar.putValueWithoutInitialize(versionVar.getValue + 1l)
+        }
+    }
 
     private[activate] def uninitialize =
         this.synchronized {
@@ -123,7 +132,7 @@ trait Entity extends Serializable with EntityValidation {
 
     private[activate] def initializeGraph(seen: Set[Entity]): Unit =
         this.synchronized {
-            initialize
+            initialize(forWrite = false)
             if (!isDeletedSnapshot)
                 for (ref <- varsOfTypeEntity)
                     if (ref.get.nonEmpty) {
@@ -184,6 +193,10 @@ trait Entity extends Serializable with EntityValidation {
 }
 
 object Entity {
+
+    val isVersionVarActive = true
+    System.getProperty("activate.coordinator.optimisticOfflineLocking") == "true"
+
     var serializeUsingEvelope = true
     @transient
     private var _toStringLoopSeen: ThreadLocal[MutableHashSet[Entity]] = _

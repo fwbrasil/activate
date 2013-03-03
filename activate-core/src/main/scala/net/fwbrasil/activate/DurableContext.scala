@@ -21,6 +21,7 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.entity.LongEntityValue
 
 class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
 
@@ -141,8 +142,8 @@ trait DurableContext {
 
         exceptionOption.map { exception =>
             storagesToRollback.foreach { storage =>
-                val deletes = insertsByStorage(storage)
-                val updates = updatesByStorage(storage).map(tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, tuple._1.tval(tuple._1.snapshotWithoutTransaction)))))
+                val deletes = insertsByStorage(storage).map(tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != "version")))
+                val updates = updatesByStorage(storage).map(tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2)))))
                 val inserts = deletesByStorage(storage)
                 storage.toStorage(
                     List(),
@@ -152,6 +153,17 @@ trait DurableContext {
             }
             throw exception
         }
+    }
+
+    private def valueToRollback(ref: Var[Any], updatedValue: EntityValue[_]) = {
+        ref.tval(
+            if (ref.name != "version")
+                ref.snapshotWithoutTransaction
+            else
+                updatedValue match {
+                    case LongEntityValue(Some(version: Long)) =>
+                        Some(version + 1)
+                })
     }
 
     private[this] def setPersisted(entities: Iterable[Entity]) =
