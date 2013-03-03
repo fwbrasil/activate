@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.migration
 
+import language.postfixOps
 import language.existentials
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.entity.Entity

@@ -238,8 +238,9 @@ trait SqlIdiom {
     def versionCondition(propertyMap: Map[String, StorageValue]) = {
         propertyMap.get("version") match {
             case Some(newVersion: LongStorageValue) =>
-                " AND VERSION = :version - 1"
+                " AND (VERSION IS NULL OR VERSION = :version - 1)"
             case other =>
+                ""
         }
     }
 

@@ -33,7 +33,7 @@ class EntitySpecs extends ActivateTest {
                     }
                     step {
                         for (entity <- all[ActivateTestEntity]) {
-                            entity.vars.toSet.size must beEqualTo(35)
+                            entity.vars.filter(_.name != "version").toSet.size must beEqualTo(34)
                         }
                     }
                 })

@@ -25,7 +25,7 @@ class CoordinatorTestContext extends StoppableActivateContext {
         var intValue = 0
     }
 
-    val storage = mysqlContext.storage
+    val storage = mongoContext.storage
 
     def run[A](f: => A) = {
         start

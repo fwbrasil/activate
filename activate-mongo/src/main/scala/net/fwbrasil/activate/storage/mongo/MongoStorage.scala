@@ -91,6 +91,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
 
+        preVerifyStaleData(updateList ++ deleteList)
         storeStatements(statements)
         storeInserts(insertList)
         storeUpdates(updateList)
@@ -98,12 +99,43 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
     }
 
+    private def preVerifyStaleData(
+        data: List[(Entity, Map[String, StorageValue])]) = {
+        val invalid =
+            data.filter(_._2.contains("version")).filterNot { tuple =>
+                val (entity, properties) = tuple
+                val query = new BasicDBObject
+                query.put("_id", entity.id)
+                addVersionCondition(query, properties)
+                val result = coll(entity).find(query).count
+                result == 1
+            }
+        if (invalid.nonEmpty)
+            staleDataException(invalid.map(_._1.id).toSet)
+    }
+
+    private def addVersionCondition(query: BasicDBObject, properties: Map[String, StorageValue]) = {
+        val nullVersion = new BasicDBObject
+        nullVersion.put("version", null)
+        val versionValue = new BasicDBObject
+        versionValue.put("version", getMongoValue(properties("version")) match {
+            case value: Long =>
+                value - 1l
+        })
+        val versionQuery = new BasicDBList
+        versionQuery.add(nullVersion)
+        versionQuery.add(versionValue)
+        query.put("$or", versionQuery)
+    }
+
     private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
         for ((entity, properties) <- deleteList) {
             val query = new BasicDBObject()
             query.put("_id", entity.id)
+            addVersionCondition(query, properties)
             val result = coll(entity).remove(query)
-            require(result.getN == 1)
+            if (result.getN != 1)
+                staleDataException(Set(entity.id))
         }
 
     private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
@@ -117,8 +149,10 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             }
             val update = new BasicDBObject
             update.put("$set", set)
+            addVersionCondition(query, properties)
             val result = coll(entity).update(query, update)
-            require(result.getN == 1)
+            if (result.getN != 1)
+                staleDataException(Set(entity.id))
         }
 
     private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {
