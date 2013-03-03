@@ -62,7 +62,7 @@ trait Entity extends Serializable with EntityValidation {
         baseVar.isDestroyedSnapshot
 
     def isDirty =
-        vars.find(_.isDirty).isDefined
+        vars.find(ref => ref.isDirty && ref.name != "version").isDefined
 
     final val id: String = null
 
