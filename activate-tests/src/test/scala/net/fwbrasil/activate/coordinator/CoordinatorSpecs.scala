@@ -43,7 +43,7 @@ object ctx2 extends CoordinatorTestContext
 @RunWith(classOf[JUnitRunner])
 class CoordinatorSpecs extends ActivateTest {
 
-    System.setProperty("activate.coordinator.server", "true")
+    //    System.setProperty("activate.coordinator.server", "true")
 
     "Coordinator" should {
         "detect concurrent modification (write)" in synchronized {

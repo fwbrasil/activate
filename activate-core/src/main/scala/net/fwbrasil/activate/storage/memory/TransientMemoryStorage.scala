@@ -14,6 +14,7 @@ import scala.collection.mutable.SynchronizedSet
 import scala.collection.mutable.HashSet
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.storage.TransactionHandle
 
 class TransientMemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
     override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
@@ -22,6 +23,10 @@ class TransientMemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Ent
 class TransientMemoryStorage extends Storage[HashSet[Entity]] {
 
     val storageSet = new TransientMemoryStorageSet
+
+    def isSchemaless = true
+    def isTransactional = false
+    def supportsQueryJoin = true
 
     def directAccess =
         storageSet
@@ -34,12 +39,14 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Unit = {
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle] = {
 
         for ((entity, properties) <- insertList)
             storageSet += entity
         for ((entity, properties) <- deleteList)
             storageSet -= entity
+
+        None
     }
 
     override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =

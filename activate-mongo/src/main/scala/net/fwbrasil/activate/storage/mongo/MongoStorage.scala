@@ -58,6 +58,7 @@ import com.mongodb.MongoClient
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
+import net.fwbrasil.activate.storage.TransactionHandle
 
 trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
@@ -82,14 +83,16 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         mongoDB
     }
 
-    override def supportComplexQueries = false
-    override def hasStaticScheme = false
+    def isMemoryStorage = false
+    def isSchemaless = true
+    def isTransactional = false
+    def supportsQueryJoin = false
 
     override def store(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
         preVerifyStaleData(updateList ++ deleteList)
         storeStatements(statements)
@@ -97,6 +100,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         storeUpdates(updateList)
         storeDeletes(deleteList)
 
+        None
     }
 
     private def preVerifyStaleData(
@@ -114,19 +118,20 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             staleDataException(invalid.map(_._1.id).toSet)
     }
 
-    private def addVersionCondition(query: BasicDBObject, properties: Map[String, StorageValue]) = {
-        val nullVersion = new BasicDBObject
-        nullVersion.put("version", null)
-        val versionValue = new BasicDBObject
-        versionValue.put("version", getMongoValue(properties("version")) match {
-            case value: Long =>
-                value - 1l
-        })
-        val versionQuery = new BasicDBList
-        versionQuery.add(nullVersion)
-        versionQuery.add(versionValue)
-        query.put("$or", versionQuery)
-    }
+    private def addVersionCondition(query: BasicDBObject, properties: Map[String, StorageValue]) =
+        if (properties.contains("version")) {
+            val nullVersion = new BasicDBObject
+            nullVersion.put("version", null)
+            val versionValue = new BasicDBObject
+            versionValue.put("version", getMongoValue(properties("version")) match {
+                case value: Long =>
+                    value - 1l
+            })
+            val versionQuery = new BasicDBList
+            versionQuery.add(nullVersion)
+            versionQuery.add(versionValue)
+            query.put("$or", versionQuery)
+        }
 
     private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
         for ((entity, properties) <- deleteList) {

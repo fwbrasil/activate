@@ -36,6 +36,7 @@ import org.prevayler.implementation.DummyTransactionCapsule
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.storage.TransactionHandle
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
 
@@ -55,6 +56,11 @@ class PrevaylerStorage(
 
     def directAccess =
         prevayler
+
+    def isMemoryStorage = true
+    def isSchemaless = true
+    def isTransactional = true
+    def supportsQueryJoin = true
 
     protected[activate] var prevalentSystem: PrevaylerStorageSystem = _
 
@@ -105,7 +111,7 @@ class PrevaylerStorage(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
         // Just ignore mass statements!
         val inserts =
             (for ((entity, propertyMap) <- insertList)
@@ -126,6 +132,8 @@ class PrevaylerStorage(
 
         for (entityId <- deletes)
             prevalentSystem -= entityId
+
+        None
     }
 
     protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
@@ -142,8 +150,6 @@ class PrevaylerStorage(
                 prevalentSystem --= idsToRemove
             case _ =>
         }
-
-    override def isMemoryStorage = true
 
 }
 

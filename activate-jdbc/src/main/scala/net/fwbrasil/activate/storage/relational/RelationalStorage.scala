@@ -13,6 +13,7 @@ import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.storage.TransactionHandle
 
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
@@ -20,7 +21,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         statementList: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Unit = {
+        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
         val statements =
             statementList.map(ModifyStorageStatement(_))
@@ -65,8 +66,8 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     }
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
-        executeStatements(List(DdlStorageStatement(action)))
+        executeStatements(List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(sqls: List[StorageStatement]): Unit
+    protected[activate] def executeStatements(sqls: List[StorageStatement]): Option[TransactionHandle]
 
 }

@@ -22,6 +22,9 @@ import scala.util.Success
 import scala.util.Failure
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.entity.LongEntityValue
+import net.fwbrasil.activate.storage.TransactionHandle
+import java.io.File
+import java.io.FileOutputStream
 
 class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
 
@@ -119,51 +122,12 @@ trait DurableContext {
         val updatesByStorage = groupByStorage(updateList)(_._1.niceClass)
         val deletesByStorage = groupByStorage(deleteList)(_._1.niceClass)
 
-        val storages = (statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
-            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList.sortBy(s => if (s == storage) -1 else 0)
+        val storages = sortStorages((statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
+            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList)
 
         verifyMassSatatements(storages, statementsByStorage)
+        twoPhaseCommit(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
 
-        var exceptionOption: Option[Throwable] = None
-        val storagesToRollback =
-            storages.takeWhile { storage =>
-                Try(storage.toStorage(
-                    statementsByStorage(storage),
-                    mapVarsToName(insertsByStorage(storage)),
-                    mapVarsToName(updatesByStorage(storage)),
-                    mapVarsToName(deletesByStorage(storage)))) match {
-                    case Success(unit) =>
-                        true
-                    case Failure(exception) =>
-                        exceptionOption = Some(exception)
-                        false
-                }
-            }
-
-        exceptionOption.map { exception =>
-            storagesToRollback.foreach { storage =>
-                val deletes = insertsByStorage(storage).map(tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != "version")))
-                val updates = updatesByStorage(storage).map(tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2)))))
-                val inserts = deletesByStorage(storage)
-                storage.toStorage(
-                    List(),
-                    mapVarsToName(inserts),
-                    mapVarsToName(updates),
-                    mapVarsToName(deletes))
-            }
-            throw exception
-        }
-    }
-
-    private def valueToRollback(ref: Var[Any], updatedValue: EntityValue[_]) = {
-        ref.tval(
-            if (ref.name != "version")
-                ref.snapshotWithoutTransaction
-            else
-                updatedValue match {
-                    case LongEntityValue(Some(version: Long)) =>
-                        Some(version + 1)
-                })
     }
 
     private[this] def setPersisted(entities: Iterable[Entity]) =
@@ -239,5 +203,143 @@ trait DurableContext {
 
         persistentDeletes -- deletedByMassStatement
     }
+
+    private def twoPhaseCommit(
+        statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
+        insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        deletesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        storages: List[net.fwbrasil.activate.storage.Storage[Any]]) = {
+
+        val storagesTransactionHandles = MutableMap[Storage[Any], Option[TransactionHandle]]()
+
+        try {
+            prepareCommit(
+                statementsByStorage,
+                insertsByStorage,
+                updatesByStorage,
+                deletesByStorage,
+                storages,
+                storagesTransactionHandles)
+            commit(storagesTransactionHandles)
+        } catch {
+            case e: Throwable =>
+                rollbackStorages(
+                    insertsByStorage,
+                    updatesByStorage,
+                    deletesByStorage,
+                    storagesTransactionHandles)
+                throw e
+        }
+    }
+
+    private def valueToRollback(ref: Var[Any], updatedValue: EntityValue[_]) = {
+        ref.tval(
+            if (ref.name != "version")
+                ref.snapshotWithoutTransaction
+            else
+                updatedValue match {
+                    case LongEntityValue(Some(version: Long)) =>
+                        Some(version + 1)
+                })
+    }
+
+    private def rollbackStorages(
+        insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        deletesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        storagesTransactionHandles: MutableMap[Storage[Any], Option[TransactionHandle]]): Unit = {
+        for ((storage, handle) <- storagesTransactionHandles) {
+            handle.map(_.rollback).getOrElse {
+                // "Manual" rollback for non-transactional storages
+                val deletes = mapVarsToName(insertsByStorage(storage).map(
+                    tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != "version"))))
+                val updates = mapVarsToName(updatesByStorage(storage).map(
+                    tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2))))))
+                val inserts = mapVarsToName(deletesByStorage(storage))
+                try
+                    storage.toStorage(
+                        List(),
+                        inserts,
+                        updates,
+                        deletes)
+                catch {
+                    case ex: Throwable =>
+                        writeRollbackErrorDumpFile(
+                            ex,
+                            inserts,
+                            updates,
+                            deletes)
+                }
+            }
+        }
+    }
+
+    private def writeRollbackErrorDumpFile(
+        exception: Throwable,
+        inserts: List[(Entity, Map[String, EntityValue[Any]])],
+        updates: List[(Entity, Map[String, EntityValue[Any]])],
+        deletes: List[(Entity, Map[String, EntityValue[Any]])]) =
+        try {
+            val bytes =
+                this.defaultSerializator.toSerialized(
+                    Map("exception" -> exception, "deletes" -> deletes, "updates" -> updates, "inserts" -> inserts))
+            val file = new File(s"rollback-error-$contextName-${System.currentTimeMillis}-${UUIDUtil.generateUUID}.log")
+            val fos = new FileOutputStream(file)
+            fos.write(bytes)
+            fos.close
+            error(s"Cannot rollback storage. See ${file.getAbsolutePath}", exception)
+        } catch {
+            case e: Throwable =>
+                error(s"Cannot rollback storage. Cannot write rollback log file.", e)
+        }
+
+    private def prepareCommit(
+        statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
+        insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        deletesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        storages: List[Storage[Any]],
+        storagesTransactionHandles: MutableMap[Storage[Any], Option[TransactionHandle]]) =
+        for (storage <- storages) {
+            storagesTransactionHandles +=
+                storage -> storage.toStorage(
+                    statementsByStorage(storage),
+                    mapVarsToName(insertsByStorage(storage)),
+                    mapVarsToName(updatesByStorage(storage)),
+                    mapVarsToName(deletesByStorage(storage)))
+        }
+
+    private def sortStorages(storages: List[Storage[Any]]) =
+        storages.sortWith((storageA, storageB) => {
+            val priorityA = storagePriority(storageA)
+            val priorityB = storagePriority(storageB)
+            if (priorityA < priorityB)
+                true
+            else if (priorityA == priorityB)
+                storageA.getClass.getName < storageB.getClass.getName
+            else
+                false
+        })
+
+    private def storagePriority(storage: Storage[Any]) =
+        if (storage == this.storage)
+            0
+        else if (storage.isTransactional)
+            1
+        else if (storage.isMemoryStorage)
+            2
+        else if (storage.isSchemaless)
+            3
+        else
+            4
+
+    private def commit(storagesTransactionHandles: MutableMap[Storage[Any], Option[TransactionHandle]]) =
+        for ((storage, handle) <- storagesTransactionHandles.toMap) {
+            handle.map { h =>
+                storagesTransactionHandles -= storage
+                h.commit
+            }
+        }
 
 }

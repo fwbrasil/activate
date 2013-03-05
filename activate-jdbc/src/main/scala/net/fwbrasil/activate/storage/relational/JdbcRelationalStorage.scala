@@ -19,6 +19,7 @@ import com.jolbox.bonecp.BoneCP
 import com.jolbox.bonecp.BoneCPConfig
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.TransactionHandle
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -32,20 +33,6 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def prepareDatabase =
         dialect.prepareDatabase(this)
 
-    def executeWithTransaction[R](f: (Connection) => R) = {
-        val connection = getConnectionWithoutAutoCommit
-        try {
-            val res = f(connection)
-            connection.commit
-            res
-        } catch {
-            case e: Throwable =>
-                connection.rollback
-                throw e
-        } finally
-            connection.close
-    }
-
     private def getConnectionWithoutAutoCommit = {
         val con = getConnection
         con.setAutoCommit(false)
@@ -55,16 +42,21 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def directAccess =
         getConnectionWithoutAutoCommit
 
-    override protected[activate] def executeStatements(storageStatements: List[StorageStatement]) = {
+    def isMemoryStorage = false
+    def isSchemaless = false
+    def isTransactional = true
+    def supportsQueryJoin = true
+
+    override protected[activate] def executeStatements(storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
         val batchStatements =
             BatchSqlStatement.group(sqlStatements)
-        executeWithTransaction {
+        Some(executeWithTransactionAndReturnHandle {
             connection =>
                 for (batchStatement <- batchStatements)
                     execute(batchStatement, connection)
-        }
+        })
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
@@ -152,6 +144,36 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 throw e
         }
         ps
+    }
+
+    def executeWithTransactionAndReturnHandle[R](f: (Connection) => R) = {
+        val connection = getConnectionWithoutAutoCommit
+        try {
+            f(connection)
+            new TransactionHandle(
+                commitBlock = () => connection.commit,
+                rollbackBlock = () => connection.rollback,
+                finallyBlock = () => connection.close)
+        } catch {
+            case e: Throwable =>
+                try connection.rollback
+                finally connection.close
+                throw e
+        }
+    }
+
+    def executeWithTransaction[R](f: (Connection) => R) = {
+        val connection = getConnectionWithoutAutoCommit
+        try {
+            val res = f(connection)
+            connection.commit
+            res
+        } catch {
+            case e: Throwable =>
+                connection.rollback
+                throw e
+        } finally
+            connection.close
     }
 
     private def verifyStaleData(jdbcStatement: JdbcStatement, result: Array[Int]): Unit = {

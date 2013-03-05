@@ -15,6 +15,7 @@ import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.storage.TransactionHandle
 
 trait MarshalStorage[T] extends Storage[T] {
 
@@ -36,7 +37,7 @@ trait MarshalStorage[T] extends Storage[T] {
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Unit
+        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle]
 
     override protected[activate] def fromStorage(queryInstance: Query[_]): List[List[EntityValue[_]]] = {
         val entityValues =

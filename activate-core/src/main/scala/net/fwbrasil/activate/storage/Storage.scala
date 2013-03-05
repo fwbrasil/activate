@@ -15,21 +15,35 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
 
+class TransactionHandle(
+        private val commitBlock: () => Unit,
+        private val rollbackBlock: () => Unit,
+        private val finallyBlock: () => Unit) {
+    def commit =
+        try commitBlock()
+        finally finallyBlock()
+    def rollback =
+        try rollbackBlock()
+        finally finallyBlock()
+}
+
 trait Storage[T] {
 
     protected[activate] def toStorage(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Unit = {}
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
     protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
 
     def directAccess: T
 
-    def isMemoryStorage = false
-    def hasStaticScheme = !isMemoryStorage
-    def supportComplexQueries = true
+    def isMemoryStorage: Boolean
+    def isSchemaless: Boolean
+    def isTransactional: Boolean
+    def supportsQueryJoin: Boolean
+
     protected[activate] def reinitialize = {
 
     }
@@ -37,6 +51,7 @@ trait Storage[T] {
     protected[activate] def prepareDatabase = {}
     protected def staleDataException(entityIds: Set[String]) =
         throw new ActivateConcurrentTransactionException(entityIds, List())
+
 }
 
 trait StorageFactory {

@@ -452,7 +452,7 @@ trait ActivateTestContext
     abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 
     // Relational reserved words
-    class Order(val key: String) extends Entity
+    class Order(var key: String) extends Entity
 
     // Short name entity
     @Alias("sne")

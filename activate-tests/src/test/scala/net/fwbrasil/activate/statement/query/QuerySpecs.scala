@@ -6,6 +6,7 @@ import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.mongoContext
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -287,7 +288,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.storage.supportComplexQueries) {
+                    if (step.ctx.storage.supportsQueryJoin) {
                         step {
                             newFullActivateTestEntity
                         }
@@ -303,7 +304,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.storage.supportComplexQueries) {
+                    if (step.ctx.storage.supportsQueryJoin) {
                         step {
                             newFullActivateTestEntity
                         }
@@ -396,7 +397,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.storage.supportComplexQueries) {
+                    if (step.ctx.storage.supportsQueryJoin) {
                         val (entityId, entityValueId) =
                             step {
                                 val entity = newFullActivateTestEntity
@@ -413,7 +414,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.storage.supportComplexQueries) {
+                    if (step.ctx.storage.supportsQueryJoin) {
                         val entityValueId =
                             step {
                                 val entity = newEmptyActivateTestEntity

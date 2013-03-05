@@ -11,7 +11,7 @@ class MigrationTest extends ActivateTest {
     abstract class TestMigration(override implicit val context: ActivateTestContext) extends ManualMigration {
 
         def validateSchemaError(f: => Unit) =
-            if (context.storage.hasStaticScheme)
+            if (context.storage.isSchemaless)
                 context.transactional {
                     f
                 } must throwA[Exception]
