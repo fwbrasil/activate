@@ -20,6 +20,7 @@ import com.jolbox.bonecp.BoneCPConfig
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.activate.entity.Entity
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -94,8 +95,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 throw JdbcStatementException(jdbcStatement, e, e.getNextException)
         }
 
-    protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
-        executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance)), expectedTypes)
+    protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
+        executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance, entitiesReadFromCache)), expectedTypes)
 
     protected[activate] def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
         executeWithTransaction {

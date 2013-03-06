@@ -32,6 +32,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.entity.Entity
 
 object oracleDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -68,12 +69,12 @@ object oracleDialect extends SqlIdiom {
     override def toSqlDmlLimit(limit: Int): String =
         ""
 
-    override def toSqlDmlQueryString(query: Query[_])(implicit binds: MutableMap[StorageValue, String]) =
+    override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
         query match {
             case query: LimitedOrderedQuery[_] =>
-                "SELECT * FROM (" + super.toSqlDmlQueryString(query) + ") WHERE ROWNUM<" + query.limit
+                "SELECT * FROM (" + super.toSqlDmlQueryString(query, entitiesReadFromCache) + ") WHERE ROWNUM<" + query.limit
             case query =>
-                super.toSqlDmlQueryString(query)
+                super.toSqlDmlQueryString(query, entitiesReadFromCache)
         }
 
     override def toSqlDdl(action: ModifyStorageAction): String = {

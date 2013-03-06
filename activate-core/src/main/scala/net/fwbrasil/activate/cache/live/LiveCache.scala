@@ -110,7 +110,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }
 
     def isQueriable(entity: Entity, isMassModification: Boolean) =
-        entity.isInitialized && !entity.isDeletedSnapshot && (isMassModification || storageFor(entity.niceClass).isMemoryStorage || !entity.isPersisted || entity.isDirty)
+        entity.isInitialized && !entity.isDeletedSnapshot &&
+            (isMassModification || storageFor(entity.niceClass).isMemoryStorage || !entity.isPersisted || entity.isDirty)
 
     def fromCache[E <: Entity](entityClass: Class[E], isMassModification: Boolean) = {
         val map = entityInstacesMap(entityClass)
@@ -152,8 +153,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     private def entitiesFromCache[S](query: Query[S]) = {
         val entities = entitySourceInstancesCombined(false, query.from)
-        val res = executeQueryWithEntitySources(query, entities)
-        res
+        val rows = executeQueryWithEntitySources(query, entities)
+        (rows, entities)
     }
 
     object invalid
@@ -169,9 +170,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 }
         })
 
-    private def entitiesFromStorage[S](query: Query[S], initializing: Boolean) = {
+    private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]], initializing: Boolean) = {
         val fromStorageMaterialized =
-            for (line <- storageFor(query).fromStorage(query))
+            for (line <- storageFor(query).fromStorage(query, entitiesReadFromCache))
                 yield for (column <- line)
                 yield materialize(column, initializing)
         filterInvalid(fromStorageMaterialized)
@@ -196,8 +197,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
             materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
     }
 
-    def executeQuery[S](query: Query[S], iniatializing: Boolean): List[List[Any]] =
-        entitiesFromStorage(query, iniatializing) ++ entitiesFromCache(query)
+    def executeQuery[S](query: Query[S], iniatializing: Boolean): List[List[Any]] = {
+        val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
+        entitiesFromStorage(query, entitiesReadFromCache, iniatializing) ++ rowsFromCache
+    }
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)

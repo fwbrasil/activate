@@ -49,7 +49,7 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
         None
     }
 
-    override def fromStorage(query: Query[_]): List[List[EntityValue[_]]] =
+    override def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] =
         List()
 
     override def isMemoryStorage = true

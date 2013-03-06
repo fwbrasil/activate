@@ -92,6 +92,7 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
+import net.fwbrasil.activate.entity.Entity
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -284,20 +285,35 @@ trait SqlIdiom {
     def escape(string: String): String
 
     def toSqlDml(statement: QueryStorageStatement): SqlStatement =
-        toSqlDml(statement.query)
+        toSqlDml(statement.query, statement.entitiesReadFromCache)
 
-    def toSqlDml(query: Query[_]): SqlStatement = {
+    def toSqlDml(query: Query[_], entitiesReadFromCache: List[List[Entity]]): SqlStatement = {
         implicit val binds = MutableMap[StorageValue, String]()
         new SqlStatement(
-            toSqlDmlQueryString(query),
+            toSqlDmlQueryString(query, entitiesReadFromCache),
             (Map() ++ binds) map { _.swap })
     }
 
-    def toSqlDmlQueryString(query: Query[_])(implicit binds: MutableMap[StorageValue, String]) =
+    def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
         "SELECT " + toSqlDml(query.select) +
             " FROM " + toSqlDml(query.from) +
-            " WHERE " + toSqlDml(query.where) +
+            " WHERE (" + toSqlDml(query.where) + ")" +
+            toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
             toSqlDmlOrderBy(query)
+
+    def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]]) = {
+        val entitySources = query.from.entitySources
+        val restrictions =
+            for (entities <- entitiesReadFromCache) yield {
+                val condition =
+                    (for (i <- 0 until entitySources.size) yield entitySources(i).name + ".id != '" + entities(i).id + "'").mkString(" OR ")
+                s"($condition)"
+            }
+        if (restrictions.nonEmpty)
+            " AND " + restrictions.mkString(" AND ")
+        else
+            ""
+    }
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)

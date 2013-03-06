@@ -26,7 +26,7 @@ case class UpdateDmlStorageStatement(override val entityClass: Class[_], overrid
 case class DeleteDmlStorageStatement(override val entityClass: Class[_], override val entityId: String, override val propertyMap: Map[String, StorageValue])
     extends DmlStorageStatement(entityClass, entityId, propertyMap)
 
-case class QueryStorageStatement(query: Query[_])
+case class QueryStorageStatement(query: Query[_], entitiesReadFromCache: List[List[Entity]])
     extends StorageStatement
 
 case class ModifyStorageStatement(statement: MassModificationStatement)

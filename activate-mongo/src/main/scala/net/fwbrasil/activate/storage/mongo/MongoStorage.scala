@@ -229,30 +229,15 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private[this] def coll(entityName: String): DBCollection =
         mongoDB.getCollection(entityName)
 
-    def query(queryInstance: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
+    override def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
         val from = queryInstance.from
-        val (coll, where) = collectionAndWhere(from, queryInstance.where)
+        val (coll, where) = collectionAndWhere(from, queryInstance.where, entitiesReadFromCache)
         val selectValues = queryInstance.select.values
-        val select = new BasicDBObject
-        for (value <- selectValues)
-            if (!value.isInstanceOf[SimpleValue[_]])
-                select.put(mongoStatementSelectValue(value), 1)
-        val entitySource = queryInstance.from.entitySources.onlyOne
+        val select = querySelect(queryInstance, selectValues)
         val ret = coll.find(where, select)
         orderQueryIfNecessary(queryInstance, ret)
         limitQueryIfNecessary(queryInstance, ret)
-        try {
-            val rows = ret.toArray
-            (for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
-                selectValues(i) match {
-                    case value: SimpleValue[_] =>
-                        expectedTypes(i)
-                    case other =>
-                        getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
-                }
-            }).toList).toList
-        } finally
-            ret.close
+        transformResultToTheExpectedTypes(expectedTypes, selectValues, ret)
     }
 
     def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {
@@ -455,8 +440,26 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private def collHasIndex(name: String, column: String) =
         coll(name).getIndexInfo().find(_.containsField(name)).nonEmpty
 
-    private def collectionAndWhere(from: From, where: Where) = {
-        val mongoWhere = query(where.value)
+    private def collectionAndWhere(from: From, where: Where, entitiesReadFromCache: List[List[Entity]] = List()) = {
+        val baseWhere = query(where.value)
+        val mongoWhere =
+            if (entitiesReadFromCache.nonEmpty) {
+                val where = new BasicDBObject
+                val andConditions = new BasicDBList
+                andConditions.add(baseWhere)
+                val fromCacheIds = new BasicDBList
+                for (list <- entitiesReadFromCache)
+                    fromCacheIds.add(list.head.id)
+                val fromCacheIdsCondition = new BasicDBObject
+                val fromCacheIdsNinCondition = new BasicDBObject
+                fromCacheIdsNinCondition.put("$nin", fromCacheIds)
+                fromCacheIdsCondition.put("_id", fromCacheIdsNinCondition)
+                andConditions.add(fromCacheIdsCondition)
+                where.put("$and", andConditions)
+                where
+            } else {
+                baseWhere
+            }
         val entitySource = from.entitySources.onlyOne("Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
         val mongoCollection = coll(entitySource.entityClass)
         (mongoCollection, mongoWhere)
@@ -485,6 +488,29 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 ret.sort(order)
             case other =>
         }
+
+    private def transformResultToTheExpectedTypes(expectedTypes: List[StorageValue], selectValues: Seq[StatementSelectValue[_]], ret: DBCursor) = {
+        try {
+            val rows = ret.toArray
+            (for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
+                selectValues(i) match {
+                    case value: SimpleValue[_] =>
+                        expectedTypes(i)
+                    case other =>
+                        getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
+                }
+            }).toList).toList
+        } finally
+            ret.close
+    }
+
+    private def querySelect(queryInstance: Query[_], selectValues: Seq[StatementSelectValue[_]]) = {
+        val select = new BasicDBObject
+        for (value <- selectValues)
+            if (!value.isInstanceOf[SimpleValue[_]])
+                select.put(mongoStatementSelectValue(value), 1)
+        select
+    }
 
 }
 

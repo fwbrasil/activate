@@ -136,7 +136,7 @@ class PrevaylerStorage(
         None
     }
 
-    protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue]): List[List[StorageValue]] =
+    protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
         List()
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =

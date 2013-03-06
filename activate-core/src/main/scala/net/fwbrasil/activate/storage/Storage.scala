@@ -35,7 +35,7 @@ trait Storage[T] {
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
-    protected[activate] def fromStorage(query: Query[_]): List[List[EntityValue[_]]]
+    protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
 
     def directAccess: T
 
