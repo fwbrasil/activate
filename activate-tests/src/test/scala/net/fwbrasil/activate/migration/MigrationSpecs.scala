@@ -11,6 +11,7 @@ import net.fwbrasil.activate.entity.Entity
 import java.util.NoSuchElementException
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
@@ -72,11 +73,11 @@ class MigrationSpecs extends MigrationTest {
                         import context._
                         def up = {
                             table[EntityWithoutAttribute].createTable(
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                             table[TraitAttribute1].createTable(
                                 _.column[String]("attribute"),
                                 _.column[String]("dummy"),
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                         }
                         override def down = {}
                         override def validateUp = {
@@ -106,11 +107,11 @@ class MigrationSpecs extends MigrationTest {
                         import context._
                         def up = {
                             table("EntityWithoutAttribute").createTable(
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                             table("TraitAttribute1").createTable(
                                 _.column[String]("attribute"),
                                 _.column[String]("dummy"),
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                         }
                         override def validateUp = {
                             transactional(new EntityWithoutAttribute)
@@ -225,7 +226,7 @@ class MigrationSpecs extends MigrationTest {
                         def up = {
                             table[TraitAttribute1].createTable(
                                 _.column[String]("dummy"),
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                         }
                         override def validateUp = {
                             validateSchemaError(new TraitAttribute1("a"))
@@ -253,7 +254,7 @@ class MigrationSpecs extends MigrationTest {
                             table[TraitAttribute1]
                                 .createTable(
                                     _.column[String]("dummy"),
-                                    _.column[Long]("version"))
+                                    _.column[Long](versionVarName))
                                 .ifNotExists
 
                             createTableForAllEntities
@@ -284,7 +285,7 @@ class MigrationSpecs extends MigrationTest {
                         def up = {
                             table[TraitAttribute1].createTable(
                                 _.column[String]("dummy"),
-                                _.column[Long]("version"))
+                                _.column[Long](versionVarName))
                         }
                         override def validateUp = {
                             validateSchemaError(new TraitAttribute1("a"))

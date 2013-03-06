@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.coordinator
+package net.fwbrasil.activate.multipleVms
 
 import org.gfork.Fork
 
@@ -29,7 +29,7 @@ object JvmFork {
 
     Fork.setJvmOptionsForAll("-server")
 
-    def fork[R: Manifest](ms: Int = 100, mx: Int = 1024, others: Option[String] = None)(f: => R): ForkTask[R] = {
+    def fork[R: Manifest](ms: Int = 100, mx: Int = 1024, others: List[String] = List())(f: => R): ForkTask[R] = {
         val fork = new Fork(FunctionTask(() => f), classOf[FunctionTask[_]].getMethod("run"))
         fork.addJvmOption("-Xmx" + mx + "M")
         fork.addJvmOption("-Xms" + ms + "M")
@@ -37,6 +37,6 @@ object JvmFork {
         ForkTask[R](fork)
     }
 
-    def forkAndExpect[R: Manifest](ms: Int = 100, mx: Int = 1024, others: Option[String] = None)(f: => R): R =
+    def forkAndExpect[R: Manifest](ms: Int = 100, mx: Int = 1024, others: List[String] = List())(f: => R): R =
         fork[R](ms, mx, others)(f).execute.joinAndGetResult
 }

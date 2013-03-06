@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 @RunWith(classOf[JUnitRunner])
 class EntitySpecs extends ActivateTest {
@@ -33,7 +34,7 @@ class EntitySpecs extends ActivateTest {
                     }
                     step {
                         for (entity <- all[ActivateTestEntity]) {
-                            entity.vars.filter(_.name != "version").toSet.size must beEqualTo(34)
+                            entity.vars.filter(_.name != OptimisticOfflineLocking.versionVarName).toSet.size must beEqualTo(34)
                         }
                     }
                 })

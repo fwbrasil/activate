@@ -1,49 +1,16 @@
-package net.fwbrasil.activate.coordinator
+package net.fwbrasil.activate.multipleVms
 
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
-import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
-import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
-import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
-import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.activate.util.RichList._
-import scala.actors.remote.NetKernel
-import scala.actors.remote._
 import scala.actors.remote.RemoteActor._
-import net.fwbrasil.activate.mongoContext
-import net.fwbrasil.activate.StoppableActivateContext
-import net.fwbrasil.activate.mysqlContext
-
-class CoordinatorTestContext extends StoppableActivateContext {
-
-    Coordinator.timeout = 1000
-
-    class IntEntity extends Entity {
-        var intValue = 0
-    }
-
-    val storage = mongoContext.storage
-
-    def run[A](f: => A) = {
-        start
-        try
-            transactional(f)
-        finally
-            stop
-    }
-
-}
-
-object ctx1 extends CoordinatorTestContext
-object ctx2 extends CoordinatorTestContext
+import scala.actors.remote.Node
+import net.fwbrasil.activate.coordinator.Coordinator
+import net.fwbrasil.activate.coordinator.CoordinatorClient
 
 @RunWith(classOf[JUnitRunner])
 class CoordinatorSpecs extends ActivateTest {
-
-    //    System.setProperty("activate.coordinator.server", "true")
 
     "Coordinator" should {
         "detect concurrent modification (write)" in synchronized {

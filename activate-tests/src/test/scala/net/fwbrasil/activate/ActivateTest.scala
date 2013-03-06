@@ -22,6 +22,8 @@ object runningFlag
 
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
+    System.setProperty("activate.coordinator.server", "true")
+
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(
             OneTransaction(ctx),
@@ -158,7 +160,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             } finally
                 stop
         }
-        true must beTrue
+        ok
     }
 
 }

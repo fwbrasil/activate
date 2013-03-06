@@ -88,7 +88,7 @@ class CoordinatorServer
             try
                 fResponse(fAction)
             catch {
-                case e =>
+                case e: Throwable =>
                     Failure(msg, e)
             })
 

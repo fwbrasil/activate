@@ -12,6 +12,7 @@ import scala.collection.mutable.{ Map => MutableMap, HashSet => MutableHashSet }
 import java.util.Date
 import org.joda.time.DateTime
 import java.util.{ HashMap => JHashMap }
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 trait Entity extends Serializable with EntityValidation {
 
@@ -62,7 +63,9 @@ trait Entity extends Serializable with EntityValidation {
         baseVar.isDestroyedSnapshot
 
     def isDirty =
-        vars.find(ref => ref.isDirty && ref.name != "version").isDefined
+        vars.find(ref =>
+            ref.isDirty && !OptimisticOfflineLocking.isVersionVar(ref))
+            .isDefined
 
     final val id: String = null
 
@@ -115,8 +118,9 @@ trait Entity extends Serializable with EntityValidation {
                 initializing = false
             }
         }
-        if (!initializing && Entity.isVersionVarActive && isPersisted) {
-            val versionVar = _varsMap.get("version").asInstanceOf[Var[Long]]
+        if (!initializing && (forWrite || OptimisticOfflineLocking.validateReads) &&
+            OptimisticOfflineLocking.isEnabled && isPersisted) {
+            val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
             if (!versionVar.isDirty)
                 versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
         }
@@ -193,9 +197,6 @@ trait Entity extends Serializable with EntityValidation {
 }
 
 object Entity {
-
-    val isVersionVarActive = true
-    System.getProperty("activate.coordinator.optimisticOfflineLocking") == "true"
 
     var serializeUsingEvelope = true
     @transient

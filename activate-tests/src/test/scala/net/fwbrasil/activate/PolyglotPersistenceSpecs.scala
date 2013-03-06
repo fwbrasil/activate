@@ -118,28 +118,6 @@ class PolyglotPersistenceSpecs extends ActivateTest {
                         }
                     })
 
-            //            "error on non-transactional storage rollback" in
-            //                activateTest(
-            //                    (step: StepExecutor) => {
-            //                        step {
-            //                            clearStorages
-            //                        }
-            //                        step {
-            //                            createEntitiesForAllStorages
-            //                        }
-            //                        step {
-            //                            modifyStoragesEntities(true)
-            //                            val update = new BasicDBObject
-            //                            update.put("version", 99l)
-            //                            mongo.directAccess.getCollection("Box").update(new BasicDBObject, update)
-            //                            subvertSchema
-            //                        } must throwA[Exception]
-            //                        step {
-            //                            recoverSchema
-            //                            verifyNumberOfEntitiesPerStorage(1)
-            //                            verifyThatEntitiesAreUnmodified
-            //                        }
-            //                    })
         }
 
         "restrict mass statement usage" in {

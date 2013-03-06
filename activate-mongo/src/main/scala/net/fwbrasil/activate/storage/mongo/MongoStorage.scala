@@ -59,6 +59,7 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 
 trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
@@ -106,7 +107,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private def preVerifyStaleData(
         data: List[(Entity, Map[String, StorageValue])]) = {
         val invalid =
-            data.filter(_._2.contains("version")).filterNot { tuple =>
+            data.filter(_._2.contains(versionVarName)).filterNot { tuple =>
                 val (entity, properties) = tuple
                 val query = new BasicDBObject
                 query.put("_id", entity.id)
@@ -119,11 +120,11 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     }
 
     private def addVersionCondition(query: BasicDBObject, properties: Map[String, StorageValue]) =
-        if (properties.contains("version")) {
+        if (properties.contains(versionVarName)) {
             val nullVersion = new BasicDBObject
-            nullVersion.put("version", null)
+            nullVersion.put(versionVarName, null)
             val versionValue = new BasicDBObject
-            versionValue.put("version", getMongoValue(properties("version")) match {
+            versionValue.put(versionVarName, getMongoValue(properties(versionVarName)) match {
                 case value: Long =>
                     value - 1l
             })

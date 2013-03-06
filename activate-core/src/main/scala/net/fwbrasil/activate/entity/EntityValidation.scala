@@ -12,8 +12,9 @@ import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.SynchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
-
 import net.fwbrasil.radon.transaction.NestedTransaction
+
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 case class PostCond[R](f: () => R) {
 
@@ -104,7 +105,7 @@ trait EntityValidation {
         _listener
     }
     private[this] def initializeListener: Unit =
-        for (ref <- vars if ref.name != "version")
+        for (ref <- vars if ref.name != OptimisticOfflineLocking.versionVarName)
             ref.addWeakListener(listener)
 
     protected def invariant(f: => Boolean) =

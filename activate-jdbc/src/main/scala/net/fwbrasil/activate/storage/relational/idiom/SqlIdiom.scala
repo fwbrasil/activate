@@ -91,6 +91,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -236,9 +237,9 @@ trait SqlIdiom {
     }
 
     def versionCondition(propertyMap: Map[String, StorageValue]) = {
-        propertyMap.get("version") match {
+        propertyMap.get(versionVarName) match {
             case Some(newVersion: LongStorageValue) =>
-                " AND (VERSION IS NULL OR VERSION = :version - 1)"
+                s" AND ($versionVarName IS NULL OR $versionVarName = :version - 1)"
             case other =>
                 ""
         }

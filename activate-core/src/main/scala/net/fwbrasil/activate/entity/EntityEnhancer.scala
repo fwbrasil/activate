@@ -26,6 +26,7 @@ import java.security.ProtectionDomain
 import javassist.CannotCompileException
 import javassist.bytecode.AnnotationsAttribute
 import javassist.CtMethod
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 object EntityEnhancer extends Logging {
 
@@ -44,8 +45,8 @@ object EntityEnhancer extends Logging {
         field.getName.startsWith(entityClassFieldPrefix)
 
     def isDisabledVersionVar(field: CtField) =
-        field.getName == "version" &&
-            !Entity.isVersionVarActive
+        field.getName == OptimisticOfflineLocking.versionVarName &&
+            !OptimisticOfflineLocking.isEnabled
 
     def isVarField(field: CtField) =
         field.getType.getName == varClassName

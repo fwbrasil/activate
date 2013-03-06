@@ -201,7 +201,7 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
                 f
                 throw new IllegalStateException("exception wasn't thrown")
             } catch {
-                case e =>
+                case e: Throwable =>
                     if (e.getCause == null || !erasureOf[E].isAssignableFrom(e.getCause.getClass))
                         throw new IllegalStateException("Not the expected cause")
             }

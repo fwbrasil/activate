@@ -235,7 +235,7 @@ trait DurableContext {
 
     private def valueToRollback(ref: Var[Any], updatedValue: EntityValue[_]) = {
         ref.tval(
-            if (ref.name != "version")
+            if (ref.name != OptimisticOfflineLocking.versionVarName)
                 ref.snapshotWithoutTransaction
             else
                 updatedValue match {
@@ -253,7 +253,7 @@ trait DurableContext {
             handle.map(_.rollback).getOrElse {
                 // "Manual" rollback for non-transactional storages
                 val deletes = mapVarsToName(insertsByStorage(storage).map(
-                    tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != "version"))))
+                    tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != OptimisticOfflineLocking.versionVarName))))
                 val updates = mapVarsToName(updatesByStorage(storage).map(
                     tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2))))))
                 val inserts = mapVarsToName(deletesByStorage(storage))
