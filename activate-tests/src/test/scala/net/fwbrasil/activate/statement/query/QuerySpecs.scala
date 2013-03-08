@@ -293,7 +293,6 @@ class QuerySpecs extends ActivateTest {
                             newFullActivateTestEntity
                         }
                         step {
-                            val a = all[ActivateTestEntity]
                             select[ActivateTestEntity].where(_.traitValue1.attribute :== "1").size must beEqualTo(1)
                         }
                     }

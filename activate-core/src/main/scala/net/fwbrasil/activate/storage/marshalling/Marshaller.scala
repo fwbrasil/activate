@@ -74,7 +74,8 @@ object Marshaller {
             case (storageValue: DateStorageValue, entityValue: DateEntityValue) =>
                 DateEntityValue(storageValue.value)
             case (storageValue: DateStorageValue, entityValue: JodaInstantEntityValue[_]) =>
-                JodaInstantEntityValue(storageValue.value.map((date: Date) => materializeJodaInstant(entityValue.instantClass, date)))
+                JodaInstantEntityValue(storageValue.value.map((date: Date) =>
+                    materializeJodaInstant(entityValue.instantClass, date)))
             case (storageValue: DateStorageValue, entityValue: CalendarEntityValue) =>
                 CalendarEntityValue(storageValue.value.map((v: Date) => {
                     val calendar = Calendar.getInstance

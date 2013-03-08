@@ -25,10 +25,10 @@ import net.fwbrasil.activate.util.CollectionUtil
 trait QueryContext extends StatementContext with OrderedQueryContext {
     this: ActivateContext =>
 
-    private[activate] def executeQuery[S](query: Query[S], iniatializing: Boolean): List[S] = {
+    private[activate] def executeQuery[S](query: Query[S]): List[S] = {
         val results =
             (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
-                liveCache.executeQuery(normalized, iniatializing)
+                liveCache.executeQuery(normalized)
             }).flatten
         val orderedResuts =
             query.orderByClause
@@ -189,13 +189,12 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 }
 
 class Query[S](override val from: From, override val where: Where, val select: Select) extends Statement(from, where) with Product {
-    private[activate] def execute(iniatializing: Boolean): List[S] = {
+    private[activate] def execute: List[S] = {
         val context =
             (for (src <- from.entitySources)
                 yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne("All query entities sources must be from the same context.")
-        context.executeQuery(this, iniatializing)
+        context.executeQuery(this)
     }
-    def execute: List[S] = execute(false)
 
     private[activate] def orderByClause: Option[OrderBy] = None
 

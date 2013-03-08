@@ -109,19 +109,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
         }
     }
 
-    def isQueriable(entity: Entity, isMassModification: Boolean) =
-        entity.isInitialized && !entity.isDeletedSnapshot &&
-            (isMassModification || storageFor(entity.niceClass).isMemoryStorage || !entity.isPersisted || entity.isDirty)
-
-    def fromCache[E <: Entity](entityClass: Class[E], isMassModification: Boolean) = {
+    def fromCache[E <: Entity](entityClass: Class[E]) = {
         val map = entityInstacesMap(entityClass)
         map.doWithReadLock {
-            val entities = map.values.filter(isQueriable(_, isMassModification)).toList
-            for (entity <- entities)
-                if (!storageFor(entity.niceClass).isMemoryStorage &&
-                    !entity.isPersisted)
-                    entity.initializeGraph
-            entities
+            map.values.toList.filter(!_.isDeletedSnapshot)
         }
     }
 
@@ -147,59 +138,41 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
 
     def executeMassModification(statement: MassModificationStatement) = {
-        val entities = entitySourceInstancesCombined(true, statement.from)
+        val entities =
+            entitySourceInstancesCombined(statement.from)
+                .filter(list => list.head.isInitialized)
         executeMassModificationWithEntitySources(statement, entities)
     }
 
     private def entitiesFromCache[S](query: Query[S]) = {
-        val entities = entitySourceInstancesCombined(false, query.from)
-        val rows = executeQueryWithEntitySources(query, entities)
-        (rows, entities)
+        val entities =
+            entitySourceInstancesCombined(query.from)
+        val filtered = entities.filter(list =>
+            list.find(entity => !entity.isPersisted || entity.isDirty || storageFor(entity.niceClass).isMemoryStorage)
+                .isDefined)
+        val rows = executeQueryWithEntitySources(query, filtered)
+        (rows, filtered)
     }
 
-    object invalid
+    private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
+        for (line <- storageFor(query).fromStorage(query, entitiesReadFromCache))
+            yield for (column <- line)
+            yield materialize(column)
 
-    private def filterInvalid[S](list: List[S]) =
-        list.filter({
-            (row) =>
-                row match {
-                    case row: Product =>
-                        row.productIterator.find(_ == invalid).isEmpty
-                    case other =>
-                        other != invalid
-                }
-        })
-
-    private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]], initializing: Boolean) = {
-        val fromStorageMaterialized =
-            for (line <- storageFor(query).fromStorage(query, entitiesReadFromCache))
-                yield for (column <- line)
-                yield materialize(column, initializing)
-        filterInvalid(fromStorageMaterialized)
-    }
-
-    def materialize(value: EntityValue[_], initializing: Boolean) =
+    def materialize(value: EntityValue[_]) =
         value match {
             case value: ReferenceListEntityValue[_] =>
                 value.value.map(_.map(_.map(materializeEntity).orNull)).orNull
             case value: EntityInstanceReferenceValue[_] =>
-                materializeReference(value, initializing)
+                value.value.map(materializeEntity).orNull
             case other: EntityValue[_] =>
                 other.value.getOrElse(null)
         }
 
-    private def materializeReference(value: EntityInstanceReferenceValue[_], initializing: Boolean) = {
-        if (value.value == None)
-            null
-        else if (initializing)
-            materializeEntity(value.value.get)
-        else
-            materializeEntityIfNotDeleted(value.value.get).getOrElse(invalid)
-    }
-
-    def executeQuery[S](query: Query[S], iniatializing: Boolean): List[List[Any]] = {
+    def executeQuery[S](query: Query[S]): List[List[Any]] = {
         val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
-        entitiesFromStorage(query, entitiesReadFromCache, iniatializing) ++ rowsFromCache
+        val result = entitiesFromStorage(query, entitiesReadFromCache) ++ rowsFromCache
+        result
     }
 
     def materializeEntity(entityId: String): Entity = {
@@ -209,14 +182,6 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 toCache(entityClass, () => createLazyEntity(entityClass, entityId))
             })
         }
-    }
-
-    def materializeEntityIfNotDeleted(entityId: String): Option[Entity] = {
-        val ret = materializeEntity(entityId)
-        if (ret.isDeletedSnapshot)
-            None
-        else
-            Some(ret)
     }
 
     private def initializeLazyEntityProperties[E <: Entity](entity: E, entityMetadata: EntityMetadata) =
@@ -266,7 +231,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
         if (vars.size != 1) {
             val list = produceQuery({ (e: Entity) =>
                 where(e :== entity.id) selectList (e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
-            })(manifestClass(entity.getClass)).execute(true)
+            })(manifestClass(entity.getClass)).execute
             val row = list.headOption
             if (row.isDefined) {
                 val tuple = row.get
@@ -276,7 +241,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
                     ref.setRefContent(Option(value))
                 }
                 executePendingMassStatements(entity)
-            } else entity.delete
+            } else
+                entity.delete
         }
     }
 
@@ -492,11 +458,19 @@ class LiveCache(val context: ActivateContext) extends Logging {
             ref.getValue).asInstanceOf[T]
     }
 
-    def entitySourceInstancesCombined(isMassModification: Boolean, from: From) =
-        CollectionUtil.combine(entitySourceInstances(isMassModification, from.entitySources: _*))
+    def entitySourceInstancesCombined(from: From) = {
+        for (entitySource <- from.entitySources) {
+            val entities = fromCache(entitySource.entityClass)
+            for (entity <- entities)
+                if ((!entity.isPersisted || entity.isDirty) &&
+                    !storageFor(entity.niceClass).isMemoryStorage)
+                    entity.initializeGraph
+        }
+        CollectionUtil.combine(entitySourceInstances(from.entitySources: _*))
+    }
 
-    def entitySourceInstances(isMassModification: Boolean, entitySources: EntitySource*) =
+    def entitySourceInstances(entitySources: EntitySource*) =
         for (entitySource <- entitySources)
-            yield fromCache(entitySource.entityClass, isMassModification)
+            yield fromCache(entitySource.entityClass)
 
 }
