@@ -112,7 +112,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def fromCache[E <: Entity](entityClass: Class[E]) = {
         val map = entityInstacesMap(entityClass)
         map.doWithReadLock {
-            map.values.toList.filter(!_.isDeletedSnapshot)
+            map.values.toList.filter(entity => entity.isInitialized && !entity.isDeletedSnapshot)
         }
     }
 

@@ -60,16 +60,27 @@ class BatchSqlStatement(
 
 object BatchSqlStatement {
 
-    @tailrec def group(sqlStatements: List[SqlStatement], grouped: List[BatchSqlStatement] = List()): List[JdbcStatement] = {
-        if (sqlStatements.isEmpty)
+    @tailrec def group(sqlStatements: List[SqlStatement], batchLimit: Int, grouped: List[JdbcStatement] = List()): List[JdbcStatement] = {
+        if (batchLimit <= 1)
+            sqlStatements
+        else if (sqlStatements.isEmpty)
             grouped
         else {
             val (head :: tail) = sqlStatements
-            val (tailToGroup, others) = tail.span(_.isCompatible(head))
-            val toGroup = List(head) ++ tailToGroup
-            val expectedNumberOfAffectedRows = toGroup.map(_.expectedNumbersOfAffectedRowsOption).flatten
-            val batch = new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery, expectedNumberOfAffectedRows)
-            group(others, grouped ++ List(batch))
+            var batchSize = 0
+            val (tailToGroup, others) = tail.span(each => {
+                batchSize += 1
+                each.isCompatible(head) &&
+                    batchSize <= batchLimit
+            })
+            if (tailToGroup.isEmpty)
+                group(others, batchLimit, grouped ++ List(head))
+            else {
+                val toGroup = List(head) ++ tailToGroup
+                val expectedNumberOfAffectedRows = toGroup.map(_.expectedNumbersOfAffectedRowsOption).flatten
+                val batch = new BatchSqlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery, expectedNumberOfAffectedRows)
+                group(others, batchLimit, grouped ++ List(batch))
+            }
         }
     }
 }

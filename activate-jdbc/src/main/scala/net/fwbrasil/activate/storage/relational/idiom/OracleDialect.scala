@@ -69,10 +69,18 @@ object oracleDialect extends SqlIdiom {
     override def toSqlDmlLimit(limit: Int): String =
         ""
 
+    override def toSqlDmlOrderBy(query: Query[_])(implicit binds: MutableMap[StorageValue, String]): String = {
+        val fromSuper = super.toSqlDmlOrderBy(query)
+        if (fromSuper.nonEmpty)
+            fromSuper + " NULLS FIRST "
+        else
+            fromSuper
+    }
+
     override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
         query match {
             case query: LimitedOrderedQuery[_] =>
-                "SELECT * FROM (" + super.toSqlDmlQueryString(query, entitiesReadFromCache) + ") WHERE ROWNUM<" + query.limit
+                "SELECT * FROM (" + super.toSqlDmlQueryString(query, entitiesReadFromCache) + ") WHERE ROWNUM<=" + query.limit
             case query =>
                 super.toSqlDmlQueryString(query, entitiesReadFromCache)
         }

@@ -28,6 +28,7 @@ case class JdbcStatementException(statement: JdbcStatement, exception: Exception
 trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     val dialect: SqlIdiom
+    val batchLimit = 1000
 
     protected def getConnection: Connection
 
@@ -51,12 +52,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def executeStatements(storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
-        val batchStatements =
-            BatchSqlStatement.group(sqlStatements)
+        val statements =
+            BatchSqlStatement.group(sqlStatements, batchLimit)
         Some(executeWithTransactionAndReturnHandle {
             connection =>
-                for (batchStatement <- batchStatements)
-                    execute(batchStatement, connection)
+                for (statement <- statements)
+                    execute(statement, connection)
         })
     }
 
@@ -85,7 +86,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             if (satisfyRestriction(jdbcStatement)) {
                 val stmt = createPreparedStatement(jdbcStatement, connection, true)
                 try {
-                    val result = stmt.executeBatch
+                    val result = jdbcStatement match {
+                        case normal: SqlStatement =>
+                            Array(stmt.executeUpdate)
+                        case batch: BatchSqlStatement =>
+                            stmt.executeBatch
+                    }
                     verifyStaleData(jdbcStatement, result)
 
                 } finally stmt.close
@@ -136,7 +142,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                     dialect.setValue(ps, i, bindValue)
                     i += 1
                 }
-                if (isDml)
+                if (isDml && jdbcStatement.isInstanceOf[BatchSqlStatement])
                     ps.addBatch
             }
         } catch {

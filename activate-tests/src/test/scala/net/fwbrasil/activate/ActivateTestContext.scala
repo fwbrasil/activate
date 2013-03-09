@@ -178,33 +178,36 @@ object mongoContext extends ActivateTestContext {
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
-//object oracleContext extends ActivateTestContext {
-//    val storage = new PooledJdbcRelationalStorage {
-//        val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-//        val user = "activate_test"
-//        val password = "activate_test"
-//        val url = "jdbc:oracle:thin:@192.168.1.11:1521:orcl"
-//        val dialect = oracleDialect
-//    }
-//}
-//class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
-//class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
-//    override def bigStringType = "CLOB"
-//}
+object oracleContext extends ActivateTestContext {
+    val storage = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
+        val user = "activate_test"
+        val password = "activate_test"
+        val url = "jdbc:oracle:thin:@192.168.1.8:1521:orcl"
+        val dialect = oracleDialect
+        // Some oracle versions does not return the number of updated rows
+        // when using batch operations correctly. Disable it.
+        override val batchLimit = 0
+    }
+}
+class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
+class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
+    override def bigStringType = "CLOB"
+}
 
-//object db2Context extends ActivateTestContext {
-//    val storage = new PooledJdbcRelationalStorage {
-//        val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
-//        val user = "db2inst1"
-//        val password = "db2inst1"
-//        val url = "jdbc:db2://192.168.1.11:50000/ACTTST"
-//        val dialect = db2Dialect
-//    }
-//}
-//class Db2ActivateTestMigration extends ActivateTestMigration()(db2Context)
-//class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
-//    override def bigStringType = "CLOB"
-//}
+object db2Context extends ActivateTestContext {
+    val storage = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
+        val user = "db2inst1"
+        val password = "db2inst1"
+        val url = "jdbc:db2://192.168.1.8:50000/ACTTST"
+        val dialect = db2Dialect
+    }
+}
+class Db2ActivateTestMigration extends ActivateTestMigration()(db2Context)
+class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
+    override def bigStringType = "CLOB"
+}
 
 object polyglotContext extends ActivateTestContext {
     val postgre = new PooledJdbcRelationalStorage {
