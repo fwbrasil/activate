@@ -3,7 +3,7 @@ package net.fwbrasil.activate
 import net.fwbrasil.activate.storage.prevayler._
 import net.fwbrasil.activate.storage.relational._
 import net.fwbrasil.activate.storage.memory._
-import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.util.Reflection._
 import org.specs2.mutable._
 import org.junit.runner._
@@ -43,9 +43,10 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             postgresqlContext,
             derbyContext,
             h2Context,
-            hsqldbContext,
-            oracleContext,
-            db2Context)
+            hsqldbContext //,
+            //            oracleContext,
+            //            db2Context
+            )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
         if (db == null)

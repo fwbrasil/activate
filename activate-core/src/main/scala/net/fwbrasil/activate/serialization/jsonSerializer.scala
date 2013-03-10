@@ -3,7 +3,7 @@ package net.fwbrasil.activate.serialization
 import com.thoughtworks.xstream.XStream
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver
 
-object jsonSerializator extends Serializator {
+object jsonSerializer extends Serializer {
 
     @transient
     var _xStream = new XStream(new JettisonMappedXmlDriver)

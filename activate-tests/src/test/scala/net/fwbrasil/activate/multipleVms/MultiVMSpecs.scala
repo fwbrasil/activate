@@ -15,8 +15,8 @@
 //class MultiVMSpecs extends ActivateTest {
 //
 //    val coordinatorClientOption = "-Dactivate.coordinator.serverHost=localhost"
-//    val optimisticOfflineLockingOption = "-Dactivate.coordinator.optimisticOfflineLocking.enable=true"
-//    val optimisticOfflineLockingValidateReadOption = "-Dactivate.coordinator.optimisticOfflineLocking.validateReads=true"
+//    val optimisticOfflineLockingOption = "-Dactivate.offlineLocking.enable=true"
+//    val optimisticOfflineLockingValidateReadOption = "-Dactivate.offlineLocking.validateReads=true"
 //
 //    "Multiple VMs" should {
 //        "work with coordinator" in synchronized {

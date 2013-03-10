@@ -9,8 +9,8 @@ import net.fwbrasil.activate.util.ManifestUtil._
 trait SerializationContext {
 
     protected class Serialize[E <: Entity: Manifest](columns: Set[String]) {
-        def using(serializer: Serializator) = {
-            var map = Map[(Class[_ <: Entity], String), Serializator]()
+        def using(serializer: Serializer) = {
+            var map = Map[(Class[_ <: Entity], String), Serializer]()
             for (column <- columns)
                 map += (erasureOf[E], column) -> serializer
             map
@@ -32,11 +32,11 @@ trait SerializationContext {
     private[activate] def serializatorFor(clazz: Class[_ <: Entity], property: String) =
         customSerializatorsMap.getOrElse((clazz, property), defaultSerializator)
 
-    protected val defaultSerializator: Serializator = jsonSerializator
+    protected val defaultSerializator: Serializer = jsonSerializer
 
     private val customSerializatorsMap =
         unsafeLazy(customSerializators.flatten.toMap)
 
-    protected def customSerializators = List[Map[(Class[_ <: Entity], String), Serializator]]()
+    protected def customSerializators = List[Map[(Class[_ <: Entity], String), Serializer]]()
 
 }

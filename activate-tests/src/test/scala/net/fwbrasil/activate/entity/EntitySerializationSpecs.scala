@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
-import net.fwbrasil.activate.serialization.javaSerializator
+import net.fwbrasil.activate.serialization.javaSerializer
 import net.fwbrasil.activate.util.RichList._
 
 @RunWith(classOf[JUnitRunner])
@@ -18,10 +18,10 @@ class EntitySerializationSpecs extends ActivateTest {
                     import step.ctx._
                     val serialized =
                         step {
-                            javaSerializator.toSerialized(newEmptyActivateTestEntity)
+                            javaSerializer.toSerialized(newEmptyActivateTestEntity)
                         }
                     step {
-                        (all[ActivateTestEntity].onlyOne == javaSerializator.fromSerialized[ActivateTestEntity](serialized)) must beTrue
+                        (all[ActivateTestEntity].onlyOne == javaSerializer.fromSerialized[ActivateTestEntity](serialized)) must beTrue
                     }
                 })
         }
@@ -33,13 +33,13 @@ class EntitySerializationSpecs extends ActivateTest {
                     val serialized =
                         step {
                             Entity.serializeUsingEvelope = false
-                            val res = javaSerializator.toSerialized(newEmptyActivateTestEntity)
+                            val res = javaSerializer.toSerialized(newEmptyActivateTestEntity)
                             Entity.serializeUsingEvelope = true
                             res
                         }
                     step {
                         val bd = all[ActivateTestEntity].onlyOne
-                        val ser = javaSerializator.fromSerialized[ActivateTestEntity](serialized)
+                        val ser = javaSerializer.fromSerialized[ActivateTestEntity](serialized)
                         (bd == ser) must beFalse
                         (bd.id == ser.id) must beTrue
                     }

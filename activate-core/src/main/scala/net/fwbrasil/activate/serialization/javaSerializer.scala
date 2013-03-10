@@ -8,7 +8,7 @@ import java.io.Serializable
 
 class JavaSerializatorEvelope[T](val value: T) extends Serializable
 
-object javaSerializator extends Serializator {
+object javaSerializer extends Serializer {
 
     def toSerialized[T: Manifest](value: T): Array[Byte] = {
         val envelope = new JavaSerializatorEvelope(value)

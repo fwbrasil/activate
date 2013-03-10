@@ -22,8 +22,10 @@ import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.activate.coordinator.CoordinatorClient
 import net.fwbrasil.activate.serialization.xmlSerializator
-import net.fwbrasil.activate.serialization.jsonSerializator
+import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
+
+import org.joda.time.DateMidnight
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -31,6 +33,7 @@ object EnumerationValue extends Enumeration {
     val value2 = EnumerationValue("v2")
     val value3 = EnumerationValue("v3")
 }
+
 import EnumerationValue._
 
 case class DummySeriablizable(val string: String)
@@ -282,7 +285,7 @@ trait ActivateTestContext
 
     override protected val defaultSerializator = xmlSerializator
     override protected def customSerializators = List(
-        serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializator)
+        serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializer)
 
     val emptyIntValue = 0
     val emptyLongValue = 0l

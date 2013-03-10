@@ -6,7 +6,7 @@ import net.fwbrasil.activate.entity.Var
 object OptimisticOfflineLocking {
 
     private val propertiesPrefix =
-        "activate.coordinator.optimisticOfflineLocking."
+        "activate.offlineLocking."
 
     val isEnabled =
         getProperty(propertiesPrefix + "enable", "false") == "true"
