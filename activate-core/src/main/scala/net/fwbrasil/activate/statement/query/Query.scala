@@ -189,7 +189,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 }
 
 class Query[S](override val from: From, override val where: Where, val select: Select) extends Statement(from, where) with Product {
-    private[activate] def execute: List[S] = {
+    def execute: List[S] = {
         val context =
             (for (src <- from.entitySources)
                 yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne("All query entities sources must be from the same context.")

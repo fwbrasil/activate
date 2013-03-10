@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC5"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-SNAPSHOT"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.2"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"

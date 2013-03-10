@@ -337,8 +337,10 @@ trait DurableContext {
     private def commit(storagesTransactionHandles: MutableMap[Storage[Any], Option[TransactionHandle]]) =
         for ((storage, handle) <- storagesTransactionHandles.toMap) {
             handle.map { h =>
-                storagesTransactionHandles -= storage
+                try 
                 h.commit
+                finally
+                storagesTransactionHandles -= storage
             }
         }
 

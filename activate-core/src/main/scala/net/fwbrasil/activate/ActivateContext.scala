@@ -123,6 +123,7 @@ object ActivateContext {
         StatementMocks.entityMockCache.clear
         contextCache.clear
         if (forClassReload) {
+            net.fwbrasil.smirror.clearCache
             Migration.migrationsCache.clear
             EntityHelper.clearMetadatas
             Reflection.reflectionsCache.clear
