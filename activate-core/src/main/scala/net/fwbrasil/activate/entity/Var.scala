@@ -30,7 +30,7 @@ class Var[T](
                 case v: SerializableEntityValue[_] =>
                     (value: Option[T]) =>
                         baseTVal(value).asInstanceOf[SerializableEntityValue[_]].forSerializator {
-                            context.asInstanceOf[SerializationContext].serializatorFor(outerEntityClass, name)
+                            context.asInstanceOf[SerializationContext].serializerFor(outerEntityClass, name)
                         }
                         case other =>
                     baseTVal

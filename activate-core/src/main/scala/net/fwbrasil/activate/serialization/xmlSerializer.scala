@@ -2,7 +2,7 @@ package net.fwbrasil.activate.serialization
 
 import com.thoughtworks.xstream.XStream
 
-object xmlSerializator extends Serializer {
+object xmlSerializer extends Serializer {
 
     @transient
     var _xStream = new XStream()

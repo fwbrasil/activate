@@ -282,7 +282,7 @@ trait DurableContext {
         deletes: List[(Entity, Map[String, EntityValue[Any]])]) =
         try {
             val bytes =
-                this.defaultSerializator.toSerialized(
+                this.defaultSerializer.toSerialized(
                     Map("exception" -> exception, "deletes" -> deletes, "updates" -> updates, "inserts" -> inserts))
             val file = new File(s"rollback-error-$contextName-${System.currentTimeMillis}-${UUIDUtil.generateUUID}.log")
             val fos = new FileOutputStream(file)
@@ -337,10 +337,10 @@ trait DurableContext {
     private def commit(storagesTransactionHandles: MutableMap[Storage[Any], Option[TransactionHandle]]) =
         for ((storage, handle) <- storagesTransactionHandles.toMap) {
             handle.map { h =>
-                try 
-                h.commit
+                try
+                    h.commit
                 finally
-                storagesTransactionHandles -= storage
+                    storagesTransactionHandles -= storage
             }
         }
 

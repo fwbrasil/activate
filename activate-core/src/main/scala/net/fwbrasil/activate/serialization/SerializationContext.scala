@@ -29,14 +29,14 @@ trait SerializationContext {
         new Serialize[E](vars.map(_.name))
     }
 
-    private[activate] def serializatorFor(clazz: Class[_ <: Entity], property: String) =
-        customSerializatorsMap.getOrElse((clazz, property), defaultSerializator)
+    def serializerFor(clazz: Class[_ <: Entity], property: String) =
+        customSerializerMap.getOrElse((clazz, property), defaultSerializer)
 
-    protected val defaultSerializator: Serializer = jsonSerializer
+    protected val defaultSerializer: Serializer = jsonSerializer
 
-    private val customSerializatorsMap =
-        unsafeLazy(customSerializators.flatten.toMap)
+    private val customSerializerMap =
+        unsafeLazy(customSerializers.flatten.toMap)
 
-    protected def customSerializators = List[Map[(Class[_ <: Entity], String), Serializer]]()
+    protected def customSerializers = List[Map[(Class[_ <: Entity], String), Serializer]]()
 
 }

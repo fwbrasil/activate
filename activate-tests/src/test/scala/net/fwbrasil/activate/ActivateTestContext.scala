@@ -21,7 +21,7 @@ import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.activate.coordinator.CoordinatorClient
-import net.fwbrasil.activate.serialization.xmlSerializator
+import net.fwbrasil.activate.serialization.xmlSerializer
 import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 
@@ -283,8 +283,8 @@ trait ActivateTestContext
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)
 
-    override protected val defaultSerializator = xmlSerializator
-    override protected def customSerializators = List(
+    override protected val defaultSerializer = xmlSerializer
+    override protected def customSerializers = List(
         serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializer)
 
     val emptyIntValue = 0
