@@ -230,7 +230,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
         val vars = entity.vars.toList.filter(!_.isTransient)
         if (vars.size != 1) {
             val list = produceQuery({ (e: Entity) =>
-                where(e :== entity.id) selectList (e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
+                where(e :== entity.id)
+                    .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
+                    .orderBy(e.id).limit(1)
             })(manifestClass(entity.getClass)).execute
             val row = list.headOption
             if (row.isDefined) {
