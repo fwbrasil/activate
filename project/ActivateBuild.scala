@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2-RC6"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.2"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.3"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -49,14 +49,6 @@ object ActivateBuild extends Build {
   	
 	/* Mongo */
 	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.10.0"
-  	
-  	/* Resolvers */
-  	val customResolvers = Seq(
-  	    "Maven" at "http://repo1.maven.org/maven2/",
-  	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
-  	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
-  	    "fwbrasil.net" at "http://fwbrasil.net/maven/"
-  	)
 
     lazy val activate = 
     	Project(
@@ -148,9 +140,18 @@ object ActivateBuild extends Build {
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)
+
+  	/* Resolvers */
+  	val customResolvers = Seq(
+  	    "Maven" at "http://repo1.maven.org/maven2/",
+  	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
+  	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
+  	    "fwbrasil.net" at "http://fwbrasil.net/maven/"
+  	)
+
     	
     def commonSettings = 
-    	Defaults.defaultSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
+    	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "1.2",
     		scalaVersion := "2.10.1",
@@ -158,8 +159,40 @@ object ActivateBuild extends Build {
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
-    	    publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
-    	    resolvers ++= customResolvers,
+    	    // publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
+    	    publishTo <<= version { v: String =>
+				  val nexus = "https://oss.sonatype.org/"
+				  if (v.trim.endsWith("SNAPSHOT")) 
+				    Some("snapshots" at nexus + "content/repositories/snapshots")
+				  else                             
+				    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+				},
+		    resolvers ++= customResolvers,
+			credentials += Credentials(Path.userHome / ".sbt" / "sonatype.credentials"),
+			publishMavenStyle := true,
+			publishArtifact in Test := false,
+			pomIncludeRepository := { x => false },
+			pomExtra := (
+			  <url>http://github.com/fwbrasil/activate/</url>
+			  <licenses>
+			    <license>
+			      <name>LGPL</name>
+			      <url>https://github.com/fwbrasil/activate/blob/master/LICENSE-LGPL</url>
+			      <distribution>repo</distribution>
+			    </license>
+			  </licenses>
+			  <scm>
+			    <url>git@github.com:fwbrasil/activate.git</url>
+			    <connection>scm:git:git@github.com:fwbrasil/activate.git</connection>
+			  </scm>
+			  <developers>
+			    <developer>
+			      <id>fwbrasil</id>
+			      <name>Flavio W. Brasil</name>
+			      <url>http://fwbrasil.net</url>
+			    </developer>
+			  </developers>
+			),
     	    compileOrder := CompileOrder.JavaThenScala,
     	    parallelExecution in Test := false
     	)
