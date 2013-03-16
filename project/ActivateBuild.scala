@@ -152,8 +152,9 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.2-RC6",
-    		scalaVersion := "2.10.0",
+    		version := "1.2",
+    		scalaVersion := "2.10.1",
+    		crossScalaVersions := Seq("2.10.0", "2.10.1"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

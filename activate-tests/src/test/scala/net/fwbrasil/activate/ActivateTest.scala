@@ -35,17 +35,17 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-            memoryContext,
-            prevaylerContext,
-            mongoContext,
-            polyglotContext,
-            mysqlContext,
-            postgresqlContext,
-            derbyContext,
-            h2Context,
-            hsqldbContext //,
-            //            oracleContext,
-            //            db2Context
+                memoryContext,
+                prevaylerContext,
+                mongoContext,
+                mysqlContext,
+                polyglotContext,
+                postgresqlContext,
+                derbyContext,
+                h2Context,
+                hsqldbContext,
+                oracleContext,
+                db2Context
             )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
