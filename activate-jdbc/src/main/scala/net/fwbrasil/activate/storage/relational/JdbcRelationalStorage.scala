@@ -35,6 +35,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def prepareDatabase =
         dialect.prepareDatabase(this)
 
+    private def getConnectionWithAutoCommit = {
+        val con = getConnection
+        con.setAutoCommit(true)
+        con
+    }
+
     private def getConnectionWithoutAutoCommit = {
         val con = getConnection
         con.setAutoCommit(false)
@@ -63,7 +69,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
         jdbcStatement.restrictionQuery.map(tuple => {
-            executeWithTransaction {
+            executeWithTransaction(autoCommit = true) {
                 connection =>
                     val (query, expected) = tuple
                     val stmt = connection.prepareStatement(query)
@@ -105,7 +111,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance, entitiesReadFromCache)), expectedTypes)
 
     protected[activate] def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
-        executeWithTransaction {
+        executeWithTransaction(autoCommit = true) {
             connection =>
                 val stmt = createPreparedStatement(sqlStatement, connection, false)
                 try {
@@ -169,11 +175,19 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         }
     }
 
-    def executeWithTransaction[R](f: (Connection) => R) = {
-        val connection = getConnectionWithoutAutoCommit
+    def executeWithTransaction[R](f: (Connection) => R): R =
+        executeWithTransaction(false)(f)
+
+    def executeWithTransaction[R](autoCommit: Boolean)(f: (Connection) => R) = {
+        val connection =
+            if (autoCommit)
+                getConnectionWithAutoCommit
+            else
+                getConnectionWithoutAutoCommit
         try {
             val res = f(connection)
-            connection.commit
+            if (!autoCommit)
+                connection.commit
             res
         } catch {
             case e: Throwable =>
