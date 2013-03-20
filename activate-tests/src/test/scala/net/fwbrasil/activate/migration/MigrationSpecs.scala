@@ -363,14 +363,23 @@ class MigrationSpecs extends MigrationTest {
                         import context._
                         def up = {
                             table[TraitAttribute1].removeColumn("attribute")
-                            table[TraitAttribute1].removeColumn("attribute").ifExists
                         }
+                        override def down = {}
                         override def validateUp = {
                             validateSchemaError(new TraitAttribute1("a"))
                         }
-                    }) must throwA[CannotRevertMigration]
+                    },
+                    new TestMigration()(_) {
+                        import context._
+                        def up = {
+                            table[TraitAttribute1].removeColumn("attribute").ifExists
+                        }
+                        override def down = {}
+                        override def validateUp = {
+                            validateSchemaError(new TraitAttribute1("a"))
+                        }
+                    })
             }
-
         }
 
         "AddIndex" in {
