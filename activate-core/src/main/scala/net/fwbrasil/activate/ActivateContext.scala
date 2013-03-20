@@ -133,9 +133,10 @@ object ActivateContext {
     private def context[E <: Entity](entityClass: Class[E]) =
         instancesOf[ActivateContext]
             .filter(_.acceptEntity(entityClass))
-            .onlyOne("\nThere should be one and only one context that accepts " + entityClass + ".\n" +
+            .onlyOne(iterable => "\nThere should be one and only one context that accepts " + entityClass + ".\n" +
                 "Maybe the context isn't initialized or you must override the contextEntities val on your context.\n" +
                 "Important: The context definition must be declared in a base package of the entities packages.\n" +
-                "Example: com.app.myContext for com.app.model.MyEntity")
+                "Example: com.app.myContext for com.app.model.MyEntity.\n" +
+                "Found contexts: " + iterable.toList)
 
 }

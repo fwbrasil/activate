@@ -229,19 +229,16 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def initialize(entity: Entity) = {
         val vars = entity.vars.toList.filter(!_.isTransient)
         if (vars.size != 1) {
-            val list = produceQuery({ (e: Entity) =>
+            val query = produceQuery({ (e: Entity) =>
                 where(e :== entity.id)
                     .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
-                    .orderBy(e.id).limit(1)
-            })(manifestClass(entity.getClass)).execute
+            })(manifestClass(entity.getClass))
+            val list = entitiesFromStorage(query, List())
             val row = list.headOption
             if (row.isDefined) {
-                val tuple = row.get
-                for (i <- 0 until vars.size) {
-                    val ref = vars(i)
-                    val value = tuple.productElement(i)
-                    ref.setRefContent(Option(value))
-                }
+                val varsIterator = vars.iterator
+                for (value <- row.get)
+                    varsIterator.next.setRefContent(Option(value))
                 executePendingMassStatements(entity)
             } else
                 entity.delete
