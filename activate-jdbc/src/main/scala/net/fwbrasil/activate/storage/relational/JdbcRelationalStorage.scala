@@ -21,6 +21,7 @@ import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.ActivateConcurrentTransactionException
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -105,6 +106,10 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         catch {
             case e: BatchUpdateException =>
                 throw JdbcStatementException(jdbcStatement, e, e.getNextException)
+            case e: ActivateConcurrentTransactionException =>
+                throw e
+            case other: Exception =>
+                throw JdbcStatementException(jdbcStatement, other, other)
         }
 
     protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
@@ -191,7 +196,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             res
         } catch {
             case e: Throwable =>
-                connection.rollback
+                if (!autoCommit)
+                    connection.rollback
                 throw e
         } finally
             connection.close
@@ -204,7 +210,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             (for (i <- 0 until result.size) yield {
                 expectedResult(i).filter(_ != result(i)).map(_ => i)
             }).flatten
-                .map(jdbcStatement.bindsList(_).get("id")).flatten
+                .flatMap(jdbcStatement.bindsList(_).get("id"))
                 .collect {
                     case StringStorageValue(Some(value: String)) =>
                         value

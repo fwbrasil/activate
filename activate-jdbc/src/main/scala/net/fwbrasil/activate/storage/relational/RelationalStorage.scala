@@ -47,23 +47,27 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         executeStatements(sqls)
     }
 
-    protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] = try {
-        val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
-        val tree = new DependencyTree[DmlStorageStatement](statements)
-        for (insertA <- statements) {
-            for ((propertyName, propertyValue) <- insertA.propertyMap)
-                if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
-                    val entityIdB = propertyValue.value.get.asInstanceOf[String]
-                    if (entityInsertMap.contains(entityIdB))
-                        tree.addDependency(entityInsertMap(entityIdB), insertA)
-                }
-        }
-        tree.resolve
-    } catch {
-        case e: CyclicReferenceException =>
-            // Let storage cry if necessary!
+    protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] =
+        if (statements.size <= 1)
             statements.toList
-    }
+        else
+            try {
+                val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
+                val tree = new DependencyTree[DmlStorageStatement](statements)
+                for (insertA <- statements) {
+                    for ((propertyName, propertyValue) <- insertA.propertyMap)
+                        if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
+                            val entityIdB = propertyValue.value.get.asInstanceOf[String]
+                            if (entityInsertMap.contains(entityIdB))
+                                tree.addDependency(entityInsertMap(entityIdB), insertA)
+                        }
+                }
+                tree.resolve
+            } catch {
+                case e: CyclicReferenceException =>
+                    // Let storage cry if necessary!
+                    statements.toList
+            }
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         executeStatements(List(DdlStorageStatement(action))).map(_.commit)

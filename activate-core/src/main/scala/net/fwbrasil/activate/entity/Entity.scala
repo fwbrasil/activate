@@ -129,6 +129,12 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def uninitialize =
         this.synchronized {
             initialized = false
+            val ctx = context
+            import ctx._
+            transactional(transient) {
+                for (ref <- vars)
+                    ref.putWithoutInitialize(None)
+            }
         }
 
     private[activate] def initializeGraph: Unit =
