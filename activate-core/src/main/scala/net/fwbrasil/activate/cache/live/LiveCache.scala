@@ -226,19 +226,22 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 executeMassModificationWithEntitySources(statement, entities)
             }
 
-    def initialize(entity: Entity) = {
+    def loadFromDatabase(entity: Entity, withinTransaction: Boolean): Unit = {
         val vars = entity.vars.toList.filter(!_.isTransient)
         if (vars.size != 1) {
-            val query = produceQuery({ (e: Entity) =>
-                where(e :== entity.id)
-                    .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
-            })(manifestClass(entity.getClass))
-            val list = entitiesFromStorage(query, List())
-            val row = list.headOption
+            val row = loadRowFromDatabase(entity)
             if (row.isDefined) {
-                val varsIterator = vars.iterator
-                for (value <- row.get)
-                    varsIterator.next.setRefContent(Option(value))
+                if (withinTransaction)
+                    transactional(transient) {
+                        val varsIterator = vars.iterator
+                        for (value <- row.get)
+                            varsIterator.next.putValueWithoutInitialize(value)
+                    }
+                else {
+                    val varsIterator = vars.iterator
+                    for (value <- row.get)
+                        varsIterator.next.setRefContent(Option(value))
+                }
                 executePendingMassStatements(entity)
             } else
                 entity.delete
@@ -471,5 +474,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def entitySourceInstances(entitySources: EntitySource*) =
         for (entitySource <- entitySources)
             yield fromCache(entitySource.entityClass)
+
+    private def loadRowFromDatabase(entity: Entity) = {
+        val query = produceQuery({ (e: Entity) =>
+            where(e :== entity.id)
+                .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
+        })(manifestClass(entity.getClass))
+        entitiesFromStorage(query, List()).headOption
+    }
 
 }

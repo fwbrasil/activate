@@ -33,7 +33,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         val insertsResolved = resolveDependencies(inserts.toSet)
 
         val updates =
-            for ((entity, propertyMap) <- updateList)
+            for ((entity, propertyMap) <- sortToAvoidDeadlocks(updateList))
                 yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
 
         val deletes =
@@ -46,6 +46,9 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
 
         executeStatements(sqls)
     }
+
+    private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
+        list.sortBy(_._1.id)
 
     protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] =
         if (statements.size <= 1)

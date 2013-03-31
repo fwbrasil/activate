@@ -26,7 +26,10 @@ import net.fwbrasil.activate.storage.TransactionHandle
 import java.io.File
 import java.io.FileOutputStream
 
-class ActivateConcurrentTransactionException(val entitiesIds: Set[String], refs: List[Ref[_]]) extends ConcurrentTransactionException(refs)
+class ActivateConcurrentTransactionException(
+    val entitiesIds: Set[String],
+    refs: List[Ref[_]])
+        extends ConcurrentTransactionException(refs)
 
 trait DurableContext {
     this: ActivateContext =>
@@ -89,7 +92,7 @@ trait DurableContext {
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
         val deletes = filterDeletes(statements, deletesUnfiltered)
 
-        val entities = inserts.keys.toList ++ updates.keys.toList ++ deletes.keys.toList
+        val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
         lazy val writes = entities.map(_.id).toSet
         lazy val reads = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet

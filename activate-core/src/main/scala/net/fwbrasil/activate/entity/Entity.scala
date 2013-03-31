@@ -113,7 +113,7 @@ trait Entity extends Serializable with EntityValidation {
         this.synchronized {
             if (!initialized && !initializing && id != null) {
                 initializing = true
-                context.initialize(this)
+                context.liveCache.loadFromDatabase(this, withinTransaction = false)
                 initialized = true
                 initializing = false
             }
@@ -128,13 +128,7 @@ trait Entity extends Serializable with EntityValidation {
 
     private[activate] def uninitialize =
         this.synchronized {
-            initialized = false
-            val ctx = context
-            import ctx._
-            transactional(transient) {
-                for (ref <- vars)
-                    ref.putWithoutInitialize(None)
-            }
+            context.liveCache.loadFromDatabase(this, withinTransaction = true)
         }
 
     private[activate] def initializeGraph: Unit =
@@ -243,8 +237,6 @@ trait EntityContext extends ValueContext with TransactionContext {
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
     private[activate] val liveCache = new LiveCache(this)
-    private[activate] def initialize[E <: Entity](entity: E): Unit =
-        liveCache.initialize(entity)
 
     protected[activate] def entityMaterialized(entity: Entity) = {}
 
