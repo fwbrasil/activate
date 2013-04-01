@@ -49,5 +49,27 @@ class EntityTransientValueSpecs extends ActivateTest {
                     }
                 })
         }
+        "work with concurrent initialization if it is lazy" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entity =
+                        transactional(newEmptyActivateTestEntity)
+                    val transaction1 = new Transaction
+                    val transaction2 = new Transaction
+                    transactional(transaction1) {
+                        entity.transientLazyValue must not beNull
+                    }
+                    transactional(transaction2) {
+                        entity.transientLazyValue must not beNull // ERROR
+                    }
+                    transaction1.commit
+                    transaction2.rollback
+                    transactional(transaction2) {
+                        entity.transientLazyValue must not beNull
+                    }
+                    transaction2.commit
+                })
+        }.pendingUntilFixed("https://github.com/fwbrasil/activate/issues/27")
     }
 }
