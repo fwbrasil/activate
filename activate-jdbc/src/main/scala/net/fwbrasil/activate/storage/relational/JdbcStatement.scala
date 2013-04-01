@@ -13,7 +13,7 @@ trait JdbcStatement extends Serializable {
     val bindsList: List[Map[String, StorageValue]]
     def expectedNumbersOfAffectedRowsOption: List[Option[Int]]
 
-    def toIndexedBind = {
+    lazy val (indexedStatement, valuesList) = {
         val pattern = Pattern.compile("(:[a-zA-Z0-9_]*)")
         var matcher = pattern.matcher(statement)
         var result = statement

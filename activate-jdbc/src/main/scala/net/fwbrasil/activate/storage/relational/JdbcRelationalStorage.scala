@@ -22,6 +22,7 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
+import java.sql.PreparedStatement
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -30,8 +31,14 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     val dialect: SqlIdiom
     val batchLimit = 1000
+    private val preparedStatementCache = new PreparedStatementCache
 
     protected def getConnection: Connection
+
+    override def reinitialize = {
+        preparedStatementCache.clear
+        super.reinitialize
+    }
 
     override protected[activate] def prepareDatabase =
         dialect.prepareDatabase(this)
@@ -91,7 +98,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def execute(jdbcStatement: JdbcStatement, connection: Connection) =
         try
             if (satisfyRestriction(jdbcStatement)) {
-                val stmt = createPreparedStatement(jdbcStatement, connection, true)
+                val stmt = acquirePreparedStatement(jdbcStatement, connection, true)
                 try {
                     val result = jdbcStatement match {
                         case normal: SqlStatement =>
@@ -101,7 +108,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                     }
                     verifyStaleData(jdbcStatement, result)
 
-                } finally stmt.close
+                } finally
+                    releasePreparedStatement(jdbcStatement, connection, stmt)
             }
         catch {
             case e: BatchUpdateException =>
@@ -118,7 +126,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     protected[activate] def executeQuery(sqlStatement: SqlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
         executeWithTransaction(autoCommit = true) {
             connection =>
-                val stmt = createPreparedStatement(sqlStatement, connection, false)
+                val stmt = acquirePreparedStatement(sqlStatement, connection, false)
                 try {
                     val resultSet = stmt.executeQuery
                     try {
@@ -135,25 +143,25 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                     } finally
                         resultSet.close
                 } finally
-                    stmt.close
+                    releasePreparedStatement(sqlStatement, connection, stmt)
         }
     }
 
-    protected[activate] def createPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, isDml: Boolean) = {
-        val (statement, bindsList) = jdbcStatement.toIndexedBind
-        val ps =
-            if (isDml)
-                connection.prepareStatement(statement)
-            else
-                connection.prepareStatement(statement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
+    private def releasePreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, ps: PreparedStatement) =
+        preparedStatementCache.release(connection, jdbcStatement.indexedStatement, ps)
+
+    protected[activate] def acquirePreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, readOnly: Boolean) = {
+        val statement = jdbcStatement.indexedStatement
+        val valuesList = jdbcStatement.valuesList
+        val ps = preparedStatementCache.acquireFor(connection, statement, readOnly)
         try {
-            for (binds <- bindsList) {
+            for (binds <- valuesList) {
                 var i = 1
                 for (bindValue <- binds) {
                     dialect.setValue(ps, i, bindValue)
                     i += 1
                 }
-                if (isDml && jdbcStatement.isInstanceOf[BatchSqlStatement])
+                if (readOnly && jdbcStatement.isInstanceOf[BatchSqlStatement])
                     ps.addBatch
             }
         } catch {
@@ -261,6 +269,7 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         while (_connectionPool.getTotalLeased != 0)
             Thread.sleep(10)
         initConnectionPool
+        super.reinitialize
     }
 
     override def getConnection =

@@ -252,15 +252,15 @@ trait SqlIdiom {
                 digestLists(insert, propertyMap =>
                     new SqlStatement(
                         statement = "INSERT INTO " + toTableName(insert.entityClass) +
-                            " (" + propertyMap.keys.toList.map(escape).mkString(", ") + ") " +
-                            " VALUES (:" + propertyMap.keys.mkString(", :") + ")",
+                            " (" + propertyMap.keys.toList.sorted.map(escape).mkString(", ") + ") " +
+                            " VALUES (:" + propertyMap.keys.toList.sorted.mkString(", :") + ")",
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case update: UpdateDmlStorageStatement =>
                 digestLists(update, propertyMap =>
                     new SqlStatement(
                         statement = "UPDATE " + toTableName(update.entityClass) +
-                            " SET " + (for (key <- propertyMap.keys if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
+                            " SET " + (for (key <- propertyMap.keys.toList.sorted if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
                             " WHERE ID = :id" + versionCondition(propertyMap),
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))

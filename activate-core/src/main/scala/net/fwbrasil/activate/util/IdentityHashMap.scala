@@ -3,7 +3,7 @@ package net.fwbrasil.activate.util
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.{ MapLike, MapBuilder, HashMap }
 
-final class IdentityHashMap[A <: AnyRef, B]() extends HashMap[A, B] with MapLike[A, B, IdentityHashMap[A, B]] {
+class IdentityHashMap[A <: AnyRef, B]() extends HashMap[A, B] with MapLike[A, B, IdentityHashMap[A, B]] {
     override protected def elemEquals(key1: A, key2: A): Boolean = key1 eq key2
 
     override protected def elemHashCode(key: A) = System.identityHashCode(key)
