@@ -19,8 +19,6 @@ import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
 import net.fwbrasil.activate.storage.relational.SimpleJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
-import net.fwbrasil.activate.coordinator.Coordinator
-import net.fwbrasil.activate.coordinator.CoordinatorClient
 import net.fwbrasil.activate.serialization.xmlSerializer
 import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
@@ -275,9 +273,6 @@ object BigStringGenerator {
 
 trait ActivateTestContext
         extends StoppableActivateContext {
-
-    protected override val coordinatorClientOption: Option[CoordinatorClient] =
-        None
 
     override protected[activate] def entityMaterialized(entity: Entity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])

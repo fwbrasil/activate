@@ -11,7 +11,6 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.uuid.UUIDUtil
-import net.fwbrasil.activate.coordinator.Coordinator
 import net.fwbrasil.radon.ConcurrentTransactionException
 import net.fwbrasil.radon.transaction.TransactionManager
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
@@ -48,43 +47,9 @@ trait DurableContext {
             }
         }
 
-    protected val coordinatorClientOption =
-        Coordinator.clientOption(this)
-
-    protected def reinitializeCoordinator = {
-        coordinatorClientOption.map { coordinatorClient =>
-            coordinatorClient.reinitialize
-        }
-    }
-
-    protected def startCoordinator =
-        coordinatorClientOption.map(coordinatorClient => {
-            if (storages.forall(!_.isMemoryStorage))
-                throw new IllegalStateException("Memory storages doesn't support coordinator")
-        })
-
     def reloadEntities(ids: Set[String]) = {
         liveCache.uninitialize(ids)
-        coordinatorClientOption.map(_.removeNotifications(ids))
     }
-
-    private def runWithCoordinatorIfDefined(reads: => Set[String], writes: => Set[String])(f: => Unit) =
-        coordinatorClientOption.map { coordinatorClient =>
-
-            import language.existentials
-
-            val (readLocksNok, writeLocksNok) = coordinatorClient.tryToAcquireLocks(reads, writes)
-            if (readLocksNok.nonEmpty || writeLocksNok.nonEmpty)
-                throw new ActivateConcurrentTransactionException(readLocksNok ++ writeLocksNok, List())
-            try
-                f
-            finally {
-                val (readUnlocksNok, writeUnlocksNok) = coordinatorClient.releaseLocks(reads, writes)
-                if (readUnlocksNok.nonEmpty || writeUnlocksNok.nonEmpty)
-                    throw new IllegalStateException("Can't release locks.")
-            }
-
-        }.getOrElse(f)
 
     override def makeDurable(transaction: Transaction) = {
         val statements = statementsForTransaction(transaction)
@@ -97,14 +62,12 @@ trait DurableContext {
         lazy val writes = entities.map(_.id).toSet
         lazy val reads = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
 
-        runWithCoordinatorIfDefined(reads, writes) {
-            if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
-                validateTransactionEnd(transaction, entities)
-                store(statements.toList, inserts, updates, deletes)
-                setPersisted(inserts.keys)
-                deleteFromLiveCache(deletesUnfiltered.keys)
-                statements.clear
-            }
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+            validateTransactionEnd(transaction, entities)
+            store(statements.toList, inserts, updates, deletes)
+            setPersisted(inserts.keys)
+            deleteFromLiveCache(deletesUnfiltered.keys)
+            statements.clear
         }
     }
 

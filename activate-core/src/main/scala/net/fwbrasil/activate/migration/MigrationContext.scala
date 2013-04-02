@@ -1,7 +1,6 @@
 package net.fwbrasil.activate.migration
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.coordinator.Coordinator
 
 trait MigrationContext {
     this: ActivateContext =>
@@ -24,9 +23,5 @@ trait MigrationContext {
 
     private[activate] def runStartupMigration =
         if (runMigrationAtStartup)
-            if (!coordinatorClientOption.isDefined || Coordinator.isServerVM)
-                runMigration
-            else
-                warn("Migrations will not run. If there is a coordinator, only the coordinator instance can run migrations.")
-
+            runMigration
 }
