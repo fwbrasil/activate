@@ -243,7 +243,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
                         varsIterator.next.setRefContent(Option(value))
                 }
                 executePendingMassStatements(entity)
-            } else
+            } else if (withinTransaction)
+                transactional(transient) {
+                    entity.delete
+                }
+            else
                 entity.delete
         }
     }

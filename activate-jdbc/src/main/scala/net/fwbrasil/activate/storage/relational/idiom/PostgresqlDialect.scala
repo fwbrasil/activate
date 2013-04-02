@@ -113,7 +113,7 @@ object postgresqlDialect extends SqlIdiom {
             case value: BooleanStorageValue =>
                 "BOOLEAN"
             case value: StringStorageValue =>
-                "VARCHAR(1000)"
+                "VARCHAR"
             case value: FloatStorageValue =>
                 "DOUBLE PRECISION"
             case value: DateStorageValue =>
