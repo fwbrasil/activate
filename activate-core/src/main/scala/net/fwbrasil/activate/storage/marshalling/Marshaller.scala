@@ -50,6 +50,9 @@ import net.fwbrasil.activate.migration.CreateListTable
 import net.fwbrasil.activate.migration.RemoveListTable
 import net.fwbrasil.activate.entity.ReferenceListEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
+import net.fwbrasil.activate.entity.LazyListEntityValue
+import net.fwbrasil.activate.entity.LazyListEntityValue
+import net.fwbrasil.activate.entity.LazyList
 
 object Marshaller {
 
@@ -107,6 +110,16 @@ object Marshaller {
                     ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[String]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
                 else
                     ListEntityValue[Any](v.map(_.map(_.orNull)))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+            case (storageValue: ListStorageValue, entityValue: LazyListEntityValue[_]) =>
+                val v = storageValue.value.map(list => list.collect {
+                    case e: ReferenceStorageValue =>
+                        e.value.get
+                    case e: StringStorageValue =>
+                        e.value.get
+                }).map { ids =>
+                    new LazyList[Entity](ids)(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
+                }
+                LazyListEntityValue(v)
             case other =>
                 throw new IllegalStateException("Invalid storage value.")
         }
@@ -145,6 +158,8 @@ object Marshaller {
                 StringStorageValue(value.value.map(_.toString))
             case value: ListEntityValue[_] =>
                 ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
+            case value: LazyListEntityValue[_] =>
+                ListStorageValue(value.value.map(list => list.ids.map(e => StringStorageValue(Some(e)))), marshalling(value.emptyValueEntityValue))
             case value: SerializableEntityValue[_] =>
                 ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
         }

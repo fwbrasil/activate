@@ -22,8 +22,8 @@ import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.serialization.xmlSerializer
 import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
-
 import org.joda.time.DateMidnight
+import net.fwbrasil.activate.entity.LazyList
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -304,7 +304,7 @@ trait ActivateTestContext
     val emptyEntityWithoutAttributeValue = null
     val emptyCaseClassEntityValue = null
     val emptySerializableEntityValue = null
-    val emptyListEntityValue = List[ActivateTestEntity]()
+    val emptyListEntityValue = LazyList[ActivateTestEntity]()
     val emptyTupleOptionValue = None
 
     val fullIntValue = 999
@@ -495,7 +495,7 @@ trait ActivateTestContext
             var entityWithoutAttributeValue: EntityWithoutAttribute,
             var caseClassEntityValue: CaseClassEntity,
             var serializableEntityValue: DummySeriablizable,
-            var listEntityValue: List[ActivateTestEntity],
+            var listEntityValue: LazyList[ActivateTestEntity],
             var tupleOptionValue: Option[(Int, Int)]) extends ActivateTestDummyEntity(dummy) {
 
         def this(intValue: Int) = this(
@@ -558,7 +558,7 @@ trait ActivateTestContext
                                entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
                                caseClassEntityValue: CaseClassEntity = fullCaseClassEntityValue,
                                serializableEntityValue: DummySeriablizable = fullSerializableEntityValue,
-                               listEntityValue: List[ActivateTestEntity] = fullListEntityValue,
+                               listEntityValue: LazyList[ActivateTestEntity] = fullListEntityValue,
                                tupleOptionValue: Option[(Int, Int)] = fullTupleOptionValue) =
 
         validateEmptyTestEntity(
@@ -609,7 +609,7 @@ trait ActivateTestContext
                                 entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
                                 caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
                                 serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
-                                listEntityValue: List[ActivateTestEntity] = emptyListEntityValue,
+                                listEntityValue: LazyList[ActivateTestEntity] = emptyListEntityValue,
                                 tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
 
         require(entity.intValue == intValue)
@@ -659,7 +659,7 @@ trait ActivateTestContext
         entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
         caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
         serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
-        listEntityValue: List[ActivateTestEntity] = emptyListEntityValue,
+        listEntityValue: LazyList[ActivateTestEntity] = emptyListEntityValue,
         tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
         new ActivateTestEntity(
             intValue = intValue,

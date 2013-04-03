@@ -42,8 +42,8 @@ trait DurableContext {
                     case e: ActivateConcurrentTransactionException =>
                         reloadEntities(e.entitiesIds)
                     case other =>
+                        super.waitToRetry(e)
                 }
-                super.waitToRetry(e)
             }
         }
 

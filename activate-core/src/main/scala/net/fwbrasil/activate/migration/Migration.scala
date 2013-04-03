@@ -17,6 +17,7 @@ import java.lang.reflect.Modifier
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import scala.annotation.implicitNotFound
+import net.fwbrasil.activate.entity.LazyList
 
 class StorageVersion(val contextName: String, var lastScript: Long, var lastAction: Int) extends Entity
 
@@ -276,7 +277,9 @@ abstract class Migration(implicit val context: ActivateContext) {
     }
 
     private def createTableForEntityMetadata(metadata: EntityMetadata) = {
-        val (normalColumns, listColumns) = metadata.persistentPropertiesMetadata.filter(!_.isTransient).partition(_.propertyType != classOf[List[_]])
+        val (normalColumns, listColumns) =
+            metadata.persistentPropertiesMetadata.filter(!_.isTransient).
+                partition(p => p.propertyType != classOf[List[_]] && p.propertyType != classOf[LazyList[_]])
         val ownerTable = table(manifestClass(metadata.entityClass))
         val mainAction = ownerTable.createTable(columns =>
             for (property <- normalColumns if (property.name != "id")) {

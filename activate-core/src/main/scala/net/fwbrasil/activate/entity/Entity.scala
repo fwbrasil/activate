@@ -13,6 +13,8 @@ import java.util.Date
 import org.joda.time.DateTime
 import java.util.{ HashMap => JHashMap }
 import net.fwbrasil.activate.OptimisticOfflineLocking
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ListBuffer
 
 trait Entity extends Serializable with EntityValidation {
 
@@ -227,7 +229,7 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
         context.liveCache.materializeEntity(id)
 }
 
-trait EntityContext extends ValueContext with TransactionContext {
+trait EntityContext extends ValueContext with TransactionContext with LazyListContext {
     this: ActivateContext =>
 
     EntityHelper.initialize(this.getClass)

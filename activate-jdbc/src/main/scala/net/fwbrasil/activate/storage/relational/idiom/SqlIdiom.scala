@@ -93,6 +93,7 @@ import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.LazyListEntityValue
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -388,9 +389,9 @@ trait SqlIdiom {
                 val propertyName = value.propertyPathNames.mkString(".")
                 value.entityValue match {
                     case entityValue: ListEntityValue[_] =>
-                        val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
-                        val res = concat(value.entitySource.name + "." + propertyName, "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY POS'")
-                        res
+                        listColumnSelect(value, propertyName)
+                    case entityValue: LazyListEntityValue[_] =>
+                        listColumnSelect(value, propertyName)
                     case other =>
                         value.entitySource.name + "." + escape(propertyName)
                 }
@@ -570,5 +571,11 @@ trait SqlIdiom {
             Option(statement, 0)
         else
             None
+
+    private def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
+        val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
+        val res = concat(value.entitySource.name + "." + propertyName, "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY POS'")
+        res
+    }
 }
 

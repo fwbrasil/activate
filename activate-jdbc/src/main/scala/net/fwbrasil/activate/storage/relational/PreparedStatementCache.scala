@@ -27,8 +27,6 @@ class PreparedStatementCache {
         }
 
     def release(connection: Connection, statement: String, ps: PreparedStatement) = {
-        ps.clearParameters
-        ps.clearBatch
         val stack = stackFor(cacheFor(connection), statement)
         stack.synchronized {
             stack.push(ps)
