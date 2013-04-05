@@ -208,7 +208,7 @@ abstract class Migration(implicit val context: ActivateContext) {
     private[activate] def hasToRun(fromMigration: Long, toMigration: Long) =
         timestamp > fromMigration && timestamp <= toMigration
 
-    private class ColumnDef {
+    class ColumnDef {
         private var _definitions = List[Column[_]]()
         @implicitNotFound("Can't find a EntityValue implicit converter. Maybe the column type is not supported.")
         def column[T](name: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) =
