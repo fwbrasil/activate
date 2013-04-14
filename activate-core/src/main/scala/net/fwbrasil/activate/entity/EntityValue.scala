@@ -137,7 +137,7 @@ case class SerializableEntityValue[S: Manifest](override val value: Option[S], v
 
 object EntityValue extends ValueContext {
 
-    private[activate] def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
+    def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
         Option((
             if (clazz == classOf[String])
                 (value: Option[String]) => toStringEntityValueOption(value)
