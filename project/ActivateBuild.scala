@@ -5,8 +5,8 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.3-RC1"
-	val smirror = "net.fwbrasil" %% "smirror" % "0.4"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.3-SNAPSHOT"
+	val smirror = "net.fwbrasil" %% "smirror" % "0.5-SNAPSHOT"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
