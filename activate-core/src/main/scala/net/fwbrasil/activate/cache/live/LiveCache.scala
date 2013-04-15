@@ -144,7 +144,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
         executeMassModificationWithEntitySources(statement, entities)
     }
 
-    private def entitiesFromCache[S](query: Query[S]) = {
+    def entitiesFromCache[S](query: Query[S]) = {
         val entities =
             entitySourceInstancesCombined(query.from)
         val filtered = entities.filter(list =>

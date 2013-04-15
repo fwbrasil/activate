@@ -38,7 +38,7 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def putVar(name: String, ref: Var[Any]) =
         _varsMap.put(name, ref)
 
-    private[activate] def vars = {
+    protected[activate] def vars = {
         if (_vars == null) {
             import scala.collection.JavaConversions._
             _vars = varsMap.values.toList
@@ -93,7 +93,7 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def setNotPersisted =
         persistedflag = false
 
-    private[activate] def isPersisted =
+    def isPersisted =
         persistedflag
 
     private[activate] def setNotInitialized =
@@ -118,6 +118,7 @@ trait Entity extends Serializable with EntityValidation {
                 context.liveCache.loadFromDatabase(this, withinTransaction = false)
                 initialized = true
                 initializing = false
+                postInitialize
             }
         }
         if (!initializing && (forWrite || OptimisticOfflineLocking.validateReads) &&
@@ -127,6 +128,8 @@ trait Entity extends Serializable with EntityValidation {
                 versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
         }
     }
+
+    protected def postInitialize = {}
 
     private[activate] def uninitialize =
         this.synchronized {
@@ -238,7 +241,7 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type Alias = net.fwbrasil.activate.entity.Alias
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
 
-    private[activate] val liveCache = new LiveCache(this)
+    protected[activate] val liveCache = new LiveCache(this)
 
     protected[activate] def entityMaterialized(entity: Entity) = {}
 
