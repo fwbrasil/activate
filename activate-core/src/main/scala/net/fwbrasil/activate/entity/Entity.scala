@@ -168,7 +168,7 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def context: ActivateContext =
         ActivateContext.contextFor(this.getClass)
 
-    private[fwbrasil] def varNamed(name: String) =
+    def varNamed(name: String) =
         varsMap.get(name)
 
     private[activate] def addToLiveCache =

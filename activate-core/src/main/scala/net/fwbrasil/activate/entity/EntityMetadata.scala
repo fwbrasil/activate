@@ -29,6 +29,8 @@ class EntityPropertyMetadata(
                         typ.getRawType.asInstanceOf[Class[_]]
                     case clazz: Class[_] =>
                         clazz
+                    case other =>
+                        classOf[Object]
                 }).getOrElse(classOf[Object])
                 if (initial == classOf[Object]) {
                     val fields = entityMetadata.sClass.fields
