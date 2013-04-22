@@ -61,7 +61,7 @@ object oracleDialect extends SqlIdiom {
             "   AND CONSTRAINT_NAME = '" + normalize(constraintName) + "'"
 
     def normalize(string: String) =
-        string.toUpperCase.substring(0, string.length.min(30))
+        string.toUpperCase.substring((string.length - 30).max(0), string.length)
 
     override def escape(string: String) =
         "\"" + normalize(string) + "\""
