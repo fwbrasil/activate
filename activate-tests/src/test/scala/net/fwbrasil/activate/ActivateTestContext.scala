@@ -25,13 +25,14 @@ import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
 
+import net.fwbrasil.activate.json4s.Json4sContext
+
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
     val value1a = EnumerationValue("v1")
     val value2 = EnumerationValue("v2")
     val value3 = EnumerationValue("v3")
 }
-
 import EnumerationValue._
 
 case class DummySeriablizable(val string: String)
@@ -272,8 +273,10 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext {
+        extends StoppableActivateContext with Json4sContext {
 
+    protected val jsonMethods = org.json4s.native.JsonMethods
+    
     override protected[activate] def entityMaterialized(entity: Entity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)

@@ -38,7 +38,7 @@ trait Entity extends Serializable with EntityValidation {
     private[activate] def putVar(name: String, ref: Var[Any]) =
         _varsMap.put(name, ref)
 
-    protected[activate] def vars = {
+    def vars = {
         if (_vars == null) {
             import scala.collection.JavaConversions._
             _vars = varsMap.values.toList

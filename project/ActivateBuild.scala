@@ -128,15 +128,30 @@ object ActivateBuild extends Build {
 		    )
     	)
 
+    val json4sCore = "org.json4s" %% "json4s-core" % "3.2.3" withSources
+
+    lazy val activateJson4s = 
+    	Project(
+    	    id = "activate-json4s",
+    	    base = file("activate-json4s"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(json4sCore)
+		    )
+    	)
+
+    val json4sNative = "org.json4s" %% "json4s-native" % "3.2.3" withSources
+
     lazy val activateTests = 
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph),
+			    activateMongo, activateGraph, activateJson4s),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
-		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j),
+		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j, json4sNative),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)
