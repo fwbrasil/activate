@@ -13,7 +13,7 @@ import net.fwbrasil.activate.memoryContext
 class Json4sSpecs extends ActivateTest {
 
     "The Json4s support" should {
-        "serialize entity" in {
+        "manipulate json strings" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
@@ -35,13 +35,30 @@ class Json4sSpecs extends ActivateTest {
                         validateFullTestEntity(emptyEntity)
                         validateEmptyTestEntity(fullEntity)
                     }
-                    val (newFullEntityId, newEmptyEntityId) = step {
-                        (newEntityFromJson[ActivateTestEntity](fullEntityJson).id,
-                            newEntityFromJson[ActivateTestEntity](emptyEntityJson).id)
-                    }
+                    val (newFullEntityId1, newEmptyEntityId1) =
+                        step {
+                            createOrUpdateEntityFromJson[ActivateTestEntity](fullEntityJson)
+                            createOrUpdateEntityFromJson[ActivateTestEntity](emptyEntityJson)
+                            def removeId(json: String, entity: Entity) =
+                                json.replaceFirst(",\"id\":\"" + entity.id + "\"", "")
+                                    .replaceFirst("\"id\":\"" + entity.id + "\"", "")
+                            (createOrUpdateEntityFromJson[ActivateTestEntity](removeId(fullEntityJson, fullEntity)).id,
+                                createOrUpdateEntityFromJson[ActivateTestEntity](removeId(emptyEntityJson, emptyEntity)).id)
+                        }
                     step {
-                        validateEmptyTestEntity(byId[ActivateTestEntity](newEmptyEntityId).get)
-                        validateFullTestEntity(byId[ActivateTestEntity](newFullEntityId).get)
+                        validateFullTestEntity(fullEntity)
+                        validateEmptyTestEntity(emptyEntity)
+                        validateEmptyTestEntity(byId[ActivateTestEntity](newEmptyEntityId1).get)
+                        validateFullTestEntity(byId[ActivateTestEntity](newFullEntityId1).get)
+                    }
+                    val (newFullEntityId2, newEmptyEntityId2) =
+                        step {
+                            (createEntityFromJson[ActivateTestEntity](fullEntityJson).id,
+                                createEntityFromJson[ActivateTestEntity](emptyEntityJson).id)
+                        }
+                    step {
+                        validateEmptyTestEntity(byId[ActivateTestEntity](newEmptyEntityId2).get)
+                        validateFullTestEntity(byId[ActivateTestEntity](newFullEntityId2).get)
                     }
                 })
         }

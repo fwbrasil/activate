@@ -189,7 +189,7 @@ trait Json4sContext {
         entity
     }
 
-    def newEntityFromJson[E <: Entity: Manifest](json: String) = {
+    def createEntityFromJson[E <: Entity: Manifest](json: String) = {
         val entityClass = erasureOf[E]
         val id = IdVar.generateId(entityClass)
         val entity = liveCache.createLazyEntity(entityClass, id)
@@ -198,6 +198,17 @@ trait Json4sContext {
         context.liveCache.toCache(entityClass, () => entity)
         updateFromJsonObject(entity, json)
         entity
+    }
+
+    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: String) = {
+        val jObject = jsonMethods.parse(json).asInstanceOf[JObject]
+        jObject.obj.collect {
+            case ("id", JString(id)) =>
+                val entity = byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
+                entity.updateFromJson(json)
+        }.headOption.getOrElse {
+            createEntityFromJson[E](json)
+        }
     }
 
     private def toJsonObject[E <: Entity: Manifest](entity: E) = {
