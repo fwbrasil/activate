@@ -164,11 +164,10 @@ trait Json4sContext {
             compact(render(toJsonObject(entity)(manifestClass(entity.getClass))))
 
         def updateFromJson(json: String) =
-            updateFromJsonObject(entity, json)
+            updateFromJsonObject(entity, jsonMethods.parse(json).asInstanceOf[JObject])
     }
 
-    private def updateFromJsonObject(entity: Entity, json: String) = {
-        val jObject = jsonMethods.parse(json).asInstanceOf[JObject]
+    private def updateFromJsonObject(entity: Entity, jObject: JObject) = {
         val fields = jObject.obj
         val entityClass = entity.getClass
         val entityMetadata =
@@ -188,26 +187,32 @@ trait Json4sContext {
         }
         entity
     }
+    
+    def createEntityFromJson[E <: Entity: Manifest](json: String): E =
+        createEntityFromJson[E](jsonMethods.parse(json).asInstanceOf[JObject])
 
-    def createEntityFromJson[E <: Entity: Manifest](json: String) = {
+    def createEntityFromJson[E <: Entity: Manifest](jObject: JObject): E = {
         val entityClass = erasureOf[E]
         val id = IdVar.generateId(entityClass)
         val entity = liveCache.createLazyEntity(entityClass, id)
         entity.setInitialized
         entity.setNotPersisted
         context.liveCache.toCache(entityClass, () => entity)
-        updateFromJsonObject(entity, json)
+        updateFromJsonObject(entity, jObject)
         entity
     }
+    
+    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: String): E =
+        createOrUpdateEntityFromJson[E](jsonMethods.parse(json).asInstanceOf[JObject])
 
-    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: String) = {
-        val jObject = jsonMethods.parse(json).asInstanceOf[JObject]
+    def createOrUpdateEntityFromJson[E <: Entity: Manifest](jObject: JObject) = {
         jObject.obj.collect {
             case ("id", JString(id)) =>
                 val entity = byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
-                entity.updateFromJson(json)
+                updateFromJsonObject(entity, jObject)
+                entity
         }.headOption.getOrElse {
-            createEntityFromJson[E](json)
+            createEntityFromJson[E](jObject)
         }
     }
 
@@ -216,5 +221,20 @@ trait Json4sContext {
             JField(ref.name, ref.get.map(value => toJValue(ref.toEntityPropertyValue(value))).getOrElse(JNull)))
         JObject(fields)
     }
+
+    class EntityJson4sSerializer[E <: Entity: Manifest] extends CustomSerializer[E](
+        format => (
+            {
+                case jObject: JObject =>
+                    createOrUpdateEntityFromJson[E](jObject)
+            },
+            {
+                case entity: E =>
+                    toJsonObject[E](entity)
+            }))
+
+    def entitySerializers =
+        EntityHelper.allConcreteEntityClasses.map(clazz => new EntityJson4sSerializer()(manifestClass(clazz)))
+
 
 }

@@ -134,10 +134,10 @@ object oracleDialect extends SqlIdiom {
         }
     }
 
-    override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
+    override def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
         storageValue match {
             case value: StringStorageValue =>
-                val value = getValue(resultSet, resultSet.getString(i)).map(string => if (string == emptyString) "" else string)
+                val value = resultSet.getString(i).map(string => if (string == emptyString) "" else string)
                 StringStorageValue(value)
             case other =>
                 super.getValue(resultSet, i, storageValue, connection)

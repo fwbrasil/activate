@@ -4,15 +4,29 @@ import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.memoryContext
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
-import net.fwbrasil.activate.memoryContext
+import org.json4s.native.Serialization._
 
 @RunWith(classOf[JUnitRunner])
 class Json4sSpecs extends ActivateTest {
 
     "The Json4s support" should {
+        "provide serializers" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                    	implicit val formats = Serialization.formats(NoTypeHints) ++ entitySerializers
+                    	val list = List(newEmptyActivateTestEntity)
+                    	val json = Serialization.write(list)
+                    	val fromJson = Serialization.read[ActivateTestEntity](json)
+                    	println(fromJson)
+                    }
+                })
+        }
         "manipulate json strings" in {
             activateTest(
                 (step: StepExecutor) => {

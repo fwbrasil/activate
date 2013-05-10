@@ -56,7 +56,7 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
-    		    activateGraph),
+    		    activateGraph, activateJson4s, activateAsyncPostgresql),
     		settings = commonSettings
     	)
 
@@ -93,7 +93,19 @@ object ActivateBuild extends Build {
 		    	  Seq(boneCP)
 		    )
     	)
-                           
+
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.1.1"
+
+    lazy val activateAsyncPostgresql =
+    	Project(
+    	    id = "activate-async-postgresql",
+    		base = file("activate-async-postgresql"),
+    		dependencies = Seq(activateCore, activateJdbc),
+    		settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(postgresqlAsync)
+		    )
+    	)
 
     lazy val activateMongo = 
     	Project(
@@ -128,7 +140,7 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val json4sCore = "org.json4s" %% "json4s-core" % "3.2.3" withSources
+    val json4sCore = "org.json4s" %% "json4s-core" % "3.2.3"
 
     lazy val activateJson4s = 
     	Project(
@@ -141,13 +153,13 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val json4sNative = "org.json4s" %% "json4s-native" % "3.2.3" withSources
+    val json4sNative = "org.json4s" %% "json4s-native" % "3.2.3"
 
     lazy val activateTests = 
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph, activateJson4s),
+			    activateMongo, activateGraph, activateJson4s, activateAsyncPostgresql),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,

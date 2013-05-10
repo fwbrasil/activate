@@ -170,10 +170,10 @@ object db2Dialect extends SqlIdiom {
                 super.setValue(ps, i, storageValue)
         }
 
-    override def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue =
+    override def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue =
         storageValue match {
             case value: BooleanStorageValue =>
-                BooleanStorageValue(getValue(resultSet, resultSet.getInt(i) == 1))
+                BooleanStorageValue(resultSet.getInt(i).map(_ == 1))
             case other =>
                 super.getValue(resultSet, i, storageValue, connection)
         }

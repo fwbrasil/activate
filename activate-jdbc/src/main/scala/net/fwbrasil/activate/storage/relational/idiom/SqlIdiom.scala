@@ -111,6 +111,37 @@ object SqlIdiom {
         dialectsMap.getOrElse(name, throw new IllegalArgumentException("Invalid dialect " + name))
 }
 
+trait ActivateResultSet {
+
+    def getString(i: Int): Option[String]
+    def getBytes(i: Int): Option[Array[Byte]]
+    def getInt(i: Int): Option[Int]
+    def getBoolean(i: Int): Option[Boolean]
+    def getFloat(i: Int): Option[Float]
+    def getLong(i: Int): Option[Long]
+    def getTimestamp(i: Int): Option[Timestamp]
+    def getDouble(i: Int): Option[Double]
+    def getBigDecimal(i: Int): Option[java.math.BigDecimal]
+}
+
+case class JdbcActivateResultSet(rs: ResultSet)
+        extends ActivateResultSet {
+
+    private def getValue[T](f: => T) =
+        Some(f).filter(_ => !rs.wasNull)
+
+    def getString(i: Int) = getValue(rs.getString(i))
+    def getBytes(i: Int) = getValue(rs.getBytes(i))
+    def getInt(i: Int) = getValue(rs.getInt(i))
+    def getBoolean(i: Int) = getValue(rs.getBoolean(i))
+    def getFloat(i: Int) = getValue(rs.getFloat(i))
+    def getLong(i: Int) = getValue(rs.getLong(i))
+    def getTimestamp(i: Int) = getValue(rs.getTimestamp(i))
+    def getDouble(i: Int) = getValue(rs.getDouble(i))
+    def getBigDecimal(i: Int) = getValue(rs.getBigDecimal(i))
+
+}
+
 trait SqlIdiom {
 
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
@@ -151,36 +182,31 @@ trait SqlIdiom {
         }
     }
 
-    protected def getValue[A](resultSet: ResultSet, f: => A): Option[A] = {
-        val value = f
-        if (resultSet.wasNull)
-            None
-        else
-            Option(value)
-    }
+    def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue =
+        getValue(JdbcActivateResultSet(resultSet), i, storageValue, connection)
 
-    def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
+    def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
         storageValue match {
             case value: IntStorageValue =>
-                IntStorageValue(getValue(resultSet, resultSet.getInt(i)))
+                IntStorageValue(resultSet.getInt(i))
             case value: LongStorageValue =>
-                LongStorageValue(getValue(resultSet, resultSet.getLong(i)))
+                LongStorageValue(resultSet.getLong(i))
             case value: BooleanStorageValue =>
-                BooleanStorageValue(getValue(resultSet, resultSet.getBoolean(i)))
+                BooleanStorageValue(resultSet.getBoolean(i))
             case value: StringStorageValue =>
-                StringStorageValue(getValue(resultSet, resultSet.getString(i)))
+                StringStorageValue(resultSet.getString(i))
             case value: FloatStorageValue =>
-                FloatStorageValue(getValue(resultSet, resultSet.getFloat(i)))
+                FloatStorageValue(resultSet.getFloat(i))
             case value: DateStorageValue =>
-                DateStorageValue(getValue(resultSet, resultSet.getTimestamp(i)).map((t: Timestamp) => new Date(t.getTime)))
+                DateStorageValue((resultSet.getTimestamp(i)).map((t: Timestamp) => new Date(t.getTime)))
             case value: DoubleStorageValue =>
-                DoubleStorageValue(getValue(resultSet, resultSet.getDouble(i)))
+                DoubleStorageValue(resultSet.getDouble(i))
             case value: BigDecimalStorageValue =>
-                BigDecimalStorageValue(getValue(resultSet, BigDecimal(resultSet.getBigDecimal(i))))
+                BigDecimalStorageValue(resultSet.getBigDecimal(i).map(BigDecimal(_)))
             case value: ByteArrayStorageValue =>
-                ByteArrayStorageValue(getValue(resultSet, resultSet.getBytes(i)))
+                ByteArrayStorageValue(resultSet.getBytes(i))
             case value: ListStorageValue =>
-                val split = resultSet.getString(i).split('|')
+                val split = resultSet.getString(i).get.split('|')
                 val notEmptyFlag = split.head
                 val listOption =
                     if (notEmptyFlag != "1")
@@ -203,7 +229,7 @@ trait SqlIdiom {
                     }
                 ListStorageValue(listOption, value.emptyStorageValue)
             case value: ReferenceStorageValue =>
-                ReferenceStorageValue(getValue(resultSet, resultSet.getString(i)))
+                ReferenceStorageValue(resultSet.getString(i))
         }
     }
 

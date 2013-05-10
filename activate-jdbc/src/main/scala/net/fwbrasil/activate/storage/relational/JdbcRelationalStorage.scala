@@ -63,7 +63,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def isTransactional = true
     def supportsQueryJoin = true
 
-    override protected[activate] def executeStatements(storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
+    override protected[activate] def executeStatements(
+            storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
         val statements =
