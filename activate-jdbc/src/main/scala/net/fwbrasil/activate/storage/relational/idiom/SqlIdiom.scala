@@ -94,6 +94,7 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.LazyListEntityValue
+import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -182,10 +183,10 @@ trait SqlIdiom {
         }
     }
 
-    def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue =
-        getValue(JdbcActivateResultSet(resultSet), i, storageValue, connection)
+    def getValue(resultSet: ResultSet, i: Int, storageValue: StorageValue): StorageValue =
+        getValue(JdbcActivateResultSet(resultSet), i, storageValue)
 
-    def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue, connection: Connection): StorageValue = {
+    def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue): StorageValue = {
         storageValue match {
             case value: IntStorageValue =>
                 IntStorageValue(resultSet.getInt(i))
@@ -205,29 +206,6 @@ trait SqlIdiom {
                 BigDecimalStorageValue(resultSet.getBigDecimal(i).map(BigDecimal(_)))
             case value: ByteArrayStorageValue =>
                 ByteArrayStorageValue(resultSet.getBytes(i))
-            case value: ListStorageValue =>
-                val split = resultSet.getString(i).get.split('|')
-                val notEmptyFlag = split.head
-                val listOption =
-                    if (notEmptyFlag != "1")
-                        None
-                    else {
-                        val sql = split.tail.head
-                        val stmt = connection.createStatement
-                        val list = try {
-                            val res = stmt.executeQuery(sql)
-                            try {
-                                val list = ListBuffer[StorageValue]()
-                                while (res.next())
-                                    list += getValue(res, 1, value.emptyStorageValue, connection)
-                                list.toList
-                            } finally
-                                res.close
-                        } finally
-                            stmt.close
-                        Some(list)
-                    }
-                ListStorageValue(listOption, value.emptyStorageValue)
             case value: ReferenceStorageValue =>
                 ReferenceStorageValue(resultSet.getString(i))
         }
@@ -295,7 +273,7 @@ trait SqlIdiom {
                 digestLists(delete, propertyMap =>
                     new SqlStatement(
                         statement = "DELETE FROM " + toTableName(delete.entityClass) +
-                            " WHERE ID = '" + delete.entityId + "'" + versionCondition(propertyMap),
+                            " WHERE ID = :id " + versionCondition(propertyMap),
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case ddl: DdlStorageStatement =>
@@ -328,12 +306,20 @@ trait SqlIdiom {
             toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
             toSqlDmlOrderBy(query)
 
-    def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]]) = {
+    def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) = {
+        var auxIdIdx = 0
+        def bind(id: String) = {
+            auxIdIdx += 1
+            val name = "auxId" + auxIdIdx
+            binds += StringStorageValue(Some(id)) -> (name)
+            name
+        }
+
         val entitySources = query.from.entitySources
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
                 val condition =
-                    (for (i <- 0 until entitySources.size) yield entitySources(i).name + ".id != '" + entities(i).id + "'").mkString(" OR ")
+                    (for (i <- 0 until entitySources.size) yield entitySources(i).name + ".id != :" + bind(entities(i).id)).mkString(" OR ")
                 s"($condition)"
             }
         if (restrictions.nonEmpty)

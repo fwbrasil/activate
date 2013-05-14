@@ -23,6 +23,9 @@ import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
 import java.sql.PreparedStatement
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)
@@ -64,7 +67,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def supportsQueryJoin = true
 
     override protected[activate] def executeStatements(
-            storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
+        storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
         val statements =
@@ -137,7 +140,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                             result ::=
                                 (for (expectedType <- expectedTypes) yield {
                                     i += 1
-                                    dialect.getValue(resultSet, i, expectedType, connection)
+                                    getValue(resultSet, i, expectedType, connection)
                                 })
                         }
                         result
@@ -146,6 +149,39 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 } finally
                     releasePreparedStatement(sqlStatement, connection, stmt)
         }
+    }
+
+    private def getValue(resultSet: ResultSet, i: Int, expectedType: StorageValue, connection: Connection): StorageValue =
+        expectedType match {
+            case value: ListStorageValue =>
+                loadList(resultSet, i, connection, value)
+            case other =>
+                dialect.getValue(resultSet, i, expectedType)
+        }
+
+    private def loadList(resultSet: ResultSet, i: Int, connection: Connection, value: ListStorageValue) = {
+        val split = resultSet.getString(i).split('|')
+        val notEmptyFlag = split.head
+        val listOption =
+            if (notEmptyFlag != "1")
+                None
+            else {
+                val sql = split.tail.head
+                val stmt = connection.createStatement
+                val list = try {
+                    val res = stmt.executeQuery(sql)
+                    try {
+                        val list = ListBuffer[StorageValue]()
+                        while (res.next())
+                            list += getValue(res, 1, value.emptyStorageValue, connection)
+                        list.toList
+                    } finally
+                        res.close
+                } finally
+                    stmt.close
+                Some(list)
+            }
+        ListStorageValue(listOption, value.emptyStorageValue)
     }
 
     private def releasePreparedStatement(jdbcStatement: JdbcStatement, connection: Connection, ps: PreparedStatement) =

@@ -33,12 +33,12 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 
 object mySqlDialect extends SqlIdiom {
 
-    override def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue, connection: Connection) = {
+    override def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue) = {
         storageValue match {
             case value: DateStorageValue =>
                 DateStorageValue(resultSet.getLong(i).map((t: Long) => new Date(t)))
             case other =>
-                super.getValue(resultSet, i, storageValue, connection)
+                super.getValue(resultSet, i, storageValue)
         }
     }
 
