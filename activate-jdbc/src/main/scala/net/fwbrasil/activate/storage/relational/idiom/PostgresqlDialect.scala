@@ -37,31 +37,31 @@ object postgresqlDialect extends SqlIdiom {
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.TABLES " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName.toLowerCase + "'"
+            "   AND TABLE_NAME = '" + tableName + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.COLUMNS " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
-            "   AND COLUMN_NAME = '" + columnName.toLowerCase + "'"
+            "   AND TABLE_NAME = '" + tableName + "'" +
+            "   AND COLUMN_NAME = '" + columnName + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1)  " +
             "	FROM pg_catalog.pg_indexes" +
             "  WHERE schemaname = CURRENT_SCHEMA" +
-            "	AND tablename = '" + tableName.toLowerCase + "'" +
-            "	AND indexname = '" + indexName.toLowerCase + "'"
+            "	AND tablename = '" + tableName + "'" +
+            "	AND indexname = '" + indexName + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName.toLowerCase + "'" +
-            "   AND CONSTRAINT_NAME = '" + constraintName.toLowerCase + "'"
+            "   AND TABLE_NAME = '" + tableName + "'" +
+            "   AND CONSTRAINT_NAME = '" + constraintName + "'"
 
     override def escape(string: String) =
-        "\"" + string.toLowerCase + "\""
+        "\"" + string + "\""
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

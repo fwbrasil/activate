@@ -39,7 +39,7 @@ object ActivateBuild extends Build {
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
-	val boneCP = "com.jolbox" % "bonecp" % "0.8.0-rc1"
+	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
@@ -56,7 +56,8 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
-    		    activateGraph, activateJson4s, activateAsyncPostgresql),
+    		    activateGraph, activateJson4s, activateAsyncPostgresql,
+    		    activateSlick),
     		settings = commonSettings
     	)
 
@@ -91,6 +92,20 @@ object ActivateBuild extends Build {
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
 		    	  Seq(boneCP)
+		    )
+    	)
+
+    val slick = "com.typesafe.slick" %% "slick" % "1.0.1-RC1"
+    val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.10.1"
+
+    lazy val activateSlick = 
+    	Project(
+    	    id = "activate-slick",
+    		base = file("activate-slick"),
+    		dependencies = Seq(activateCore, activateJdbc),
+    		settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(slick, postgresql, scalaCompiler)
 		    )
     	)
 
@@ -159,7 +174,8 @@ object ActivateBuild extends Build {
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph, activateJson4s, activateAsyncPostgresql),
+			    activateMongo, activateGraph, activateJson4s, activateAsyncPostgresql,
+			    activateSlick),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,

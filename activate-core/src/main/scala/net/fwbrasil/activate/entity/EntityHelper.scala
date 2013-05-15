@@ -44,7 +44,7 @@ object EntityHelper {
                 }
         }
 
-    private def getEntityMetadataOption(clazz: Class[_]) =
+    def getEntityMetadataOption(clazz: Class[_]) =
         entitiesMetadatas.get(getEntityClassHashId(clazz))
 
     def getEntityMetadata(clazz: Class[_]) =
