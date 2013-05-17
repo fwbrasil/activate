@@ -11,17 +11,7 @@ object WildcardRegexUtil {
                     s.append(".*")
                 case '?' =>
                     s.append(".")
-                case '(' =>
-                case ')' =>
-                case '[' =>
-                case ']' =>
-                case '$' =>
-                case '^' =>
-                case '.' =>
-                case '{' =>
-                case '}' =>
-                case '|' =>
-                case '\\' =>
+                case '(' | ')' | '[' | ']' | '$' | '^' | '.' | '{' | '}' | '|' | '\\' =>
                     s.append("\\")
                     s.append(c)
                 case default =>
