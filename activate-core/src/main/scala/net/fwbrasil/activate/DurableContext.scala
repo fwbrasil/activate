@@ -24,6 +24,8 @@ import net.fwbrasil.activate.entity.LongEntityValue
 import net.fwbrasil.activate.storage.TransactionHandle
 import java.io.File
 import java.io.FileOutputStream
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ActivateConcurrentTransactionException(
     val entitiesIds: Set[String],
@@ -47,20 +49,15 @@ trait DurableContext {
             }
         }
 
-    def reloadEntities(ids: Set[String]) = {
+    def reloadEntities(ids: Set[String]) = 
         liveCache.uninitialize(ids)
-    }
 
     override def makeDurable(transaction: Transaction) = {
+        
         val statements = statementsForTransaction(transaction)
-
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
         val deletes = filterDeletes(statements, deletesUnfiltered)
-
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
-
-        lazy val writes = entities.map(_.id).toSet
-        lazy val reads = (transaction.reads.map(_.asInstanceOf[Var[_]].outerEntity)).map(_.id).toSet
 
         if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
             validateTransactionEnd(transaction, entities)
@@ -70,6 +67,9 @@ trait DurableContext {
             statements.clear
         }
     }
+    
+    override def makeDurableAsync(transaction: Transaction)(implicit ectx: ExecutionContext): Future[Unit] =
+        Future()
 
     private def groupByStorage[T](iterable: Iterable[T])(f: T => Class[_ <: Entity]) =
         iterable.groupBy(v => storageFor(f(v))).mapValues(_.toList).withDefault(v => List())

@@ -1,6 +1,5 @@
-package net.fwbrasil.activate.async.postgresql
+package net.fwbrasil.activate.storage.relational.async
 
-import com.github.mauricio.async.db.postgresql.util.URLParser
 import com.github.mauricio.async.db.{ RowData, QueryResult, Connection }
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -10,7 +9,7 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import com.github.mauricio.async.db.pool.ConnectionPool
-import com.github.mauricio.async.db.postgresql.pool.ConnectionObjectFactory
+import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.storage.relational.QueryStorageStatement
@@ -28,53 +27,57 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.ActivateContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.github.mauricio.async.db.Configuration
-import com.github.mauricio.async.db.postgresql.codec.PostgreSQLConnectionHandler
 import net.fwbrasil.activate.migration.Migration
-import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import net.fwbrasil.activate.storage.relational.ModifyStorageStatement
 import net.fwbrasil.activate.storage.relational.DdlStorageStatement
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import org.joda.time.DateTime
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
+import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
+import com.github.mauricio.async.db.pool.ObjectFactory
+import org.jboss.netty.util.CharsetUtil
+import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 
-trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
+trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
-    def configuration: Configuration
-    private val factory = new ConnectionObjectFactory(configuration)
-    private val pool = new ConnectionPool(factory, PoolConfiguration.Default)
-    private val dialect = postgresqlDialect
+    def objectFactory: ObjectFactory[C]
+    def charset = CharsetUtil.UTF_8
+    private val pool = new ConnectionPool(objectFactory, PoolConfiguration.Default)
+    val dialect: SqlIdiom
 
     override protected[activate] def query(
         query: Query[_],
         expectedTypes: List[StorageValue],
         entitiesReadFromCache: List[List[Entity]]) = {
+    	val result = queryAsync(query, expectedTypes, entitiesReadFromCache)
+        Await.result(result, Duration.Inf)
+    }
 
+    override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] = {
         val jdbcStatement = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
         println(jdbcStatement.statement)
         val resultSetFuture = sendPreparedStatement(jdbcStatement, pool)
-        val result =
-            resultSetFuture.map(
-                _.rows match {
-                    case Some(resultSet) =>
-                        resultSet.map {
-                            row =>
-                                val rs = AsyncPostgresqlResultSet(row, configuration.charset.name)
-                                var i = 0
-                                val list = ListBuffer[StorageValue]()
-                                for (storageValue <- expectedTypes) {
-                                    list += getValue(rs, i, storageValue)
-                                    i += 1
-                                }
-                                list.toList
-                        }.toList
-                    case None =>
-                        throw new IllegalStateException("Empty result.")
-                })
-        Await.result(result, 9999 seconds)
+        resultSetFuture.map(
+            _.rows match {
+                case Some(resultSet) =>
+                    resultSet.map {
+                        row =>
+                            val rs = JdbcRelationalAsyncResultSet(row, charset.name)
+                            var i = 0
+                            val list = ListBuffer[StorageValue]()
+                            for (storageValue <- expectedTypes) {
+                                list += getValue(rs, i, storageValue)
+                                i += 1
+                            }
+                            list.toList
+                    }.toList
+                case None =>
+                    throw new IllegalStateException("Empty result.")
+            })
     }
 
-    private def getValue(rs: AsyncPostgresqlResultSet, i: Int, expectedType: StorageValue): StorageValue = {
+    private def getValue(rs: JdbcRelationalAsyncResultSet, i: Int, expectedType: StorageValue): StorageValue = {
         try expectedType match {
             case value: ListStorageValue =>
                 loadList(rs, i, value)
@@ -86,7 +89,7 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
         }
     }
 
-    private def loadList(rs: AsyncPostgresqlResultSet, i: Int, expectedType: ListStorageValue) = {
+    private def loadList(rs: JdbcRelationalAsyncResultSet, i: Int, expectedType: ListStorageValue) = {
         // TODO review. It should be async too!
         val split = rs.getString(i).get.split('|')
         val notEmptyFlag = split.head
@@ -101,7 +104,7 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
                             case Some(resultSet) =>
                                 resultSet.map {
                                     row =>
-                                        val rs = AsyncPostgresqlResultSet(row, configuration.charset.name)
+                                        val rs = JdbcRelationalAsyncResultSet(row, charset.name)
                                         getValue(rs, 0, expectedType.emptyStorageValue)
                                 }.toList
                             case None =>
@@ -124,7 +127,7 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
                     sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
             }
         println("wait stmt resp")
-        val res2 = Some(Await.result(res, 9999 seconds))
+        val res2 = Some(Await.result(res, Duration.Inf))
         println("received resp")
         res2
     }
@@ -187,7 +190,7 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
             }
         }).getOrElse(Future(true))
 
-    def executeWithTransactionAndReturnHandle(f: (PostgreSQLConnection) => Future[Unit]) = {
+    def executeWithTransactionAndReturnHandle(f: (Connection) => Future[Unit]) = {
         pool.take.flatMap {
             connection =>
                 val res =
@@ -207,18 +210,19 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
         }
     }
 
-    private def commit(c: PostgreSQLConnection) =
-        Await.result(c.sendPreparedStatement("COMMIT"), 9999 seconds)
+    private def commit(c: Connection) =
+        Await.result(c.sendQuery("COMMIT"), Duration.Inf)
 
-    private def rollback(c: PostgreSQLConnection) =
-        Await.result(c.sendPreparedStatement("ROLLBACK"), 9999 seconds)
+    private def rollback(c: Connection) =
+        Await.result(c.sendQuery("ROLLBACK"), Duration.Inf)
 
-    def directAccess = pool
+    def directAccess = pool.take
 
     def isMemoryStorage = false
     def isSchemaless = false
     def isTransactional = true
     def supportsQueryJoin = true
+    override def supportsAsync = true
 
     private def sendPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection) =
         connection.sendPreparedStatement(
@@ -232,26 +236,19 @@ trait AsyncPostgresqlStorage extends RelationalStorage[Connection] {
                     "1"
                 else
                     "0"
-            case value: ByteArrayStorageValue =>
-                val s = value.value.map(b => new String(b, configuration.charset.name)).getOrElse(null)
-                s
             case other =>
                 other.value.getOrElse(null)
         }
 
 }
 
-case class AsyncPostgresqlResultSet(rowData: RowData, charset: String)
+case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
         extends ActivateResultSet {
 
     def getString(i: Int) =
         value[String](i)
     def getBytes(i: Int) =
-        valueCase[Array[Byte]](i) {
-            case s: String =>
-                val r =s.getBytes(charset)
-                r
-        }
+        value[Array[Byte]](i)
     def getInt(i: Int) =
         valueCase[Int](i) {
             case n =>

@@ -26,6 +26,16 @@ import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
 
 import net.fwbrasil.activate.json4s.Json4sContext
+import net.fwbrasil.activate.storage.relational.async.JdbcRelationalAsyncStorage
+import com.github.mauricio.async.db.Configuration
+import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
+import org.jboss.netty.util.CharsetUtil
+import com.github.mauricio.async.db.pool.ObjectFactory
+import com.github.mauricio.async.db.Connection
+import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
+import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
+
+import com.github.mauricio.async.db.mysql.MySQLConnection
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -119,6 +129,41 @@ object postgresqlContext extends ActivateTestContext {
 }
 class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
 class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(postgresqlContext) {
+    override def bigStringType = "TEXT"
+}
+
+object asyncPostgresqlContext extends ActivateTestContext {
+    val storage = new JdbcRelationalAsyncStorage[PostgreSQLConnection] {
+        def configuration =
+            new Configuration(
+                username = "postgres",
+                host = "localhost",
+                password = Some("postgres"),
+                database = Some("activate_test"))
+        def objectFactory = new PostgreSQLConnectionFactory(configuration)
+        val dialect = postgresqlDialect
+    }
+}
+class AsyncPostgresqlActivateTestMigration extends ActivateTestMigration()(asyncPostgresqlContext)
+class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncPostgresqlContext) {
+    override def bigStringType = "TEXT"
+}
+
+object asyncMysqlContext extends ActivateTestContext {
+    val storage = new JdbcRelationalAsyncStorage[MySQLConnection] {
+        def configuration =
+            new Configuration(
+                username = "root",
+                host = "localhost",
+                port = 3306,
+                password = Some("root"),
+                database = Some("activate_test"))
+        def objectFactory = new MySQLConnectionFactory(configuration)
+        val dialect = mySqlDialect
+    }
+}
+class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
+class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
     override def bigStringType = "TEXT"
 }
 

@@ -62,6 +62,7 @@ import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.ReferenceListEntityValue
+import scala.concurrent.Future
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -155,9 +156,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }
 
     private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
-        for (line <- storageFor(query).fromStorage(query, entitiesReadFromCache))
-            yield for (column <- line)
-            yield materialize(column)
+        materializeLines(
+            storageFor(query)
+                .fromStorage(query, entitiesReadFromCache))
+
+    private def entitiesFromStorageAsync[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
+        storageFor(query)
+            .fromStorageAsync(query, entitiesReadFromCache)
+            .map(materializeLines)
 
     def materialize(value: EntityValue[_]) =
         value match {
@@ -173,6 +179,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
         val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
         val result = entitiesFromStorage(query, entitiesReadFromCache) ++ rowsFromCache
         result
+    }
+
+    def executeQueryAsync[S](query: Query[S]): Future[List[List[Any]]] = {
+        val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
+        val future = entitiesFromStorageAsync(query, entitiesReadFromCache)
+        future.map(_ ++ rowsFromCache)
     }
 
     def materializeEntity(entityId: String): Entity = {
@@ -485,6 +497,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
         })(manifestClass(entity.getClass))
         entitiesFromStorage(query, List()).headOption
+    }
+
+    private def materializeLines(lines: List[List[net.fwbrasil.activate.entity.EntityValue[_]]]): List[List[Any]] = {
+        for (line <- lines)
+            yield for (column <- line)
+            yield materialize(column)
     }
 
 }

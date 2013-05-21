@@ -95,7 +95,7 @@ object mySqlDialect extends SqlIdiom {
                     ")"
             case StorageCreateTable(tableName, columns, ifNotExists) =>
                 "CREATE TABLE " + escape(tableName) + "(\n" +
-                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+                    " " + escape("id") + " " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
                     columns.map(toSqlDdl).mkString(", \n") +
                     ")"
             case StorageRenameTable(oldName, newName, ifExists) =>

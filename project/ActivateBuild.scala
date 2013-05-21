@@ -56,7 +56,7 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
-    		    activateGraph, activateJson4s, activateAsyncPostgresql,
+    		    activateGraph, activateJson4s, activateJdbcAsync,
     		    activateSlick),
     		settings = commonSettings
     	)
@@ -109,16 +109,17 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.1.1"
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.1"
+    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.1"
 
-    lazy val activateAsyncPostgresql =
+    lazy val activateJdbcAsync =
     	Project(
-    	    id = "activate-async-postgresql",
-    		base = file("activate-async-postgresql"),
+    	    id = "activate-jdbc-async",
+    		base = file("activate-jdbc-async"),
     		dependencies = Seq(activateCore, activateJdbc),
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(postgresqlAsync)
+		    	  Seq(postgresqlAsync, mysqlAsync)
 		    )
     	)
 
@@ -174,7 +175,7 @@ object ActivateBuild extends Build {
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph, activateJson4s, activateAsyncPostgresql,
+			    activateMongo, activateGraph, activateJson4s, activateJdbcAsync,
 			    activateSlick),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 

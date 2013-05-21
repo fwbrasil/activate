@@ -14,7 +14,6 @@ import java.security._
 import java.math.BigInteger
 import org.joda.time.DateTime
 import net.fwbrasil.activate.storage.mongo.MongoStorage
-import net.fwbrasil.radon.util.GCUtil.runGC
 
 import net.fwbrasil.activate.migration.Migration
 
@@ -35,17 +34,19 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-                memoryContext,
-                prevaylerContext,
-                mongoContext,
-                mysqlContext,
-                polyglotContext,
-                postgresqlContext,
-                derbyContext,
-                h2Context,
-                hsqldbContext,
-                oracleContext,
-                db2Context
+//                asyncMysqlContext
+                asyncPostgresqlContext//,
+//                memoryContext,
+//                prevaylerContext,
+//                mongoContext,
+//                mysqlContext//,
+//                polyglotContext,
+//                postgresqlContext,
+//                derbyContext,
+//                h2Context,
+//                hsqldbContext,
+//                oracleContext,
+//                db2Context
             )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))

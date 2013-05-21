@@ -230,7 +230,7 @@ trait SqlIdiom {
                         val list = value.value.get
                         (0 until list.size).map { i =>
                             new SqlStatement(
-                                statement = "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("pos") + ") VALUES (:owner, :value, :pos)",
+                                statement = "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("POS") + ") VALUES (:owner, :value, :pos)",
                                 binds = Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
                         }
                     } else List()
@@ -586,7 +586,7 @@ trait SqlIdiom {
 
     private def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
         val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
-        val res = concat(value.entitySource.name + "." + propertyName, "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY POS'")
+        val res = concat(value.entitySource.name + "." + escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
         res
     }
 }

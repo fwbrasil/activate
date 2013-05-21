@@ -14,6 +14,8 @@ import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 class TransactionHandle(
         private val commitBlock: () => Unit,
@@ -36,17 +38,19 @@ trait Storage[T] {
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
-
+    
+    protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: ExecutionContext): Future[List[List[EntityValue[_]]]] =
+        throw new UnsupportedOperationException("The storage does not support async queries.")
+    
     def directAccess: T
 
     def isMemoryStorage: Boolean
     def isSchemaless: Boolean
     def isTransactional: Boolean
     def supportsQueryJoin: Boolean
+    def supportsAsync = false
 
-    protected[activate] def reinitialize = {
-
-    }
+    protected[activate] def reinitialize = {}
     protected[activate] def migrate(action: StorageAction): Unit
     protected[activate] def prepareDatabase = {}
     protected def staleDataException(entityIds: Set[String]) =
