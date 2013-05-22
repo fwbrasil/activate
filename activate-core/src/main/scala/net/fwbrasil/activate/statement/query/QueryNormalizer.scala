@@ -50,7 +50,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
             }
         }
         if (nestedProperties.nonEmpty) {
-            var entitySourceSet = Set[EntitySource]()
+            var entitySourceSet = query.from.entitySources.toSet
             val criteriaList = ListBuffer[Criteria]()
             val normalizeMap = new IdentityHashMap[Any, Any]()
             for (nested <- nestedProperties) {

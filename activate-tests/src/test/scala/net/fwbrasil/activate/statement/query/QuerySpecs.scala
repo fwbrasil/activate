@@ -516,6 +516,23 @@ class QuerySpecs extends ActivateTest {
                     }
                 })
         }
+        
+        "support normalized query with entity source used on select" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newFullActivateTestEntity
+                    }
+                    step {
+                        query {
+                            (a: ActivateTestEntity, b: CaseClassEntity) => where(b.entityValue.stringValue :== fullStringValue) select(a)
+                        }
+                        select[ActivateTestEntity] where (_.stringValue :== fullStringValue)
+                    }
+                })
+            
+        }
 
     }
 }
