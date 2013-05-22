@@ -153,7 +153,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.2.1",
+    		version := "1.2.2",
     		scalaVersion := "2.10.1",
     		crossScalaVersions := Seq("2.10.0", "2.10.1"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
