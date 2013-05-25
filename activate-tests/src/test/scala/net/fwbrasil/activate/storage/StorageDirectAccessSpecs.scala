@@ -14,6 +14,7 @@ import net.fwbrasil.activate.ActivateTestContext
 import org.prevayler.{ Transaction => PrevaylerTransaction }
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorageSystem
 import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 
 @RunWith(classOf[JUnitRunner])
 class StorageDirectAccessSpecs extends ActivateTest {
@@ -39,8 +40,10 @@ class StorageDirectAccessSpecs extends ActivateTest {
                                 memorySet.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                             case jdbcConnection: Connection =>
                                 try {
+                                    val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect
                                     val stmt = jdbcConnection.createStatement
-                                    val result = stmt.executeQuery("SELECT ID FROM ActivateTestEntity")
+                                    val table = dialect.escape("ActivateTestEntity")
+                                    val result = stmt.executeQuery("SELECT ID FROM " + table)
                                     result.next must beTrue
                                     result.getString(1) must beEqualTo(id)
                                     result.next must beFalse
@@ -60,6 +63,7 @@ class StorageDirectAccessSpecs extends ActivateTest {
                                             sys.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                                         }
                                     })
+                            case other =>
                         }
                     }
                 })

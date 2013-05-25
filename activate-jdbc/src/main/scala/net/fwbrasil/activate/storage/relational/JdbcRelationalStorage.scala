@@ -303,8 +303,6 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     override def reinitialize = {
         _connectionPool.close
-        while (_connectionPool.getTotalLeased != 0)
-            Thread.sleep(10)
         initConnectionPool
         super.reinitialize
     }

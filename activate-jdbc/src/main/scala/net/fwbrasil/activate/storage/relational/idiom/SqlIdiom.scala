@@ -307,19 +307,14 @@ trait SqlIdiom {
             toSqlDmlOrderBy(query)
 
     def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) = {
-        var auxIdIdx = 0
-        def bind(id: String) = {
-            auxIdIdx += 1
-            val name = "auxId" + auxIdIdx
-            binds += StringStorageValue(Some(id)) -> (name)
-            name
-        }
+        def bind(id: String) = 
+            this.bind(StringStorageValue(Some(id)))
 
         val entitySources = query.from.entitySources
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
                 val condition =
-                    (for (i <- 0 until entitySources.size) yield entitySources(i).name + ".id != :" + bind(entities(i).id)).mkString(" OR ")
+                    (for (i <- 0 until entitySources.size) yield entitySources(i).name + ".id != " + bind(entities(i).id)).mkString(" OR ")
                 s"($condition)"
             }
         if (restrictions.nonEmpty)

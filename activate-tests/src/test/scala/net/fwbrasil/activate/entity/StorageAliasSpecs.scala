@@ -14,7 +14,7 @@ import net.fwbrasil.activate.polyglotContext
 class StorageAliasSpecs extends ActivateTest {
 
     override def contexts =
-        super.contexts.filter(ctx => ctx != polyglotContext && !ctx.storage.isMemoryStorage)
+        super.contexts.filter(ctx => ctx != polyglotContext && !ctx.storage.isMemoryStorage && !ctx.storage.supportsAsync)
 
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
@@ -64,8 +64,9 @@ class StorageAliasSpecs extends ActivateTest {
     private def findOnlyOneId(tableName: String, whereOption: Option[(String, String)])(implicit context: ActivateTestContext): String = {
         context.storage match {
             case storage: JdbcRelationalStorage =>
-                val where = whereOption.map(tuple => " where " + tuple._1 + " = '" + tuple._2 + "'").getOrElse("")
-                querySqlForString("select id from " + tableName + " " + where, storage)
+                val where = whereOption.map(tuple => " where " + storage.dialect.escape(tuple._1) + " = '" + tuple._2 + "'").getOrElse("")
+                val tableEscaped = storage.dialect.escape(tableName)
+                querySqlForString("select id from " + tableEscaped + " " + where, storage)
             case storage: MongoStorage =>
                 val mongoDB = storage.directAccess
                 mongoDB.collectionExists(tableName) must beTrue

@@ -43,7 +43,8 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
 
     def objectFactory: ObjectFactory[C]
     def charset = CharsetUtil.UTF_8
-    private val pool = new ConnectionPool(objectFactory, PoolConfiguration.Default)
+    def poolConfiguration = PoolConfiguration.Default
+    private var pool = new ConnectionPool(objectFactory, poolConfiguration)
     val dialect: SqlIdiom
 
     override protected[activate] def query(
@@ -208,6 +209,11 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
                 }
                 res
         }
+    }
+    
+    override protected[activate] def reinitialize = {
+        pool.close
+        pool = new ConnectionPool(objectFactory, PoolConfiguration.Default)
     }
 
     private def commit(c: Connection) =

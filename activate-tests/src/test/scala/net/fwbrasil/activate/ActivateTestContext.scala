@@ -60,7 +60,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == derbyContext)
+        if (ctx == mysqlContext || ctx == asyncMysqlContext || ctx == derbyContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -139,7 +139,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 username = "postgres",
                 host = "localhost",
                 password = Some("postgres"),
-                database = Some("activate_test"))
+                database = Some("activate_test_async"))
         def objectFactory = new PostgreSQLConnectionFactory(configuration)
         val dialect = postgresqlDialect
     }
@@ -157,7 +157,7 @@ object asyncMysqlContext extends ActivateTestContext {
                 host = "localhost",
                 port = 3306,
                 password = Some("root"),
-                database = Some("activate_test"))
+                database = Some("activate_test_async"))
         def objectFactory = new MySQLConnectionFactory(configuration)
         val dialect = mySqlDialect
     }

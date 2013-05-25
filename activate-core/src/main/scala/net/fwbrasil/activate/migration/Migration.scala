@@ -269,7 +269,7 @@ abstract class Migration(implicit val context: ActivateContext) {
             }
         val actionList = resolved.map(metadata => {
             val mainTable = table(manifestClass(metadata.entityClass))
-            val lists = metadata.persistentPropertiesMetadata.filter(_.propertyType == classOf[List[_]])
+            val lists = metadata.persistentPropertiesMetadata.filter(p => p.propertyType == classOf[List[_]] || p.propertyType == classOf[LazyList[_]])
             val removeLists = lists.map(list => mainTable.removeNestedListTable(list.name))
             removeLists ++ List(mainTable.removeTable)
         }).flatten
