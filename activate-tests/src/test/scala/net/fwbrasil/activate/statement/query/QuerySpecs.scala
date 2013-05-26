@@ -8,10 +8,12 @@ import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.ActivateContext
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
-
+    
     "Query framework" should {
         "support byId" in {
             activateTest(
@@ -41,7 +43,7 @@ class QuerySpecs extends ActivateTest {
                 })
         }
 
-        "support allWhere" in {
+        "support select[Entity] where" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._

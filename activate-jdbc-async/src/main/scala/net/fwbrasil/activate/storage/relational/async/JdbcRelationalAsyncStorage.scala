@@ -57,7 +57,6 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
 
     override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] = {
         val jdbcStatement = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
-        println(jdbcStatement.statement)
         val resultSetFuture = sendPreparedStatement(jdbcStatement, pool)
         resultSetFuture.map(
             _.rows match {
@@ -127,10 +126,7 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
                 connection =>
                     sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
             }
-        println("wait stmt resp")
-        val res2 = Some(Await.result(res, Duration.Inf))
-        println("received resp")
-        res2
+        Some(Await.result(res, Duration.Inf))
     }
 
     def execute(jdbcStatement: JdbcStatement, connection: Connection, isDdl: Boolean) =
@@ -138,7 +134,6 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
             if (satisfy)
                 jdbcStatement match {
                     case normal: SqlStatement =>
-                        println(jdbcStatement.statement)
                         val future =
                             if (isDdl)
                                 connection.sendQuery(jdbcStatement.statement)
@@ -178,7 +173,6 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
     private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement) =
         jdbcStatement.restrictionQuery.map(tuple => {
             val (query, expected) = tuple
-            println(query)
             pool.sendQuery(query).map {
                 _.rows match {
                     case Some(resultSet) =>
