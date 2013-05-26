@@ -4,6 +4,7 @@ import net.fwbrasil.activate.StoppableActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.postgresqlContext
 import net.fwbrasil.activate.mongoContext
+import net.fwbrasil.activate.asyncPostgresqlContext
 
 trait MultiVMContext extends StoppableActivateContext {
 
@@ -11,7 +12,7 @@ trait MultiVMContext extends StoppableActivateContext {
         var intValue = 0
     }
 
-    val storage = mongoContext.storage
+    val storage = asyncPostgresqlContext.storage//mongoContext.storage
 
     def run[A](f: => A) = {
         start

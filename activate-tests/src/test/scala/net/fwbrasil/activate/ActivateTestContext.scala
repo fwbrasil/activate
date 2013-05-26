@@ -24,7 +24,6 @@ import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
-
 import net.fwbrasil.activate.json4s.Json4sContext
 import net.fwbrasil.activate.storage.relational.async.JdbcRelationalAsyncStorage
 import com.github.mauricio.async.db.Configuration
@@ -34,8 +33,8 @@ import com.github.mauricio.async.db.pool.ObjectFactory
 import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
-
 import com.github.mauricio.async.db.mysql.MySQLConnection
+import com.github.mauricio.async.db.pool.PoolConfiguration
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -141,6 +140,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 password = Some("postgres"),
                 database = Some("activate_test_async"))
         def objectFactory = new PostgreSQLConnectionFactory(configuration)
+        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 200, maxObjects=200)
         val dialect = postgresqlDialect
     }
 }

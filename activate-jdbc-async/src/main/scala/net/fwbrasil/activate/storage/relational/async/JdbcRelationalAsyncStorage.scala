@@ -213,7 +213,7 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
     
     override protected[activate] def reinitialize = {
         pool.close
-        pool = new ConnectionPool(objectFactory, PoolConfiguration.Default)
+        pool = new ConnectionPool(objectFactory, poolConfiguration)
     }
 
     private def commit(c: Connection) =
