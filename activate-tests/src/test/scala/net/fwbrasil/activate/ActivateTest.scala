@@ -14,8 +14,10 @@ import java.security._
 import java.math.BigInteger
 import org.joda.time.DateTime
 import net.fwbrasil.activate.storage.mongo.MongoStorage
-
 import net.fwbrasil.activate.migration.Migration
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext
 
 object runningFlag
 
@@ -28,25 +30,27 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             OneTransaction(ctx),
             MultipleTransactions(ctx),
             MultipleTransactionsWithReinitialize(ctx),
+            MultipleAsyncTransactions(ctx),
+            MultipleAsyncTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
     def contexts = _contexts
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-//                asyncMysqlContext
-                asyncPostgresqlContext//,
-//                memoryContext,
-//                prevaylerContext,
-//                mongoContext,
-//                mysqlContext//,
-//                polyglotContext,
-//                postgresqlContext,
-//                derbyContext,
-//                h2Context,
-//                hsqldbContext,
-//                oracleContext,
-//                db2Context
+            //                asyncMysqlContext,
+            asyncPostgresqlContext //,
+            //                memoryContext,
+            //                prevaylerContext,
+            //                mongoContext,
+            //                mysqlContext,
+            //                polyglotContext,
+            //                postgresqlContext,
+            //                derbyContext,
+            //                h2Context,
+            //                hsqldbContext//,
+            //                oracleContext,
+            //                db2Context
             )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
@@ -111,6 +115,19 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
         }
     }
 
+    case class MultipleAsyncTransactions(ctx: ActivateTestContext) extends StepExecutor {
+        import ctx._
+        def apply[A](s: => A): A = execute {
+            val f =
+                asyncTransactional {
+                    s
+                }
+            Await.result(f, Duration.Inf)
+        }
+        override def accept(ctx: ActivateTestContext) =
+            ctx.storage.supportsAsync
+    }
+
     case class MultipleTransactionsWithReinitialize(ctx: ActivateTestContext) extends StepExecutor {
         import ctx._
         def apply[A](s: => A): A = execute {
@@ -121,6 +138,21 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             reinitializeContext
             ret
         }
+    }
+
+    case class MultipleAsyncTransactionsWithReinitialize(ctx: ActivateTestContext) extends StepExecutor {
+        import ctx._
+        def apply[A](s: => A): A = execute {
+            val f =
+                asyncTransactional {
+                    s
+                }
+            val ret = Await.result(f, Duration.Inf)
+            reinitializeContext
+            ret
+        }
+        override def accept(ctx: ActivateTestContext) =
+            ctx.storage.supportsAsync
     }
 
     case class MultipleTransactionsWithReinitializeAndSnapshot(ctx: ActivateTestContext) extends StepExecutor {

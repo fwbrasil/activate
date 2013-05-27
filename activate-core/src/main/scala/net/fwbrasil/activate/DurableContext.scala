@@ -1,6 +1,6 @@
 package net.fwbrasil.activate
 
-import scala.collection.mutable.{ Map => MutableMap }
+import scala.collection.mutable.{ Map => MutableMap, Set => MutableSet }
 import net.fwbrasil.activate.util.IdentityHashMap._
 import net.fwbrasil.activate.util.IdentityHashMap
 import net.fwbrasil.radon.ref.Ref
@@ -49,11 +49,11 @@ trait DurableContext {
             }
         }
 
-    def reloadEntities(ids: Set[String]) = 
+    def reloadEntities(ids: Set[String]) =
         liveCache.uninitialize(ids)
 
     override def makeDurable(transaction: Transaction) = {
-        
+
         val statements = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
         val deletes = filterDeletes(statements, deletesUnfiltered)
@@ -67,9 +67,24 @@ trait DurableContext {
             statements.clear
         }
     }
-    
-    override def makeDurableAsync(transaction: Transaction)(implicit ectx: ExecutionContext): Future[Unit] =
-        Future()
+
+    override def makeDurableAsync(transaction: Transaction)(implicit ectx: ExecutionContext): Future[Unit] = {
+        // TODO Refactoring (see makeDurable)
+        val statements = statementsForTransaction(transaction)
+        val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
+        val deletes = filterDeletes(statements, deletesUnfiltered)
+        val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
+
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+            validateTransactionEnd(transaction, entities)
+            storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
+                setPersisted(inserts.keys)
+                deleteFromLiveCache(deletesUnfiltered.keys)
+                statements.clear
+            }
+        } else
+            Future.successful()
+    }
 
     private def groupByStorage[T](iterable: Iterable[T])(f: T => Class[_ <: Entity]) =
         iterable.groupBy(v => storageFor(f(v))).mapValues(_.toList).withDefault(v => List())
@@ -96,10 +111,30 @@ trait DurableContext {
 
     }
 
-    private[this] def setPersisted(entities: Iterable[Entity]) =
+    private def storeAsync(
+        statements: List[MassModificationStatement],
+        insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]): Future[Unit] = {
+        
+        // TODO Refactoring (see store)
+
+        val statementsByStorage = groupByStorage(statements)(_.from.entitySources.onlyOne.entityClass)
+        val insertsByStorage = groupByStorage(insertList)(_._1.niceClass)
+        val updatesByStorage = groupByStorage(updateList)(_._1.niceClass)
+        val deletesByStorage = groupByStorage(deleteList)(_._1.niceClass)
+
+        val storages = sortStorages((statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
+            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList)
+
+        verifyMassSatatements(storages, statementsByStorage)
+        extendedCommit(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
+    }
+
+    private def setPersisted(entities: Iterable[Entity]) =
         entities.foreach(_.setPersisted)
 
-    private[this] def deleteFromLiveCache(entities: Iterable[Entity]) =
+    private def deleteFromLiveCache(entities: Iterable[Entity]) =
         entities.foreach(liveCache.delete)
 
     private def filterVars(pAssignments: List[(Ref[Any], Option[Any], Boolean)]) = {
@@ -199,6 +234,40 @@ trait DurableContext {
         }
     }
 
+    private def extendedCommit(
+        statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
+        insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        deletesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        storages: List[net.fwbrasil.activate.storage.Storage[Any]]): Future[Unit] = {
+
+        storages match {
+            case storage :: tail =>
+                storage.toStorageAsync(
+                    statementsByStorage(storage),
+                    mapVarsToName(insertsByStorage(storage)),
+                    mapVarsToName(updatesByStorage(storage)),
+                    mapVarsToName(deletesByStorage(storage))).flatMap { _ =>
+                        extendedCommit(
+                            statementsByStorage,
+                            insertsByStorage,
+                            updatesByStorage,
+                            deletesByStorage,
+                            tail)
+                    }.recover {
+                        case e: Throwable =>
+                            rollbackStorage(
+                                insertsByStorage,
+                                updatesByStorage,
+                                deletesByStorage,
+                                storage)
+                            throw e
+                    }
+            case Nil =>
+                Future.successful()
+        }
+    }
+
     private def valueToRollback(ref: Var[Any], updatedValue: EntityValue[_]) = {
         ref.tval(
             if (ref.name != OptimisticOfflineLocking.versionVarName)
@@ -218,26 +287,38 @@ trait DurableContext {
         for ((storage, handle) <- storagesTransactionHandles) {
             handle.map(_.rollback).getOrElse {
                 // "Manual" rollback for non-transactional storages
-                val deletes = mapVarsToName(insertsByStorage(storage).map(
-                    tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != OptimisticOfflineLocking.versionVarName))))
-                val updates = mapVarsToName(updatesByStorage(storage).map(
-                    tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2))))))
-                val inserts = mapVarsToName(deletesByStorage(storage))
-                try
-                    storage.toStorage(
-                        List(),
-                        inserts,
-                        updates,
-                        deletes)
-                catch {
-                    case ex: Throwable =>
-                        writeRollbackErrorDumpFile(
-                            ex,
-                            inserts,
-                            updates,
-                            deletes)
-                }
+                rollbackStorage(
+                    insertsByStorage,
+                    updatesByStorage,
+                    deletesByStorage,
+                    storage)
             }
+        }
+    }
+
+    private def rollbackStorage(
+        insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        deletesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
+        storage: Storage[Any]): Unit = {
+        val deletes = mapVarsToName(insertsByStorage(storage).map(
+            tuple => (tuple._1, tuple._2.filter(tuple => tuple._1.name != OptimisticOfflineLocking.versionVarName))))
+        val updates = mapVarsToName(updatesByStorage(storage).map(
+            tuple => (tuple._1, tuple._2.map(tuple => (tuple._1, valueToRollback(tuple._1, tuple._2))))))
+        val inserts = mapVarsToName(deletesByStorage(storage))
+        try
+            storage.toStorage(
+                List(),
+                inserts,
+                updates,
+                deletes)
+        catch {
+            case ex: Throwable =>
+                writeRollbackErrorDumpFile(
+                    ex,
+                    inserts,
+                    updates,
+                    deletes)
         }
     }
 

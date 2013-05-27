@@ -32,6 +32,17 @@ trait MarshalStorage[T] extends Storage[T] {
             marshalling(updateList),
             marshalling(deleteList))
 
+    override protected[activate] def toStorageAsync(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, EntityValue[Any]])],
+        updateList: List[(Entity, Map[String, EntityValue[Any]])],
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        storeAsync(
+            statements,
+            marshalling(insertList),
+            marshalling(updateList),
+            marshalling(deleteList))
+
     private def marshalling(list: List[(Entity, Map[String, EntityValue[Any]])]) =
         list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> ReferenceStorageValue(Some(tuple._1.id)))))
 
@@ -40,6 +51,13 @@ trait MarshalStorage[T] extends Storage[T] {
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle]
+
+    protected[activate] def storeAsync(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        throw new UnsupportedOperationException("Storage does not support async store.")
 
     override def fromStorage(
         queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] = {

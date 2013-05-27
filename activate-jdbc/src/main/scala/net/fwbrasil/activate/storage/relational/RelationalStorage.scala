@@ -14,38 +14,24 @@ import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
-    override protected[activate] def store(
+    def store(
         statementList: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
+        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] =
+        executeStatements(statementsFor(statementList, insertList, updateList, deleteList))
 
-        val statements =
-            statementList.map(ModifyStorageStatement(_))
-
-        val inserts =
-            for ((entity, propertyMap) <- insertList)
-                yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
-
-        val insertsResolved = resolveDependencies(inserts.toSet)
-
-        val updates =
-            for ((entity, propertyMap) <- sortToAvoidDeadlocks(updateList))
-                yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
-
-        val deletes =
-            for ((entity, propertyMap) <- deleteList)
-                yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
-
-        val deletesResolved = resolveDependencies(deletes.toSet).reverse
-
-        val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
-
-        executeStatements(sqls)
-    }
+    override def storeAsync(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        executeStatementsAsync(statementsFor(statements, insertList, updateList, deleteList))
 
     private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
         list.sortBy(_._1.id)
@@ -76,5 +62,33 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         executeStatements(List(DdlStorageStatement(action))).map(_.commit)
 
     protected[activate] def executeStatements(sqls: List[StorageStatement]): Option[TransactionHandle]
+
+    protected[activate] def executeStatementsAsync(sqls: List[StorageStatement]): Future[Unit] =
+        throw new UnsupportedOperationException("Storage does not support async.")
+
+    private def statementsFor(statementList: List[net.fwbrasil.activate.statement.mass.MassModificationStatement], insertList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], updateList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], deleteList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])]): List[net.fwbrasil.activate.storage.relational.StorageStatement] = {
+
+        val statements =
+            statementList.map(ModifyStorageStatement(_))
+
+        val inserts =
+            for ((entity, propertyMap) <- insertList)
+                yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+
+        val insertsResolved = resolveDependencies(inserts.toSet)
+
+        val updates =
+            for ((entity, propertyMap) <- sortToAvoidDeadlocks(updateList))
+                yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+
+        val deletes =
+            for ((entity, propertyMap) <- deleteList)
+                yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+
+        val deletesResolved = resolveDependencies(deletes.toSet).reverse
+
+        val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
+        sqls
+    }
 
 }

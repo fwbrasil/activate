@@ -35,6 +35,9 @@ import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
 import com.github.mauricio.async.db.mysql.MySQLConnection
 import com.github.mauricio.async.db.pool.PoolConfiguration
+import scala.concurrent.ExecutionContext
+import scala.slick.direct.AnnotationMapper.table
+import java.util.concurrent.Executors
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -139,8 +142,8 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 host = "localhost",
                 password = Some("postgres"),
                 database = Some("activate_test_async"))
-        def objectFactory = new PostgreSQLConnectionFactory(configuration)
-        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 200, maxObjects=200)
+        lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
+        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 200, maxObjects = 200)
         val dialect = postgresqlDialect
     }
 }
@@ -158,7 +161,7 @@ object asyncMysqlContext extends ActivateTestContext {
                 port = 3306,
                 password = Some("root"),
                 database = Some("activate_test_async"))
-        def objectFactory = new MySQLConnectionFactory(configuration)
+        lazy val objectFactory = new MySQLConnectionFactory(configuration)
         val dialect = mySqlDialect
     }
 }
@@ -321,6 +324,8 @@ trait ActivateTestContext
         extends StoppableActivateContext with Json4sContext {
 
     protected val jsonMethods = org.json4s.native.JsonMethods
+    
+    override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
     
     override protected[activate] def entityMaterialized(entity: Entity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])

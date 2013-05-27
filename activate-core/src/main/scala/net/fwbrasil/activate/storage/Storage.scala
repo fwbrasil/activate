@@ -36,6 +36,13 @@ trait Storage[T] {
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
+    
+    protected[activate] def toStorageAsync(
+        statements: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, EntityValue[Any]])],
+        updateList: List[(Entity, Map[String, EntityValue[Any]])],
+        deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
+            throw new UnsupportedOperationException("The storage does not support async queries.")
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
     

@@ -38,10 +38,11 @@ import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
 import com.github.mauricio.async.db.pool.ObjectFactory
 import org.jboss.netty.util.CharsetUtil
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
+import scala.util.Failure
 
 trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
-    def objectFactory: ObjectFactory[C]
+    val objectFactory: ObjectFactory[C]
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
     private var pool = new ConnectionPool(objectFactory, poolConfiguration)
@@ -51,7 +52,7 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
         query: Query[_],
         expectedTypes: List[StorageValue],
         entitiesReadFromCache: List[List[Entity]]) = {
-    	val result = queryAsync(query, expectedTypes, entitiesReadFromCache)
+        val result = queryAsync(query, expectedTypes, entitiesReadFromCache)
         Await.result(result, Duration.Inf)
     }
 
@@ -116,6 +117,17 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
         ListStorageValue(listOption, expectedType.emptyStorageValue)
     }
 
+    override protected[activate] def executeStatementsAsync(
+        sqls: List[StorageStatement]): Future[Unit] = {
+        val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
+        val sqlStatements =
+            sqls.map(dialect.toSqlStatement).flatten
+        executeWithTransaction {
+            connection =>
+                sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
+        }
+    }
+
     override protected[activate] def executeStatements(
         sqls: List[StorageStatement]) = {
         val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
@@ -149,7 +161,7 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
                         throw new UnsupportedOperationException()
                 }
             else
-                Future({})
+                Future.successful()
         }
 
     private def verifyStaleData(jdbcStatement: JdbcStatement, result: Array[Long]): Unit = {
@@ -204,9 +216,29 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
                 res
         }
     }
-    
+
+    def executeWithTransaction(f: (Connection) => Future[Unit]) = {
+        pool.take.flatMap {
+            conn =>
+                val res =
+                    f(conn).flatMap { _ =>
+                        conn.sendQuery("COMMIT").map{_ => }
+                    }.recoverWith {
+                        case e: Throwable =>
+                            conn.sendQuery("ROLLBACK").map { _ =>
+                                throw e
+                            }
+                    }
+                res.onComplete { _ =>
+                    println("giveBack")
+                    pool.giveBack(conn)
+                }
+                res
+        }
+    }
+
     override protected[activate] def reinitialize = {
-        pool.close
+        Await.ready(pool.close, Duration.Inf)
         pool = new ConnectionPool(objectFactory, poolConfiguration)
     }
 
