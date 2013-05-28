@@ -6,6 +6,9 @@ import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.entity.EntityValidationOption._
 import net.fwbrasil.activate.util.ManifestUtil._
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 class String1MustNotBeEmpty extends Exception
 
@@ -49,7 +52,8 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
             step.finalizeExecution
         }
         run(new EntityValidationStepExecutor(step, () => EntityValidation.setGlobalOptions(options.toSet)))
-        run(new EntityValidationStepExecutor(step, () => EntityValidation.setThreadOptions(options.toSet)))
+        if (!step.isInstanceOf[MultipleAsyncTransactions])
+            run(new EntityValidationStepExecutor(step, () => EntityValidation.setThreadOptions(options.toSet)))
         run(new EntityValidationStepExecutor(step, () => EntityValidation.setTransactionOptions(options.toSet)))
         run(new EntityValidationStepExecutor(step, () => TestValidationEntity.validationOptions = Some(options.toSet)))
     }
@@ -196,23 +200,11 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
                 }))
         }
 
-        def mustThrowACause[E: Manifest](f: => Unit) = {
-            try {
-                f
-                throw new IllegalStateException("exception wasn't thrown")
-            } catch {
-                case e: Throwable =>
-                    if (e.getCause == null || !erasureOf[E].isAssignableFrom(e.getCause.getClass))
-                        throw new IllegalStateException("Not the expected cause")
-            }
-        }
-
         "support onTransactionEnd" in {
             activateTest(invariantValidationTest(_)(onTransactionEnd)(
                 (step: EntityValidationStepExecutor) => {
                     if (!step.wrapped.isInstanceOf[OneTransaction]) {
                         import step.ctx._
-                        var erro = false
                         mustThrowACause[String1MustNotBeEmpty] {
                             step {
                                 new TestValidationEntity("")
@@ -241,6 +233,17 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
                         }
                     }
                 }))
+        }
+
+        def mustThrowACause[E: Manifest](f: => Unit) = {
+            Try(f) match {
+                case Success(unit) =>
+                    throw new IllegalStateException("exception wasn't thrown")
+                case Failure(e) if (e.getCause != null && erasureOf[E].isAssignableFrom(e.getCause.getClass)) =>
+                    ok
+                case Failure(e) =>
+                    throw new IllegalStateException("Not the expected cause", e)
+            }
         }
 
     }
