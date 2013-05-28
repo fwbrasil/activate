@@ -76,7 +76,7 @@ trait DurableContext {
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
         if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
-            Future(validateTransactionEnd(transaction, entities)).map { _ =>
+            Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
                 storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
