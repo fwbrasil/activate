@@ -22,6 +22,7 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.CollectionUtil
 import scala.concurrent.Future
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait QueryContext extends StatementContext with OrderedQueryContext {
     this: ActivateContext =>
@@ -229,59 +230,59 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
 
     //ASYNC
     
-    private def _asyncAllWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+    private def _asyncAllWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =
         allWhereQuery[E](criterias: _*).executeAsync
         
-    def asyncAll[E <: Entity: Manifest] =
+    def asyncAll[E <: Entity: Manifest](implicit texctx: TransactionalExecutionContext) =
         _asyncAllWhere[E](_ isNotNull)
 
     class AsyncSelectEntity[E <: Entity: Manifest] {
-        def where(criterias: ((E) => Criteria)*) =
+        def where(criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =
             _asyncAllWhere[E](criterias: _*)
     }
 
     def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncById[T <: Entity](id: => String): Future[Option[T]] = {
+    def asyncById[T <: Entity](id: => String)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
         EntityHelper.getEntityClassFromIdOption(id).map {
             entityClass =>
                 implicit val manifestT = manifestClass[T](entityClass)
                 val fromLiveCache = liveCache.byId[T](id)
                 if (fromLiveCache.isDefined)
                     Future.successful(fromLiveCache.filterNot(_.isDeletedSnapshot))
-                else _asyncAllWhere[T](_ :== id).map(_.headOption)
+                else _asyncAllWhere[T](_ :== id).map(_.headOption)(texctx)
         }.getOrElse(Future.successful(None))
     }
 
-    def executeQueryAsync[S](query: Query[S]): Future[List[S]] = {
+    def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {
         val futures =
             QueryNormalizer
                 .normalize[Query[S]](query)
-                .map(liveCache.executeQueryAsync)
+                .map(liveCache.executeQueryAsync(_)(texctx))
         Future.sequence(futures)
             .map(_.flatten)
             .map(treatResults(query, _))
     }
-
-    def asyncQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): Future[List[S]] =
+    
+    def asyncQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
     
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): Future[List[S]] =
+    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery(f).executeAsync
         
     private def treatResults[S](query: Query[S], results: List[List[Any]]): List[S] = {

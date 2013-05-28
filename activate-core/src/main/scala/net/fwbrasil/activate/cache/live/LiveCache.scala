@@ -63,6 +63,7 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.ReferenceListEntityValue
 import scala.concurrent.Future
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -181,10 +182,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
         result
     }
 
-    def executeQueryAsync[S](query: Query[S]): Future[List[List[Any]]] = {
-        val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
-        val future = entitiesFromStorageAsync(query, entitiesReadFromCache)
-        future.map(_ ++ rowsFromCache)
+    def executeQueryAsync[S](query: Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[List[Any]]] = {
+        Future(entitiesFromCache(query))(texctx).flatMap {
+            tuple =>
+                val (rowsFromCache, entitiesReadFromCache) = tuple
+                val future = entitiesFromStorageAsync(query, entitiesReadFromCache)
+                future.map(_ ++ rowsFromCache)(context.ectx)
+        }(context.ectx)
     }
 
     def materializeEntity(entityId: String): Entity = {

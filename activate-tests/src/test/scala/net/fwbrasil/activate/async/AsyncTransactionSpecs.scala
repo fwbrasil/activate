@@ -14,16 +14,27 @@ import scala.concurrent.Future
 class AsyncTransactionSpecs extends ActivateTest {
 
     override def contexts = super.contexts.filter(_.storage.supportsAsync)
+    override def executors(ctx: ActivateTestContext) = List(MultipleAsyncTransactions(ctx))
 
     "Async storages" should {
 
-        "support asyncTransactional" in {
+        "support fully async transaction" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    step {
-                        
+                    transactional {
+                        newEmptyActivateTestEntity
                     }
+                    await(asyncTransactionalChain {
+                        implicit ctx =>
+                            asyncAll[ActivateTestEntity].map {
+                                _.head.intValue = 1983
+                            }(ctx)
+                    })
+                    transactional {
+                        all[ActivateTestEntity].map(_.intValue) === List(1983)
+                    }
+                    ok
                 })
         }
 

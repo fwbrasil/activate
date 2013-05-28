@@ -22,14 +22,15 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.CollectionUtil
 import scala.concurrent.Future
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 class Query[S](override val from: From, override val where: Where, val select: Select) extends Statement(from, where) with Product {
 
     def execute: List[S] =
         context.executeQuery(this)
 
-    def executeAsync: Future[List[S]] =
-        context.executeQueryAsync(this)
+    def executeAsync(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+        context.executeQueryAsync(this, texctx)
 
     def context =
         (for (src <- from.entitySources)

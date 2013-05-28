@@ -14,6 +14,7 @@ import scala.concurrent.Future
 class AsyncQuerySpecs extends ActivateTest {
 
     override def contexts = super.contexts.filter(_.storage.supportsAsync)
+    override def executors(ctx: ActivateTestContext) = List(MultipleAsyncTransactions(ctx))
 
     "Async storages" should {
 
@@ -27,8 +28,11 @@ class AsyncQuerySpecs extends ActivateTest {
                         }
                     step {
                         val future =
-                            asyncQuery {
-                                (e: ActivateTestEntity) => where(e.id isNotNull) select (e)
+                            asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncQuery {
+                                        (e: ActivateTestEntity) => where(e.id isNotNull) select (e)
+                                    }
                             }
                         val result = Await.result(future, Duration.Inf)
                         result.map(_.id) === List(entityId)
@@ -44,9 +48,17 @@ class AsyncQuerySpecs extends ActivateTest {
                         (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
                     }
                     step {
-                        await(asyncById[ActivateTestEntity](fullId)) must beSome
-                        await(asyncById[ActivateTestEntity](emptyId)) must beSome
-                        await(asyncById[ActivateTestEntity]("89889089")) must beNone
+                        await(asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncById[ActivateTestEntity](fullId)
+                        }) must beSome
+                        await(asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncById[ActivateTestEntity](emptyId)
+                        }) must beSome
+                        await(asyncTransactionalChain {
+                                implicit ctx =>asyncById[ActivateTestEntity]("89889089")
+                        }) must beNone
                     }
                 })
         }
@@ -59,11 +71,14 @@ class AsyncQuerySpecs extends ActivateTest {
                         (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
                     }
                     step {
-                        await(asyncAll[ActivateTestEntity]).size must beEqualTo(3)
+                        await(asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncAll[ActivateTestEntity]
+                        }).size must beEqualTo(3)
                     }
                 })
         }
-        
+
         "support asyncSelect[Entity] where" in {
             activateTest(
                 (step: StepExecutor) => {
@@ -73,28 +88,31 @@ class AsyncQuerySpecs extends ActivateTest {
                         newEmptyActivateTestEntity
                     }
                     step {
-                        val future = 
+                        val future =
+                            asyncTransactionalChain {
+                                implicit ctx =>
                             asyncSelect[ActivateTestEntity].where(
-                            _.intValue :== fullIntValue,
-                            _.longValue :== fullLongValue,
-                            _.booleanValue :== fullBooleanValue,
-                            _.charValue :== fullCharValue,
-                            _.stringValue :== fullStringValue,
-                            _.floatValue :== fullFloatValue,
-                            _.doubleValue :== fullDoubleValue,
-                            _.bigDecimalValue :== fullBigDecimalValue,
-                            _.dateValue :== fullDateValue,
-                            _.calendarValue :== fullCalendarValue,
-                            _.entityValue :== fullEntityValue,
-                            _.optionValue :== fullOptionValue,
-                            _.customNamedValue :== fullStringValue,
-                            _.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
-                            _.caseClassEntityValue :== fullCaseClassEntityValue)
+                                _.intValue :== fullIntValue,
+                                _.longValue :== fullLongValue,
+                                _.booleanValue :== fullBooleanValue,
+                                _.charValue :== fullCharValue,
+                                _.stringValue :== fullStringValue,
+                                _.floatValue :== fullFloatValue,
+                                _.doubleValue :== fullDoubleValue,
+                                _.bigDecimalValue :== fullBigDecimalValue,
+                                _.dateValue :== fullDateValue,
+                                _.calendarValue :== fullCalendarValue,
+                                _.entityValue :== fullEntityValue,
+                                _.optionValue :== fullOptionValue,
+                                _.customNamedValue :== fullStringValue,
+                                _.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
+                                _.caseClassEntityValue :== fullCaseClassEntityValue)
+                        }
                         await(future).size must beEqualTo(1)
                     }
                 })
         }
-        
+
         "support asyncQuery with abstract entity" in {
             activateTest(
                 (step: StepExecutor) => {
@@ -104,7 +122,10 @@ class AsyncQuerySpecs extends ActivateTest {
                         fullTraitValue2
                     }
                     step {
-                        await(asyncAll[TraitAttribute]).size must beEqualTo(2)
+                        await(asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncAll[TraitAttribute]
+                        }).size must beEqualTo(2)
                     }
                 })
         }
