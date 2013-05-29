@@ -63,7 +63,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
 
     protected[activate] def executeStatements(sqls: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(sqls: List[StorageStatement]): Future[Unit] =
+    protected[activate] def executeStatementsAsync(sqls: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
         throw new UnsupportedOperationException("Storage does not support async.")
 
     private def statementsFor(statementList: List[net.fwbrasil.activate.statement.mass.MassModificationStatement], insertList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], updateList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], deleteList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])]): List[net.fwbrasil.activate.storage.relational.StorageStatement] = {

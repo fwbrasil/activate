@@ -75,7 +75,7 @@ trait MarshalStorage[T] extends Storage[T] {
 
     protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]]
 
-    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] =
+    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] =
         throw new UnsupportedOperationException("Storage does not support async queries.")
 
     override protected[activate] def migrate(action: StorageAction): Unit =

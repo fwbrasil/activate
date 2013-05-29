@@ -161,10 +161,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
             storageFor(query)
                 .fromStorage(query, entitiesReadFromCache))
 
-    private def entitiesFromStorageAsync[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
+    private def entitiesFromStorageAsync[S](query: Query[S], entitiesReadFromCache: List[List[Entity]])(implicit texctx: TransactionalExecutionContext) =
         storageFor(query)
-            .fromStorageAsync(query, entitiesReadFromCache)
-            .map(materializeLines)
+            .fromStorageAsync(query, entitiesReadFromCache)(texctx)
+            .map(materializeLines)(texctx)
 
     def materialize(value: EntityValue[_]) =
         value match {
