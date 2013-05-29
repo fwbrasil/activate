@@ -13,7 +13,7 @@ import net.fwbrasil.activate.ActivateContext
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
-    
+
     "Query framework" should {
         "support byId" in {
             activateTest(
@@ -533,6 +533,42 @@ class QuerySpecs extends ActivateTest {
                                 (a: ActivateTestEntity, b: CaseClassEntity) => where(b.entityValue.stringValue :== fullStringValue) select (a)
                             }
                             select[ActivateTestEntity] where (_.stringValue :== fullStringValue)
+                        }
+                    }
+                })
+
+        }
+
+        "support toUpperCase" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (step.ctx != mongoContext) {
+                        import step.ctx._
+                        val string = "s"
+                        step {
+                            newEmptyActivateTestEntity.stringValue = string
+                        }
+                        step {
+                            val result = select[ActivateTestEntity].where(e => toUpperCase(e.stringValue) :== string.toUpperCase)
+                            result.size === 1
+                        }
+                    }
+                })
+
+        }
+
+        "support toLowerCase" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (step.ctx != mongoContext) {
+                        import step.ctx._
+                        val string = "S"
+                        step {
+                            newEmptyActivateTestEntity.stringValue = string
+                        }
+                        step {
+                            val result = select[ActivateTestEntity].where(e => toLowerCase(e.stringValue) :== string.toLowerCase)
+                            result.size === 1
                         }
                     }
                 })

@@ -64,6 +64,10 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.ReferenceListEntityValue
 import scala.concurrent.Future
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import net.fwbrasil.activate.statement.FunctionApply
+import net.fwbrasil.activate.statement.ToUpperCase
+import net.fwbrasil.activate.entity.StringEntityValue
+import net.fwbrasil.activate.statement.ToLowerCase
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -429,8 +433,18 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 null
         }
 
+    def executeFunctionApply(apply: FunctionApply[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+        apply match {
+        	case value: ToUpperCase =>
+                executeStatementSelectValue(value.value).asInstanceOf[String].toUpperCase()
+            case value: ToLowerCase =>
+                executeStatementSelectValue(value.value).asInstanceOf[String].toLowerCase()
+        }
+
     def executeStatementSelectValue(value: StatementSelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
         value match {
+        	case value: FunctionApply[_] =>
+                executeFunctionApply(value)
             case value: StatementEntityValue[_] =>
                 executeStatementEntityValue(value)
             case value: SimpleValue[_] =>

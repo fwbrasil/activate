@@ -60,6 +60,8 @@ import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
+import net.fwbrasil.activate.statement.ToUpperCase
+import net.fwbrasil.activate.statement.ToLowerCase
 
 trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
@@ -280,8 +282,12 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         for (value <- values)
             yield mongoStatementSelectValue(value)
 
-    def mongoStatementSelectValue(value: StatementSelectValue[_]) =
+    def mongoStatementSelectValue(value: StatementSelectValue[_]): String =
         value match {
+            case value: ToUpperCase =>
+                throw new UnsupportedOperationException("Mongo storage doesn't support the toUpperCase function for queries.")
+            case value: ToLowerCase =>
+                throw new UnsupportedOperationException("Mongo storage doesn't support the toLowerCase function for queries.")
             case value: StatementEntitySourcePropertyValue[_] =>
                 val name = value.propertyPathNames.onlyOne
                 if (name == "id")
@@ -357,6 +363,10 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
     def queryEntityProperty(value: StatementValue): String =
         value match {
+            case value: ToUpperCase =>
+                throw new UnsupportedOperationException("Mongo storage doesn't support the toUpperCase function for queries.")
+            case value: ToLowerCase =>
+                throw new UnsupportedOperationException("Mongo storage doesn't support the toLowerCase function for queries.")
             case value: StatementEntitySourcePropertyValue[_] =>
                 val name = value.propertyPathNames.onlyOne
                 if (name == "id")
@@ -427,7 +437,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 obj.put(action.columnName, 1)
                 if (!action.ifExists || collHasIndex(action.tableName, action.columnName))
                     coll(action.tableName).dropIndex(obj)
-            case action: StorageAddReference    =>
+            case action: StorageAddReference =>
             // Do nothing!
             case action: StorageRemoveReference =>
             // Do nothing!

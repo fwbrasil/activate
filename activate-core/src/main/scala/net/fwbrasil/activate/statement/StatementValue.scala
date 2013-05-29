@@ -72,6 +72,8 @@ trait StatementValueContext extends ValueContext {
                 toStatementValueRef(ref)
             case other =>
                 value.getOrElse(null.asInstanceOf[V]) match {
+                    case function: FunctionApply[V] =>
+                        function
                     case entity: Entity =>
                         toStatementValueEntity(() => value.getOrElse(null.asInstanceOf[V]).asInstanceOf[Entity]).asInstanceOf[StatementSelectValue[V]]
                     case other =>

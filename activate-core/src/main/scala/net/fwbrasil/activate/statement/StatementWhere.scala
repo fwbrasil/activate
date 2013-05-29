@@ -6,6 +6,7 @@ import net.fwbrasil.activate.util.WildcardRegexUtil.wildcardToRegex
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.Select
 import scala.annotation.implicitNotFound
+import net.fwbrasil.activate.entity.StringEntityValue
 
 class Operator() {
     StatementMocks.clearFakeVarCalled
@@ -32,6 +33,9 @@ trait OperatorContext {
     implicit def toIsNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNull(value)
     implicit def toIsNotNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = IsNotNull(value)
     implicit def toMatcher[V](value: V)(implicit tval1: (=> V) => StatementSelectValue[V]) = Matcher(value)
+    
+    def toUpperCase(value: String)(implicit tval1: (=> String) => StatementSelectValue[String]) = ToUpperCase(value)
+    def toLowerCase(value: String)(implicit tval1: (=> String) => StatementSelectValue[String]) = ToLowerCase(value)
 }
 
 class SimpleOperator() extends Operator
@@ -48,6 +52,16 @@ case class Matcher(valueA: StatementSelectValue[_]) extends CompositeOperator {
 case class IsNull(valueA: StatementSelectValue[_]) extends SimpleOperator {
     def isNull = SimpleOperatorCriteria(valueA, this)
     override def toString = "isNull"
+}
+
+case class ToUpperCase(value: StatementSelectValue[String]) extends FunctionApply(value) {
+    override def toString = s"toUpperCase($value)"
+    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toUpperCase)
+}
+
+case class ToLowerCase(value: StatementSelectValue[String]) extends FunctionApply(value) {
+    override def toString = s"toLowerCase($value)"
+    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toUpperCase)
 }
 
 case class IsNotNull(valueA: StatementSelectValue[_]) extends SimpleOperator {
@@ -102,6 +116,9 @@ abstract class Criteria() extends StatementBooleanValue
 
 case class SimpleOperatorCriteria(valueA: StatementValue, operator: SimpleOperator) extends Criteria {
     override def toString = "(" + valueA + " " + operator + ")"
+}
+
+abstract class FunctionApply[V](value: StatementSelectValue[V]) extends StatementSelectValue[V] {
 }
 
 case class CompositeOperatorCriteria(valueA: StatementValue, operator: CompositeOperator, valueB: StatementValue) extends Criteria {

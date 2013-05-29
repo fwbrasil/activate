@@ -95,6 +95,9 @@ import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.statement.FunctionApply
+import net.fwbrasil.activate.statement.ToUpperCase
+import net.fwbrasil.activate.statement.ToLowerCase
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -307,7 +310,7 @@ trait SqlIdiom {
             toSqlDmlOrderBy(query)
 
     def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) = {
-        def bind(id: String) = 
+        def bind(id: String) =
             this.bind(StringStorageValue(Some(id)))
 
         val entitySources = query.from.entitySources
@@ -366,11 +369,24 @@ trait SqlIdiom {
 
     def toSqlDmlSelect(value: StatementSelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
+            case value: FunctionApply[_] =>
+                toSqlDmlFunctionApply(value)
             case value: StatementEntityValue[_] =>
                 toSqlDml(value)
             case value: SimpleValue[_] =>
                 toSqlDml(value)
         }
+
+    def toSqlDmlFunctionApply(value: FunctionApply[_])(implicit binds: MutableMap[StorageValue, String]): String =
+        value match {
+            case value: ToUpperCase =>
+                stringUpperFunction(toSqlDml(value.value))
+            case value: ToLowerCase =>
+                stringLowerFunction(toSqlDml(value.value))
+        }
+
+    def stringUpperFunction(value: String): String = s"UPPER($value)"
+    def stringLowerFunction(value: String): String = s"LOWER($value)"
 
     def toSqlDml(value: SimpleValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
         value.anyValue match {
