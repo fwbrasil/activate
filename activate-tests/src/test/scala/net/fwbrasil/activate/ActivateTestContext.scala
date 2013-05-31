@@ -525,7 +525,6 @@ trait ActivateTestContext
         var num: Int) extends Entity
 
     class ActivateTestEntity(
-            dummy: Boolean = false,
             var intValue: Int,
             var longValue: Long,
             var booleanValue: Boolean,
@@ -549,10 +548,9 @@ trait ActivateTestContext
             var caseClassEntityValue: CaseClassEntity,
             var serializableEntityValue: DummySeriablizable,
             var listEntityValue: LazyList[ActivateTestEntity],
-            var tupleOptionValue: Option[(Int, Int)]) extends ActivateTestDummyEntity(dummy) {
+            var tupleOptionValue: Option[(Int, Int)]) extends ActivateTestDummyEntity(false) {
 
         def this(intValue: Int) = this(
-            false,
             intValue * 2,
             emptyLongValue,
             emptyBooleanValue,

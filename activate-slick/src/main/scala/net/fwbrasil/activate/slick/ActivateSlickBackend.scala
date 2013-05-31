@@ -44,7 +44,7 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
         ActivateSlickBackend.entityMetadataOption(expectedType).map {
             metadata =>
                 val id = rs.nextString
-                ctx.byId(id)
+                ctx.byId[Entity](id).get
         }.getOrElse {
             try {
                 super.resultByType(expectedType, rs, session)
@@ -104,7 +104,7 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
 
     override def typetagToQuery(typetag: TypeTag[_]): Query = {
         val table = new TableNode with NullaryNode with WithOp {
-            val tableName = mapper.typeToTable(typetag.tpe)
+            lazy val tableName = mapper.typeToTable(typetag.tpe)
             def columns =
                 ActivateSlickBackend.entityMetadataOption(typetag.tpe).map {
                     metadata =>
@@ -122,14 +122,15 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
 
 object ActivateSlickBackend {
     def entityMetadataOption(tpe: Type)(implicit mirror: Mirror) =
-        sClassOf[Entity](toRealType(tpe)).javaClassOption.flatMap(c => EntityHelper.getEntityMetadataOption(c))
-
-    def toRealType(tpe: Type) =
         tpe match {
             case TypeRef(_, sym, _) =>
-                sym.asClass.typeSignature
+                if (sym.isClass)
+                    sClassOf[Entity](sym.asClass.typeSignature).javaClassOption.flatMap(c => EntityHelper.getEntityMetadataOption(c))
+                else
+                    EntityHelper.metadatas.find(_.name == sym.name.toString)
             case _ =>
-                tpe
+                EntityHelper.metadatas.find(_.name == tpe.termSymbol.name.toString)
+
         }
 }
 
