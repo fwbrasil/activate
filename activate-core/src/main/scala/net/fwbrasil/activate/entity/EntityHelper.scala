@@ -22,8 +22,10 @@ object EntityHelper {
     def metadatas =
         entitiesMetadatas.values.toList.sortBy(_.name)
 
-    def allConcreteEntityClasses =
+    def allConcreteEntityClasses = {
+        entitiesMetadatas.foreach(m => concreteClasses(m._2.entityClass))
         concreteEntityClasses.values.flatten.toSet
+    }
 
     def concreteClasses[E <: Entity](clazz: Class[E]) =
         concreteEntityClasses.getOrElseUpdate(clazz, {

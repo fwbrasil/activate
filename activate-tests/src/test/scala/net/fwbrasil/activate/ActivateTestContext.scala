@@ -24,7 +24,6 @@ import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
-import net.fwbrasil.activate.json4s.Json4sContext
 import net.fwbrasil.activate.storage.relational.async.JdbcRelationalAsyncStorage
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
@@ -38,6 +37,7 @@ import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
 import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
+import net.fwbrasil.activate.spray.json.SprayJsonContext
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -321,10 +321,8 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext with Json4sContext {
+        extends StoppableActivateContext with SprayJsonContext {
 
-    protected val jsonMethods = org.json4s.native.JsonMethods
-    
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
     
     override protected[activate] def entityMaterialized(entity: Entity) =

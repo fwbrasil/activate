@@ -56,7 +56,7 @@ object ActivateBuild extends Build {
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
-    		    activateGraph, activateJson4s, activateJdbcAsync,
+    		    activateGraph, activateSprayJson, activateJdbcAsync,
     		    activateSlick),
     		settings = commonSettings
     	)
@@ -156,16 +156,16 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val json4sCore = "org.json4s" %% "json4s-core" % "3.2.3"
+    val sprayJson = "io.spray" %%  "spray-json" % "1.2.4"
 
-    lazy val activateJson4s = 
+    lazy val activateSprayJson = 
     	Project(
-    	    id = "activate-json4s",
-    	    base = file("activate-json4s"),
+    	    id = "activate-spray-json",
+    	    base = file("activate-spray-json"),
     	    dependencies = Seq(activateCore),
 			settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(json4sCore)
+		    	  Seq(sprayJson)
 		    )
     	)
 
@@ -175,12 +175,12 @@ object ActivateBuild extends Build {
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph, activateJson4s, activateJdbcAsync,
+			    activateMongo, activateGraph, activateSprayJson, activateJdbcAsync,
 			    activateSlick),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
-		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j, json4sNative),
+		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)
@@ -190,7 +190,8 @@ object ActivateBuild extends Build {
   	    "Maven" at "http://repo1.maven.org/maven2/",
   	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
   	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
-  	    "fwbrasil.net" at "http://fwbrasil.net/maven/"
+  	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
+  	    "spray" at "http://repo.spray.io/"
   	)
 
     	
