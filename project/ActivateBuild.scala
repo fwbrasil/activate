@@ -96,6 +96,7 @@ object ActivateBuild extends Build {
     	)
 
     val slick = "com.typesafe.slick" %% "slick" % "1.0.1-RC1"
+    val slickExtensions = "com.typesafe.slick" %% "slick-extensions" % "1.0.0" % "provided"
     val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.10.1"
 
     lazy val activateSlick = 
@@ -105,7 +106,7 @@ object ActivateBuild extends Build {
     		dependencies = Seq(activateCore, activateJdbc),
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(slick, postgresql, scalaCompiler)
+		    	  Seq(slick, postgresql, scalaCompiler, slickExtensions)
 		    )
     	)
 

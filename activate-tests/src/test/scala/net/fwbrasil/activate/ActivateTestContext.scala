@@ -39,6 +39,8 @@ import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
 import net.fwbrasil.activate.spray.json.SprayJsonContext
 
+import net.fwbrasil.activate.slick.SlickQueryContext
+
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
     val value1a = EnumerationValue("v1")
@@ -120,7 +122,7 @@ class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCu
     override def bigStringType = "TEXT"
 }
 
-object postgresqlContext extends ActivateTestContext {
+object postgresqlContext extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
         val user = "postgres"
@@ -170,7 +172,7 @@ class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
     override def bigStringType = "TEXT"
 }
 
-object h2Context extends ActivateTestContext {
+object h2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.h2.Driver"
         val user = "sa"
@@ -186,7 +188,7 @@ class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCusto
     override def bigStringType = "CLOB"
 }
 
-object hsqldbContext extends ActivateTestContext {
+object hsqldbContext extends ActivateTestContext with SlickQueryContext {
     val storage = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.hsqldb.jdbcDriver"
         val user = "sa"
@@ -202,7 +204,7 @@ class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object derbyContext extends ActivateTestContext {
+object derbyContext extends ActivateTestContext with SlickQueryContext {
     System.setProperty("derby.locks.deadlockTrace", "true")
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
@@ -228,7 +230,7 @@ object mongoContext extends ActivateTestContext {
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
-object oracleContext extends ActivateTestContext {
+object oracleContext extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
@@ -245,7 +247,7 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object db2Context extends ActivateTestContext {
+object db2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2inst1"
@@ -324,7 +326,7 @@ trait ActivateTestContext
         extends StoppableActivateContext with SprayJsonContext {
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
-    
+
     override protected[activate] def entityMaterialized(entity: Entity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)

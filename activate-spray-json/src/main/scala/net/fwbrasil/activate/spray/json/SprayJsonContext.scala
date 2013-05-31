@@ -43,7 +43,7 @@ trait SprayJsonContext {
 
     val jsonCharset = Charset.defaultCharset
 
-    private def toJsValue[A](entityValue: EntityValue[A], f: A => JsValue): JsValue =
+    private def jsValue[A](entityValue: EntityValue[A], f: A => JsValue): JsValue =
         entityValue.value.map(f(_)).getOrElse(JsNull)
 
     protected def jsonDateFormat =
@@ -97,38 +97,38 @@ trait SprayJsonContext {
                 entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
         }
 
-    private def toJsValue(entityValue: EntityValue[_]): JsValue =
+    private def toJsValue[T](entityValue: EntityValue[T]): JsValue =
         entityValue match {
             case value: IntEntityValue =>
-                toJsValue[Int](value, JsNumber(_))
+                jsValue[Int](value, JsNumber(_))
             case value: LongEntityValue =>
-                toJsValue[Long](value, JsNumber(_))
+                jsValue[Long](value, JsNumber(_))
             case value: BooleanEntityValue =>
-                toJsValue[Boolean](value, JsBoolean(_))
+                jsValue[Boolean](value, JsBoolean(_))
             case value: CharEntityValue =>
-                toJsValue[Char](value, c => JsString(c.toString))
+                jsValue[Char](value, c => JsString(c.toString))
             case value: StringEntityValue =>
-                toJsValue[String](value, JsString(_))
+                jsValue[String](value, JsString(_))
             case value: FloatEntityValue =>
-                toJsValue[Float](value, JsNumber(_))
+                jsValue[Float](value, JsNumber(_))
             case value: DoubleEntityValue =>
-                toJsValue[Double](value, JsNumber(_))
+                jsValue[Double](value, JsNumber(_))
             case value: BigDecimalEntityValue =>
-                toJsValue[BigDecimal](value, JsNumber(_))
+                jsValue[BigDecimal](value, JsNumber(_))
             case value: DateEntityValue =>
-                toJsValue[Date](value, d => JsString(jsonDateFormat.format(d)))
+                jsValue[Date](value, d => JsString(jsonDateFormat.format(d)))
             case value: JodaInstantEntityValue[AbstractInstant] =>
-                toJsValue[AbstractInstant](value, d => JsString(jsonDateFormat.format(d.toDate)))
+                jsValue[AbstractInstant](value, d => JsString(jsonDateFormat.format(d.toDate)))
             case value: CalendarEntityValue =>
-                toJsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
+                jsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
             case value: ByteArrayEntityValue =>
-                toJsValue[Array[Byte]](value, b => JsString(new String(b)))
+                jsValue[Array[Byte]](value, b => JsString(new String(b)))
             case value: EntityInstanceEntityValue[Entity] =>
-                toJsValue[Entity](value, e => JsString(e.id))
+                jsValue[Entity](value, e => JsString(e.id))
             case value: EntityInstanceReferenceValue[Entity] =>
-                toJsValue[String](value, JsString(_))
+                jsValue[String](value, JsString(_))
             case value: EnumerationEntityValue[Enumeration#Value] =>
-                toJsValue[Enumeration#Value](value, e => JsString(e.toString))
+                jsValue[Enumeration#Value](value, e => JsString(e.toString))
             case value: ListEntityValue[Any] =>
                 value.value.map(list =>
                     JsArray(list.map(e => toJsValue(value.valueEntityValue(e)))))
@@ -143,7 +143,13 @@ trait SprayJsonContext {
                     .getOrElse(JsNull)
         }
 
-    private def updateFromJsonObject(entity: Entity, jsObject: JsObject) = {
+    private def updateFromJsonObject[E <: Entity](id: String, jsObject: JsObject): E = {
+        val entity = byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
+        updateFromJsonObject(entity, jsObject)
+        entity
+    }
+
+    private def updateFromJsonObject(entity: Entity, jsObject: JsObject): Entity = {
         val fields = jsObject.fields
         val entityClass = entity.getClass
         val entityMetadata =
@@ -184,11 +190,27 @@ trait SprayJsonContext {
     def createOrUpdateEntityFromJson[E <: Entity: Manifest](jsValue: JsValue) = {
         jsValue.asJsObject.fields.collect {
             case ("id", JsString(id)) =>
-                val entity = byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
-                updateFromJsonObject(entity, jsValue.asJsObject)
-                entity
+                updateFromJsonObject[E](id, jsValue.asJsObject)
         }.headOption.getOrElse {
             createEntityFromJson[E](jsValue.asJsObject)
+        }
+    }
+
+    def updateEntityFromJson[E <: Entity: Manifest](id: String, json: String): E =
+        updateEntityFromJson[E](id, json.asJson.asJsObject)
+
+    def updateEntityFromJson[E <: Entity: Manifest](id: String, jsValue: JsValue) =
+        updateFromJsonObject[E](id, jsValue.asJsObject)
+
+    def updateEntityFromJson[E <: Entity: Manifest](json: String): E =
+        updateEntityFromJson[E](json.asJson.asJsObject)
+
+    def updateEntityFromJson[E <: Entity: Manifest](jsValue: JsValue) = {
+        jsValue.asJsObject.fields.collect {
+            case ("id", JsString(id)) =>
+                updateFromJsonObject[E](id, jsValue.asJsObject)
+        }.headOption.getOrElse {
+            throw new IllegalStateException("Can't update. The json hasn't the entity id.")
         }
     }
 
@@ -212,7 +234,7 @@ trait SprayJsonContext {
 
         def updateFromJson(json: String): Unit =
             updateFromJson(json.toJson)
-        
+
         def updateFromJson(json: JsValue) =
             updateFromJsonObject(entity, json.asJsObject)
     }
