@@ -57,7 +57,7 @@ object ActivateBuild extends Build {
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
     		    activateGraph, activateSprayJson, activateJdbcAsync,
-    		    activateSlick),
+    		    activateSlick, activateMongoAsync),
     		settings = commonSettings
     	)
 
@@ -135,6 +135,19 @@ object ActivateBuild extends Build {
 		    )
     	)
 
+    val reactivemongo = "org.reactivemongo" %% "reactivemongo" % "0.9"
+
+    lazy val activateMongoAsync =
+    	Project(
+    	    id = "activate-mongo-async",
+    		base = file("activate-mongo-async"),
+    		dependencies = Seq(activateCore, activateMongo),
+    		settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(reactivemongo)
+		    )
+    	)
+
     lazy val activateGraph = 
     	Project(
     	    id = "activate-graph",
@@ -177,7 +190,7 @@ object ActivateBuild extends Build {
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo, activateGraph, activateSprayJson, activateJdbcAsync,
-			    activateSlick),
+			    activateSlick, activateMongoAsync),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
