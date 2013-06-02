@@ -173,14 +173,14 @@ trait MongoStorage
 
 }
 
-//object MongoStorageFactory extends StorageFactory {
-//    class MongoStorageFromFactory(properties: Map[String, String]) extends MongoStorage {
-//        override val host = properties("host")
-//        override val port = Integer.parseInt(properties("port"))
-//        override val db = properties("db")
-//        override val authentication =
-//            properties.get("user").map(user => (user, properties("password")))
-//    }
-//    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-//        new MongoStorageFromFactory(properties)
-//}
+object MongoStorageFactory extends StorageFactory {
+    class MongoStorageFromFactory(properties: Map[String, String]) extends MongoStorage {
+        override val host = properties("host")
+        override val port = Integer.parseInt(properties("port"))
+        override val db = properties("db")
+        override val authentication =
+            properties.get("user").map(user => (user, properties("password")))
+    }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new MongoStorageFromFactory(properties)
+}
