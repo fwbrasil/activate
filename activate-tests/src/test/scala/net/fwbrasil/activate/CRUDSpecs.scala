@@ -14,10 +14,10 @@ class CRUDSpecs extends ActivateTest {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._
-                        val (fullId, emptyId) = step {
-                            val entity = newFullActivateTestEntity
-                            (entity.id, newEmptyActivateTestEntity.id)
-                        }
+                        val (fullId, emptyId) =
+                            step {
+                                (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
+                            }
                         step {
                             val emptyEntity = byId[ActivateTestEntity](emptyId).get
                             validateEmptyTestEntity(entity = emptyEntity)

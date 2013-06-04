@@ -38,8 +38,8 @@ import scala.concurrent.ExecutionContext
 import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
 import net.fwbrasil.activate.spray.json.SprayJsonContext
-
 import net.fwbrasil.activate.slick.SlickQueryContext
+import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -229,6 +229,15 @@ object mongoContext extends ActivateTestContext {
     }
 }
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
+
+object asyncMongoContext extends ActivateTestContext {
+    val storage = new AsyncMongoStorage {
+        override val host = "localhost"
+        override val port = 27017
+        override val db = "activate_test_async"
+    }
+}
+class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
 object oracleContext extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {

@@ -62,6 +62,8 @@ import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.statement.ToLowerCase
+import scala.collection.mutable.{ Map => MutableMap }
+import language.implicitConversions
 
 trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
@@ -106,121 +108,80 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         None
     }
 
-    private def preVerifyStaleData(
-        data: List[(Entity, Map[String, StorageValue])]) = {
-        val invalid =
-            data.filter(_._2.contains(versionVarName)).filterNot { tuple =>
-                val (entity, properties) = tuple
-                val query = new BasicDBObject
-                query.put("_id", entity.id)
-                addVersionCondition(query, properties)
-                val result = coll(entity).find(query).count
-                result == 1
-            }
-        if (invalid.nonEmpty)
-            staleDataException(invalid.map(_._1.id).toSet)
+    private def dbValue(obj: Any): Any =
+        obj match {
+            case map: Map[String, Any] =>
+                dbObject(map)
+            case list: List[Any] =>
+                dbList(list)
+            case other =>
+                other
+        }
+
+    private def dbList(list: List[Any]) = {
+        val dbList = new BasicDBList
+        for (v <- list)
+            dbList.add(dbValue(v).asInstanceOf[Object])
+        dbList
     }
 
-    private def addVersionCondition(query: BasicDBObject, properties: Map[String, StorageValue]) =
-        if (properties.contains(versionVarName)) {
-            val nullVersion = new BasicDBObject
-            nullVersion.put(versionVarName, null)
-            val versionValue = new BasicDBObject
-            versionValue.put(versionVarName, getMongoValue(properties(versionVarName)) match {
-                case value: Long =>
-                    value - 1l
-            })
-            val versionQuery = new BasicDBList
-            versionQuery.add(nullVersion)
-            versionQuery.add(versionValue)
-            query.put("$or", versionQuery)
-        }
+    private def dbObject(map: Map[String, Any]) = {
+        val obj = new BasicDBObject
+        for ((key, value) <- map)
+            obj.put(key, dbValue(value))
+        obj
+    }
+
+    private def preVerifyStaleData(
+        data: List[(Entity, Map[String, StorageValue])]) = {
+        val queries = mongoIdiom.findStaleDataQueries(data)
+        val stale =
+            (for ((entity, query, select) <- queries) yield {
+                coll(entity).find(dbObject(query), dbObject(select)).toArray.toList
+            }).flatten
+        if (stale.nonEmpty)
+            staleDataException(stale.map(_.get("_id").asInstanceOf[String]).toSet)
+    }
 
     private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
         for ((entity, properties) <- deleteList) {
-            val query = new BasicDBObject()
-            query.put("_id", entity.id)
-            addVersionCondition(query, properties)
-            val result = coll(entity).remove(query)
+            val query = mongoIdiom.toDelete(entity, properties)
+            val result = coll(entity).remove(dbObject(query))
             if (result.getN != 1)
                 staleDataException(Set(entity.id))
         }
 
     private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
         for ((entity, properties) <- updateList) {
-            val query = new BasicDBObject
-            query.put("_id", entity.id)
-            val set = new BasicDBObject
-            for ((name, value) <- properties if (name != "id")) {
-                val inner = new BasicDBObject
-                set.put(name, getMongoValue(value))
-            }
-            val update = new BasicDBObject
-            update.put("$set", set)
-            addVersionCondition(query, properties)
-            val result = coll(entity).update(query, update)
+            val (query, set) = mongoIdiom.toUpdate(entity, properties)
+            val result = coll(entity).update(dbObject(query), dbObject(set))
             if (result.getN != 1)
                 staleDataException(Set(entity.id))
         }
 
     private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {
-        val insertMap = new IdentityHashMap[Class[_], ListBuffer[BasicDBObject]]()
-        for ((entity, properties) <- insertList) {
-            val doc = new BasicDBObject()
-            for ((name, value) <- properties if (name != "id"))
-                doc.put(name, getMongoValue(value))
-            doc.put("_id", entity.id)
-            insertMap.getOrElseUpdate(entity.getClass, ListBuffer()) += doc
-        }
+        val insertMap = mongoIdiom.toInsertMap(insertList)
         for (entityClass <- insertMap.keys)
-            coll(entityClass).insert(insertMap(entityClass))
+            coll(entityClass).insert(
+                insertMap(entityClass).map(dbObject(_)))
     }
 
     private def storeStatements(statements: List[MassModificationStatement]) =
         for (statement <- statements) {
-            val (coll, where) = collectionAndWhere(statement.from, statement.where)
+            val where = dbObject(mongoIdiom.toQueryWhere(statement.where))
+            val coll = this.coll(statement.from)
             statement match {
                 case update: MassUpdateStatement =>
-                    val set = new BasicDBObject
-                    for (assignment <- update.assignments)
-                        set.put(mongoStatementSelectValue(assignment.assignee), getMongoValue(assignment.value))
-                    val mongoUpdate = new BasicDBObject
-                    mongoUpdate.put("$set", set)
-                    coll.updateMulti(where, mongoUpdate)
+                    val mongoUpdate = mongoIdiom.toQueryUpdate(update)
+                    coll.updateMulti(where, dbObject(mongoUpdate))
                 case delete: MassDeleteStatement =>
                     coll.remove(where)
             }
         }
 
-    private def getMongoValue(value: StorageValue): Any =
-        value match {
-            case value: IntStorageValue =>
-                value.value.map(_.intValue).getOrElse(null)
-            case value: LongStorageValue =>
-                value.value.map(_.longValue).getOrElse(null)
-            case value: BooleanStorageValue =>
-                value.value.map(_.booleanValue).getOrElse(null)
-            case value: StringStorageValue =>
-                value.value.getOrElse(null)
-            case value: FloatStorageValue =>
-                value.value.map(_.doubleValue).getOrElse(null)
-            case value: DateStorageValue =>
-                value.value.getOrElse(null)
-            case value: DoubleStorageValue =>
-                value.value.map(_.doubleValue).getOrElse(null)
-            case value: BigDecimalStorageValue =>
-                value.value.map(_.doubleValue).getOrElse(null)
-            case value: ListStorageValue =>
-                value.value.map { list =>
-                    val dbList = new BasicDBList()
-                    list.foreach(elem => dbList.add(getMongoValue(elem).asInstanceOf[Object]))
-                    dbList
-                }.orNull
-            case value: ByteArrayStorageValue =>
-                value.value.getOrElse(null)
-            case value: ReferenceStorageValue =>
-                value.value.getOrElse(null)
-        }
+
+    private[this] def coll(from: From): DBCollection =
+        coll(mongoIdiom.collectionClass(from))
 
     private[this] def coll(entity: Entity): DBCollection =
         coll(entity.getClass)
@@ -231,175 +192,28 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private[this] def coll(entityName: String): DBCollection =
         mongoDB.getCollection(entityName)
 
-    override def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
-        val from = queryInstance.from
-        val (coll, where) = collectionAndWhere(from, queryInstance.where, entitiesReadFromCache)
-        val selectValues = queryInstance.select.values
-        val select = querySelect(queryInstance, selectValues)
-        val ret = coll.find(where, select)
-        orderQueryIfNecessary(queryInstance, ret)
-        limitQueryIfNecessary(queryInstance, ret)
-        transformResultToTheExpectedTypes(expectedTypes, selectValues, ret)
+    override def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
+
+        val (where, select) = mongoIdiom.toQuery(query, entitiesReadFromCache)
+        val ret = coll(query.from).find(dbObject(where), dbObject(select))
+
+        val order = mongoIdiom.toQueryOrder(query)
+        if (order.nonEmpty)
+            ret.sort(dbObject(order))
+
+        limitQueryIfNecessary(query, ret)
+        
+        val result = 
+            ret.toArray.toList
+        
+        mongoIdiom.transformResultToTheExpectedTypes[DBObject](
+                expectedTypes,
+                query.select.values,
+                result,
+                rowToColumn = (doc, name) => doc.get(name),
+                fromDBList = obj => obj.asInstanceOf[BasicDBList].toList)
+        
     }
-
-    def getStorageValue(obj: Any, storageValue: StorageValue): StorageValue = {
-        def getValue[T] = Option(obj.asInstanceOf[T])
-        storageValue match {
-            case value: IntStorageValue =>
-                IntStorageValue(getValue[Int])
-            case value: LongStorageValue =>
-                LongStorageValue(getValue[Long])
-            case value: BooleanStorageValue =>
-                BooleanStorageValue(getValue[Boolean])
-            case value: StringStorageValue =>
-                StringStorageValue(getValue[String])
-            case value: FloatStorageValue =>
-                FloatStorageValue(getValue[Double].map(_.floatValue))
-            case value: DateStorageValue =>
-                DateStorageValue(getValue[Date])
-            case value: DoubleStorageValue =>
-                DoubleStorageValue(getValue[Double])
-            case value: BigDecimalStorageValue =>
-                BigDecimalStorageValue(getValue[Double].map(BigDecimal(_)))
-            case value: ListStorageValue =>
-                ListStorageValue(getValue[BasicDBList].map { dbList =>
-                    dbList.map(elem => getStorageValue(elem, value.emptyStorageValue)).toList
-                }, value.emptyStorageValue)
-            case value: ByteArrayStorageValue =>
-                ByteArrayStorageValue(getValue[Array[Byte]])
-            case value: ReferenceStorageValue =>
-                ReferenceStorageValue(getValue[String])
-        }
-    }
-
-    def getValue(obj: DBObject, name: String, storageValue: StorageValue): StorageValue =
-        getStorageValue(obj.get(name), storageValue)
-
-    def getValue[T](obj: DBObject, name: String) =
-        Option(obj.get(name).asInstanceOf[T])
-
-    def query(values: StatementSelectValue[_]*): Seq[String] =
-        for (value <- values)
-            yield mongoStatementSelectValue(value)
-
-    def mongoStatementSelectValue(value: StatementSelectValue[_]): String =
-        value match {
-            case value: ToUpperCase =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support the toUpperCase function for queries.")
-            case value: ToLowerCase =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support the toLowerCase function for queries.")
-            case value: StatementEntitySourcePropertyValue[_] =>
-                val name = value.propertyPathNames.onlyOne
-                if (name == "id")
-                    "_id"
-                else
-                    name
-            case value: StatementEntitySourceValue[_] =>
-                "_id"
-            case other =>
-                throw new UnsupportedOperationException("Mongo storage supports only entity properties inside select clause.")
-        }
-
-    def query(criteria: Criteria): DBObject = {
-        val obj = new BasicDBObject
-        criteria match {
-            case criteria: BooleanOperatorCriteria =>
-                val list = new BasicDBList
-                list.add(query(criteria.valueA))
-                list.add(query(criteria.valueB))
-                val operator = query(criteria.operator)
-                obj.put(operator, list)
-                obj
-            case criteria: CompositeOperatorCriteria =>
-                val property = queryEntityProperty(criteria.valueA)
-                val value = getMongoValue(criteria.valueB)
-                if (criteria.operator.isInstanceOf[IsEqualTo])
-                    obj.put(property, value)
-                else {
-                    val operator = query(criteria.operator)
-                    val innerObj = new BasicDBObject
-                    innerObj.put(operator, value)
-                    obj.put(property, innerObj)
-                }
-                obj
-            case criteria: SimpleOperatorCriteria =>
-                val property = queryEntityProperty(criteria.valueA)
-                val value = criteria.operator match {
-                    case value: IsNull =>
-                        null
-                    case value: IsNotNull =>
-                        val temp = new BasicDBObject
-                        temp.put("$ne", null)
-                        temp
-                }
-                obj.put(property, value)
-                obj
-        }
-    }
-
-    def getMongoValue(value: StatementValue): Any =
-        value match {
-            case value: SimpleStatementBooleanValue =>
-                getMongoValue(Marshaller.marshalling(value.value))
-            case value: SimpleValue[_] =>
-                getMongoValue(Marshaller.marshalling(value.entityValue))
-            case value: StatementEntityInstanceValue[_] =>
-                getMongoValue(StringStorageValue(Option(value.entityId)))
-            case null =>
-                null
-            case other =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support joins.")
-        }
-
-    def query(value: StatementBooleanValue): DBObject =
-        value match {
-            case value: Criteria =>
-                query(value)
-            case value: SimpleStatementBooleanValue =>
-                val list = new BasicDBList
-                list.add(value.value.toString)
-                list
-        }
-
-    def queryEntityProperty(value: StatementValue): String =
-        value match {
-            case value: ToUpperCase =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support the toUpperCase function for queries.")
-            case value: ToLowerCase =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support the toLowerCase function for queries.")
-            case value: StatementEntitySourcePropertyValue[_] =>
-                val name = value.propertyPathNames.onlyOne
-                if (name == "id")
-                    "_id"
-                else
-                    name
-            case value: StatementEntitySourceValue[_] =>
-                "_id"
-            case other =>
-                throw new UnsupportedOperationException("Mongo storage doesn't support joins.")
-        }
-
-    def query(operator: CompositeOperator): String =
-        operator match {
-            case operator: And =>
-                "$and"
-            case operator: Or =>
-                "$or"
-            case operator: IsGreaterOrEqualTo =>
-                "$gte"
-            case operator: IsGreaterThan =>
-                "$gt"
-            case operator: IsLessOrEqualTo =>
-                "$lte"
-            case operator: IsLessThan =>
-                "$lt"
-            case operator: Matcher =>
-                "$regex"
-            case operator: IsNotEqualTo =>
-                "$ne"
-            case operator: IsEqualTo =>
-                throw new UnsupportedOperationException("Mongo doesn't have $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
-        }
 
     override def migrateStorage(action: ModifyStorageAction): Unit =
         action match {
@@ -413,17 +227,11 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             case action: StorageAddColumn =>
             // Do nothing!
             case action: StorageRenameColumn =>
-                val update = new BasicDBObject
-                val updateInner = new BasicDBObject
-                updateInner.put(action.oldName, action.column.name)
-                update.put("$rename", updateInner)
-                coll(action.tableName).update(new BasicDBObject, update)
+                val update = mongoIdiom.renameColumn(action.oldName, action.column.name)
+                coll(action.tableName).update(new BasicDBObject, dbObject(update))
             case action: StorageRemoveColumn =>
-                val update = new BasicDBObject
-                val updateInner = new BasicDBObject
-                updateInner.put(action.name, 1)
-                update.put("$unset", updateInner)
-                coll(action.tableName).update(new BasicDBObject, update)
+                val update = mongoIdiom.removeColumn(action.name)
+                coll(action.tableName).update(new BasicDBObject, dbObject(update))
             case action: StorageAddIndex =>
                 val obj = new BasicDBObject
                 obj.put(action.columnName, 1)
@@ -450,77 +258,12 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private def collHasIndex(name: String, column: String) =
         coll(name).getIndexInfo().find(_.containsField(name)).nonEmpty
 
-    private def collectionAndWhere(from: From, where: Where, entitiesReadFromCache: List[List[Entity]] = List()) = {
-        val baseWhere = query(where.value)
-        val mongoWhere =
-            if (entitiesReadFromCache.nonEmpty) {
-                val where = new BasicDBObject
-                val andConditions = new BasicDBList
-                andConditions.add(baseWhere)
-                val fromCacheIds = new BasicDBList
-                for (list <- entitiesReadFromCache)
-                    fromCacheIds.add(list.head.id)
-                val fromCacheIdsCondition = new BasicDBObject
-                val fromCacheIdsNinCondition = new BasicDBObject
-                fromCacheIdsNinCondition.put("$nin", fromCacheIds)
-                fromCacheIdsCondition.put("_id", fromCacheIdsNinCondition)
-                andConditions.add(fromCacheIdsCondition)
-                where.put("$and", andConditions)
-                where
-            } else {
-                baseWhere
-            }
-        val entitySource = from.entitySources.onlyOne("Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
-        val mongoCollection = coll(entitySource.entityClass)
-        (mongoCollection, mongoWhere)
-    }
-
-    private def limitQueryIfNecessary(queryInstance: Query[_], ret: DBCursor) =
-        queryInstance match {
+    private def limitQueryIfNecessary(query: Query[_], ret: DBCursor) =
+        query match {
             case q: LimitedOrderedQuery[_] =>
                 ret.limit(q.limit)
             case other =>
         }
-
-    private def orderQueryIfNecessary(queryInstance: Query[_], ret: DBCursor) =
-        queryInstance match {
-            case q: OrderedQuery[_] =>
-                val order = new BasicDBObject
-                for (criteria <- q.orderByClause.get.criterias) {
-                    val property = mongoStatementSelectValue(criteria.value)
-                    val direction =
-                        if (criteria.direction == orderByAscendingDirection)
-                            1
-                        else
-                            -1
-                    order.put(property, direction)
-                }
-                ret.sort(order)
-            case other =>
-        }
-
-    private def transformResultToTheExpectedTypes(expectedTypes: List[StorageValue], selectValues: Seq[StatementSelectValue[_]], ret: DBCursor) = {
-        try {
-            val rows = ret.toArray
-            (for (row <- rows) yield (for (i <- 0 until selectValues.size) yield {
-                selectValues(i) match {
-                    case value: SimpleValue[_] =>
-                        expectedTypes(i)
-                    case other =>
-                        getValue(row, mongoStatementSelectValue(other), expectedTypes(i))
-                }
-            }).toList).toList
-        } finally
-            ret.close
-    }
-
-    private def querySelect(queryInstance: Query[_], selectValues: Seq[StatementSelectValue[_]]) = {
-        val select = new BasicDBObject
-        for (value <- selectValues)
-            if (!value.isInstanceOf[SimpleValue[_]])
-                select.put(mongoStatementSelectValue(value), 1)
-        select
-    }
 
 }
 

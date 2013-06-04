@@ -10,6 +10,7 @@ import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.asyncMongoContext
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -542,7 +543,7 @@ class QuerySpecs extends ActivateTest {
         "support toUpperCase" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (step.ctx != mongoContext) {
+                    if (step.ctx != mongoContext && step.ctx != asyncMongoContext) {
                         import step.ctx._
                         val string = "s"
                         step {
@@ -560,7 +561,7 @@ class QuerySpecs extends ActivateTest {
         "support toLowerCase" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (step.ctx != mongoContext) {
+                    if (step.ctx != mongoContext && step.ctx != asyncMongoContext) {
                         import step.ctx._
                         val string = "S"
                         step {

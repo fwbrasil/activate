@@ -54,6 +54,7 @@ class LimitedOrderedQuery[S](
     override def equals(that: Any): Boolean =
         canEqual(that) && super.equals(that) &&
             that.asInstanceOf[LimitedOrderedQuery[S]].limit == limit
+    override def toString = super.toString + s" limit($limit)"
 }
 
 class OrderedQuery[S](
