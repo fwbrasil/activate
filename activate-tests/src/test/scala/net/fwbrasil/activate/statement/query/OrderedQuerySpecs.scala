@@ -285,6 +285,28 @@ class OrderedQuerySpecs extends ActivateTest {
                     }
                 })
         }
+        
+        "do not initalize entities unnecessarily" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (step.isInstanceOf[MultipleTransactionsWithReinitialize] && !step.ctx.storage.isMemoryStorage) {
+                        import step.ctx._
+                        val expected = List(null, "a", "b", "c")
+                        step {
+                            expected.randomize.foreach(v =>
+                                newEmptyActivateTestEntity.stringValue = v)
+                        }
+                        step {
+                            val entities = 
+                                query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
+                            }.toList
+                            entities.map(_.isInitialized).toSet === Set(false)
+                        }
+                    }
+                })
+        }
     }
 
 }
