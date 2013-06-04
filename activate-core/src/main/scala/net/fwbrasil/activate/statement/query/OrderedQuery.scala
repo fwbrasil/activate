@@ -37,8 +37,12 @@ class LimitedOrderedQuery[S](
     override val where: Where,
     override val select: Select,
     override val _orderBy: OrderBy,
-    val limit: Int)
+    val limit: Int,
+    val offsetOption: Option[Int] = None)
         extends OrderedQuery[S](from, where, select, _orderBy) {
+    
+    def offset(offset: Int) =
+        new LimitedOrderedQuery[S](from, where, select, _orderBy, limit, Some(offset))
 
     override def productElement(n: Int): Any =
         n match {
@@ -47,8 +51,9 @@ class LimitedOrderedQuery[S](
             case 2 => select
             case 3 => _orderBy
             case 4 => limit
+            case 5 => offsetOption
         }
-    override def productArity: Int = 5
+    override def productArity: Int = 6
     override def canEqual(that: Any): Boolean =
         that.getClass == classOf[LimitedOrderedQuery[S]]
     override def equals(that: Any): Boolean =

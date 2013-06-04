@@ -258,9 +258,8 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
             QueryNormalizer
                 .normalize[Query[S]](query)
         val future =
-            normalizedQueries.foldLeft(
-                Future(List[List[Any]]()))(
-                    (future, query) => future.flatMap(list => liveCache.executeQueryAsync(query)(texctx).map(list ++ _)))
+            normalizedQueries.foldLeft(Future(List[List[Any]]()))(
+                (future, query) => future.flatMap(list => liveCache.executeQueryAsync(query)(texctx).map(list ++ _)))
         future.map(treatResults(query, _))
     }
 
@@ -296,7 +295,12 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
                 .map(CollectionUtil.toTuple[S])
         query match {
             case query: LimitedOrderedQuery[_] =>
-                tuples.take(query.limit)
+                val withOffset =
+                    if (storage.isMemoryStorage && query.offsetOption.isDefined)
+                        tuples.drop(query.offsetOption.get)
+                    else
+                        tuples
+                withOffset.take(query.limit)
             case other =>
                 tuples
         }

@@ -44,6 +44,7 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.SimpleValue
 import java.util.Date
 import scala.util.Success
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -123,22 +124,32 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             val (where, select) = tuple
             val order = mongoIdiom.toQueryOrder(query)
             queryAsync(
-                    query, 
-                    where, 
-                    select, 
-                    order, 
-                    expectedTypes, 
-                    entitiesReadFromCache)
+                query,
+                where,
+                select,
+                order,
+                expectedTypes,
+                entitiesReadFromCache)
         }
     }
-    
+
     private def queryAsync(
-            query: Query[_], 
-            where: Map[String, Any], 
-            select: Map[String, Any], 
-            order: Map[String, Any], 
-            expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
-        val ret = coll(query.from).find(dbObject(where), dbObject(select))
+        query: Query[_],
+        where: Map[String, Any],
+        select: Map[String, Any],
+        order: Map[String, Any],
+        expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+
+        val options =
+            query match {
+                case query: LimitedOrderedQuery[_] =>
+                    QueryOpts(query.offsetOption.getOrElse(0))
+                case other =>
+                    QueryOpts()
+            }
+        
+        val ret = coll(query.from).find(dbObject(where), dbObject(select)).options(options)
+        
         val sorted =
             if (order.nonEmpty)
                 ret.sort(dbObject(order))
@@ -224,11 +235,11 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             insertMap.keys.toList.foldLeft(Future()) { (future, entityClass) =>
                 future.flatMap { _ =>
                     val inserts = insertMap(entityClass).toList.map(dbObject(_))
-//                    inserts.foldLeft(Future()) { (future, insert) =>
-//                    	future.flatMap { _ =>
-//                    	    coll(entityClass).insert(insert).map { _ =>}
-//                    	}
-//                    }
+                    //                    inserts.foldLeft(Future()) { (future, insert) =>
+                    //                    	future.flatMap { _ =>
+                    //                    	    coll(entityClass).insert(insert).map { _ =>}
+                    //                    	}
+                    //                    }
                     val enumerator = Enumerator(inserts: _*)
                     coll(entityClass).bulkInsert(enumerator).map { _ => }
                 }
@@ -326,9 +337,9 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         }.flatMap { queries =>
             queries.foldLeft(Future(List[BSONDocument]())) { (future, query) =>
                 future.flatMap { list =>
-                	val (entity, where, select) = query
-                	val cursor = coll(entity).find(dbObject(where), dbObject(select)).cursor[BSONDocument]
-                    try cursor.toList.map{ _ ++ list}
+                    val (entity, where, select) = query
+                    val cursor = coll(entity).find(dbObject(where), dbObject(select)).cursor[BSONDocument]
+                    try cursor.toList.map { _ ++ list }
                     finally cursor.close
                 }
             }

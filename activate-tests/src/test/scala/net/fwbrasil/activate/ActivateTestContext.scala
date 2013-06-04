@@ -145,7 +145,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 password = Some("postgres"),
                 database = Some("activate_test_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
-        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 20)
+        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
         val dialect = postgresqlDialect
     }
 }

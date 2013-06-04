@@ -33,6 +33,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 
 object oracleDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -66,7 +67,7 @@ object oracleDialect extends SqlIdiom {
     override def escape(string: String) =
         "\"" + normalize(string) + "\""
 
-    override def toSqlDmlLimit(limit: Int): String =
+    override def toSqlDmlLimit(query: LimitedOrderedQuery[_]): String =
         ""
 
     override def toSqlDmlOrderBy(query: Query[_])(implicit binds: MutableMap[StorageValue, String]): String = {

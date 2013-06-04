@@ -262,6 +262,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         query match {
             case q: LimitedOrderedQuery[_] =>
                 ret.limit(q.limit)
+                q.offsetOption.map(ret.skip)
             case other =>
         }
 

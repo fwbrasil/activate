@@ -334,7 +334,7 @@ trait SqlIdiom {
         def orderByString = " ORDER BY " + toSqlDml(query.orderByClause.get.criterias: _*)
         query match {
             case query: LimitedOrderedQuery[_] =>
-                orderByString + " " + toSqlDmlLimit(query.limit)
+                orderByString + " " + toSqlDmlLimit(query)
             case query: OrderedQuery[_] =>
                 orderByString
             case other =>
@@ -342,8 +342,8 @@ trait SqlIdiom {
         }
     }
 
-    def toSqlDmlLimit(limit: Int): String =
-        "LIMIT " + limit
+    def toSqlDmlLimit(query: LimitedOrderedQuery[_]): String =
+        "LIMIT " + query.limit + query.offsetOption.map(" OFFSET " + _).getOrElse("")
 
     def toSqlDml(criterias: OrderByCriteria[_]*)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (criteria <- criterias)

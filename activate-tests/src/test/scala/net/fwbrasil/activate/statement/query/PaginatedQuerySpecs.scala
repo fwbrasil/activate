@@ -11,9 +11,13 @@ import scala.util.Random.nextDouble
 import scala.util.Random.nextFloat
 import scala.util.Random.nextInt
 import scala.util.Random.nextLong
+import net.fwbrasil.activate.ActivateTestContext
 
 @RunWith(classOf[JUnitRunner])
 class PaginatedQuerySpecs extends ActivateTest {
+    
+    override def executors(ctx: ActivateTestContext) =
+        super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
 
     "Query framework" should {
         "support paginated queries" in {

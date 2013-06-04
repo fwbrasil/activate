@@ -261,6 +261,30 @@ class OrderedQuerySpecs extends ActivateTest {
                     }
                 })
         }
+
+        "support limit with offset" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (!step.isInstanceOf[OneTransaction]) {
+                        import step.ctx._
+                        val expected = List(null, "a", "b", "c")
+                        step {
+                            expected.randomize.foreach(v =>
+                                newEmptyActivateTestEntity.stringValue = v)
+                        }
+                        step {
+                            query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
+                            }.toList.map(_.stringValue) must beEqualTo(List("a", "b"))
+                            query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10) offset (2)
+                            }.toList.map(_.stringValue) must beEqualTo(List("b", "c"))
+                        }
+                    }
+                })
+        }
     }
 
 }
