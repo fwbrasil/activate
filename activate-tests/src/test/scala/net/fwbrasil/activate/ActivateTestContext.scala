@@ -37,7 +37,6 @@ import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
 import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
-import net.fwbrasil.activate.spray.json.SprayJsonContext
 import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
 
@@ -332,7 +331,7 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext with SprayJsonContext {
+        extends StoppableActivateContext {
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 

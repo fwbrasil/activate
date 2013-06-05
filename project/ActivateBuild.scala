@@ -183,13 +183,30 @@ object ActivateBuild extends Build {
 		    )
     	)
 
+  val jackson = Seq(
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.2.1",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.1",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.2.1")
+
+  lazy val activateJacksonJson =
+    Project(
+      id = "activate-jackson",
+      base = file("activate-jackson"),
+      dependencies = Seq(activateCore, activateJdbc),
+      settings = commonSettings ++ Seq(
+        libraryDependencies ++=
+          Seq(postgresql, scalaCompiler) ++ jackson
+      )
+    )
+
     val json4sNative = "org.json4s" %% "json4s-native" % "3.2.3"
 
     lazy val activateTests = 
 		Project(id = "activate-tests",
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
-			    activateMongo, activateGraph, activateSprayJson, activateJdbcAsync,
+			    activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
 			    activateSlick, activateMongoAsync),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
