@@ -17,6 +17,8 @@ class SprayJsonSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
+                    import SprayJsonContext._
+
                     val (emptyEntityId, fullEntityId) =
                         step {
                             (newEmptyActivateTestEntity.id, newFullActivateTestEntity.id)
