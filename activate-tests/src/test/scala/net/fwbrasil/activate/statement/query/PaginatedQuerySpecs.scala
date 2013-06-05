@@ -21,7 +21,7 @@ class PaginatedQuerySpecs extends ActivateTest {
 
     "Query framework" should {
         "support paginated queries" in {
-            for (numberOfEntities <- List(/*0, 2,*/ 60)) {
+            for (numberOfEntities <- List(0, 2, 60)) {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._

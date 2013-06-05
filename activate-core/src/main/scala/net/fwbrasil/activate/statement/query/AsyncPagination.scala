@@ -2,26 +2,24 @@ package net.fwbrasil.activate.statement.query
 
 import net.fwbrasil.activate.statement.SimpleValue
 import net.fwbrasil.activate.entity.IntEntityValue
-import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
-class AsyncPagination[S](query: OrderedQuery[S]) {
-    def navigator(pageSize: Int)(implicit ctx: TransactionalExecutionContext) =
-        new Query[Int](query.from, query.where, Select(query.select.values.head)).executeAsync.map {
-            result => new AsyncPaginationNavigator(result.size, query, pageSize) 
-        }
+class Pagination[S](query: OrderedQuery[S]) {
+    def navigator(pageSize: Int) =
+        new PaginationNavigator(query, pageSize)
 }
 
-class AsyncPaginationNavigator[S](val numberOfResults: Int, query: OrderedQuery[S], pageSize: Int) {
+class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
 
+    val numberOfResults = new Query[Int](query.from, query.where, Select(query.select.values.head)).execute.size
     val numberOfPages = (numberOfResults / pageSize) + (if (numberOfResults % pageSize > 0) 1 else 0)
 
     def hasNext =
         _currentPage + 1 < numberOfPages
 
-    def next(implicit ctx: TransactionalExecutionContext) =
+    def next =
         page(_currentPage + 1)
 
-    def page(number: Int)(implicit ctx: TransactionalExecutionContext) = {
+    def page(number: Int) = {
     	if (number < 0 || number >= numberOfPages)
     		throw new IndexOutOfBoundsException
         _currentPage = number
@@ -34,14 +32,14 @@ class AsyncPaginationNavigator[S](val numberOfResults: Int, query: OrderedQuery[
                 query.orderByClause.get,
                 pageSize,
                 Some(offset))
-        pageQuery.executeAsync
+        pageQuery.execute
     }
 
     private var _currentPage = -1
-    def currentPage(implicit ctx: TransactionalExecutionContext) =
+    def currentPage =
         page(_currentPage)
-    def firstPage(implicit ctx: TransactionalExecutionContext) =
+    def firstPage =
         page(0)
-    def lastPage(implicit ctx: TransactionalExecutionContext) =
+    def lastPage =
         page(numberOfPages)
 }
