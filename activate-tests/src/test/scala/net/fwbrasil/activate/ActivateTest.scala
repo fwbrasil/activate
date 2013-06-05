@@ -18,6 +18,7 @@ import net.fwbrasil.activate.migration.Migration
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
+import net.fwbrasil.activate.jackson.json.JacksonJsonContext
 
 object runningFlag
 
