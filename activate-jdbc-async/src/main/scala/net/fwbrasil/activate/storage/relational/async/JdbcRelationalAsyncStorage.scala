@@ -242,7 +242,6 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
                             }
                     }
                 res.onComplete { _ =>
-                    println("giveBack")
                     pool.giveBack(conn)
                 }
                 res

@@ -510,7 +510,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
             yield fromCache(entitySource.entityClass)
 
     private def loadRowFromDatabase(entity: Entity) = {
-        val query = produceQuery({ (e: Entity) =>
+        val query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>
             where(e :== entity.id)
                 .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
         })(manifestClass(entity.getClass))

@@ -147,14 +147,15 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 case other =>
                     QueryOpts()
             }
-        
-        val ret = coll(query.from).find(dbObject(where), dbObject(select)).options(options)
-        
+
+        val ret = coll(query.from).find(dbObject(where), dbObject(select)) //.options(options)
+
         val sorted =
             if (order.nonEmpty)
                 ret.sort(dbObject(order))
             else
                 ret
+
         toQueryResult(query, sorted.cursor).map { result =>
             mongoIdiom.transformResultToTheExpectedTypes[BSONDocument](
                 expectedTypes,

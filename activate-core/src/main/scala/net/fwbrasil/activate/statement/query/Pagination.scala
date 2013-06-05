@@ -1,23 +1,17 @@
 package net.fwbrasil.activate.statement.query
 
-class Pagination[S](result: List[S]) {
-    def orderBy[B](f: (S) => B)(implicit ordering: Ordering[B]) =
-        new Pagination(result.sortBy(f))
-    def reverse =
-        new Pagination(result.reverse)
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.entity.IntEntityValue
+
+class Pagination[S](query: OrderedQuery[S]) {
     def navigator(pageSize: Int) =
-        new PaginationNavigator(result, pageSize)
+        new PaginationNavigator(query, pageSize)
 }
 
-class PaginationNavigator[S](result: List[S], val pageSize: Int) extends Iterator[List[S]] {
-    private val pages =
-        result.grouped(pageSize).toList
+class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
 
-    val numberOfResults =
-        result.size
-
-    val numberOfPages =
-        pages.size
+    val numberOfResults = new Query[Int](query.from, query.where, Select(query.select.values.head)).execute.size
+    val numberOfPages = (numberOfResults / pageSize) + (if (numberOfResults % pageSize > 0) 1 else 0)
 
     def hasNext =
         _currentPage + 1 < numberOfPages
@@ -26,8 +20,19 @@ class PaginationNavigator[S](result: List[S], val pageSize: Int) extends Iterato
         page(_currentPage + 1)
 
     def page(number: Int) = {
+    	if (number < 0 || number >= numberOfPages)
+    		throw new IndexOutOfBoundsException
         _currentPage = number
-        pages(_currentPage)
+        val offset = _currentPage * pageSize
+        val pageQuery =
+            new LimitedOrderedQuery[S](
+                query.from,
+                query.where,
+                query.select,
+                query.orderByClause.get,
+                pageSize,
+                Some(offset))
+        pageQuery.execute
     }
 
     private var _currentPage = -1
