@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
@@ -9,6 +10,9 @@ import net.fwbrasil.activate.storage.memory.TransientMemoryStorage
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
 import net.fwbrasil.activate.storage.relational.idiom.oracleDialect
+import java.sql.Blob
+import java.sql.Date
+import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
@@ -18,30 +22,31 @@ import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
 import net.fwbrasil.activate.serialization.xmlSerializer
 import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
+import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.storage.relational.async.AsyncJdbcRelationalStorage
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
+import org.jboss.netty.util.CharsetUtil
+import com.github.mauricio.async.db.pool.ObjectFactory
+import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
 import com.github.mauricio.async.db.mysql.MySQLConnection
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
+import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
-import net.fwbrasil.activate.spray.json.SprayJsonContext
 import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
-import net.fwbrasil.activate.json.JsonContext
+import net.fwbrasil.activate.EnumerationValue.EnumerationValue
 
 object EnumerationValue extends Enumeration {
-
   case class EnumerationValue(name: String) extends Val(name)
-
   val value1a = EnumerationValue("v1")
   val value2 = EnumerationValue("v2")
   val value3 = EnumerationValue("v3")
 }
-
 import EnumerationValue._
 
 case class DummySeriablizable(val string: String)
@@ -95,13 +100,11 @@ abstract class ActivateTestMigrationCustomColumnType(
 object prevaylerContext extends ActivateTestContext {
   val storage = new PrevaylerStorage("testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime)
 }
-
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object memoryContext extends ActivateTestContext {
   val storage = new TransientMemoryStorage
 }
-
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
 object mysqlContext extends ActivateTestContext {
@@ -114,9 +117,7 @@ object mysqlContext extends ActivateTestContext {
   val storage =
     StorageFactory.fromSystemProperties("mysql")
 }
-
 class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext)
-
 class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(mysqlContext) {
   override def bigStringType = "TEXT"
 }
@@ -130,9 +131,7 @@ object postgresqlContext extends ActivateTestContext with SlickQueryContext {
     val dialect = postgresqlDialect
   }
 }
-
 class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
-
 class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(postgresqlContext) {
   override def bigStringType = "TEXT"
 }
@@ -145,17 +144,12 @@ object asyncPostgresqlContext extends ActivateTestContext {
         host = "localhost",
         password = Some("postgres"),
         database = Some("activate_test_async"))
-
     lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
-
     override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
-
     val dialect = postgresqlDialect
   }
 }
-
 class AsyncPostgresqlActivateTestMigration extends ActivateTestMigration()(asyncPostgresqlContext)
-
 class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncPostgresqlContext) {
   override def bigStringType = "TEXT"
 }
@@ -169,14 +163,11 @@ object asyncMysqlContext extends ActivateTestContext {
         port = 3306,
         password = Some("root"),
         database = Some("activate_test_async"))
-
     lazy val objectFactory = new MySQLConnectionFactory(configuration)
     val dialect = mySqlDialect
   }
 }
-
 class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
-
 class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
   override def bigStringType = "TEXT"
 }
@@ -193,7 +184,6 @@ object h2Context extends ActivateTestContext with SlickQueryContext {
 }
 
 class H2ActivateTestMigration extends ActivateTestMigration()(h2Context)
-
 class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(h2Context) {
   override def bigStringType = "CLOB"
 }
@@ -210,7 +200,6 @@ object hsqldbContext extends ActivateTestContext with SlickQueryContext {
 }
 
 class HsqldbActivateTestMigration extends ActivateTestMigration()(hsqldbContext)
-
 class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(hsqldbContext) {
   override def bigStringType = "CLOB"
 }
@@ -227,7 +216,6 @@ object derbyContext extends ActivateTestContext with SlickQueryContext {
 }
 
 class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
-
 class DerbyActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(derbyContext) {
   override def bigStringType = "CLOB"
 }
@@ -240,7 +228,6 @@ object mongoContext extends ActivateTestContext {
     override val db = "activate_test"
   }
 }
-
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
 object asyncMongoContext extends ActivateTestContext {
@@ -250,7 +237,6 @@ object asyncMongoContext extends ActivateTestContext {
     override val db = "activate_test_async"
   }
 }
-
 class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
 object oracleContext extends ActivateTestContext with SlickQueryContext {
@@ -265,9 +251,7 @@ object oracleContext extends ActivateTestContext with SlickQueryContext {
     override val batchLimit = 0
   }
 }
-
 class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
-
 class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
   override def bigStringType = "CLOB"
 }
@@ -281,9 +265,7 @@ object db2Context extends ActivateTestContext with SlickQueryContext {
     val dialect = db2Dialect
   }
 }
-
 class Db2ActivateTestMigration extends ActivateTestMigration()(db2Context)
-
 class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
   override def bigStringType = "CLOB"
 }
@@ -326,7 +308,6 @@ object polyglotContext extends ActivateTestContext {
   }
   val memory = new TransientMemoryStorage
   val storage = postgre
-
   override def additionalStorages = Map(
     derby -> Set(classOf[Num]),
     h2 -> Set(classOf[EntityWithUninitializedValue]),
@@ -335,9 +316,7 @@ object polyglotContext extends ActivateTestContext {
     mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
     prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]))
 }
-
 class PolyglotActivateTestMigration extends ActivateTestMigration()(polyglotContext)
-
 class PolyglotActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(polyglotContext) {
   override def bigStringType = "TEXT"
 }
@@ -362,7 +341,6 @@ trait ActivateTestContext
       Reflection.set(entity, "$outer", this)
 
   override protected val defaultSerializer = xmlSerializer
-
   override protected def customSerializers = List(
     serialize[ActivateTestEntity](_.tupleOptionValue) using jsonSerializer)
 
@@ -417,7 +395,6 @@ trait ActivateTestContext
       new TraitAttribute2("2"))
 
   val fullByteArrayValue = "S".getBytes
-
   def fullEntityValue =
     select[ActivateTestEntity].where(_.dummy :== true).headOption.getOrElse({
       val entity = newEmptyActivateTestEntity
@@ -428,7 +405,6 @@ trait ActivateTestContext
   val fullJodaInstantValue = new DateTime(78317811l)
   val fullOptionValue = Some("string")
   val fullOptionWithPrimitiveValue = Some(1)
-
   def fullEntityWithoutAttributeValue =
     all[EntityWithoutAttribute].headOption.getOrElse(
       new EntityWithoutAttribute)
@@ -502,7 +478,6 @@ trait ActivateTestContext
 
   def newEmptyActivateTestEntity =
     setEmptyEntity(newTestEntity())
-
   def newFullActivateTestEntity =
     setFullEntity(newTestEntity())
 
@@ -512,10 +487,9 @@ trait ActivateTestContext
     var attribute: String
   }
 
-  class TraitAttribute1 private(var attribute: String, val dummy: String) extends TraitAttribute {
+  class TraitAttribute1 private (var attribute: String, val dummy: String) extends TraitAttribute {
     def this(attribute: String) =
       this(attribute, attribute)
-
     def testTraitAttribute = attribute
   }
 
@@ -610,7 +584,6 @@ trait ActivateTestContext
       emptySerializableEntityValue,
       emptyListEntityValue,
       emptyTupleOptionValue)
-
     var varInitializedInConstructor = fullStringValue
     val valInitializedInConstructor = fullStringValue
     val calculatedInConstructor = intValue * 2
