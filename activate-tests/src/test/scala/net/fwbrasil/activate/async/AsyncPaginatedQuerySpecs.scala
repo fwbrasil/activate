@@ -1,20 +1,12 @@
-package net.fwbrasil.activate.statement.query
+package net.fwbrasil.activate.async
 
-import java.util.Calendar
-import java.util.Date
-import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.ActivateTest
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-import scala.util.Random.nextDouble
-import scala.util.Random.nextFloat
-import scala.util.Random.nextInt
-import scala.util.Random.nextLong
 import net.fwbrasil.activate.ActivateTestContext
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.Awaitable
+import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AsyncPaginatedQuerySpecs extends ActivateTest {

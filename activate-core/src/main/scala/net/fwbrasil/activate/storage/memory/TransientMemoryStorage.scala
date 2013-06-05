@@ -27,6 +27,8 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
     def isSchemaless = true
     def isTransactional = false
     def supportsQueryJoin = true
+    
+    override def supportsAsync = true
 
     def directAccess =
         storageSet

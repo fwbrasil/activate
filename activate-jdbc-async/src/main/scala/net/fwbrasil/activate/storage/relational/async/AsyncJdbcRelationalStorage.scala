@@ -39,6 +39,7 @@ import org.jboss.netty.util.CharsetUtil
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import scala.util.Failure
 import net.fwbrasil.activate.storage.relational.SqlStatement
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     
@@ -59,10 +60,10 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
         Await.result(result, Duration.Inf)
     }
 
-    override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+    override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
         Future(dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))).flatMap {
             jdbcStatement => queryAsync(jdbcStatement, expectedTypes)
-        }
+        }(context.ctx.ectx)
     }
 
     private def queryAsync(query: SqlStatement, expectedTypes: List[StorageValue]): Future[List[List[StorageValue]]] = {

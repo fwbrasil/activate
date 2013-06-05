@@ -1,23 +1,17 @@
 package net.fwbrasil.activate.storage.marshalling
 
-import net.fwbrasil.activate.entity.{ EntityValue, Var, Entity }
-import net.fwbrasil.activate.storage.Storage
-import net.fwbrasil.activate.util.CollectionUtil.toTuple
-import net.fwbrasil.activate.util.RichList._
-import scala.collection.mutable.{ Map => MutableMap }
-import scala.collection.JavaConversions._
-import net.fwbrasil.activate.entity.EntityInstanceEntityValue
-import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.storage.marshalling.Marshaller.marshalling
-import net.fwbrasil.activate.storage.marshalling.Marshaller.unmarshalling
-import java.util.IdentityHashMap
-import net.fwbrasil.activate.migration.StorageAction
-import net.fwbrasil.activate.statement.Statement
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.storage.TransactionHandle
-import scala.concurrent.Future
+import scala.annotation.implicitNotFound
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.migration.StorageAction
+import net.fwbrasil.activate.statement.mass.MassModificationStatement
+import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait MarshalStorage[T] extends Storage[T] {
 
@@ -67,7 +61,7 @@ trait MarshalStorage[T] extends Storage[T] {
     }
 
     override protected[activate] def fromStorageAsync(
-        queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: ExecutionContext): Future[List[List[EntityValue[_]]]] = {
+        queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] = {
         val (entityValues, expectedTypes) = prepareQuery(queryInstance)
         queryAsync(queryInstance, expectedTypes, entitiesReadFromCache)
             .map(mapLines(_, entityValues))
@@ -75,7 +69,7 @@ trait MarshalStorage[T] extends Storage[T] {
 
     protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]]
 
-    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] =
+    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] =
         blockingFuture(this.query(query, expectedTypes, entitiesReadFromCache))
 
     override protected[activate] def migrate(action: StorageAction): Unit =

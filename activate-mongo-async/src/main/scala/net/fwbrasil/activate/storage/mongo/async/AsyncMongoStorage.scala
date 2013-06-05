@@ -45,6 +45,7 @@ import net.fwbrasil.activate.statement.SimpleValue
 import java.util.Date
 import scala.util.Success
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -120,7 +121,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     }
 
     override protected[activate] def queryAsync(
-            query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+            query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
         Future(mongoIdiom.toQuery(query, entitiesReadFromCache)).flatMap { tuple =>
             val (where, select) = tuple
             val order = mongoIdiom.toQueryOrder(query)
@@ -131,7 +132,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 order,
                 expectedTypes,
                 entitiesReadFromCache)
-        }
+        }(context.ctx.ectx)
     }
 
     private def queryAsync(

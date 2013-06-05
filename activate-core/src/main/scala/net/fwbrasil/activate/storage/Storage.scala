@@ -17,6 +17,7 @@ import net.fwbrasil.activate.ActivateConcurrentTransactionException
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import net.fwbrasil.activate.util.Logging
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 class TransactionHandle(
         private val commitBlock: () => Unit,
@@ -30,8 +31,8 @@ class TransactionHandle(
         finally finallyBlock()
 }
 
-trait Storage[T] extends Logging{
-    
+trait Storage[T] extends Logging {
+
     protected[activate] def toStorage(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
@@ -47,11 +48,15 @@ trait Storage[T] extends Logging{
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
 
-    protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: ExecutionContext): Future[List[List[EntityValue[_]]]] =
+    protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] =
         blockingFuture(fromStorage(query, entitiesReadFromCache))
-        
-    protected def blockingFuture[T](f: => T)(implicit ecxt: ExecutionContext) = {
-        warn("Storage does not support non-blocking async operations. Fallback to a blocking future.")
+
+    private var blockingFutureWarned = false
+
+    protected def blockingFuture[T](f: => T)(implicit ctx: ExecutionContext) = {
+        if (!blockingFutureWarned)
+            warn("Storage does not support non-blocking async operations. Async operations will fallback to blocking futures.")
+        blockingFutureWarned = true
         Future(f)
     }
 

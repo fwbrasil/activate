@@ -16,7 +16,7 @@ class ConcurrencySpecs extends ActivateTest {
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
-    val threads = 100
+    val threads = 30
 
     "Activate" should {
         "be consistent" in {
