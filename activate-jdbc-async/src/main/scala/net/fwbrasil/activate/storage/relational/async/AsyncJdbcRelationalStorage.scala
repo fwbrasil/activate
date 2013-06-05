@@ -40,7 +40,7 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import scala.util.Failure
 import net.fwbrasil.activate.storage.relational.SqlStatement
 
-trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Future[C]] {
+trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     
     val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 

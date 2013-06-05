@@ -16,6 +16,7 @@ import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
+import net.fwbrasil.activate.util.Logging
 
 class TransactionHandle(
         private val commitBlock: () => Unit,
@@ -29,26 +30,31 @@ class TransactionHandle(
         finally finallyBlock()
 }
 
-trait Storage[T] {
-
+trait Storage[T] extends Logging{
+    
     protected[activate] def toStorage(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
-    
+
     protected[activate] def toStorageAsync(
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
-            throw new UnsupportedOperationException("The storage does not support async queries.")
+        blockingFuture(toStorageAsync(statements, insertList, updateList, deleteList))
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
-    
+
     protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: ExecutionContext): Future[List[List[EntityValue[_]]]] =
-        throw new UnsupportedOperationException("The storage does not support async queries.")
-    
+        blockingFuture(fromStorage(query, entitiesReadFromCache))
+        
+    protected def blockingFuture[T](f: => T)(implicit ecxt: ExecutionContext) = {
+        warn("Storage does not support non-blocking async operations. Fallback to a blocking future.")
+        Future(f)
+    }
+
     def directAccess: T
 
     def isMemoryStorage: Boolean

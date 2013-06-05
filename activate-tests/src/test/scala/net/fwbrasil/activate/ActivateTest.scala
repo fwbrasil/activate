@@ -39,10 +39,10 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
         val ret = List[ActivateTestContext](
             //asyncMysqlContext,
             asyncPostgresqlContext,
+            asyncMongoContext,
             memoryContext,
             prevaylerContext,
             mongoContext,
-            asyncMongoContext,
             mysqlContext,
             polyglotContext,
             postgresqlContext,
