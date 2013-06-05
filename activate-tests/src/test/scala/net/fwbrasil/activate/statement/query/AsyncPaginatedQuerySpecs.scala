@@ -14,6 +14,7 @@ import scala.util.Random.nextLong
 import net.fwbrasil.activate.ActivateTestContext
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.Awaitable
 
 @RunWith(classOf[JUnitRunner])
 class AsyncPaginatedQuerySpecs extends ActivateTest {
@@ -44,22 +45,24 @@ class AsyncPaginatedQuerySpecs extends ActivateTest {
                                             val expectedNumberOfPages =
                                                 (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
                                             pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
-                                            val expectedPages = numbers.grouped(pageSize).toList
-                                            pagination.page(-1) must throwA[IndexOutOfBoundsException]
+                                            await(pagination.page(-1)) must throwA[IndexOutOfBoundsException]
                                             if (pagination.numberOfPages > 0) {
-                                                pagination.page(0)
-                                                pagination.page(expectedNumberOfPages - 1)
+                                                await(pagination.page(0))
+                                                await(pagination.page(expectedNumberOfPages - 1))
                                             } else
-                                                pagination.page(0) must throwA[IndexOutOfBoundsException]
-                                            pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
-                                    }(ctx)
+                                                await(pagination.page(0)) must throwA[IndexOutOfBoundsException]
+                                            await(pagination.page(expectedNumberOfPages)) must throwA[IndexOutOfBoundsException]
+                                    }(executionContext)
                             }
                         for (i <- 1 until 6)
-                            Await.result(test(pageSize = i), Duration.Inf)
+                            await(test(pageSize = i))
 
                     })
             }
         }
     }
+
+    private def await[T](v: Awaitable[T]) =
+        Await.result(v, Duration.Inf)
 
 }

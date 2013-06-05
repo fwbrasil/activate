@@ -103,11 +103,11 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             storeStatements(statements).flatMap { _ =>
                 storeInserts(insertList).flatMap { _ =>
                     storeUpdates(updateList).flatMap { _ =>
-                        storeDeletes(deleteList)
-                    }
-                }
-            }
-        }
+                        storeDeletes(deleteList)(executionContext)
+                    }(executionContext)
+                }(executionContext)
+            }(executionContext)
+        }(executionContext)
     }
 
     override def query(
@@ -116,10 +116,11 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
         val (where, select) = mongoIdiom.toQuery(query, entitiesReadFromCache)
         val order = mongoIdiom.toQueryOrder(query)
-        await(queryAsync(query, where, select, order, expectedTypes, entitiesReadFromCache)(executionContext))
+        await(queryAsync(query, where, select, order, expectedTypes, entitiesReadFromCache))
     }
 
-    override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+    override protected[activate] def queryAsync(
+            query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
         Future(mongoIdiom.toQuery(query, entitiesReadFromCache)).flatMap { tuple =>
             val (where, select) = tuple
             val order = mongoIdiom.toQueryOrder(query)
@@ -138,7 +139,9 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         where: Map[String, Any],
         select: Map[String, Any],
         order: Map[String, Any],
-        expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+        expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] = {
+        
+        implicit val ctx = executionContext
 
         val options =
             query match {
@@ -148,7 +151,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                     QueryOpts()
             }
 
-        val ret = coll(query.from).find(dbObject(where), dbObject(select)) //.options(options)
+        val ret = coll(query.from).find(dbObject(where), dbObject(select)).options(options)
 
         val sorted =
             if (order.nonEmpty)

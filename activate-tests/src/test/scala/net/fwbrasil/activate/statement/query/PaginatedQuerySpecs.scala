@@ -38,7 +38,6 @@ class PaginatedQuerySpecs extends ActivateTest {
                                 val expectedNumberOfPages =
                                     (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
                                 pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
-                                val expectedPages = numbers.grouped(pageSize).toList
                                 pagination.page(-1) must throwA[IndexOutOfBoundsException]
                                 if (pagination.numberOfPages > 0) {
                                     pagination.page(0)

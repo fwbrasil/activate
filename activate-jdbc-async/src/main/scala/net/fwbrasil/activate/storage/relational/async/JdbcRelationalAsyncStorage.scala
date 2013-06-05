@@ -55,7 +55,7 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
         expectedTypes: List[StorageValue],
         entitiesReadFromCache: List[List[Entity]]) = {
         val jdbcQuery = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
-        val result = queryAsync(jdbcQuery, expectedTypes)(executionContext)
+        val result = queryAsync(jdbcQuery, expectedTypes)
         Await.result(result, Duration.Inf)
     }
 
@@ -65,7 +65,8 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
         }
     }
 
-    private def queryAsync(query: SqlStatement, expectedTypes: List[StorageValue])(implicit context: ExecutionContext): Future[List[List[StorageValue]]] = {
+    private def queryAsync(query: SqlStatement, expectedTypes: List[StorageValue]): Future[List[List[StorageValue]]] = {
+        implicit val ctx = executionContext
         val resultSetFuture = sendPreparedStatement(query, pool)
         resultSetFuture.map(
             _.rows match {
@@ -132,7 +133,8 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
             sqls.map(dialect.toSqlStatement).flatten
         executeWithTransaction {
             connection =>
-                sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
+                sqlStatements.foldLeft(Future[Unit]())((future, statement) => 
+                    future.flatMap(_ => execute(statement, connection, isDdl))(executionContext))
         }
     }
 
@@ -229,7 +231,8 @@ trait JdbcRelationalAsyncStorage[C <: Connection] extends RelationalStorage[Futu
         }
     }
 
-    def executeWithTransaction(f: (Connection) => Future[Unit])(implicit context: ExecutionContext) = {
+    def executeWithTransaction(f: (Connection) => Future[Unit]) = {
+        implicit val ctx = executionContext
         pool.take.flatMap {
             conn =>
                 val res =
