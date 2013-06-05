@@ -30,8 +30,8 @@ class SprayJsonSpecs extends ActivateTest {
                             (emptyEntity.toJson, fullEntity.toJson)
                         }
                     step {
-                        emptyEntity.updateFromJson(fullEntityJson)
-                        fullEntity.updateFromJson(emptyEntityJson)
+                        emptyEntity.entityFromJson(fullEntityJson.compactPrint)
+                        fullEntity.entityFromJson(emptyEntityJson.compactPrint)
                     }
                     step {
                         validateFullTestEntity(emptyEntity)

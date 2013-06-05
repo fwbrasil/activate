@@ -34,10 +34,9 @@ import java.text.SimpleDateFormat
 import spray.json._
 import java.nio.charset.Charset
 import net.fwbrasil.activate.json.JsonContext
-import DefaultJsonProtocol._
 
-object SprayJsonContext extends JsonContext {
-  implicit val context:ActivateContext = implicitly[ActivateContext]
+trait SprayJsonContext extends JsonContext {
+  implicit val context: ActivateContext = implicitly[ActivateContext]
 
 
   val jsonCharset = Charset.defaultCharset
@@ -203,7 +202,6 @@ object SprayJsonContext extends JsonContext {
   }
 
 
-
   def updateEntityFromJson[E <: Entity : Manifest](id: String, json: String): E =
     updateEntityFromJson[E](id, json.asJson.asJsObject)
 
@@ -240,13 +238,7 @@ object SprayJsonContext extends JsonContext {
         createOrUpdateEntityFromJson[E](value)
     }
 
-  implicit class EntitySprayJsonMethods[E <: Entity : Manifest](val entity: E) {
-
-    def updateFromJson(json: String): Unit =
-      updateFromJson(json.toJson)
-
-    def updateFromJson(json: JsValue) =
-      updateFromJsonObject(entity, json.asJsObject)
-  }
 
 }
+
+object SprayJsonContext extends SprayJsonContext

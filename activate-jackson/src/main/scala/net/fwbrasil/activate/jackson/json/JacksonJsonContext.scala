@@ -7,8 +7,8 @@ import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
-object JacksonJsonContext extends JsonContext {
-  implicit val context:ActivateContext = implicitly[ActivateContext]
+trait JacksonJsonContext extends JsonContext {
+  implicit val context: ActivateContext = implicitly[ActivateContext]
 
   def mapper = new ObjectMapper {
     registerModule(DefaultScalaModule)
@@ -54,6 +54,6 @@ object JacksonJsonContext extends JsonContext {
     }
 
   }
-
-
 }
+
+object JacksonJsonContext extends JacksonJsonContext
