@@ -237,3 +237,8 @@ trait SprayJsonContext extends JsonContext {
 
 
 }
+
+trait SprayJsonActivateContext extends SprayJsonContext {
+  this:ActivateContext =>
+  override val context:ActivateContext = this
+}
