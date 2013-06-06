@@ -4,7 +4,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 
 trait JsonContext {
-  implicit val context:ActivateContext=implicitly[ActivateContext]
+  val context:ActivateContext
 
   def createEntityFromJson[E <: Entity : Manifest](json: String): E
 
