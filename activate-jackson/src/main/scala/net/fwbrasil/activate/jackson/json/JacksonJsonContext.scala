@@ -54,7 +54,7 @@ trait JacksonJsonContext extends JsonContext {
 
   }
 }
-
-object JacksonJsonContext extends JacksonJsonContext{
-
+trait JacksonJsonActivateContext extends JacksonJsonContext {
+  this:ActivateContext =>
+  override val context:ActivateContext = this
 }
