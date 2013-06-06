@@ -90,7 +90,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             }
         def contextName = ctx.name
         val modeName = this.niceClass.getSimpleName
-        val ctx: ActivateTestContext
+        implicit val ctx: ActivateTestContext
     }
 
     case class OneTransaction(ctx: ActivateTestContext) extends StepExecutor {

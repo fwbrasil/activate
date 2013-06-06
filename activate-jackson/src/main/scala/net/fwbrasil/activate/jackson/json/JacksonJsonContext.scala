@@ -2,14 +2,12 @@ package net.fwbrasil.activate.jackson.json
 
 import net.fwbrasil.activate.ActivateContext
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationFeature, SerializationFeature, ObjectMapper}
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
 
-
-object JacksonJsonContext extends JsonContext {
+trait JacksonJsonContext extends JsonContext {
 
   def mapper = new ObjectMapper {
     registerModule(ActivateScalaModule)
@@ -34,19 +32,19 @@ object JacksonJsonContext extends JsonContext {
     writer.toString
   }
 
-  def createEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E = {
+  def createEntityFromJson[E <: Entity : Manifest](json: String): E = {
     parse[E](json)
   }
 
-  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E)(implicit context: ActivateContext): E = {
+  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E): E = {
     parse[E](json, entity)
   }
 
-  def createJsonFromEntity[E <: Entity : Manifest](entity: E)(implicit context: ActivateContext) = {
+  def createJsonFromEntity[E <: Entity : Manifest](entity: E) = {
     json(entity)
   }
 
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E = {
+  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E = {
     mapper.readTree(json).get("id") match {
       case id: JsonNode =>
         val entity = context.byId[E](id.asText()).get
@@ -55,4 +53,8 @@ object JacksonJsonContext extends JsonContext {
     }
 
   }
+}
+
+object JacksonJsonContext extends JacksonJsonContext{
+
 }
