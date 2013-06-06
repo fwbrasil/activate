@@ -12,8 +12,10 @@ class JacksonJsonSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
+                    object JacksonJsonContext extends JacksonJsonContext {
+                        implicit val context = step.ctx
+                    }
                     import JacksonJsonContext._
-
                     val (emptyEntityId, fullEntityId) =
                         step {
                             (newEmptyActivateTestEntity.id, newFullActivateTestEntity.id)

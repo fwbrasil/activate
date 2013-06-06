@@ -237,5 +237,3 @@ trait SprayJsonContext extends JsonContext {
 
 
 }
-
-object SprayJsonContext extends SprayJsonContext

@@ -54,7 +54,3 @@ trait JacksonJsonContext extends JsonContext {
 
   }
 }
-
-object JacksonJsonContext extends JacksonJsonContext{
-
-}
