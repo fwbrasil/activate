@@ -41,7 +41,7 @@ class SprayJsonSpecs extends ActivateTest {
                         step {
                             createOrUpdateEntityFromJson[ActivateTestEntity](fullEntityJson)
                             createOrUpdateEntityFromJson[ActivateTestEntity](emptyEntityJson)
-                            def removeId(json: JsValue) = 
+                            def removeId(json: JsValue) =
                                 JsObject(json.asJsObject.fields - "id")
                             (createOrUpdateEntityFromJson[ActivateTestEntity](removeId(fullEntityJson)).id,
                                 removeId(emptyEntityJson).convertTo[ActivateTestEntity].id)

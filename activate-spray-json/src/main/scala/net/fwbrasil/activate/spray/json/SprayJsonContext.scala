@@ -35,9 +35,7 @@ import spray.json._
 import java.nio.charset.Charset
 import net.fwbrasil.activate.json.JsonContext
 
-trait SprayJsonContext extends JsonContext {
-  implicit val context: ActivateContext = implicitly[ActivateContext]
-
+object SprayJsonContext extends JsonContext {
 
   val jsonCharset = Charset.defaultCharset
 
@@ -47,7 +45,7 @@ trait SprayJsonContext extends JsonContext {
   protected def jsonDateFormat =
     new SimpleDateFormat("EEE MMM dd HH:mm:ss:SSS zzz yyyy")
 
-  private def fromJsValue(value: JsValue, entityValue: EntityValue[_]): Any =
+  private def fromJsValue(value: JsValue, entityValue: EntityValue[_])(implicit context: ActivateContext): Any =
     (value, entityValue) match {
       case (JsNull, entityValue) =>
         null
@@ -143,18 +141,18 @@ trait SprayJsonContext extends JsonContext {
           .getOrElse(JsNull)
     }
 
-  private def updateFromJsonObject[E <: Entity](id: String, jsObject: JsObject): E = {
+  private def updateFromJsonObject[E <: Entity](id: String, jsObject: JsObject)(implicit context: ActivateContext): E = {
     val entity = context.byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
     updateFromJsonObject(entity, jsObject)
     entity
   }
 
-  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E) = {
+  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E)(implicit context: ActivateContext) = {
     updateFromJsonObject(entity, json.asJson.asJsObject)
     entity
   }
 
-  private def updateFromJsonObject(entity: Entity, jsObject: JsObject): Entity = {
+  private def updateFromJsonObject(entity: Entity, jsObject: JsObject)(implicit context: ActivateContext): Entity = {
     val fields = jsObject.fields
     val entityClass = entity.getClass
     val entityMetadata =
@@ -175,10 +173,10 @@ trait SprayJsonContext extends JsonContext {
     entity
   }
 
-  def createEntityFromJson[E <: Entity : Manifest](json: String): E =
+  def createEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E =
     createEntityFromJson[E](json.asJson.asJsObject)
 
-  def createEntityFromJson[E <: Entity : Manifest](jsValue: JsValue): E = {
+  def createEntityFromJson[E <: Entity : Manifest](jsValue: JsValue)(implicit context: ActivateContext): E = {
     val entityClass = erasureOf[E]
     val id = IdVar.generateId(entityClass)
     val entity = context.liveCache.createLazyEntity(entityClass, id)
@@ -189,10 +187,10 @@ trait SprayJsonContext extends JsonContext {
     entity
   }
 
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E =
+  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E =
     createOrUpdateEntityFromJson[E](json.asJson.asJsObject)
 
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue) = {
+  def createOrUpdateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue)(implicit context: ActivateContext) = {
     jsValue.asJsObject.fields.collect {
       case ("id", JsString(id)) =>
         updateFromJsonObject[E](id, jsValue.asJsObject)
@@ -202,16 +200,16 @@ trait SprayJsonContext extends JsonContext {
   }
 
 
-  def updateEntityFromJson[E <: Entity : Manifest](id: String, json: String): E =
+  def updateEntityFromJson[E <: Entity : Manifest](id: String, json: String)(implicit context: ActivateContext): E =
     updateEntityFromJson[E](id, json.asJson.asJsObject)
 
-  def updateEntityFromJson[E <: Entity : Manifest](id: String, jsValue: JsValue) =
+  def updateEntityFromJson[E <: Entity : Manifest](id: String, jsValue: JsValue)(implicit context: ActivateContext) =
     updateFromJsonObject[E](id, jsValue.asJsObject)
 
-  def updateEntityFromJson[E <: Entity : Manifest](json: String): E =
+  def updateEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E =
     updateEntityFromJson[E](json.asJson.asJsObject)
 
-  def updateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue) = {
+  def updateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue)(implicit context: ActivateContext) = {
     jsValue.asJsObject.fields.collect {
       case ("id", JsString(id)) =>
         updateFromJsonObject[E](id, jsValue.asJsObject)
@@ -220,7 +218,7 @@ trait SprayJsonContext extends JsonContext {
     }
   }
 
-  def createJsonFromEntity[E <: Entity : Manifest](entity: E) = toJsonObject(entity).compactPrint
+  def createJsonFromEntity[E <: Entity : Manifest](entity: E)(implicit context: ActivateContext) = toJsonObject(entity).compactPrint
 
   private def toJsonObject[E <: Entity : Manifest](entity: E) = {
     val fields =
@@ -229,7 +227,7 @@ trait SprayJsonContext extends JsonContext {
     JsObject(fields)
   }
 
-  implicit def entityJsonFormat[E <: Entity : Manifest] =
+  implicit def entityJsonFormat[E <: Entity : Manifest](implicit context: ActivateContext) =
     new RootJsonFormat[E] {
       def write(entity: E) =
         toJsonObject[E](entity)
@@ -240,5 +238,3 @@ trait SprayJsonContext extends JsonContext {
 
 
 }
-
-object SprayJsonContext extends SprayJsonContext

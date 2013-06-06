@@ -7,8 +7,7 @@ import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
-trait JacksonJsonContext extends JsonContext {
-  implicit val context: ActivateContext = implicitly[ActivateContext]
+object JacksonJsonContext extends JsonContext {
 
   def mapper = new ObjectMapper {
     registerModule(DefaultScalaModule)
@@ -33,19 +32,19 @@ trait JacksonJsonContext extends JsonContext {
     writer.toString
   }
 
-  def createEntityFromJson[E <: Entity : Manifest](json: String): E = {
+  def createEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E = {
     parse[E](json)
   }
 
-  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E): E = {
+  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E)(implicit context: ActivateContext): E = {
     parse[E](json, entity)
   }
 
-  def createJsonFromEntity[E <: Entity : Manifest](entity: E) = {
+  def createJsonFromEntity[E <: Entity : Manifest](entity: E)(implicit context: ActivateContext) = {
     json(entity)
   }
 
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E = {
+  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String)(implicit context: ActivateContext): E = {
     mapper.readTree(json).get("id") match {
       case id: JsonNode =>
         val entity = context.byId[E](id.asText()).get
@@ -55,5 +54,3 @@ trait JacksonJsonContext extends JsonContext {
 
   }
 }
-
-object JacksonJsonContext extends JacksonJsonContext
