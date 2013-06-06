@@ -7,10 +7,12 @@ import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
+
+
 object JacksonJsonContext extends JsonContext {
 
   def mapper = new ObjectMapper {
-    registerModule(DefaultScalaModule)
+    registerModule(ActivateScalaModule)
     registerModule(ActivateJacksonModule)
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
