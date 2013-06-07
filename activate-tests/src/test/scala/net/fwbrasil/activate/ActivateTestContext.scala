@@ -63,7 +63,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == asyncMysqlContext || ctx == derbyContext)
+        if (ctx == mysqlContext || ctx == derbyContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -153,23 +153,23 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
     override def bigStringType = "TEXT"
 }
 
-object asyncMysqlContext extends ActivateTestContext {
-    val storage = new AsyncJdbcRelationalStorage[MySQLConnection] {
-        def configuration =
-            new Configuration(
-                username = "root",
-                host = "localhost",
-                port = 3306,
-                password = Some("root"),
-                database = Some("activate_test_async"))
-        lazy val objectFactory = new MySQLConnectionFactory(configuration)
-        val dialect = mySqlDialect
-    }
-}
-class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
-class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
-    override def bigStringType = "TEXT"
-}
+//object asyncMysqlContext extends ActivateTestContext {
+//    val storage = new AsyncJdbcRelationalStorage[MySQLConnection] {
+//        def configuration =
+//            new Configuration(
+//                username = "root",
+//                host = "localhost",
+//                port = 3306,
+//                password = Some("root"),
+//                database = Some("activate_test_async"))
+//        lazy val objectFactory = new MySQLConnectionFactory(configuration)
+//        val dialect = mySqlDialect
+//    }
+//}
+//class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
+//class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
+//    override def bigStringType = "TEXT"
+//}
 
 object h2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new SimpleJdbcRelationalStorage {
@@ -327,12 +327,12 @@ object polyglotContext extends ActivateTestContext {
     override def additionalStorages = Map(
         derby -> Set(classOf[Num]),
         h2 -> Set(classOf[EntityWithUninitializedValue]),
-        memory -> Set(classOf[SimpleEntity], classOf[EntityWithoutAttribute]),
+        memory -> Set(classOf[SimpleEntity]),
         asyncMongo -> Set(classOf[EntityWithoutAttribute]),
         mongo -> Set(classOf[Box]),
-        mysql -> Set(classOf[ActivateTestEntity]),
-        asyncPostgre -> Set(classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
-        prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]))
+        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
+        asyncPostgre -> Set(classOf[Employee]),
+        prevayler -> Set(classOf[CaseClassEntity]))
 }
 class PolyglotActivateTestMigration extends ActivateTestMigration()(polyglotContext)
 class PolyglotActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(polyglotContext) {

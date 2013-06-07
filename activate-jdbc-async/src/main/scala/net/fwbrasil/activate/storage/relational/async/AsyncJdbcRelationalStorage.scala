@@ -43,7 +43,7 @@ import net.fwbrasil.activate.storage.relational.SqlStatement
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Future[C]] {
-    
+
     val defaultTimeout = 9999 seconds
     val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -136,7 +136,7 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
             sqls.map(dialect.toSqlStatement).flatten
         executeWithTransaction {
             connection =>
-                sqlStatements.foldLeft(Future[Unit]())((future, statement) => 
+                sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
                     future.flatMap(_ => execute(statement, connection, isDdl))(executionContext))
         }
     }
@@ -150,7 +150,8 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
         val res =
             executeWithTransactionAndReturnHandle {
                 connection =>
-                    sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
+                    sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
+                        future.flatMap(_ => execute(statement, connection, isDdl)))
             }
         Some(Await.result(res, defaultTimeout))
     }
@@ -217,20 +218,22 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
         implicit val ectx = executionContext
         pool.take.flatMap {
             connection =>
-                val res =
-                    f(connection).map { _ =>
-                        new TransactionHandle(
-                            commitBlock = () => commit(connection),
-                            rollbackBlock = () => rollback(connection),
-                            finallyBlock = () => pool.giveBack(connection))
+                connection.sendQuery("BEGIN TRANSACTION").flatMap { _ =>
+                    val res =
+                        f(connection).map { _ =>
+                            new TransactionHandle(
+                                commitBlock = () => commit(connection),
+                                rollbackBlock = () => rollback(connection),
+                                finallyBlock = () => pool.giveBack(connection))
+                        }
+                    res.onFailure {
+                        case e: Throwable =>
+                            try rollback(connection)
+                            finally pool.giveBack(connection)
+                            throw e
                     }
-                res.onFailure {
-                    case e: Throwable =>
-                        try rollback(connection)
-                        finally pool.giveBack(connection)
-                        throw e
+                    res
                 }
-                res
         }
     }
 
@@ -238,19 +241,21 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
         implicit val ctx = executionContext
         pool.take.flatMap {
             conn =>
-                val res =
-                    f(conn).flatMap { _ =>
-                        conn.sendQuery("COMMIT").map { _ => }
-                    }.recoverWith {
-                        case e: Throwable =>
-                            conn.sendQuery("ROLLBACK").map { _ =>
-                                throw e
-                            }
+                conn.sendQuery("BEGIN TRANSACTION").flatMap { _ =>
+                    val res =
+                        f(conn).flatMap { _ =>
+                            conn.sendQuery("COMMIT").map { _ => }
+                        }.recoverWith {
+                            case e: Throwable =>
+                                conn.sendQuery("ROLLBACK").map { _ =>
+                                    throw e
+                                }
+                        }
+                    res.onComplete { _ =>
+                        pool.giveBack(conn)
                     }
-                res.onComplete { _ =>
-                    pool.giveBack(conn)
+                    res
                 }
-                res
         }
     }
 
