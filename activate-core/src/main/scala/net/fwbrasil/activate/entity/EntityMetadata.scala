@@ -19,40 +19,47 @@ class EntityPropertyMetadata(
         Option(varField.getAnnotation(classOf[Alias]))
             .map(_.value)
             .getOrElse(originalName)
-    val getter = entityMethods.find(_.getName == javaName).get
+    val getter = entityMethods.find(_.getName == javaName).getOrElse(null)
     val setter = entityMethods.find(_.getName == javaName + "_$eq").getOrElse(null)
     val genericParameter = {
-        getter.getGenericReturnType match {
-            case typ: ParameterizedType =>
-                val initial = typ.getActualTypeArguments.headOption.map(_ match {
-                    case typ: ParameterizedType =>
-                        typ.getRawType.asInstanceOf[Class[_]]
-                    case clazz: Class[_] =>
-                        clazz
-                    case other =>
-                        classOf[Object]
-                }).getOrElse(classOf[Object])
-                if (initial == classOf[Object]) {
-                    val fields = entityMetadata.sClass.fields
-                    val fieldOption = fields.find(_.name == originalName)
-                    val res = fieldOption.flatMap(_.typeArguments.headOption)
-                    res.flatMap(_.javaClassOption).getOrElse(classOf[Object])
-                } else
-                    initial
-            case other =>
-                classOf[Object]
-        }
+        if (getter == null)
+            classOf[Object]
+        else
+            getter.getGenericReturnType match {
+                case typ: ParameterizedType =>
+                    val initial = typ.getActualTypeArguments.headOption.map(_ match {
+                        case typ: ParameterizedType =>
+                            typ.getRawType.asInstanceOf[Class[_]]
+                        case clazz: Class[_] =>
+                            clazz
+                        case other =>
+                            classOf[Object]
+                    }).getOrElse(classOf[Object])
+                    if (initial == classOf[Object]) {
+                        val fields = entityMetadata.sClass.fields
+                        val fieldOption = fields.find(_.name == originalName)
+                        val res = fieldOption.flatMap(_.typeArguments.headOption)
+                        res.flatMap(_.javaClassOption).getOrElse(classOf[Object])
+                    } else
+                        initial
+                case other =>
+                    classOf[Object]
+            }
     }
     val propertyType = {
-        val typ = getter.getReturnType
-        if (typ == classOf[Option[_]])
-            genericParameter
-        else if (typ == classOf[Object]) {
-            val fields = entityMetadata.sClass.fields
-            val fieldOption = fields.find(_.name == originalName)
-            fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
-        } else
-            typ
+        if (getter == null)
+            classOf[Object]
+        else {
+            val typ = getter.getReturnType
+            if (typ == classOf[Option[_]])
+                genericParameter
+            else if (typ == classOf[Object]) {
+                val fields = entityMetadata.sClass.fields
+                val fieldOption = fields.find(_.name == originalName)
+                fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
+            } else
+                typ
+        }
     }
     require(propertyType != null)
     if (propertyType == classOf[Enumeration#Value])
@@ -64,15 +71,17 @@ class EntityPropertyMetadata(
     val isTransient =
         Modifier.isTransient(varField.getModifiers)
     val isOption =
-        getter.getReturnType == classOf[Option[_]]
+        propertyType == classOf[Option[_]]
+    val isLazyFlag =
+        javaName.startsWith("bitmap$")
     val tval =
-        if (isTransient)
+        if (isTransient || isLazyFlag)
             null
         else
             EntityValue.tvalFunctionOption[Any](propertyType, genericParameter)
                 .getOrElse(throw new IllegalStateException("Invalid entity property type. " + entityMetadata.name + "." + name + ": " + propertyType))
     varField.setAccessible(true)
-    getter.setAccessible(true)
+    Option(getter).map(_.setAccessible(true))
 
     if (varField.getDeclaringClass == entityMetadata.entityClass) {
         val metadataField = entityMetadata.entityClass.getDeclaredField("metadata_" + varField.getName)
@@ -103,12 +112,12 @@ class EntityMetadata(
     val idField =
         allFields.find(_.getName == "id").get
     def isEntityProperty(varField: Field) =
-        varField.getName.split('$').last != "_baseVar" && allMethods.find(_.getName == varField.getName).nonEmpty
+        varField.getName.split('$').last != "_baseVar" //&& allMethods.find(_.getName == varField.getName).nonEmpty
     val propertiesMetadata =
         (for (varField <- varFields; if (isEntityProperty(varField)))
             yield new EntityPropertyMetadata(this, varField, allMethods, entityClass)).sortBy(_.name)
     val persistentPropertiesMetadata =
-        propertiesMetadata.filter(!_.isTransient)
+        propertiesMetadata.filter(p => !p.isTransient && !p.isLazyFlag)
     val idPropertyMetadata =
         propertiesMetadata.find(_.name == "id").getOrElse(
             throw new IllegalStateException(

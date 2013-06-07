@@ -602,6 +602,8 @@ trait ActivateTestContext
             emptySerializableEntityValue,
             emptyListEntityValue,
             emptyTupleOptionValue)
+            
+        lazy val lazyValue = lazyValueValue
         var varInitializedInConstructor = fullStringValue
         val valInitializedInConstructor = fullStringValue
         val calculatedInConstructor = intValue * 2

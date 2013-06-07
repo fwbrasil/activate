@@ -145,8 +145,10 @@ trait DurableContext {
                 map.getOrElseUpdate(ref.outerEntity, new IdentityHashMap).put(ref, ref.tval(valueOption))
             map
         }
-        // Assume that all assignments are of Vars for performance reasons (could be Ref)
-        val persistentAssignments = pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]].filterNot(_._1.isTransient)
+        // Assume that all assignments are of Vars for performance reasons (could be Refs)
+        val persistentAssignments =
+            pAssignments.asInstanceOf[List[(Var[Any], Option[Any], Boolean)]]
+                .filter(p => !p._1.isTransient && !p._1.isLazyFlag)
         val (deleteAssignments, modifyAssignments) = persistentAssignments.partition(_._3)
         val deleteAssignmentsNormalized = normalize(deleteAssignments)
         val (insertStatementsNormalized, updateStatementsNormalized) = normalize(modifyAssignments).partition(tuple => !tuple._1.isPersisted)

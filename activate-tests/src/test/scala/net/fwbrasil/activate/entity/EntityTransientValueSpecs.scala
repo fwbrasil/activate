@@ -70,6 +70,6 @@ class EntityTransientValueSpecs extends ActivateTest {
                     }
                     transaction2.commit
                 })
-        }.pendingUntilFixed("https://github.com/fwbrasil/activate/issues/27")
+        }
     }
 }

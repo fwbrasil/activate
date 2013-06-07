@@ -13,13 +13,26 @@ class Var[T](
     val isTransient: Boolean,
     val baseTVal: Option[Any] => EntityValue[Any],
     val valueClass: Class[_],
+    val isLazyFlag: Boolean,
     val outerEntity: Entity,
-    initialize: Boolean)
-        extends Ref[T](None, initialize)(outerEntity.context)
+    initialize: Boolean,
+    valueOption: Option[T])
+        extends Ref[T](valueOption, initialize)(outerEntity.context)
         with java.io.Serializable {
 
     def this(metadata: EntityPropertyMetadata, outerEntity: Entity, initialize: Boolean) =
-        this(metadata.name, metadata.isTransient, metadata.tval, metadata.propertyType, outerEntity, initialize)
+        this(
+            metadata.name,
+            metadata.isTransient,
+            metadata.tval,
+            metadata.propertyType,
+            metadata.isLazyFlag,
+            outerEntity,
+            initialize || metadata.isLazyFlag,
+            if (metadata.isLazyFlag)
+                Some(false.asInstanceOf[T])
+            else
+                None)
 
     val tval = {
         if (baseTVal == null)

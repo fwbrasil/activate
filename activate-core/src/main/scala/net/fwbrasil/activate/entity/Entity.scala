@@ -41,7 +41,7 @@ trait Entity extends Serializable with EntityValidation {
     def vars = {
         if (_vars == null) {
             import scala.collection.JavaConversions._
-            _vars = varsMap.values.toList
+            _vars = varsMap.values.toList.filter(!_.isLazyFlag)
         }
         _vars
     }

@@ -37,6 +37,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.cache.live.LiveCache
 import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.activate.entity.Var
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
 
@@ -75,7 +76,19 @@ class PrevaylerStorage(
         prevalentSystem.values.foreach(_.invariants)
         hackPrevaylerToActAsARedoLogOnly
         for (entity <- prevalentSystem.values) {
+            context.transactional(context.transient) {
+                initializeLazyFlags(entity)
+            }
             context.liveCache.toCache(entity)
+        }
+    }
+
+    private def initializeLazyFlags(entity: net.fwbrasil.activate.entity.Entity): Unit = {
+        val metadata = EntityHelper.getEntityMetadata(entity.getClass)
+        val lazyFlags = metadata.propertiesMetadata.filter(p => p.isLazyFlag && p.isTransient)
+        for(propertyMetadata <- lazyFlags) {
+            val ref = new Var(propertyMetadata, entity, true)
+            propertyMetadata.varField.set(entity, ref)
         }
     }
 

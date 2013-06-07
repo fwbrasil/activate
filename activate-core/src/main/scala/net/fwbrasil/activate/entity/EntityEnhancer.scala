@@ -34,8 +34,9 @@ object EntityEnhancer extends Logging {
     val idVarClassName = classOf[IdVar].getName
     val entityClassName = classOf[Entity].getName
     val entityClassFieldPrefix = entityClassName.replace(".", "$")
-    val scalaVariablesPrefixes = Array("$outer", "bitmap$")
+    val scalaVariablesPrefixes = Array("$outer" , "bitmap$init$" )
     val entityValidationFields = Array("invariants", "listener")
+    val transientBitmapFlagName = "bitmap$"
 
     def isEntityClass(clazz: CtClass, classPool: ClassPool): Boolean =
         clazz.getInterfaces.contains(classPool.get(entityClassName)) ||

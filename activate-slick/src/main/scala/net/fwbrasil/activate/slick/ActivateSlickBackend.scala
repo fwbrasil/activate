@@ -95,7 +95,8 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
         val a = ActivateSlickBackend.entityMetadataOption(tpe).map {
             metadata =>
                 val entitySClass = sClassOf(metadata.entityClass)
-                metadata.propertiesMetadata.map(p => entitySClass.fields.find(_.name == p.originalName).get.symbol)
+                metadata.propertiesMetadata.filter(!_.isLazyFlag)
+                    .map(p => entitySClass.fields.find(_.name == p.originalName).get.symbol)
         }.getOrElse {
             super.getConstructorArgs(tpe)
         }

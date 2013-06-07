@@ -247,7 +247,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
             }
 
     def loadFromDatabase(entity: Entity, withinTransaction: Boolean): Unit = {
-        val vars = entity.vars.toList.filter(!_.isTransient)
+        val vars = entity.vars.toList.filter(p => !p.isTransient)
         if (vars.size != 1) {
             val row = loadRowFromDatabase(entity)
             if (row.isDefined) {
@@ -512,7 +512,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     private def loadRowFromDatabase(entity: Entity) = {
         val query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>
             where(e :== entity.id)
-                .selectList(e.vars.filter(!_.isTransient).map(toStatementValueRef).toList)
+                .selectList(e.vars.filter(p => !p.isTransient).map(toStatementValueRef).toList)
         })(manifestClass(entity.getClass))
         entitiesFromStorage(query, List()).headOption
     }

@@ -34,7 +34,7 @@ class EntitySpecs extends ActivateTest {
                     }
                     step {
                         for (entity <- all[ActivateTestEntity]) {
-                            entity.vars.filter(_.name != OptimisticOfflineLocking.versionVarName).toSet.size must beEqualTo(34)
+                            entity.vars.filter(_.name != OptimisticOfflineLocking.versionVarName).toSet.size must beEqualTo(35)
                         }
                     }
                 })
