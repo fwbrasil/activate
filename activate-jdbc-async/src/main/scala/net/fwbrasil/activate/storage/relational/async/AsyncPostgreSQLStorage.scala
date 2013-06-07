@@ -41,17 +41,19 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import scala.util.Failure
 import net.fwbrasil.activate.storage.relational.SqlStatement
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 
-trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Future[C]] {
+trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
     val defaultTimeout = 9999 seconds
     val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-    val objectFactory: ObjectFactory[C]
+    val objectFactory: ObjectFactory[PostgreSQLConnection]
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
     private var pool = new ConnectionPool(objectFactory, poolConfiguration)
-    val dialect: SqlIdiom
+    
+    private val dialect = postgresqlDialect
 
     override protected[activate] def query(
         query: Query[_],

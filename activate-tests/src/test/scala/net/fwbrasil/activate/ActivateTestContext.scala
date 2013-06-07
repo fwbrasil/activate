@@ -24,7 +24,7 @@ import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
 import org.joda.time.DateMidnight
 import net.fwbrasil.activate.entity.LazyList
-import net.fwbrasil.activate.storage.relational.async.AsyncJdbcRelationalStorage
+import net.fwbrasil.activate.storage.relational.async.AsyncPostgreSQLStorage
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
 import org.jboss.netty.util.CharsetUtil
@@ -136,7 +136,7 @@ class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
 }
 
 object asyncPostgresqlContext extends ActivateTestContext {
-    val storage = new AsyncJdbcRelationalStorage[PostgreSQLConnection] {
+    val storage = new AsyncPostgreSQLStorage {
         def configuration =
             new Configuration(
                 username = "postgres",
@@ -277,7 +277,7 @@ object polyglotContext extends ActivateTestContext {
         val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
         val dialect = postgresqlDialect
     }
-    val asyncPostgre = new AsyncJdbcRelationalStorage[PostgreSQLConnection] {
+    val asyncPostgre = new AsyncPostgreSQLStorage {
         def configuration =
             new Configuration(
                 username = "postgres",
