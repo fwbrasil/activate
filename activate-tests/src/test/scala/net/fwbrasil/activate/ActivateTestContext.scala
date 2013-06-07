@@ -277,6 +277,17 @@ object polyglotContext extends ActivateTestContext {
         val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
         val dialect = postgresqlDialect
     }
+    val asyncPostgre = new AsyncJdbcRelationalStorage[PostgreSQLConnection] {
+        def configuration =
+            new Configuration(
+                username = "postgres",
+                host = "localhost",
+                password = Some("postgres"),
+                database = Some("activate_test_polyglot_async"))
+        lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
+        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
+        val dialect = postgresqlDialect
+    }
     val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
         val user = "root"
@@ -291,6 +302,12 @@ object polyglotContext extends ActivateTestContext {
         override val port = 27017
         override val db = "activate_test_polyglot"
     }
+    val asyncMongo = new AsyncMongoStorage {
+        override val host = "localhost"
+        override val port = 27017
+        override val db = "activate_test_polyglot_async"
+    }
+
     val derby = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
         val user = ""
@@ -311,8 +328,10 @@ object polyglotContext extends ActivateTestContext {
         derby -> Set(classOf[Num]),
         h2 -> Set(classOf[EntityWithUninitializedValue]),
         memory -> Set(classOf[SimpleEntity], classOf[EntityWithoutAttribute]),
+        asyncMongo -> Set(classOf[EntityWithoutAttribute]),
         mongo -> Set(classOf[Box]),
-        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
+        mysql -> Set(classOf[ActivateTestEntity]),
+        asyncPostgre -> Set(classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
         prevayler -> Set(classOf[Employee], classOf[CaseClassEntity]))
 }
 class PolyglotActivateTestMigration extends ActivateTestMigration()(polyglotContext)

@@ -44,7 +44,7 @@ trait Storage[T] extends Logging {
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
-        blockingFuture(toStorage(statements, insertList, updateList, deleteList))
+        blockingFuture(toStorage(statements, insertList, updateList, deleteList).map(_.commit))
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
 

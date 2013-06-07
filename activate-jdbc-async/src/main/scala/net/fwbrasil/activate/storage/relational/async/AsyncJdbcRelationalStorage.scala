@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.async
 
+import language.postfixOps
 import com.github.mauricio.async.db.{ RowData, QueryResult, Connection }
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -43,6 +44,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     
+    val defaultTimeout = 9999 seconds
     val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     val objectFactory: ObjectFactory[C]
@@ -57,7 +59,7 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
         entitiesReadFromCache: List[List[Entity]]) = {
         val jdbcQuery = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
         val result = queryAsync(jdbcQuery, expectedTypes)
-        Await.result(result, Duration.Inf)
+        Await.result(result, defaultTimeout)
     }
 
     override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
@@ -122,7 +124,7 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
                                 throw new IllegalStateException("Empty result.")
                         }
                     }
-                Some(Await.result(listFuture, Duration.Inf))
+                Some(Await.result(listFuture, defaultTimeout))
             }
         ListStorageValue(listOption, expectedType.emptyStorageValue)
     }
@@ -150,7 +152,7 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
                 connection =>
                     sqlStatements.foldLeft(Future[Unit]())((future, statement) => future.flatMap(_ => execute(statement, connection, isDdl)))
             }
-        Some(Await.result(res, Duration.Inf))
+        Some(Await.result(res, defaultTimeout))
     }
 
     def execute(jdbcStatement: JdbcStatement, connection: Connection, isDdl: Boolean) = {
@@ -253,10 +255,10 @@ trait AsyncJdbcRelationalStorage[C <: Connection] extends RelationalStorage[Futu
     }
 
     private def commit(c: Connection) =
-        Await.result(c.sendQuery("COMMIT"), Duration.Inf)
+        Await.result(c.sendQuery("COMMIT"), defaultTimeout)
 
     private def rollback(c: Connection) =
-        Await.result(c.sendQuery("ROLLBACK"), Duration.Inf)
+        Await.result(c.sendQuery("ROLLBACK"), defaultTimeout)
 
     def directAccess = pool.take
 

@@ -38,15 +38,15 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-            //            asyncMysqlContext,
+            asyncMysqlContext,
             asyncPostgresqlContext,
             asyncMongoContext,
             memoryContext,
             prevaylerContext,
             postgresqlContext,
-            mongoContext //,
-            //            mysqlContext//,
-            //            polyglotContext,
+            mongoContext,
+            mysqlContext,
+            polyglotContext //,
             //            derbyContext,
             //            h2Context,
             //            hsqldbContext //,
@@ -125,8 +125,6 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
                 }
             Await.result(f, Duration.Inf)
         }
-        override def accept(ctx: ActivateTestContext) =
-            ctx.storage.supportsAsync
     }
 
     case class MultipleTransactionsWithReinitialize(ctx: ActivateTestContext) extends StepExecutor {
@@ -185,7 +183,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
                     all[SimpleEntity].foreach(_.delete)
                     all[ShortNameEntity].foreach(_.delete)
                 }
-                for (executor <- executors(ctx)) {
+                val executors = this.executors(ctx)
+                for (executor <- executors) {
                     clear
                     f(executor)
                     executor.finalizeExecution

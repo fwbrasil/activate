@@ -51,7 +51,7 @@ trait MarshalStorage[T] extends Storage[T] {
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
-        blockingFuture(store(statements, insertList, updateList, deleteList))
+        blockingFuture(store(statements, insertList, updateList, deleteList).map(_.commit))
 
     override def fromStorage(
         queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] = {

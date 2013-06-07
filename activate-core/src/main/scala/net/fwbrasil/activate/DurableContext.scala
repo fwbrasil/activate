@@ -312,7 +312,7 @@ trait DurableContext {
                 List(),
                 inserts,
                 updates,
-                deletes)
+                deletes).map(_.commit)
         catch {
             case ex: Throwable =>
                 writeRollbackErrorDumpFile(

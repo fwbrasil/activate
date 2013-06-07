@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.mongo.async
 
+import language.postfixOps
 import language.implicitConversions
 import net.fwbrasil.activate.storage.marshalling.MarshalStorage
 import net.fwbrasil.activate.entity.EntityHelper.getEntityName
