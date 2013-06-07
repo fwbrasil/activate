@@ -184,10 +184,10 @@ object ActivateBuild extends Build {
     	)
 
   val jackson = Seq(
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.2.1",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.1",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.1",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.2.1")
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.2.2")
 
   lazy val activateJacksonJson =
     Project(
