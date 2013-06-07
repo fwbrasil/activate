@@ -38,7 +38,7 @@ object ActivateBuild extends Build {
 	*/
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
-	val postgresql = "postgresql" % "postgresql" % "9.1-901.jdbc4"
+	val postgresql = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
 	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
@@ -110,8 +110,7 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.1"
-    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.1"
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.3"
 
     lazy val activateJdbcAsync =
     	Project(
@@ -120,7 +119,7 @@ object ActivateBuild extends Build {
     		dependencies = Seq(activateCore, activateJdbc),
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(postgresqlAsync, mysqlAsync)
+		    	  Seq(postgresqlAsync)
 		    )
     	)
 

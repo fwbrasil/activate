@@ -34,7 +34,6 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import org.joda.time.DateTime
 import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
-import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
 import com.github.mauricio.async.db.pool.ObjectFactory
 import org.jboss.netty.util.CharsetUtil
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom

@@ -43,11 +43,11 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             prevaylerContext,
             postgresqlContext,
             mongoContext,
-            polyglotContext //,
-            //            mysqlContext,
-            //            derbyContext,
-            //            h2Context,
-            //            hsqldbContext //,
+            polyglotContext,
+            mysqlContext,
+            derbyContext,
+            h2Context,
+            hsqldbContext //,
             //oracleContext,
             //db2Context
             )

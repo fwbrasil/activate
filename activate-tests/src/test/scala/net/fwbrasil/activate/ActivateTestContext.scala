@@ -31,8 +31,6 @@ import org.jboss.netty.util.CharsetUtil
 import com.github.mauricio.async.db.pool.ObjectFactory
 import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
-import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
-import com.github.mauricio.async.db.mysql.MySQLConnection
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
 import scala.slick.direct.AnnotationMapper.table
