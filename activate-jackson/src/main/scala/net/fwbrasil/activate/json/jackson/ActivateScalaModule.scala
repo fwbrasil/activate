@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.jackson.json
+package net.fwbrasil.activate.json.jackson
 
 import com.fasterxml.jackson.module.scala.deser.UntypedObjectDeserializerModule
 import com.fasterxml.jackson.module.scala.IterableModule

@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.jackson.json
+package net.fwbrasil.activate.json.jackson
 
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.core.{ JsonParser, Version }

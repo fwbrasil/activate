@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.jackson.json
+package net.fwbrasil.activate.json.jackson
 
 import net.fwbrasil.activate.ActivateContext
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationFeature, SerializationFeature, ObjectMapper}

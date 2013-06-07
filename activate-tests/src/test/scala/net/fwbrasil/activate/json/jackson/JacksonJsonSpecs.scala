@@ -1,4 +1,4 @@
-//package net.fwbrasil.activate.jackson.json
+//package net.fwbrasil.activate.json.jackson
 //
 //import org.junit.runner._
 //import org.specs2.runner._

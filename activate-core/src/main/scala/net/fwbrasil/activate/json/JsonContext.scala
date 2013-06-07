@@ -16,10 +16,10 @@ trait JsonContext {
 
   implicit class EntityJsonMethods[E <: Entity : Manifest](val entity: E) {
 
-    def entityFromJson(json: String): E =
-      updateEntityFromJson(json, entity)
+    def updateFromJsonString(json: String): E =
+      JsonContext.this.updateEntityFromJson(json, entity)
 
-    def entityToJson: String = createJsonFromEntity(entity)
+    def toJsonString: String = createJsonFromEntity(entity)
   }
 
 }

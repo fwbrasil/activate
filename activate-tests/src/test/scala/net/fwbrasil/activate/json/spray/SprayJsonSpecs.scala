@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.spray.json
+package net.fwbrasil.activate.json.spray
 
 import org.specs2.mutable._
 import org.junit.runner._
@@ -33,8 +33,8 @@ class SprayJsonSpecs extends ActivateTest {
                             (emptyEntity.toJson, fullEntity.toJson)
                         }
                     step {
-                        emptyEntity.entityFromJson(fullEntityJson.compactPrint)
-                        fullEntity.entityFromJson(emptyEntityJson.compactPrint)
+                        emptyEntity.updateFromJsonString(fullEntityJson.compactPrint)
+                        fullEntity.updateFromJsonString(emptyEntityJson.compactPrint)
                     }
                     step {
                         validateFullTestEntity(emptyEntity)

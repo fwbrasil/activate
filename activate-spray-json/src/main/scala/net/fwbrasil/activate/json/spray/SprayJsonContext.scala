@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.spray.json
+package net.fwbrasil.activate.json.spray
 
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.ActivateContext
