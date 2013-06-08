@@ -236,7 +236,7 @@ object asyncMongoContext extends ActivateTestContext {
 }
 class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
-object oracleContext extends ActivateTestContext with SlickQueryContext {
+object oracleContext extends ActivateTestContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
@@ -253,7 +253,7 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object db2Context extends ActivateTestContext with SlickQueryContext {
+object db2Context extends ActivateTestContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2inst1"

@@ -39,7 +39,7 @@ object ActivateBuild extends Build {
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
 	val postgresql = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
-	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
+	val boneCP = "com.jolbox" % "bonecp" % "0.8.0-rc1"
 	val h2 = "com.h2database" % "h2" % "1.3.168"
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
@@ -233,16 +233,16 @@ object ActivateBuild extends Build {
     		crossScalaVersions := Seq("2.10.0", "2.10.1"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
-    	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
+    	    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    // publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
-    	    publishTo <<= version { v: String =>
-				  val nexus = "https://oss.sonatype.org/"
-				  val fwbrasil = "http://fwbrasil.net/maven/"
-				  if (v.trim.endsWith("SNAPSHOT")) 
-				    Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644"))
-				  else                             
-				    Some("releases" at nexus + "service/local/staging/deploy/maven2")
-				},
+    // 	    publishTo <<= version { v: String =>
+				//   val nexus = "https://oss.sonatype.org/"
+				//   val fwbrasil = "http://fwbrasil.net/maven/"
+				//   if (v.trim.endsWith("SNAPSHOT")) 
+				//     Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644"))
+				//   else                             
+				//     Some("releases" at nexus + "service/local/staging/deploy/maven2")
+				// },
 		    resolvers ++= customResolvers,
 			credentials += Credentials(Path.userHome / ".sbt" / "sonatype.credentials"),
 			publishMavenStyle := true,

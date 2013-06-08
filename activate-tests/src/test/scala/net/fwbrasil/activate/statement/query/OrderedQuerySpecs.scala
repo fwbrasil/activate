@@ -11,6 +11,7 @@ import scala.util.Random.nextDouble
 import scala.util.Random.nextFloat
 import scala.util.Random.nextInt
 import scala.util.Random.nextLong
+import net.fwbrasil.activate.oracleContext
 
 @RunWith(classOf[JUnitRunner])
 class OrderedQuerySpecs extends ActivateTest {
@@ -244,6 +245,7 @@ class OrderedQuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
+                    if(step.ctx != oracleContext) {
                     val expected = List(null, "a", "b", "c")
                     step {
                         expected.randomize.foreach(v =>
@@ -259,13 +261,14 @@ class OrderedQuerySpecs extends ActivateTest {
                                 where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10)
                         }.toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
                     }
+                    }
                 })
         }
 
         "support limit with offset" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (!step.isInstanceOf[OneTransaction]) {
+                    if (!step.isInstanceOf[OneTransaction] && step.ctx != oracleContext) {
                         import step.ctx._
                         val expected = List(null, "a", "b", "c")
                         step {
