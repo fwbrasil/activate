@@ -122,7 +122,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     }
 
     override protected[activate] def queryAsync(
-            query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
+        query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
         Future(mongoIdiom.toQuery(query, entitiesReadFromCache)).flatMap { tuple =>
             val (where, select) = tuple
             val order = mongoIdiom.toQueryOrder(query)
@@ -148,9 +148,9 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         val options =
             query match {
                 case query: LimitedOrderedQuery[_] =>
-                    QueryOpts(query.offsetOption.getOrElse(0))
+                    QueryOpts(skipN = query.offsetOption.getOrElse(0), batchSizeN = Int.MaxValue)
                 case other =>
-                    QueryOpts()
+                    QueryOpts(batchSizeN = Int.MaxValue)
             }
 
         val ret = coll(query.from).find(dbObject(where), dbObject(select)).options(options)

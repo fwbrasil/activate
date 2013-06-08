@@ -576,5 +576,20 @@ class QuerySpecs extends ActivateTest {
 
         }
 
+        "support query with many results" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entities = 1000
+                    step {
+                        for (i <- 0 until entities)
+                            new TraitAttribute1("1")
+                    }
+                    step {
+                        all[TraitAttribute1].size === entities
+                    }
+                })
+        }
+
     }
 }
