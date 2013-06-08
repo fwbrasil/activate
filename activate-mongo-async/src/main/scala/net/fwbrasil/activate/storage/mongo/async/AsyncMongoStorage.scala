@@ -142,15 +142,16 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         select: Map[String, Any],
         order: Map[String, Any],
         expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] = {
-        
+
         implicit val ctx = executionContext
 
         val options =
             query match {
                 case query: LimitedOrderedQuery[_] =>
-                    QueryOpts(skipN = query.offsetOption.getOrElse(0), batchSizeN = Int.MaxValue)
+                    val offset = query.offsetOption.getOrElse(0)
+                    QueryOpts(skipN = offset, batchSizeN = Int.MaxValue - 1 - offset)
                 case other =>
-                    QueryOpts(batchSizeN = Int.MaxValue)
+                    QueryOpts(batchSizeN = Int.MaxValue - 1)
             }
 
         val ret = coll(query.from).find(dbObject(where), dbObject(select)).options(options)
