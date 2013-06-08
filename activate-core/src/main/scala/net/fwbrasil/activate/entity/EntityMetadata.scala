@@ -71,7 +71,7 @@ class EntityPropertyMetadata(
     val isTransient =
         Modifier.isTransient(varField.getModifiers)
     val isOption =
-        propertyType == classOf[Option[_]]
+        getter != null && getter.getReturnType == classOf[Option[_]]
     val isLazyFlag =
         javaName.startsWith("bitmap$")
     val tval =

@@ -21,7 +21,8 @@ import play.api.data.format.Formatter
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityMetadata
 import scala.annotation.implicitNotFound
-
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import scala.concurrent.Future
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class EntityForm[T <: Entity](
     mapping: EntityMapping[T],
@@ -80,21 +81,24 @@ class EntityData[T <: Entity](val data: List[(String, Any)])(
     def updateEntity(id: String): T = tryUpdate(id).get
 
     def tryUpdate(id: String): Option[T] = context.transactional {
-        context.byId[T](id).map { entity =>
-            val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
-            for ((property, value) <- data) {
-                val ref = entity.varNamed(property)
-                val propertyMetadata = metadatasMap(property)
-                if (propertyMetadata.isOption)
-                    ref.put(value.asInstanceOf[Option[_]])
-                else
-                    ref.putValue(value)
-            }
-            entity
-        }
+        context.byId[T](id).map(updateEntity)
     }
+    
+    def createEntity = 
+        context.transactional {
+        _createEntity
+    }
+    
+    def asyncCreateEntity(implicit ctx: TransactionalExecutionContext) =
+        Future(_createEntity)
 
-    def createEntity = context.transactional {
+    def asyncUpdateEntity(id: String)(implicit ctx: TransactionalExecutionContext): Future[T] =
+        asyncTryUpdate(id).map(_.get)
+
+    def asyncTryUpdate(id: String)(implicit ctx: TransactionalExecutionContext): Future[Option[T]] =
+        context.asyncById[T](id).map(_.map(updateEntity))
+        
+    private def _createEntity = {
         val entityClass = erasureOf[T]
         val id = IdVar.generateId(entityClass)
         val entity = context.liveCache.createLazyEntity(entityClass, id)
@@ -102,6 +106,19 @@ class EntityData[T <: Entity](val data: List[(String, Any)])(
         entity.setNotPersisted
         context.liveCache.toCache(entityClass, () => entity)
         updateEntity(id)
+        entity
+    }
+
+    private def updateEntity(entity: T) = {
+        val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
+        for ((property, value) <- data) {
+            val ref = entity.varNamed(property)
+            val propertyMetadata = metadatasMap(property)
+            if (propertyMetadata.isOption)
+                ref.put(value.asInstanceOf[Option[_]])
+            else
+                ref.putValue(value)
+        }
         entity
     }
 }

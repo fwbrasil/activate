@@ -2,6 +2,8 @@ package net.fwbrasil.activate.statement.query
 
 import net.fwbrasil.activate.statement.SimpleValue
 import net.fwbrasil.activate.entity.IntEntityValue
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.entity.IntEntityValue
 
 class Pagination[S](query: OrderedQuery[S]) {
     def navigator(pageSize: Int) =
@@ -10,7 +12,8 @@ class Pagination[S](query: OrderedQuery[S]) {
 
 class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
 
-    val numberOfResults = new Query[Int](query.from, query.where, Select(query.select.values.head)).execute.size
+    val select1 = Select(SimpleValue[Int](() => 1, IntEntityValue(_)))
+    val numberOfResults = new Query[Int](query.from, query.where, select1).execute.size
     val numberOfPages = (numberOfResults / pageSize) + (if (numberOfResults % pageSize > 0) 1 else 0)
 
     def hasNext =

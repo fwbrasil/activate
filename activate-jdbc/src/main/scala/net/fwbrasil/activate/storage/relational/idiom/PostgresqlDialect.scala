@@ -28,6 +28,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.statement.query.OrderByCriteria
+import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 
 object postgresqlDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -102,7 +103,7 @@ object postgresqlDialect extends SqlIdiom {
         "CONCAT(" + strings.mkString(", ") + ")"
 
     override def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
-        super.toSqlDml(criteria) + " NULLS FIRST"
+        super.toSqlDml(criteria) + (if(criteria.direction == orderByAscendingDirection)" NULLS FIRST" else " NULLS LAST")
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {

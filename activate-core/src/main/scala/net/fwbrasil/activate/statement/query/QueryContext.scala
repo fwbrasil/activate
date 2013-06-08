@@ -265,7 +265,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
                 implicit val manifestT = manifestClass[T](entityClass)
                 val fromLiveCache = liveCache.byId[T](id)
                 if (fromLiveCache.isDefined)
-                    Future.successful(fromLiveCache.filterNot(_.isDeletedSnapshot))
+                    Future(fromLiveCache.filterNot(_.isDeletedSnapshot))(texctx)
                 else _asyncAllWhere[T](_ :== id).map(_.headOption)(texctx)
         }.getOrElse(Future.successful(None))
     }

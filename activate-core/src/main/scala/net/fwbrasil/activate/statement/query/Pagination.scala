@@ -5,8 +5,9 @@ import net.fwbrasil.activate.entity.IntEntityValue
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 class AsyncPagination[S](query: OrderedQuery[S]) {
+    val select1 = Select(SimpleValue[Int](() => 1, IntEntityValue(_)))
     def navigator(pageSize: Int)(implicit ctx: TransactionalExecutionContext) =
-        new Query[Int](query.from, query.where, Select(query.select.values.head)).executeAsync.map {
+        new Query[Int](query.from, query.where, select1).executeAsync.map {
             result => new AsyncPaginationNavigator(result.size, query, pageSize) 
         }
 }
