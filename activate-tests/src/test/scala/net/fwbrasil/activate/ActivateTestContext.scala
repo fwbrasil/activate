@@ -104,7 +104,7 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
-object mysqlContext extends ActivateTestContext {
+object mysqlContext extends ActivateTestContext with SlickQueryContext {
     System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
     System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
     System.getProperties.put("activate.storage.mysql.user", "root")
@@ -112,7 +112,7 @@ object mysqlContext extends ActivateTestContext {
     System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/activate_test")
     System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
     val storage =
-        StorageFactory.fromSystemProperties("mysql")
+        StorageFactory.fromSystemProperties("mysql").asInstanceOf[PooledJdbcRelationalStorage]
 }
 class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext)
 class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(mysqlContext) {
@@ -201,7 +201,7 @@ class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object derbyContext extends ActivateTestContext with SlickQueryContext {
+object derbyContext extends ActivateTestContext with SlickQueryContext{
     System.setProperty("derby.locks.deadlockTrace", "true")
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
@@ -236,7 +236,7 @@ object asyncMongoContext extends ActivateTestContext {
 }
 class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
-object oracleContext extends ActivateTestContext {
+object oracleContext extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
@@ -253,7 +253,7 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object db2Context extends ActivateTestContext {
+object db2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2inst1"

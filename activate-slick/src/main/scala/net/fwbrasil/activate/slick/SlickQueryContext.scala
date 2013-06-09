@@ -66,7 +66,8 @@ trait SlickQueryContext {
 
     implicit val mirror = scala.reflect.runtime.currentMirror
 
-    lazy val backend = new ActivateSlickBackend(driver, storage.asInstanceOf[JdbcRelationalStorage].dialect, new ActivateEntityMapper)
+    private lazy val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect
+    lazy val backend = new ActivateSlickBackend(driver, dialect, new ActivateEntityMapper(dialect))
 
     lazy val database =
         new Database {

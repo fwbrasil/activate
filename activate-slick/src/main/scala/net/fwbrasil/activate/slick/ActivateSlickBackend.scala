@@ -92,7 +92,7 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
     }
 
     override def getConstructorArgs(tpe: Type) = {
-        val a = ActivateSlickBackend.entityMetadataOption(tpe).map {
+        ActivateSlickBackend.entityMetadataOption(tpe).map {
             metadata =>
                 val entitySClass = sClassOf(metadata.entityClass)
                 metadata.propertiesMetadata.filter(!_.isLazyFlag)
@@ -100,7 +100,6 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
         }.getOrElse {
             super.getConstructorArgs(tpe)
         }
-        a
     }
 
     override def typetagToQuery(typetag: TypeTag[_]): Query = {
@@ -109,7 +108,7 @@ class ActivateSlickBackend(driver: BasicDriver, dialect: SqlIdiom, val mapper: A
             def columns =
                 ActivateSlickBackend.entityMetadataOption(typetag.tpe).map {
                     metadata =>
-                        List(Select(Node(this), FieldSymbol("id")(List(), null)))
+                        List(Select(Node(this), FieldSymbol(mapper.normalizeIfNecessary("id"))(List(), null)))
                 }.getOrElse {
                     getConstructorArgs(typetag.tpe).map { extractColumn(_, Node(this)) } // use def here, not val, so expansion is still correct after cloning
                 }
