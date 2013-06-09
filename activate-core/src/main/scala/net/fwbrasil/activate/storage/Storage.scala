@@ -55,7 +55,7 @@ trait Storage[T] extends Logging {
 
     protected def blockingFuture[T](f: => T)(implicit ctx: ExecutionContext) = {
         if (!blockingFutureWarned)
-            warn("Storage does not support non-blocking async operations. Async operations will fallback to blocking futures.")
+            warn("Storage does not support non-blocking async operations. Async operations will run inside blocking futures.")
         blockingFutureWarned = true
         Future(f)
     }
