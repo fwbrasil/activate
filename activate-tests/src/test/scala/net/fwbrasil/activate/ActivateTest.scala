@@ -49,7 +49,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             h2Context,
             hsqldbContext,
             oracleContext,
-            db2Context)
+            db2Context
+            )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
         if (db == null)

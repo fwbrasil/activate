@@ -301,14 +301,6 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
     def connectionPool =
         _connectionPool
 
-    override def reinitialize = {
-        _connectionPool.close
-        while(_connectionPool.getTotalLeased != 0)
-            Thread.sleep(10)
-        initConnectionPool
-        super.reinitialize
-    }
-
     override def getConnection =
         _connectionPool.getConnection
 
@@ -320,6 +312,7 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         config.setPassword(password)
         config.setLazyInit(true)
         config.setDisableConnectionTracking(true)
+        config.setReleaseHelperThreads(0)
         _connectionPool = new BoneCP(config)
     }
 

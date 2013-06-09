@@ -59,9 +59,7 @@ object mongoIdiom {
     def findStaleDataQueries(
         data: List[(Entity, Map[String, StorageValue])]) = {
         for ((entity, properties) <- data.filter(_._2.contains(versionVarName))) yield {
-            val query = newObject(
-                "_id" -> entity.id,
-                "$not" -> versionCondition(properties))
+            val query = versionConditionStale(entity.id, properties)
             val select = newObject("_id" -> 1)
             (entity, query, select)
         }
@@ -79,6 +77,15 @@ object mongoIdiom {
         val versionIsNull = newObject(versionVarName -> null)
         val isTheExcpectedVersion = newObject(versionVarName -> expectedVersion(properties))
         newObject("$or" -> newList(versionIsNull, isTheExcpectedVersion))
+    }
+
+    def versionConditionStale(
+        id: String,
+        properties: Map[String, StorageValue]) = {
+        val entityId = newObject("_id" -> id)
+        val versionIsNotNull = newObject(versionVarName -> newObject("$ne" -> null))
+        val isntTheExcpectedVersion = newObject(versionVarName -> newObject("$ne" -> expectedVersion(properties)))
+        newObject("$and" -> newList(entityId, versionIsNotNull, isntTheExcpectedVersion))
     }
 
     def collectionClass(from: From) =

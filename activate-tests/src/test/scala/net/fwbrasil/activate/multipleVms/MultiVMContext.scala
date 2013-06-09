@@ -12,7 +12,7 @@ trait MultiVMContext extends StoppableActivateContext {
         var intValue = 0
     }
 
-    val storage = asyncPostgresqlContext.storage//mongoContext.storage
+    val storage = mongoContext.storage
 
     def run[A](f: => A) = {
         start
