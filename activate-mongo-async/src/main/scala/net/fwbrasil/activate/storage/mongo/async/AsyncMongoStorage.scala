@@ -47,6 +47,9 @@ import java.util.Date
 import scala.util.Success
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.storage.StorageFactory
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -370,4 +373,16 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     private def coll(entityName: String) =
         mongoDB.collection[BSONCollection](entityName)
 
+}
+
+object AsyncMongoStorageFactory extends StorageFactory {
+    class AsyncMongoStorageFromFactory(properties: Map[String, String]) extends AsyncMongoStorage {
+        override val host = properties("host")
+        override val port = Integer.parseInt(properties("port"))
+        override val db = properties("db")
+        override val authentication =
+            properties.get("user").map(user => (user, properties("password")))
+    }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new AsyncMongoStorageFromFactory(properties)
 }

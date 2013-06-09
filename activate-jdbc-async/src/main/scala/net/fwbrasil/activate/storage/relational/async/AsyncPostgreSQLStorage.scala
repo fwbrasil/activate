@@ -41,6 +41,8 @@ import scala.util.Failure
 import net.fwbrasil.activate.storage.relational.SqlStatement
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
@@ -51,7 +53,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
     private var pool = new ConnectionPool(objectFactory, poolConfiguration)
-    
+
     private val dialect = postgresqlDialect
 
     override protected[activate] def query(
@@ -344,4 +346,20 @@ case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
         else
             Option(f(value))
     }
+}
+
+object AsyncPostgreSQLStorageFactory extends StorageFactory {
+    class AsyncPostgreSQLStorageFromFactory(val properties: Map[String, String]) extends AsyncPostgreSQLStorage {
+
+        def configuration =
+            new Configuration(
+                username = properties("user"),
+                host = properties("host"),
+                password = Some(properties("password")),
+                database = Some(properties("database")))
+
+        lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
+    }
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new AsyncPostgreSQLStorageFromFactory(properties)
 }
