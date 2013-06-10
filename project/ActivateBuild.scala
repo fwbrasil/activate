@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.3-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.3"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.5"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -228,21 +228,21 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.3-SNAPSHOT",
+    		version := "1.3",
     		scalaVersion := "2.10.1",
     		crossScalaVersions := Seq("2.10.0", "2.10.1"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
-    	    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
+    	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
     	    // publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
-    // 	    publishTo <<= version { v: String =>
-				//   val nexus = "https://oss.sonatype.org/"
-				//   val fwbrasil = "http://fwbrasil.net/maven/"
-				//   if (v.trim.endsWith("SNAPSHOT")) 
-				//     Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644"))
-				//   else                             
-				//     Some("releases" at nexus + "service/local/staging/deploy/maven2")
-				// },
+    	    publishTo <<= version { v: String =>
+				  val nexus = "https://oss.sonatype.org/"
+				  val fwbrasil = "http://fwbrasil.net/maven/"
+				  if (v.trim.endsWith("SNAPSHOT")) 
+				    Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644"))
+				  else                             
+				    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+				},
 		    resolvers ++= customResolvers,
 			credentials += Credentials(Path.userHome / ".sbt" / "sonatype.credentials"),
 			publishMavenStyle := true,
