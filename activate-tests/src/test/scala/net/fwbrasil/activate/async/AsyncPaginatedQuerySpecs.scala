@@ -14,9 +14,6 @@ class AsyncPaginatedQuerySpecs extends ActivateTest {
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
 
-    override def contexts =
-        super.contexts.filter(_.storage.supportsAsync)
-
     "Query framework" should {
         "support paginated queries" in {
             for (numberOfEntities <- List(0, 2, 60)) {

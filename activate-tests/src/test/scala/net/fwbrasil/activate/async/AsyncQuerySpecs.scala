@@ -13,7 +13,6 @@ import scala.concurrent.Future
 @RunWith(classOf[JUnitRunner])
 class AsyncQuerySpecs extends ActivateTest {
 
-    override def contexts = super.contexts.filter(_.storage.supportsAsync)
     override def executors(ctx: ActivateTestContext) = List(MultipleAsyncTransactions(ctx))
 
     "Async storages" should {
