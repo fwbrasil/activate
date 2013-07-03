@@ -16,7 +16,7 @@ class EntityPropertyMetadata(
     val javaName = varField.getName
     val originalName = javaName.split('$').last
     val name =
-        Option(varField.getAnnotation(classOf[Alias]))
+        Option(varField.getAnnotation(classOf[InternalAlias]))
             .map(_.value)
             .getOrElse(originalName)
     val getter = entityMethods.find(_.getName == javaName).getOrElse(null)

@@ -131,7 +131,7 @@ object EntityEnhancer extends Logging {
     private def injectBuildVarsMap(clazz: CtClass, enhancedFieldsMap: Map[CtField, (CtField, Boolean)], classPool: ClassPool) = {
         import scala.collection.JavaConversions._
         val init = enhancedFieldsMap.keys.map(field => {
-            val ann = field.getAnnotation(classOf[Alias]).asInstanceOf[Alias]
+            val ann = field.getAnnotation(classOf[InternalAlias]).asInstanceOf[InternalAlias]
             val fieldName =
                 if (ann != null)
                     ann.value
@@ -282,7 +282,7 @@ object EntityEnhancer extends Logging {
     }
 
     private def getFieldName(field: CtField) =
-        Option(field.getAnnotation(classOf[Alias]).asInstanceOf[Alias]).map(_.value).getOrElse(field.getName.split('$').last)
+        Option(field.getAnnotation(classOf[InternalAlias]).asInstanceOf[InternalAlias]).map(_.value).getOrElse(field.getName.split('$').last)
 
     private def enhanceFieldsAccesses(clazz: javassist.CtClass, enhancedFieldsMap: scala.collection.immutable.Map[javassist.CtField, (CtField, Boolean)]): Unit = {
 

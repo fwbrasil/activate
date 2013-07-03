@@ -572,7 +572,8 @@ trait ActivateTestContext
             var caseClassEntityValue: CaseClassEntity,
             var serializableEntityValue: DummySeriablizable,
             var listEntityValue: LazyList[ActivateTestEntity],
-            var tupleOptionValue: Option[(Int, Int)]) extends ActivateTestDummyEntity(false) {
+            var tupleOptionValue: Option[(Int, Int)],
+            @Alias("customNameConst") var customNamedConstructorProperty: String) extends ActivateTestDummyEntity(false) {
 
         def this(intValue: Int) = this(
             intValue * 2,
@@ -598,7 +599,8 @@ trait ActivateTestContext
             emptyCaseClassEntityValue,
             emptySerializableEntityValue,
             emptyListEntityValue,
-            emptyTupleOptionValue)
+            emptyTupleOptionValue,
+            emptyStringValue)
             
         lazy val lazyValue = lazyValueValue
         var varInitializedInConstructor = fullStringValue
@@ -762,6 +764,7 @@ trait ActivateTestContext
             caseClassEntityValue = caseClassEntityValue,
             serializableEntityValue = serializableEntityValue,
             listEntityValue = listEntityValue,
-            tupleOptionValue = tupleOptionValue)
+            tupleOptionValue = tupleOptionValue,
+            customNamedConstructorProperty = fullStringValue)
     }
 }

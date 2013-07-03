@@ -56,6 +56,25 @@ class StorageAliasSpecs extends ActivateTest {
                     }
                 })
         }
+        
+        "customize entity property name defined in the constructor" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            newEmptyActivateTestEntity.id
+                        }
+                    step {
+                        select[ActivateTestEntity]
+                            .where(_.customNamedConstructorProperty :== fullStringValue)
+                            .head.id mustEqual entityId
+                    }
+                    step {
+                        findOnlyOneId("ActivateTestEntity", Some("customNameConst", fullStringValue)) mustEqual entityId
+                    }
+                })
+        }
     }
 
     private def findOnlyOneId(tableName: String)(implicit context: ActivateTestContext): String =

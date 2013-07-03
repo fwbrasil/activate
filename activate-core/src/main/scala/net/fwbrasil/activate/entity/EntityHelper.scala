@@ -95,7 +95,7 @@ object EntityHelper {
     }
 
     def getEntityName(entityClass: Class[_]) = {
-        val alias = entityClass.getAnnotation(classOf[Alias])
+        val alias = entityClass.getAnnotation(classOf[InternalAlias])
         if (alias != null)
             alias.value
         else {
