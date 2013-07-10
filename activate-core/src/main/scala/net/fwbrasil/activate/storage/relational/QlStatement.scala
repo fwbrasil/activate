@@ -2,8 +2,8 @@ package net.fwbrasil.activate.storage.relational
 
 import java.util.regex.Pattern
 
-import scala.collection.mutable.ListBuffer
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 

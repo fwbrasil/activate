@@ -1,48 +1,46 @@
 package net.fwbrasil.activate.storage.relational.async
 
-import language.postfixOps
-import com.github.mauricio.async.db.{ RowData, QueryResult, Connection }
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
-import net.fwbrasil.activate.storage.relational.RelationalStorage
-import net.fwbrasil.activate.storage.marshalling.StorageValue
+import java.sql.Timestamp
+
+import scala.Option.option2Iterable
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+
+import org.jboss.netty.util.CharsetUtil
+import org.joda.time.DateTime
+
+import com.github.mauricio.async.db.Configuration
+import com.github.mauricio.async.db.Connection
+import com.github.mauricio.async.db.RowData
+import com.github.mauricio.async.db.pool.ConnectionPool
+import com.github.mauricio.async.db.pool.ObjectFactory
+import com.github.mauricio.async.db.pool.PoolConfiguration
+import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
+import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
+
+import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.storage.relational.StorageStatement
-import com.github.mauricio.async.db.pool.ConnectionPool
-import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
-import com.github.mauricio.async.db.pool.PoolConfiguration
-import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
-import net.fwbrasil.activate.storage.relational.QueryStorageStatement
-import net.fwbrasil.activate.storage.relational.JdbcStatement
-import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
-import java.sql.Timestamp
-import scala.collection.mutable.ListBuffer
-import net.fwbrasil.activate.storage.TransactionHandle
-import scala.concurrent.Promise
-import scala.concurrent._
-import net.fwbrasil.activate.storage.relational.SqlStatement
-import net.fwbrasil.activate.storage.relational.BatchSqlStatement
-import net.fwbrasil.activate.storage.marshalling.StringStorageValue
-import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
-import net.fwbrasil.activate.ActivateContext
-import com.github.mauricio.async.db.Configuration
-import net.fwbrasil.activate.migration.Migration
-import net.fwbrasil.activate.storage.relational.ModifyStorageStatement
-import net.fwbrasil.activate.storage.relational.DdlStorageStatement
-import net.fwbrasil.activate.storage.marshalling.ListStorageValue
-import net.fwbrasil.activate.storage.marshalling.ListStorageValue
-import org.joda.time.DateTime
-import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
-import com.github.mauricio.async.db.pool.ObjectFactory
-import org.jboss.netty.util.CharsetUtil
-import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
-import scala.util.Failure
-import net.fwbrasil.activate.storage.relational.SqlStatement
-import net.fwbrasil.radon.transaction.TransactionalExecutionContext
-import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.storage.relational.BatchSqlStatement
+import net.fwbrasil.activate.storage.relational.DdlStorageStatement
+import net.fwbrasil.activate.storage.relational.JdbcStatement
+import net.fwbrasil.activate.storage.relational.QueryStorageStatement
+import net.fwbrasil.activate.storage.relational.RelationalStorage
+import net.fwbrasil.activate.storage.relational.SqlStatement
+import net.fwbrasil.activate.storage.relational.StorageStatement
+import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
+import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 

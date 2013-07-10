@@ -9,7 +9,6 @@ import net.fwbrasil.activate.statement.IsLessThan
 import net.fwbrasil.activate.statement.StatementEntityValue
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
-import net.fwbrasil.activate.storage.relational.DeleteDmlStorageStatement
 import net.fwbrasil.activate.storage.relational.ModifyStorageStatement
 import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
 import net.fwbrasil.activate.storage.marshalling.StorageRenameTable
@@ -38,12 +37,10 @@ import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.storage.marshalling.StorageAddColumn
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
-import net.fwbrasil.activate.storage.relational.UpdateDmlStorageStatement
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
 import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
 import net.fwbrasil.activate.statement.Criteria
-import net.fwbrasil.activate.storage.relational.InsertDmlStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageAddIndex
 import net.fwbrasil.activate.storage.marshalling.StorageAddReference
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
@@ -98,6 +95,9 @@ import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.statement.FunctionApply
 import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.statement.ToLowerCase
+import net.fwbrasil.activate.storage.relational.InsertStorageStatement
+import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
+import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -216,7 +216,7 @@ trait SqlIdiom {
 
     private def digestLists(statement: DmlStorageStatement, mainStatementProducer: (Map[String, StorageValue] => SqlStatement)) = {
         val (normalPropertyMap, listPropertyMap) = statement.propertyMap.partition(tuple => !tuple._2.isInstanceOf[ListStorageValue])
-        val isDelete = statement.isInstanceOf[DeleteDmlStorageStatement]
+        val isDelete = statement.isInstanceOf[DeleteStorageStatement]
         val id = statement.propertyMap("id")
         val mainStatement =
             mainStatementProducer(statement.propertyMap)
@@ -256,7 +256,7 @@ trait SqlIdiom {
 
     def toSqlStatement(statement: StorageStatement): List[SqlStatement] =
         statement match {
-            case insert: InsertDmlStorageStatement =>
+            case insert: InsertStorageStatement =>
                 digestLists(insert, propertyMap =>
                     new SqlStatement(
                         statement = "INSERT INTO " + toTableName(insert.entityClass) +
@@ -264,7 +264,7 @@ trait SqlIdiom {
                             " VALUES (:" + propertyMap.keys.toList.sorted.mkString(", :") + ")",
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
-            case update: UpdateDmlStorageStatement =>
+            case update: UpdateStorageStatement =>
                 digestLists(update, propertyMap =>
                     new SqlStatement(
                         statement = "UPDATE " + toTableName(update.entityClass) +
@@ -272,7 +272,7 @@ trait SqlIdiom {
                             " WHERE ID = :id" + versionCondition(propertyMap),
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
-            case delete: DeleteDmlStorageStatement =>
+            case delete: DeleteStorageStatement =>
                 digestLists(delete, propertyMap =>
                     new SqlStatement(
                         statement = "DELETE FROM " + toTableName(delete.entityClass) +

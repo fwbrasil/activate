@@ -26,6 +26,7 @@ import java.sql.PreparedStatement
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.relational.RelationalStorage
 
 case class JdbcStatementException(statement: JdbcStatement, exception: Exception, nextException: Exception)
     extends Exception("Statement exception: " + statement + ". Next exception: " + Option(nextException).map(_.getMessage), exception)

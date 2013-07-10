@@ -1,21 +1,18 @@
 package net.fwbrasil.activate.storage.relational
 
-import net.fwbrasil.activate.storage.marshalling.MarshalStorage
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
-import net.fwbrasil.activate.storage.marshalling.StringStorageValue
-import net.fwbrasil.activate.entity.EntityInstanceEntityValue
-import net.fwbrasil.activate.util.GraphUtil._
-import net.fwbrasil.activate.util.Reflection._
-import scala.collection.mutable.{ Map => MutableMap }
-import net.fwbrasil.activate.migration.StorageAction
-import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import net.fwbrasil.activate.storage.marshalling.MarshalStorage
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
+import net.fwbrasil.activate.util.GraphUtil.DependencyTree
+import net.fwbrasil.activate.util.Reflection.NiceObject
 
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
@@ -73,17 +70,17 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
 
         val inserts =
             for ((entity, propertyMap) <- insertList)
-                yield InsertDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+                yield InsertStorageStatement(entity.niceClass, entity.id, propertyMap)
 
         val insertsResolved = resolveDependencies(inserts.toSet)
 
         val updates =
             for ((entity, propertyMap) <- sortToAvoidDeadlocks(updateList))
-                yield UpdateDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+                yield UpdateStorageStatement(entity.niceClass, entity.id, propertyMap)
 
         val deletes =
             for ((entity, propertyMap) <- deleteList)
-                yield DeleteDmlStorageStatement(entity.niceClass, entity.id, propertyMap)
+                yield DeleteStorageStatement(entity.niceClass, entity.id, propertyMap)
 
         val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
