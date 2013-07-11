@@ -24,6 +24,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
     this: ActivateContext =>
 
     def executeQuery[S](query: Query[S]): List[S] = {
+        transactionManager.getRequiredActiveTransaction.startIfNotStarted
         val results =
             (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
                 liveCache.executeQuery(normalized)

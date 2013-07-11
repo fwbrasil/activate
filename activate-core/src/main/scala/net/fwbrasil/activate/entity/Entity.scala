@@ -75,8 +75,8 @@ trait Entity extends Serializable with EntityValidation {
         if (!isDeleted) {
             initialize(forWrite = true)
             _baseVar.destroy
-//            for (ref <- vars; if (ref != _baseVar))
-//                ref.destroy
+            for (ref <- vars; if (ref != _baseVar))
+                ref.destroy
         }
 
     def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)

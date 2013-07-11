@@ -16,7 +16,7 @@ class ConcurrencySpecs extends ActivateTest {
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
-    val threads = 30
+    val threads = 50
 
     "Activate" should {
         "be consistent" in {
@@ -143,6 +143,42 @@ class ConcurrencySpecs extends ActivateTest {
                         }
                         step {
                             all[ActivateTestEntity].onlyOne.intValue must beEqualTo(threads)
+                        }
+                    })
+            }
+
+            "concurrent deletes and queries" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            for (i <- 0 until threads)
+                                newEmptyActivateTestEntity
+                        }
+                        step {
+                            val entities = all[ActivateTestEntity]
+                            entities.isEmpty must beFalse
+                        }
+                        step {
+                            runWithThreads(threads) {
+                                val entity =
+                                    try transactional {
+                                        val entity = all[ActivateTestEntity].head
+                                        entity.delete
+                                        entity
+                                    }
+                                    catch {
+                                        case e =>
+                                            e.printStackTrace()
+                                            throw e
+                                    }
+                                println(entity.id)
+                            }
+                        }
+                        step {
+                            val entities = all[ActivateTestEntity]
+                            println(entities.size)
+                            entities.isEmpty must beTrue
                         }
                     })
             }
