@@ -15,6 +15,7 @@ object ThreadUtil {
             }
         threads.foreach(_.start)
         threads.foreach(_.join)
+        require(res.size == n)
         res.toList
     }
 }
