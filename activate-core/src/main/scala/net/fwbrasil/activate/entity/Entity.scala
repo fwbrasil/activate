@@ -71,13 +71,11 @@ trait Entity extends Serializable with EntityValidation {
 
     final val id: String = null
 
-    def delete =
-        if (!isDeleted) {
-            initialize(forWrite = true)
-            _baseVar.destroy
-            for (ref <- vars; if (ref != _baseVar))
-                ref.destroy
-        }
+    def delete = {
+        baseVar.destroy
+        for (ref <- vars; if (ref != _baseVar))
+            ref.destroy
+    }
 
     def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
     def creationDate = new Date(creationTimestamp)

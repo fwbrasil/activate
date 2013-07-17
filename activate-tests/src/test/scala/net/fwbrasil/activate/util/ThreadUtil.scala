@@ -9,7 +9,14 @@ object ThreadUtil {
         val threads =
             for (i <- 0 until n) yield new Thread {
                 override def run = {
-                    val elem = f
+                    val elem =
+                        try
+                            f
+                        catch {
+                            case e: Throwable =>
+                                e.printStackTrace
+                                throw e
+                        }
                     res.synchronized(res += elem)
                 }
             }

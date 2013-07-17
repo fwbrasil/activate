@@ -156,29 +156,17 @@ class ConcurrencySpecs extends ActivateTest {
                                 newEmptyActivateTestEntity
                         }
                         step {
-                            val entities = all[ActivateTestEntity]
-                            entities.isEmpty must beFalse
+                            all[ActivateTestEntity].size === threads
                         }
                         step {
                             runWithThreads(threads) {
-                                val entity =
-                                    try transactional {
-                                        val entity = all[ActivateTestEntity].head
-                                        entity.delete
-                                        entity
-                                    }
-                                    catch {
-                                        case e =>
-                                            e.printStackTrace()
-                                            throw e
-                                    }
-                                println(entity.id)
+                                transactional {
+                                    all[ActivateTestEntity].head.delete
+                                }
                             }
                         }
                         step {
-                            val entities = all[ActivateTestEntity]
-                            println(entities.size)
-                            entities.isEmpty must beTrue
+                            all[ActivateTestEntity].isEmpty must beTrue
                         }
                     })
             }
