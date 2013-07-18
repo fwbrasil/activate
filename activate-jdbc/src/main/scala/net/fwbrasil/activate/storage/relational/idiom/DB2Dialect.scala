@@ -26,7 +26,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
-import net.fwbrasil.activate.storage.relational.SqlStatement
+import net.fwbrasil.activate.storage.relational.NormalQlStatement
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import java.sql.PreparedStatement
 import java.sql.Types
@@ -75,15 +75,15 @@ object db2Dialect extends SqlIdiom {
     override def escape(string: String) =
         "\"" + string.toUpperCase + "\""
 
-    override def toSqlDdlAction(action: ModifyStorageAction): List[SqlStatement] =
+    override def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {
             case removeColumn: StorageRemoveColumn =>
                 val fromSuper = super.toSqlDdlAction(removeColumn).head
                 List(
                     fromSuper,
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = "COMMIT"),
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = s"Call Sysproc.admin_cmd ('reorg Table ${removeColumn.tableName}')",
                         restrictionQuery = ifExistsRestriction(findTableStatement(removeColumn.tableName), true)))
             case other => super.toSqlDdlAction(other)

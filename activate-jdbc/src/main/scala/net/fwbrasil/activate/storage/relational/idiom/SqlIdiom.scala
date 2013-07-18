@@ -12,7 +12,7 @@ import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.storage.relational.ModifyStorageStatement
 import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
 import net.fwbrasil.activate.storage.marshalling.StorageRenameTable
-import net.fwbrasil.activate.storage.relational.SqlStatement
+import net.fwbrasil.activate.storage.relational.NormalQlStatement
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.storage.marshalling.BigDecimalStorageValue
@@ -146,7 +146,7 @@ case class JdbcActivateResultSet(rs: ResultSet)
 
 }
 
-trait SqlIdiom {
+trait SqlIdiom extends QlIdiom {
 
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
 
@@ -214,7 +214,7 @@ trait SqlIdiom {
         }
     }
 
-    private def digestLists(statement: DmlStorageStatement, mainStatementProducer: (Map[String, StorageValue] => SqlStatement)) = {
+    private def digestLists(statement: DmlStorageStatement, mainStatementProducer: (Map[String, StorageValue] => NormalQlStatement)) = {
         val (normalPropertyMap, listPropertyMap) = statement.propertyMap.partition(tuple => !tuple._2.isInstanceOf[ListStorageValue])
         val isDelete = statement.isInstanceOf[DeleteStorageStatement]
         val id = statement.propertyMap("id")
@@ -225,14 +225,14 @@ trait SqlIdiom {
                 val (name, value) = tuple.asInstanceOf[(String, ListStorageValue)]
                 val listTable = toTableName(statement.entityClass, name.capitalize)
                 val delete =
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = "DELETE FROM " + listTable + " WHERE OWNER = :id",
                         binds = Map("id" -> id))
                 val inserts =
                     if (!isDelete && value.value.isDefined) {
                         val list = value.value.get
                         (0 until list.size).map { i =>
-                            new SqlStatement(
+                            new NormalQlStatement(
                                 statement = "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("POS") + ") VALUES (:owner, :value, :pos)",
                                 binds = Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
                         }
@@ -254,11 +254,11 @@ trait SqlIdiom {
         }
     }
 
-    def toSqlStatement(statement: StorageStatement): List[SqlStatement] =
+    def toSqlStatement(statement: StorageStatement): List[NormalQlStatement] =
         statement match {
             case insert: InsertStorageStatement =>
                 digestLists(insert, propertyMap =>
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = "INSERT INTO " + toTableName(insert.entityClass) +
                             " (" + propertyMap.keys.toList.sorted.map(escape).mkString(", ") + ") " +
                             " VALUES (:" + propertyMap.keys.toList.sorted.mkString(", :") + ")",
@@ -266,7 +266,7 @@ trait SqlIdiom {
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case update: UpdateStorageStatement =>
                 digestLists(update, propertyMap =>
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = "UPDATE " + toTableName(update.entityClass) +
                             " SET " + (for (key <- propertyMap.keys.toList.sorted if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
                             " WHERE ID = :id" + versionCondition(propertyMap),
@@ -274,7 +274,7 @@ trait SqlIdiom {
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case delete: DeleteStorageStatement =>
                 digestLists(delete, propertyMap =>
-                    new SqlStatement(
+                    new NormalQlStatement(
                         statement = "DELETE FROM " + toTableName(delete.entityClass) +
                             " WHERE ID = :id " + versionCondition(propertyMap),
                         binds = propertyMap,
@@ -292,12 +292,12 @@ trait SqlIdiom {
 
     def escape(string: String): String
 
-    def toSqlDml(statement: QueryStorageStatement): SqlStatement =
+    def toSqlDml(statement: QueryStorageStatement): NormalQlStatement =
         toSqlDml(statement.query, statement.entitiesReadFromCache)
 
-    def toSqlDml(query: Query[_], entitiesReadFromCache: List[List[Entity]]): SqlStatement = {
+    def toSqlDml(query: Query[_], entitiesReadFromCache: List[List[Entity]]): NormalQlStatement = {
         implicit val binds = MutableMap[StorageValue, String]()
-        new SqlStatement(
+        new NormalQlStatement(
             toSqlDmlQueryString(query, entitiesReadFromCache),
             (Map() ++ binds) map { _.swap })
     }
@@ -483,55 +483,55 @@ trait SqlIdiom {
 
     def toSqlDdl(action: ModifyStorageAction): String
 
-    def toSqlDdlAction(action: ModifyStorageAction): List[SqlStatement] =
+    def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {
             case action: StorageCreateListTable =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
                     toSqlDdlAction(action.addOwnerIndexAction)
             case action: StorageRemoveListTable =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
             case action: StorageCreateTable =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
             case action: StorageRenameTable =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
             case action: StorageRemoveTable =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
             case action: StorageAddColumn =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
             case action: StorageRenameColumn =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
             case action: StorageRemoveColumn =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddIndex =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
             case action: StorageRemoveIndex =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddReference =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
             case action: StorageRemoveReference =>
-                List(new SqlStatement(
+                List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
@@ -540,11 +540,11 @@ trait SqlIdiom {
         implicit val binds = MutableMap[StorageValue, String]()
         statement.statement match {
             case update: MassUpdateStatement =>
-                new SqlStatement(
+                new NormalQlStatement(
                     removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + " WHERE " + toSqlDml(update.where), update.from),
                     (Map() ++ binds) map { _.swap })
             case delete: MassDeleteStatement =>
-                new SqlStatement(
+                new NormalQlStatement(
                     removeAlias("DELETE FROM " + toSqlDml(delete.from) + " WHERE " + toSqlDml(delete.where), delete.from),
                     (Map() ++ binds) map { _.swap })
         }

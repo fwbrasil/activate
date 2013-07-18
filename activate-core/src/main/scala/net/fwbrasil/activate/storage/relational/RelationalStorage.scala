@@ -58,12 +58,16 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         executeStatements(List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(sqls: List[StorageStatement]): Option[TransactionHandle]
+    protected[activate] def executeStatements(statements: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(sqls: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
-        blockingFuture(executeStatements(sqls).map(_.commit))
+    protected[activate] def executeStatementsAsync(statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
+        blockingFuture(executeStatements(statements).map(_.commit))
 
-    private def statementsFor(statementList: List[net.fwbrasil.activate.statement.mass.MassModificationStatement], insertList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], updateList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])], deleteList: List[(net.fwbrasil.activate.entity.Entity, Map[String, net.fwbrasil.activate.storage.marshalling.StorageValue])]): List[net.fwbrasil.activate.storage.relational.StorageStatement] = {
+    private def statementsFor(
+            statementList: List[MassModificationStatement], 
+            insertList: List[(Entity, Map[String, StorageValue])], 
+            updateList: List[(Entity, Map[String, StorageValue])], 
+            deleteList: List[(Entity, Map[String, StorageValue])]) = {
 
         val statements =
             statementList.map(ModifyStorageStatement(_))
@@ -84,8 +88,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
 
         val deletesResolved = resolveDependencies(deletes.toSet).reverse
 
-        val sqls = statements ::: insertsResolved ::: updates.toList ::: deletesResolved
-        sqls
+        statements ::: insertsResolved ::: updates.toList ::: deletesResolved
     }
 
 }

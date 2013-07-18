@@ -31,12 +31,12 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
-import net.fwbrasil.activate.storage.relational.BatchSqlStatement
+import net.fwbrasil.activate.storage.relational.BatchQlStatement
 import net.fwbrasil.activate.storage.relational.DdlStorageStatement
-import net.fwbrasil.activate.storage.relational.JdbcStatement
+import net.fwbrasil.activate.storage.relational.QlStatement
 import net.fwbrasil.activate.storage.relational.QueryStorageStatement
 import net.fwbrasil.activate.storage.relational.RelationalStorage
-import net.fwbrasil.activate.storage.relational.SqlStatement
+import net.fwbrasil.activate.storage.relational.NormalQlStatement
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
@@ -69,7 +69,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         }(context.ctx.ectx)
     }
 
-    private def queryAsync(query: SqlStatement, expectedTypes: List[StorageValue]): Future[List[List[StorageValue]]] = {
+    private def queryAsync(query: NormalQlStatement, expectedTypes: List[StorageValue]): Future[List[List[StorageValue]]] = {
         implicit val ctx = executionContext
         val resultSetFuture = sendPreparedStatement(query, pool)
         resultSetFuture.map(
@@ -157,12 +157,12 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         Some(Await.result(res, defaultTimeout))
     }
 
-    def execute(jdbcStatement: JdbcStatement, connection: Connection, isDdl: Boolean) = {
+    def execute(jdbcStatement: QlStatement, connection: Connection, isDdl: Boolean) = {
         implicit val ectx = executionContext
         satisfyRestriction(jdbcStatement).flatMap { satisfy =>
             if (satisfy)
                 jdbcStatement match {
-                    case normal: SqlStatement =>
+                    case normal: NormalQlStatement =>
                         val future =
                             if (isDdl)
                                 connection.sendQuery(jdbcStatement.statement)
@@ -174,7 +174,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
                                     jdbcStatement,
                                     Array(queryResult.rowsAffected))
                         }
-                    case batch: BatchSqlStatement =>
+                    case batch: BatchQlStatement =>
                         throw new UnsupportedOperationException()
                 }
             else
@@ -182,7 +182,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         }
     }
 
-    private def verifyStaleData(jdbcStatement: JdbcStatement, result: Array[Long]): Unit = {
+    private def verifyStaleData(jdbcStatement: QlStatement, result: Array[Long]): Unit = {
         val expectedResult = jdbcStatement.expectedNumbersOfAffectedRowsOption
         require(result.size == expectedResult.size)
         val invalidIds =
@@ -200,7 +200,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
             staleDataException(invalidIds.toSet)
     }
 
-    private protected[activate] def satisfyRestriction(jdbcStatement: JdbcStatement)(implicit context: ExecutionContext) =
+    private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement)(implicit context: ExecutionContext) =
         jdbcStatement.restrictionQuery.map(tuple => {
             val (query, expected) = tuple
             pool.sendQuery(query).map {
@@ -274,7 +274,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     def supportsQueryJoin = true
     override def supportsAsync = true
 
-    private def sendPreparedStatement(jdbcStatement: JdbcStatement, connection: Connection) =
+    private def sendPreparedStatement(jdbcStatement: QlStatement, connection: Connection) =
         connection.sendPreparedStatement(
             jdbcStatement.indexedStatement,
             jdbcStatement.valuesList.head.map(toValue))
