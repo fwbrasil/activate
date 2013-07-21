@@ -42,7 +42,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                 val tree = new DependencyTree[DmlStorageStatement](statements)
                 for (insertA <- statements) {
                     for ((propertyName, propertyValue) <- insertA.propertyMap)
-                        if (propertyName != "id" && propertyValue.value != None && propertyValue.isInstanceOf[ReferenceStorageValue]) {
+                        if (propertyName != "id" && propertyValue.value.isDefined && propertyValue.isInstanceOf[ReferenceStorageValue]) {
                             val entityIdB = propertyValue.value.get.asInstanceOf[String]
                             if (entityInsertMap.contains(entityIdB))
                                 tree.addDependency(entityInsertMap(entityIdB), insertA)

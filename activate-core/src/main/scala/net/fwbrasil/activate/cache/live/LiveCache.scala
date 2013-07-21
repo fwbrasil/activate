@@ -130,7 +130,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
             cache.doWithReadLock {
                 cache.get(entityClass)
             }
-        if (mapOption != None)
+        if (mapOption.isDefined)
             mapOption.get
         else {
             cache.doWithWriteLock {

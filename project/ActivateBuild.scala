@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.3.1"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.4-SNAPSHOT"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.5"
 	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
 	val objenesis = "org.objenesis" % "objenesis" % "1.2"
@@ -24,6 +24,7 @@ object ActivateBuild extends Build {
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
 	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
+	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -69,7 +70,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      smirror, xstream, scalaActors, jettison, findBugs)
+		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo)
 		    )
 		)
 
@@ -88,7 +89,8 @@ object ActivateBuild extends Build {
 		Project(
 			id = "activate-prevalent",
 			base = file("activate-prevalent"),
-			dependencies = Seq(activateCore)
+			dependencies = Seq(activateCore),
+			settings = commonSettings
 		)
                            
     lazy val activateJdbc = 
@@ -213,7 +215,7 @@ object ActivateBuild extends Build {
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
-			    activateSlick, activateMongoAsync),
+			    activateSlick, activateMongoAsync, activatePrevalent),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
@@ -237,7 +239,6 @@ object ActivateBuild extends Build {
     		organization := "net.fwbrasil",
     		version := "1.4-SNAPSHOT",
     		scalaVersion := "2.10.1",
-    		crossScalaVersions := Seq("2.10.0", "2.10.1"),
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

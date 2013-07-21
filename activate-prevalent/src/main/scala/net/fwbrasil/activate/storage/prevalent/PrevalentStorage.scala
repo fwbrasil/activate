@@ -18,10 +18,11 @@ import net.fwbrasil.activate.serialization.javaSerializer
 import net.fwbrasil.activate.storage.marshalling.Marshaller
 import java.nio.BufferUnderflowException
 import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.serialization.kryoSerializer
 
 class PrevalentStorageSystem extends HashMap[String, Entity]
 
-class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(implicit context: ActivateContext)
+class PrevalentStorage(file: File, serializer: Serializer = kryoSerializer)(implicit context: ActivateContext)
         extends MarshalStorage[PrevalentStorageSystem] {
 
     private val system = new PrevalentStorageSystem // recover from file
@@ -40,7 +41,7 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
     protected[activate] def initialize = {
         system.clear
         buffer.rewind
-        buffer.get // why there this empty byte?
+        buffer.get // why there is this empty byte?
         while (bufferHasTransactionToRecover) {
             val transactionSize = buffer.getInt
             val bytes = new Array[Byte](transactionSize)
@@ -73,13 +74,19 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
 
         val transaction =
             new PrevalentStorageTransaction(
-                insertList, updateList, deleteList.map(_._1))
+                insertList.map(tuple => (tuple._1.id, tuple._2)),
+                updateList.map(tuple => (tuple._1.id, tuple._2)),
+                deleteList.map(_._1.id))
         val bytes = serializer.toSerialized(transaction)
 
         synchronized {
             buffer.putInt(bytes.length)
             buffer.put(bytes)
-            transaction.update(system)
+
+            for ((entity, properties) <- insertList)
+                system.put(entity.id, entity)
+            for ((entity, properties) <- deleteList)
+                system.remove(entity.id)
         }
 
         None
@@ -98,35 +105,32 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
 }
 
 class PrevalentStorageTransaction(
-    val insertList: List[(Entity, Map[String, StorageValue])],
-    val updateList: List[(Entity, Map[String, StorageValue])],
-    val deleteList: List[Entity])
+    val insertList: List[(String, Map[String, StorageValue])],
+    val updateList: List[(String, Map[String, StorageValue])],
+    val deleteList: List[String])
         extends Serializable {
 
     def recover(system: PrevalentStorageSystem)(implicit context: ActivateContext) = {
         import context._
-        for ((entity, changeSet) <- insertList ++ updateList) {
-            entity.setInitialized
-            for ((varName, value) <- changeSet; if (varName != "id")) {
-                val ref = entity.varNamed(varName)
-                val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
-                ref.setRefContent(Option(liveCache.materialize(entityValue)))
+        transactional {
+            for ((entityId, changeSet) <- insertList ++ updateList) {
+                val entity = liveCache.materializeEntity(entityId)
+                entity.setInitialized
+                system.put(entityId, entity)
+                for ((varName, value) <- changeSet; if (varName != "id")) {
+                    val ref = entity.varNamed(varName)
+                    val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
+                    ref.setRefContent(Option(liveCache.materialize(entityValue)))
+                }
+            }
+            for (entityId <- deleteList) {
+                val entity = liveCache.materializeEntity(entityId)
+                entity.setInitialized
+                liveCache.delete(entity)
+                for (ref <- entity.vars)
+                    ref.destroyInternal
             }
         }
-        this.update(system)
-        for (entity <- deleteList) {
-            entity.setInitialized
-            liveCache.delete(entity)
-            for (ref <- entity.vars)
-                ref.destroyInternal
-        }
-    }
-
-    def update(system: PrevalentStorageSystem) = {
-        for ((entity, properties) <- insertList)
-            system.put(entity.id, entity)
-        for (entity <- deleteList)
-            system.remove(entity.id)
     }
 
 }

@@ -151,7 +151,7 @@ trait SqlIdiom extends QlIdiom {
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
 
     protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
-        if (optionValue == None || optionValue == null)
+        if (optionValue.isEmpty || optionValue == null)
             ps.setNull(i, sqlType)
         else
             f(optionValue.get)

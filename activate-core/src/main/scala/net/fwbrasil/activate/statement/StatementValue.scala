@@ -20,7 +20,7 @@ trait StatementValueContext extends ValueContext {
     private[fwbrasil] def toStatementValueRef[V](ref: Var[V]): StatementSelectValue[V] = {
         val (entity, path) = propertyPath(ref)
         val sourceOption = From.entitySourceFor(entity)
-        if (sourceOption != None)
+        if (sourceOption.isDefined)
             new StatementEntitySourcePropertyValue[V](sourceOption.get, path: _*)
         else new SimpleValue[V](() => ref.get.get, ref.tval)
 
@@ -47,7 +47,7 @@ trait StatementValueContext extends ValueContext {
     private def toStatementValueEntity[E <: Entity](fEntity: () => E): StatementEntityValue[E] = {
         val entity = fEntity()
         val sourceOption = From.entitySourceFor(entity)
-        if (sourceOption != None)
+        if (sourceOption.isDefined)
             new StatementEntitySourceValue(sourceOption.get)
         else
             new StatementEntityInstanceValue(fEntity)

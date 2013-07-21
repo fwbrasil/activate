@@ -8,7 +8,7 @@ object UnsafeLazy {
         private var item: T = _
         def get = {
             if (item == null)
-                item = f()
+                item = f() 
             item
         }
     }
