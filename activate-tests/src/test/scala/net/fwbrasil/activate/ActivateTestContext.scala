@@ -37,6 +37,8 @@ import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
 import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
+import net.fwbrasil.activate.storage.prevalent.PrevalentStorage
+import java.io.File
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -98,6 +100,11 @@ object prevaylerContext extends ActivateTestContext {
     val storage = new PrevaylerStorage("testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime)
 }
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
+
+object prevalentContext extends ActivateTestContext {
+    val storage = new PrevalentStorage(new File("testPrevalenceBase/testPrevalentStorage" + (new java.util.Date).getTime))
+}
+class PrevalentActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object memoryContext extends ActivateTestContext {
     val storage = new TransientMemoryStorage

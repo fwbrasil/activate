@@ -138,7 +138,7 @@ class PrevaylerStorage(
         val assignments =
             new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
 
-        prevayler.execute(PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
+        prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 
         for ((entityId, changeSet) <- assignments)
             prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))
@@ -158,7 +158,7 @@ class PrevaylerStorage(
                 val idsByEntityName = prevalentSystem.keys.toList.groupBy(id =>
                     EntityHelper.getEntityName(EntityHelper.getEntityClassFromId(id)))
                 val idsToRemove = idsByEntityName.getOrElse(action.name, List())
-                prevayler.execute(PrevaylerMemoryStorageTransaction(context, new HashMap, new HashSet(idsToRemove)))
+                prevayler.execute(new PrevaylerMemoryStorageTransaction(context, new HashMap, new HashSet(idsToRemove)))
                 PrevaylerMemoryStorageTransaction.destroyEntity(new HashSet(idsToRemove), context.liveCache)
                 prevalentSystem --= idsToRemove
             case _ =>
@@ -166,10 +166,10 @@ class PrevaylerStorage(
 
 }
 
-case class PrevaylerMemoryStorageTransaction(
-    context: ActivateContext,
-    assignments: HashMap[String, HashMap[String, StorageValue]],
-    deletes: HashSet[String])
+class PrevaylerMemoryStorageTransaction(
+    val context: ActivateContext,
+    val assignments: HashMap[String, HashMap[String, StorageValue]],
+    val deletes: HashSet[String])
         extends PrevaylerTransaction[PrevaylerStorageSystem] {
     def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
         val liveCache = context.liveCache
