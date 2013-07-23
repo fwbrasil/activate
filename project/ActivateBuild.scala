@@ -58,7 +58,7 @@ object ActivateBuild extends Build {
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
     		    activateGraph, activateSprayJson, activateJdbcAsync,
-    		    activateSlick, activateMongoAsync),
+    		    activateSlick, activateMongoAsync, activatePrevalent),
     		settings = commonSettings
     	)
 

@@ -26,6 +26,7 @@ import java.io.File
 import java.io.FileOutputStream
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 
 class ActivateConcurrentTransactionException(
     val entitiesIds: Set[String],
@@ -54,7 +55,7 @@ trait DurableContext {
 
     override def makeDurable(transaction: Transaction) = {
 
-        val statements = statementsForTransaction(transaction)
+        lazy val statements = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
         val deletes = filterDeletes(statements, deletesUnfiltered)
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
@@ -117,7 +118,7 @@ trait DurableContext {
         insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
         updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
         deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]): Future[Unit] = {
-        
+
         // TODO Refactoring (see store)
 
         val statementsByStorage = groupByStorage(statements)(_.from.entitySources.onlyOne.entityClass)
@@ -185,27 +186,32 @@ trait DurableContext {
 
         val persistentDeletes = deletesUnfiltered.filter(_._1.isPersisted)
 
-        val massDeletes = statements.collect {
-            case statement: MassDeleteStatement =>
-                statement
-        }
-
         lazy val deletesByEntityClass = persistentDeletes.map(_._1).groupBy(_.getClass)
         val deletedByMassStatement =
-            massDeletes.toList.map { massDelete =>
-                transactional(transient) {
-                    val entitySource = massDelete.from.entitySources.onlyOne
-                    val entityClass = entitySource.entityClass
-                    val storage = storageFor(entityClass)
-                    if (!storage.isMemoryStorage)
-                        deletesByEntityClass.get(entityClass).map {
-                            _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
-                        }.getOrElse(List())
-                    else List()
+            statements.map {
+                _ match {
+                    case massDelete: MassDeleteStatement =>
+                        transactional(transient) {
+                            val entitySource = massDelete.from.entitySources.onlyOne
+                            val entityClass = entitySource.entityClass
+                            val storage = storageFor(entityClass)
+                            if (!storage.isMemoryStorage)
+                                deletesByEntityClass.get(entityClass).map {
+                                    _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                                }.getOrElse(List())
+                            else List()
+                        }
+                    case other =>
+                        List()
                 }
+
             }.flatten
 
-        persistentDeletes -- deletedByMassStatement
+        // performance
+        if (deletedByMassStatement.nonEmpty)
+            persistentDeletes -- deletedByMassStatement
+        else
+            persistentDeletes
     }
 
     private def twoPhaseCommit(
