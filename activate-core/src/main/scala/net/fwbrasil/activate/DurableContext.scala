@@ -53,35 +53,37 @@ trait DurableContext {
     def reloadEntities(ids: Set[String]) =
         liveCache.uninitialize(ids)
 
-    override def makeDurable(transaction: Transaction) = {
+    override def makeDurable(transaction: Transaction): Unit = {
 
-        lazy val statements = statementsForTransaction(transaction)
+        val statementsOption = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
+        val deletes = filterDeletes(statementsOption, deletesUnfiltered)
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
-        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || (statementsOption.isDefined && statementsOption.get.nonEmpty)) {
+            val statements = statementsOption.map(_.toList).getOrElse(List())
             validateTransactionEnd(transaction, entities)
-            store(statements.toList, inserts, updates, deletes)
+            store(statements, inserts, updates, deletes)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
-            statements.clear
+            statementsOption.map(_.clear)
         }
     }
 
     override def makeDurableAsync(transaction: Transaction)(implicit ectx: ExecutionContext): Future[Unit] = {
         // TODO Refactoring (see makeDurable)
-        val statements = statementsForTransaction(transaction)
+        val statementsOption = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
+        val deletes = filterDeletes(statementsOption, deletesUnfiltered)
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
-        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || (statementsOption.isDefined && statementsOption.get.nonEmpty)) {
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
-                storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
+                val statements = statementsOption.map(_.toList).getOrElse(List())
+                storeAsync(statements, inserts, updates, deletes).map { _ =>
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
-                    statements.clear
+                    statementsOption.map(_.clear)
                 }
             }
         } else
@@ -181,37 +183,41 @@ trait DurableContext {
             }
 
     private def filterDeletes(
-        statements: ListBuffer[MassModificationStatement],
+        statementsOption: Option[ListBuffer[MassModificationStatement]],
         deletesUnfiltered: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
-
+        
         val persistentDeletes = deletesUnfiltered.filter(_._1.isPersisted)
+        statementsOption.map {
+            statements =>
 
-        lazy val deletesByEntityClass = persistentDeletes.map(_._1).groupBy(_.getClass)
-        val deletedByMassStatement =
-            statements.map {
-                _ match {
-                    case massDelete: MassDeleteStatement =>
-                        transactional(transient) {
-                            val entitySource = massDelete.from.entitySources.onlyOne
-                            val entityClass = entitySource.entityClass
-                            val storage = storageFor(entityClass)
-                            if (!storage.isMemoryStorage)
-                                deletesByEntityClass.get(entityClass).map {
-                                    _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
-                                }.getOrElse(List())
-                            else List()
+                lazy val deletesByEntityClass = persistentDeletes.map(_._1).groupBy(_.getClass)
+                val deletedByMassStatement =
+                    statements.map {
+                        _ match {
+                            case massDelete: MassDeleteStatement =>
+                                transactional(transient) {
+                                    val entitySource = massDelete.from.entitySources.onlyOne
+                                    val entityClass = entitySource.entityClass
+                                    val storage = storageFor(entityClass)
+                                    if (!storage.isMemoryStorage)
+                                        deletesByEntityClass.get(entityClass).map {
+                                            _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                                        }.getOrElse(List())
+                                    else List()
+                                }
+                            case other =>
+                                List()
                         }
-                    case other =>
-                        List()
-                }
 
-            }.flatten
+                    }.flatten
 
-        // performance
-        if (deletedByMassStatement.nonEmpty)
-            persistentDeletes -- deletedByMassStatement
-        else
-            persistentDeletes
+                // performance
+                if (deletedByMassStatement.nonEmpty)
+                    persistentDeletes -- deletedByMassStatement
+                else
+                    persistentDeletes
+
+        }.getOrElse(persistentDeletes)
     }
 
     private def twoPhaseCommit(

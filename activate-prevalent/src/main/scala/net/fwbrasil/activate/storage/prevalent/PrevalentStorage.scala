@@ -79,12 +79,18 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
 
         None
     }
-    
-    private def writeToBuffer(bytes: Array[Byte]) = 
-        buffer.synchronized {
-            buffer.putInt(bytes.length)
-            buffer.put(bytes)
-        }
+
+    private def writeToBuffer(bytes: Array[Byte]) = {
+        val bytesSize = bytes.length
+        val totalSize = bytesSize + 4
+        val newBuffer =
+            buffer.synchronized {
+                try buffer.duplicate
+                finally buffer.position(buffer.position + totalSize)
+            }
+        newBuffer.putInt(bytesSize)
+        newBuffer.put(bytes)
+    }
 
     private def createTransaction(
         insertList: List[(Entity, Map[String, StorageValue])],
