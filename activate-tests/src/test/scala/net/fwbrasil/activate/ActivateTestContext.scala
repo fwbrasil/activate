@@ -102,7 +102,7 @@ object prevaylerContext extends ActivateTestContext {
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object prevalentContext extends ActivateTestContext {
-    val storage = new PrevalentStorage(new File("testPrevalenceBase/testPrevalentStorage" + (new java.util.Date).getTime))
+    val storage = new PrevalentStorage("testPrevalenceBase/testPrevalentStorage" + (new java.util.Date).getTime)
 }
 class PrevalentActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 

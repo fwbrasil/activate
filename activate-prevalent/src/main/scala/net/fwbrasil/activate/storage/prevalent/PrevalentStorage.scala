@@ -22,12 +22,13 @@ import net.fwbrasil.activate.serialization.kryoSerializer
 
 class PrevalentStorageSystem extends HashMap[String, Entity]
 
-class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(implicit context: ActivateContext)
+class PrevalentStorage(directory: String, serializer: Serializer = javaSerializer, fileSize: Int = 10 * 1000 * 1000)(implicit context: ActivateContext)
         extends MarshalStorage[PrevalentStorageSystem] {
 
-    private val system = new PrevalentStorageSystem // recover from file
-    private val channel = new RandomAccessFile(file, "rw").getChannel
-    private val buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, 2000 * 1024 * 1024)
+    private val system = new PrevalentStorageSystem
+    private val directoryFile = new File(directory)
+    directoryFile.mkdir
+    private val journal = new PrevalentJournal(directoryFile, serializer, fileSize)
 
     def directAccess = system
 
@@ -40,28 +41,8 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
 
     protected[activate] def initialize = {
         system.clear
-        buffer.rewind
-        buffer.get // why there is this empty byte?
-        while (bufferHasTransactionToRecover) {
-            val transactionSize = buffer.getInt
-            val bytes = new Array[Byte](transactionSize)
-            buffer.get(bytes)
-            val transaction = serializer.fromSerialized[PrevalentStorageTransaction](bytes)
-            transaction.recover(system)
-        }
+        journal.recover(system)
     }
-
-    private def bufferHasTransactionToRecover =
-        try {
-            buffer.mark
-            val i = buffer.getInt
-            i > 0
-        } catch {
-            case e: BufferUnderflowException =>
-                false
-        } finally {
-            buffer.reset
-        }
 
     override protected[activate] def reinitialize =
         initialize
@@ -72,44 +53,32 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
-        val transaction = createTransaction(insertList, updateList, deleteList)
-        val bytes = serializer.toSerialized(transaction)
-        writeToBuffer(bytes)
+        val transaction =
+            createTransaction(insertList, updateList, deleteList)
+        journal.add(transaction)
         updateSystem(insertList, deleteList)
 
         None
-    }
-
-    private def writeToBuffer(bytes: Array[Byte]) = {
-        val bytesSize = bytes.length
-        val totalSize = bytesSize + 4
-        val newBuffer =
-            buffer.synchronized {
-                try buffer.duplicate
-                finally buffer.position(buffer.position + totalSize)
-            }
-        newBuffer.putInt(bytesSize)
-        newBuffer.put(bytes)
     }
 
     private def createTransaction(
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]) =
-        new PrevalentStorageTransaction(
+        new PrevalentTransaction(
             insertList.map(tuple => (tuple._1.id, tuple._2)).toArray,
             updateList.map(tuple => (tuple._1.id, tuple._2)).toArray,
             deleteList.map(_._1.id).toArray)
 
     private def updateSystem(
         insertList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]) = {
-
-        for ((entity, properties) <- insertList)
-            system.put(entity.id, entity)
-        for ((entity, properties) <- deleteList)
-            system.remove(entity.id)
-    }
+        deleteList: List[(Entity, Map[String, StorageValue])]) =
+        system.synchronized {
+            for ((entity, properties) <- insertList)
+                system.put(entity.id, entity)
+            for ((entity, properties) <- deleteList)
+                system.remove(entity.id)
+        }
 
     protected[activate] def query(
         query: Query[_],
@@ -119,37 +88,6 @@ class PrevalentStorage(file: File, serializer: Serializer = javaSerializer)(impl
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {
 
-    }
-
-}
-
-class PrevalentStorageTransaction(
-    val insertList: Array[(String, Map[String, StorageValue])],
-    val updateList: Array[(String, Map[String, StorageValue])],
-    val deleteList: Array[String])
-        extends Serializable {
-
-    def recover(system: PrevalentStorageSystem)(implicit context: ActivateContext) = {
-        import context._
-        transactional {
-            for ((entityId, changeSet) <- insertList ++ updateList) {
-                val entity = liveCache.materializeEntity(entityId)
-                entity.setInitialized
-                system.put(entityId, entity)
-                for ((varName, value) <- changeSet; if (varName != "id")) {
-                    val ref = entity.varNamed(varName)
-                    val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
-                    ref.setRefContent(Option(liveCache.materialize(entityValue)))
-                }
-            }
-            for (entityId <- deleteList) {
-                val entity = liveCache.materializeEntity(entityId)
-                entity.setInitialized
-                liveCache.delete(entity)
-                for (ref <- entity.vars)
-                    ref.destroyInternal
-            }
-        }
     }
 
 }
