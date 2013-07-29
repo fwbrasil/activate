@@ -57,9 +57,6 @@ object EntityHelper {
     // |---------------UUID---------------| |-hash-|
     // 0                                 35 37    44
 
-    private val entityIdClassHashPattern =
-        "[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}-([0-9a-z]{8})".r
-
     private def classHashIdsCache = new HashMap[Class[_], String]() with SynchronizedMap[Class[_], String]
 
     def getEntityClassHashId(entityClass: Class[_]): String =
@@ -74,12 +71,11 @@ object EntityHelper {
                     "It is also possible to create a domain-specific id, like a column 'userId' and index it, acting as a 'secondary' id."))
 
     def getEntityClassFromIdOption(entityId: String) =
-        entityId match {
-            case entityIdClassHashPattern(hash) =>
-                entitiesMetadatas.get(hash).map(_.entityClass)
-            case other =>
-                None
-        }
+        if (entityId.length == 45) {
+            val hash = entityId.substring(37, 45)
+            entitiesMetadatas.get(hash).map(_.entityClass)
+        } else
+            None
 
     private def getEntityClassHashId(entityName: String): String =
         normalizeHex(Integer.toHexString(entityName.hashCode))
