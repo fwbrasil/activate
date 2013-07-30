@@ -110,16 +110,15 @@ trait Entity extends Serializable with EntityValidation {
 
     // Cyclic initializing
     private[activate] def initialize(forWrite: Boolean) = {
-        if (!initialized || initializing)
-            this.synchronized {
-                if (!initialized && !initializing && id != null) {
-                    initializing = true
-                    context.liveCache.loadFromDatabase(this, withinTransaction = false)
-                    initialized = true
-                    initializing = false
-                    postInitialize
-                }
+        this.synchronized {
+            if (!initialized && !initializing) {
+                initializing = true
+                context.liveCache.loadFromDatabase(this, withinTransaction = false)
+                initialized = true
+                initializing = false
+                postInitialize
             }
+        }
         if (!initializing && (forWrite || OptimisticOfflineLocking.validateReads) &&
             OptimisticOfflineLocking.isEnabled && isPersisted) {
             val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
