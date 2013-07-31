@@ -54,13 +54,12 @@ trait DurableContext {
         liveCache.uninitialize(ids)
 
     override def makeDurable(transaction: Transaction): Unit = {
-
         val statements = statementsForTransaction(transaction)
-        val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
-        val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
-
-        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+        val assignments = transaction.assignments
+        if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
+            val (inserts, updates, deletesUnfiltered) = filterVars(assignments.toList)
+            val deletes = filterDeletes(statements, deletesUnfiltered)
+            val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
             validateTransactionEnd(transaction, entities)
             store(statements.toList, inserts, updates, deletes)
             setPersisted(inserts.keys)
@@ -71,11 +70,11 @@ trait DurableContext {
     override def makeDurableAsync(transaction: Transaction)(implicit ectx: ExecutionContext): Future[Unit] = {
         // TODO Refactoring (see makeDurable)
         val statements = statementsForTransaction(transaction)
-        val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
-        val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
-
-        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
+        val assignments = transaction.assignments
+        if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
+            val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments.toList)
+            val deletes = filterDeletes(statements, deletesUnfiltered)
+            val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
                 storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
                     setPersisted(inserts.keys)
