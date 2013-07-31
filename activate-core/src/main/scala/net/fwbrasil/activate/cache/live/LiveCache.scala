@@ -265,10 +265,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 executePendingMassStatements(entity)
             } else if (withinTransaction)
                 transactional(transient) {
-                    entity.delete
+                    entity.deleteWithoutInitilize
                 }
             else
-                entity.delete
+                entity.deleteWithoutInitilize
         }
     }
 

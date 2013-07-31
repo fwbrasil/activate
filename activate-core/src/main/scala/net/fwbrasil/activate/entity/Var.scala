@@ -83,6 +83,9 @@ class Var[T](
     def putValueWithoutInitialize(value: T) =
         putWithoutInitialize(Option(value))
 
+    def destroyWithoutInitilize: Unit =
+        super.destroy
+        
     override def destroy: Unit =
         doInitialized(forWrite = true) {
             super.destroy

@@ -307,7 +307,7 @@ object EntityEnhancer extends Logging {
             })
     }
 
-    private def enhanceFieldAccess(fa: FieldAccess, originalField: CtField, optionFlag: Boolean) =
+    private def enhanceFieldAccess(fa: FieldAccess, originalField: CtField, optionFlag: Boolean) = 
         if (fa.isWriter) {
             if (optionFlag)
                 fa.replace("this." + fa.getFieldName + ".put(" + box(originalField.getType, "$") + ");")

@@ -77,6 +77,12 @@ trait Entity extends Serializable with EntityValidation {
             ref.destroy
     }
 
+    private[activate] def deleteWithoutInitilize = {
+        baseVar.destroyWithoutInitilize
+        for (ref <- vars; if (ref != _baseVar))
+            ref.destroyWithoutInitilize
+    }
+
     def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
     def creationDate = new Date(creationTimestamp)
     def creationDateTime = new DateTime(creationTimestamp)
@@ -109,23 +115,22 @@ trait Entity extends Serializable with EntityValidation {
         initialized
 
     // Cyclic initializing
-    private[activate] def initialize(forWrite: Boolean) = {
-        this.synchronized {
-            if (!initialized && !initializing) {
-                initializing = true
-                context.liveCache.loadFromDatabase(this, withinTransaction = false)
-                initialized = true
-                initializing = false
-                postInitialize
+    private[activate] def initialize(forWrite: Boolean) =
+        if (!initializing) {
+                this.synchronized {
+                    if (!initialized) {
+                        context.liveCache.loadFromDatabase(this, withinTransaction = false)
+                        initialized = true
+                        postInitialize
+                    }
+                }
+            if ((forWrite || OptimisticOfflineLocking.validateReads) &&
+                OptimisticOfflineLocking.isEnabled && isPersisted) {
+                val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
+                if (!versionVar.isDirty)
+                    versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
             }
         }
-        if (!initializing && (forWrite || OptimisticOfflineLocking.validateReads) &&
-            OptimisticOfflineLocking.isEnabled && isPersisted) {
-            val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
-            if (!versionVar.isDirty)
-                versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
-        }
-    }
 
     protected def postInitialize = {}
 
