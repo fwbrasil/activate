@@ -117,6 +117,7 @@ trait Entity extends Serializable with EntityValidation {
     // Cyclic initializing
     private[activate] def initialize(forWrite: Boolean) =
         if (!initializing) {
+            if (!initialized)
                 this.synchronized {
                     if (!initialized) {
                         context.liveCache.loadFromDatabase(this, withinTransaction = false)
