@@ -69,7 +69,6 @@ trait ActivateContext
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
             liveCache.reinitialize
-            clearStatements
             storages.foreach(_.reinitialize)
         }
 
