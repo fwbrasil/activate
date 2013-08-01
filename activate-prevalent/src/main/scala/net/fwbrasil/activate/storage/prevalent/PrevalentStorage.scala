@@ -22,13 +22,17 @@ import net.fwbrasil.activate.serialization.kryoSerializer
 
 class PrevalentStorageSystem extends HashMap[String, Entity]
 
-class PrevalentStorage(directory: String, serializer: Serializer = javaSerializer, fileSize: Int = 10 * 1000 * 1000)(implicit context: ActivateContext)
+class PrevalentStorage(
+        directory: String, 
+        serializer: Serializer = javaSerializer, 
+        fileSize: Int = 10 * 1000 * 1000, 
+        bufferPoolSize: Int = Runtime.getRuntime.availableProcessors)(implicit context: ActivateContext)
         extends MarshalStorage[PrevalentStorageSystem] {
-
+    
     private val system = new PrevalentStorageSystem
     private val directoryFile = new File(directory)
     directoryFile.mkdir
-    private val journal = new PrevalentJournal(directoryFile, serializer, fileSize)
+    private val journal = new PrevalentJournal(directoryFile, serializer, fileSize, bufferPoolSize)
 
     def directAccess = system
 

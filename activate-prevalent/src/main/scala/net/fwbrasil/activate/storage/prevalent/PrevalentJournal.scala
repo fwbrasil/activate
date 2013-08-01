@@ -1,16 +1,15 @@
 package net.fwbrasil.activate.storage.prevalent
 
 import java.io.File
-import net.fwbrasil.activate.serialization.Serializer
-import java.nio.MappedByteBuffer
-import java.io.FilenameFilter
 import java.io.RandomAccessFile
+import java.nio.ByteBuffer
+import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-import scala.collection.mutable.ListBuffer
-import org.apache.commons.collections.BufferUnderflowException
-import net.fwbrasil.activate.ActivateContext
 
-class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int) {
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.serialization.Serializer
+
+class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
     private val fileSeparator = System.getProperty("file.separator")
 
@@ -18,44 +17,55 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int) {
         val buffers = directoryBuffers
         if (buffers.isEmpty)
             (createBuffer(0), 0)
-        else
+        else {
+            buffers.reverse.tail.foreach(byteBufferCleaner.cleanDirect)
             (buffers.last, buffers.size - 1)
+        }
     }
 
-    def add(transaction: PrevalentTransaction): Unit =
-        write(serializer.toSerialized(transaction))
+    private val bufferPool = new DirectBufferPool(fileSize, bufferPoolSize)
+
+    Runtime.getRuntime.addShutdownHook(
+        new Thread {
+            override def run = {
+                byteBufferCleaner.cleanDirect(currentBuffer)
+                currentBuffer = null
+                bufferPool.destroy
+            }
+        })
+
+    def add(transaction: PrevalentTransaction): Unit = {
+        val temp = bufferPool.pop
+        try {
+            serializeToTempBuffer(temp, transaction)
+            val totalSize = temp.remaining
+            val writeBuffer = createWriteBuffer(totalSize)
+            writeBuffer.put(temp)
+        } finally {
+            temp.clear
+            bufferPool.push(temp)
+        }
+    }
 
     def recover(system: PrevalentStorageSystem)(implicit ctx: ActivateContext) =
         for (buffer <- directoryBuffers) yield {
-            buffer.get // why there is this empty byte?
             recoverTransactions(system, buffer)
+            byteBufferCleaner.cleanDirect(currentBuffer)
             currentBuffer = buffer
         }
+
+    private def serializeToTempBuffer(temp: ByteBuffer, transaction: PrevalentTransaction) = {
+        prevalentTransactionSerializer.write(transaction)(temp)
+        val totalSize = temp.position
+        temp.limit(temp.position)
+        temp.rewind
+        temp
+    }
 
     private def directoryBuffers = {
         val files = journalFiles
         verifyJournalFiles(files)
         files.map(f => fileToBuffer(f, f.length))
-    }
-
-    private def hasTransactionToRecover(buffer: MappedByteBuffer) =
-        try {
-            buffer.mark
-            val i = buffer.getInt
-            i > 0
-        } catch {
-            case e: BufferUnderflowException =>
-                false
-        } finally
-            buffer.reset
-
-    private def write(bytes: Array[Byte]) = {
-        val bytesSize = bytes.length
-        val totalSize = bytesSize + 4
-        verifyFileSize(totalSize)
-        val writeBuffer = createWriteBuffer(totalSize)
-        writeBuffer.putInt(bytesSize)
-        writeBuffer.put(bytes)
     }
 
     private def createBuffer(fileIdx: Int) =
@@ -68,14 +78,9 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int) {
         new RandomAccessFile(file, "rw").getChannel
             .map(FileChannel.MapMode.READ_WRITE, 0, size)
 
-    private def verifyFileSize(totalSize: Int) =
-        if (fileSize < totalSize)
-            throw new IllegalStateException("Prevalent file size is lesser than the transaction size.")
-
     private def createWriteBuffer(totalSize: Int) =
         synchronized {
-            val buffer =
-                createNewBufferIfNecessary(totalSize)
+            val buffer = createNewBufferIfNecessary(totalSize)
             try buffer.duplicate
             finally buffer.position(buffer.position + totalSize)
         }
@@ -85,13 +90,13 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int) {
 
     private def recoverTransactions(
         system: PrevalentStorageSystem,
-        buffer: MappedByteBuffer)(implicit ctx: ActivateContext) =
-        while (hasTransactionToRecover(buffer))
-            readTransaction(buffer).recover(system)
-
-    private def readTransaction(buffer: MappedByteBuffer) =
-        serializer.fromSerialized[PrevalentTransaction](
-            readTransactionBytes(buffer))
+        buffer: MappedByteBuffer)(implicit ctx: ActivateContext) = {
+        var transactionOption = prevalentTransactionSerializer.read(buffer)
+        while (transactionOption.isDefined) {
+            transactionOption.get.recover(system)
+            transactionOption = prevalentTransactionSerializer.read(buffer)
+        }
+    }
 
     private def readTransactionBytes(buffer: MappedByteBuffer) = {
         val transactionSize = buffer.getInt

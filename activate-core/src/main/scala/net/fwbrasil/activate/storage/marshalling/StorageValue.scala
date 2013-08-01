@@ -2,8 +2,9 @@ package net.fwbrasil.activate.storage.marshalling
 
 import net.fwbrasil.activate.entity.EntityValue
 import java.util.Date
+import java.io.OutputStream
 
-abstract class StorageValue(val value: Option[_]) extends Serializable
+abstract class StorageValue(val value: Option[_]) extends Serializable 
 
 case class IntStorageValue(override val value: Option[Int])
     extends StorageValue(value)
