@@ -7,6 +7,8 @@ import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.asyncPostgresqlContext
 
 trait MultiVMContext extends StoppableActivateContext {
+    
+    override val milisToWaitBeforeRetry = 1
 
     class IntEntity extends Entity {
         var intValue = 0

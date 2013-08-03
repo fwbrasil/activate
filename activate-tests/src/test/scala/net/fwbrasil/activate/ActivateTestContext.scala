@@ -355,6 +355,8 @@ object BigStringGenerator {
 
 trait ActivateTestContext
         extends StoppableActivateContext {
+    
+    override val milisToWaitBeforeRetry = 1
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
