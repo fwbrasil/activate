@@ -33,8 +33,8 @@ class AsyncPaginationNavigator[S](val numberOfResults: Int, query: OrderedQuery[
                 query.where,
                 query.select,
                 query.orderByClause.get,
-                pageSize,
-                Some(offset))
+                () => pageSize,
+                () => Some(offset))
         pageQuery.executeAsync
     }
 

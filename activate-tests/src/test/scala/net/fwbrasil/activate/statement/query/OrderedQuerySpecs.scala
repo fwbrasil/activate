@@ -245,22 +245,46 @@ class OrderedQuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if(step.ctx != oracleContext) {
-                    val expected = List(null, "a", "b", "c")
-                    step {
-                        expected.randomize.foreach(v =>
-                            newEmptyActivateTestEntity.stringValue = v)
+                    if (step.ctx != oracleContext) {
+                        val expected = List(null, "a", "b", "c")
+                        step {
+                            expected.randomize.foreach(v =>
+                                newEmptyActivateTestEntity.stringValue = v)
+                        }
+                        step {
+                            query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2)
+                            }.toList.map(_.stringValue) must beEqualTo(List(null, "a"))
+                            query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10)
+                            }.toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
+                        }
                     }
-                    step {
-                        query {
-                            (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2)
-                        }.toList.map(_.stringValue) must beEqualTo(List(null, "a"))
-                        query {
-                            (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10)
-                        }.toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
-                    }
+                })
+        }
+
+        "do not cache the limit value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    if (step.ctx != oracleContext) {
+                        val expected = List(null, "a", "b", "c")
+                        step {
+                            expected.randomize.foreach(v =>
+                                newEmptyActivateTestEntity.stringValue = v)
+                        }
+                        step {
+                            def runQuery(limit: Int) =
+                                query {
+                                    (entity: ActivateTestEntity) =>
+                                        where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (limit)
+                                }
+
+                            runQuery(limit = 2).toList.map(_.stringValue) must beEqualTo(List(null, "a"))
+                            runQuery(limit = 10).toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
+                        }
                     }
                 })
         }
@@ -289,6 +313,30 @@ class OrderedQuerySpecs extends ActivateTest {
                 })
         }
         
+        "fo not cache the offset value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (!step.isInstanceOf[OneTransaction] && step.ctx != oracleContext) {
+                        import step.ctx._
+                        val expected = List(null, "a", "b", "c")
+                        step {
+                            expected.randomize.foreach(v =>
+                                newEmptyActivateTestEntity.stringValue = v)
+                        }
+                        step {
+                            def runQuery(limit: Int, offset: Int) =
+                            query {
+                                (entity: ActivateTestEntity) =>
+                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (limit) offset (offset)
+                            }
+                            
+                            runQuery(limit = 2, offset = 1).toList.map(_.stringValue) must beEqualTo(List("a", "b"))
+                            runQuery(limit = 10, offset = 2).toList.map(_.stringValue) must beEqualTo(List("b", "c"))
+                        }
+                    }
+                })
+        }
+
         "do not initalize entities unnecessarily" in {
             activateTest(
                 (step: StepExecutor) => {
@@ -300,11 +348,11 @@ class OrderedQuerySpecs extends ActivateTest {
                                 newEmptyActivateTestEntity.stringValue = v)
                         }
                         step {
-                            val entities = 
+                            val entities =
                                 query {
-                                (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
-                            }.toList
+                                    (entity: ActivateTestEntity) =>
+                                        where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
+                                }.toList
                             entities.map(_.isInitialized).toSet === Set(false)
                         }
                     }
