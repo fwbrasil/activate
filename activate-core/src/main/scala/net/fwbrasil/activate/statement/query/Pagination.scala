@@ -33,8 +33,8 @@ class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
                 query.where,
                 query.select,
                 query.orderByClause.get,
-                pageSize,
-                Some(offset))
+                () => pageSize,
+                () => Some(offset))
         pageQuery.execute
     }
 
