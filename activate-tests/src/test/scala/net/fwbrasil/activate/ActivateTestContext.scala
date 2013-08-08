@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.storage.cassandra.AsyncCassandraStorage
 import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
@@ -207,7 +208,7 @@ class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object derbyContext extends ActivateTestContext with SlickQueryContext{
+object derbyContext extends ActivateTestContext with SlickQueryContext {
     System.setProperty("derby.locks.deadlockTrace", "true")
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
@@ -257,6 +258,17 @@ object oracleContext extends ActivateTestContext with SlickQueryContext {
 class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
 class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
     override def bigStringType = "CLOB"
+}
+
+object asyncCassandraContext extends ActivateTestContext {
+    val storage = new AsyncCassandraStorage {
+        def contactPoints = List("localhost")
+        def keyspace = "ACTIVATE_TEST"
+    }
+}
+class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(db2Context)
+class AsyncCassandraActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
+    override def bigStringType = "ascii"
 }
 
 object db2Context extends ActivateTestContext with SlickQueryContext {
@@ -355,7 +367,7 @@ object BigStringGenerator {
 
 trait ActivateTestContext
         extends StoppableActivateContext {
-    
+
     override val milisToWaitBeforeRetry = 1
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
@@ -610,7 +622,7 @@ trait ActivateTestContext
             emptyListEntityValue,
             emptyTupleOptionValue,
             emptyStringValue)
-            
+
         lazy val lazyValue = lazyValueValue
         var varInitializedInConstructor = fullStringValue
         val valInitializedInConstructor = fullStringValue
