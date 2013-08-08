@@ -25,6 +25,7 @@ object ActivateBuild extends Build {
 	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
+	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.2"
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -58,7 +59,8 @@ object ActivateBuild extends Build {
     		aggregate = Seq(activateCore, activatePrevayler, 
     		    activateJdbc, activateMongo, activateTests, activatePlay,
     		    activateGraph, activateSprayJson, activateJdbcAsync,
-    		    activateSlick, activateMongoAsync, activatePrevalent),
+    		    activateSlick, activateMongoAsync, activatePrevalent,
+    		    activateCassandraAsync),
     		settings = commonSettings
     	)
 
@@ -91,6 +93,17 @@ object ActivateBuild extends Build {
 			base = file("activate-prevalent"),
 			dependencies = Seq(activateCore),
 			settings = commonSettings
+		)
+
+	lazy val activateCassandraAsync = 
+		Project(
+			id = "activate-cassandra-async",
+			base = file("activate-cassandra-async"),
+			dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(cassandraDriver)
+		    )
 		)
                            
     lazy val activateJdbc = 
@@ -215,7 +228,7 @@ object ActivateBuild extends Build {
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
-			    activateSlick, activateMongoAsync, activatePrevalent),
+			    activateSlick, activateMongoAsync, activatePrevalent, activateCassandraAsync),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
