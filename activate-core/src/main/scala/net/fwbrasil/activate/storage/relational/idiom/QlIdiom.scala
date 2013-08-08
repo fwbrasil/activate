@@ -174,7 +174,10 @@ trait QlIdiom {
             toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
             toSqlDmlOrderBy(query)
 
-    def toSqlDmlRemoveEntitiesReadFromCache(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) = {
+    def toSqlDmlRemoveEntitiesReadFromCache(
+        query: Query[_], entitiesReadFromCache: List[List[Entity]])(
+            implicit binds: MutableMap[StorageValue, String]) = {
+
         def bind(id: String) =
             this.bind(StringStorageValue(Some(id)))
 
@@ -183,7 +186,10 @@ trait QlIdiom {
             for (entities <- entitiesReadFromCache) yield {
                 val condition =
                     (for (i <- 0 until entitySources.size) yield {
-                        entitySources(i).name + ".id != " + bind(entities(i).id)
+                        val entity = entities(i)
+                        val entitySource = entitySources(i)
+                        entitySource.entityClass.isAssignableFrom(entity.getClass)
+                        entitySource.name + ".id != " + bind(entity.id)
                     }).mkString(" OR ")
                 s"($condition)"
             }
