@@ -149,6 +149,15 @@ case class JdbcActivateResultSet(rs: ResultSet)
 trait SqlIdiom extends QlIdiom {
 
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
+    
+    def findTableStatement(tableName: String): String
+
+    def findTableColumnStatement(tableName: String, columnName: String): String
+
+    def findIndexStatement(tableName: String, indexName: String): String
+
+    def findConstraintStatement(tableName: String, constraintName: String): String
+
 
     protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
         if (optionValue.isEmpty || optionValue == null)
@@ -213,6 +222,72 @@ trait SqlIdiom extends QlIdiom {
                 ReferenceStorageValue(resultSet.getString(i))
         }
     }
+    
+    def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
+        action match {
+            case action: StorageCreateListTable =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
+                    toSqlDdlAction(action.addOwnerIndexAction)
+            case action: StorageRemoveListTable =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
+            case action: StorageCreateTable =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
+            case action: StorageRenameTable =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
+            case action: StorageRemoveTable =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
+            case action: StorageAddColumn =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
+            case action: StorageRenameColumn =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
+            case action: StorageRemoveColumn =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
+            case action: StorageAddIndex =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
+            case action: StorageRemoveIndex =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
+            case action: StorageAddReference =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
+            case action: StorageRemoveReference =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
+        }
+    
+    def ifExistsRestriction(statement: String, boolean: Boolean) =
+        if (boolean)
+            Option(statement, 1)
+        else
+            None
+
+    def ifNotExistsRestriction(statement: String, boolean: Boolean) =
+        if (boolean)
+            Option(statement, 0)
+        else
+            None
+
 
 }
 

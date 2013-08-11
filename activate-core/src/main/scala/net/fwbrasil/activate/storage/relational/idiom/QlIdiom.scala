@@ -1,7 +1,6 @@
 package net.fwbrasil.activate.storage.relational.idiom
 
-import scala.collection.mutable.{Map => MutableMap}
-
+import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
@@ -76,6 +75,7 @@ import net.fwbrasil.activate.storage.relational.NormalQlStatement
 import net.fwbrasil.activate.storage.relational.QueryStorageStatement
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 
 trait QlIdiom {
 
@@ -151,6 +151,8 @@ trait QlIdiom {
         }
 
     def toSqlDdl(storageValue: StorageValue): String
+    
+    def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement]
 
     def toSqlDdl(column: StorageColumn): String =
         "	" + escape(column.name) + " " + column.specificTypeOption.getOrElse(toSqlDdl(column.storageValue))
@@ -178,18 +180,15 @@ trait QlIdiom {
         query: Query[_], entitiesReadFromCache: List[List[Entity]])(
             implicit binds: MutableMap[StorageValue, String]) = {
 
-        def bind(id: String) =
-            this.bind(StringStorageValue(Some(id)))
-
         val entitySources = query.from.entitySources
+        
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
                 val condition =
                     (for (i <- 0 until entitySources.size) yield {
                         val entity = entities(i)
                         val entitySource = entitySources(i)
-                        entitySource.entityClass.isAssignableFrom(entity.getClass)
-                        entitySource.name + ".id != " + bind(entity.id)
+                        entitySource.name + ".id != " + bindId(entity.id)
                     }).mkString(" OR ")
                 s"($condition)"
             }
@@ -198,6 +197,9 @@ trait QlIdiom {
         else
             ""
     }
+
+    def bindId(id: String)(implicit binds: MutableMap[StorageValue, String]) =
+        bind(StringStorageValue(Some(id)))
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)
@@ -354,61 +356,6 @@ trait QlIdiom {
     def toTableName(entityClass: Class[_], suffix: String = ""): String =
         escape(EntityHelper.getEntityName(entityClass) + suffix)
 
-    def toSqlDdl(action: ModifyStorageAction): String
-
-    def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
-        action match {
-            case action: StorageCreateListTable =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
-                    toSqlDdlAction(action.addOwnerIndexAction)
-            case action: StorageRemoveListTable =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
-            case action: StorageCreateTable =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
-            case action: StorageRenameTable =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
-            case action: StorageRemoveTable =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
-            case action: StorageAddColumn =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
-            case action: StorageRenameColumn =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
-            case action: StorageRemoveColumn =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
-            case action: StorageAddIndex =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
-            case action: StorageRemoveIndex =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
-            case action: StorageAddReference =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
-            case action: StorageRemoveReference =>
-                List(new NormalQlStatement(
-                    statement = toSqlDdl(action),
-                    restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
-        }
-
     def toSqlModify(statement: ModifyStorageStatement) = {
         implicit val binds = MutableMap[StorageValue, String]()
         statement.statement match {
@@ -447,28 +394,43 @@ trait QlIdiom {
         }
         toSqlDml(assignment.assignee) + " = " + value
     }
+    
+    def toSqlDdl(action: ModifyStorageAction): String = {
+        action match {
+            case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
+                "DROP TABLE " + escape(ownerTableName + listName.capitalize)
+            case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
+                "CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+                    toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
+                    ")"
+            case StorageCreateTable(tableName, columns, ifNotExists) =>
+                "CREATE TABLE " + escape(tableName) + "(\n" +
+                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+                    columns.map(toSqlDdl).mkString(", \n") +
+                    ")"
+            case StorageRenameTable(oldName, newName, ifExists) =>
+                "ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
+            case StorageRemoveTable(name, ifExists, isCascade) =>
+                "DROP TABLE " + escape(name) + (if (isCascade) " CASCADE constraints" else "")
+            case StorageAddColumn(tableName, column, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
+            case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+            case StorageRemoveColumn(tableName, name, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
+            case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
+                "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
+            case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
+                "DROP INDEX " + escape(name)
+            case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
+            case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
+        }
+    }
 
-    def findTableStatement(tableName: String): String
-
-    def findTableColumnStatement(tableName: String, columnName: String): String
-
-    def findIndexStatement(tableName: String, indexName: String): String
-
-    def findConstraintStatement(tableName: String, constraintName: String): String
-
-    def ifExistsRestriction(statement: String, boolean: Boolean) =
-        if (boolean)
-            Option(statement, 1)
-        else
-            None
-
-    def ifNotExistsRestriction(statement: String, boolean: Boolean) =
-        if (boolean)
-            Option(statement, 0)
-        else
-            None
-
-    private def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
+    def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
         val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
         val res = concat(value.entitySource.name + "." + escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
         res

@@ -107,7 +107,7 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
         val statements = storageStatements.map(s => dialect.toSqlStatement(s).map((_, s))).flatten
         for ((statement, storageStatement) <- statements) {
             if (satisfyRestriction(storageStatement))
-                session.execute(statement.statement)
+                session.execute(toBoundStatement(statement))
         }
         None
     }
@@ -119,7 +119,7 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
             future.flatMap { _ =>
                 val (statement, storageStatement) = tuple
                 if (satisfyRestriction(storageStatement))
-                    toScalaFuture(session.executeAsync(statement.statement)).map { _ => }
+                    toScalaFuture(session.executeAsync(toBoundStatement(statement))).map { _ => }
                 else
                     Future.successful()
             }
@@ -149,23 +149,26 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
                 !action.ifExists || metadata.getTable(action.name.toLowerCase) != null
             case action: StorageAddColumn =>
                 !action.ifNotExists ||
-                    (metadata.getTable(action.tableName) != null &&
-                        metadata.getTable(action.tableName.toLowerCase)
-                        .getColumn(action.column.name.toLowerCase) == null)
+                    metadata.getTable(action.tableName.toLowerCase)
+                    .getColumn(action.column.name.toLowerCase) == null
             case action: StorageRenameColumn =>
                 !action.ifExists ||
-                    (metadata.getTable(action.tableName) != null &&
-                        metadata.getTable(action.tableName.toLowerCase)
-                        .getColumn(action.oldName.toLowerCase) != null)
+                    metadata.getTable(action.tableName.toLowerCase)
+                    .getColumn(action.oldName.toLowerCase) != null
             case action: StorageRemoveColumn =>
                 !action.ifExists ||
-                    (metadata.getTable(action.tableName.toLowerCase) != null &&
-                        metadata.getTable(action.tableName.toLowerCase)
-                        .getColumn(action.name.toLowerCase) != null)
+                    metadata.getTable(action.tableName.toLowerCase)
+                    .getColumn(action.name.toLowerCase) != null
             case action: StorageAddIndex =>
-                true
+                !action.ifNotExists ||
+                    metadata.getTable(action.tableName.toLowerCase)
+                    .getColumn(action.columnName.toLowerCase)
+                    .getIndex == null
             case action: StorageRemoveIndex =>
-                true
+                !action.ifExists ||
+                    metadata.getTable(action.tableName.toLowerCase)
+                    .getColumn(action.columnName.toLowerCase)
+                    .getIndex != null
             case action: StorageAddReference =>
                 true
             case action: StorageRemoveReference =>
@@ -228,11 +231,16 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
                 other.value.getOrElse(null)
         }
 
-    private def toBoundStatement(query: net.fwbrasil.activate.statement.query.Query[_], entitiesReadFromCache: List[List[net.fwbrasil.activate.entity.Entity]]): com.datastax.driver.core.BoundStatement = {
-        val statement = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
-        val preparedStatement = session.prepare(statement.indexedStatement)
-        val boundStatement = new BoundStatement(preparedStatement).bind(statement.valuesList.head.map(toValue))
-        boundStatement
+    private def toBoundStatement(
+            query: Query[_], 
+            entitiesReadFromCache: List[List[Entity]]): BoundStatement = 
+        toBoundStatement(dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache)))
+    
+    private def toBoundStatement(statement: NormalQlStatement): BoundStatement = {
+      val preparedStatement = session.prepare(statement.indexedStatement)
+      new BoundStatement(preparedStatement)
+          .bind(statement.valuesList.head.map(toValue)
+              .toSeq.asInstanceOf[Seq[Object]]: _*)
     }
 
 }

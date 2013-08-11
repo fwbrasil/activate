@@ -32,55 +32,42 @@ import net.fwbrasil.activate.statement.Operator
 import net.fwbrasil.activate.statement.Or
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
+import net.fwbrasil.activate.storage.relational.NormalQlStatement
+import net.fwbrasil.activate.storage.relational.NormalQlStatement
+import net.fwbrasil.activate.statement.StatementEntityValue
+import net.fwbrasil.activate.entity.ListEntityValue
+import net.fwbrasil.activate.entity.LazyListEntityValue
+import net.fwbrasil.activate.statement.StatementEntitySourceValue
+import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
+import net.fwbrasil.activate.statement.StatementEntityInstanceValue
+import net.fwbrasil.activate.statement.From
+import net.fwbrasil.activate.statement.SimpleValue
+import net.fwbrasil.activate.storage.marshalling.Marshaller
+import net.fwbrasil.activate.statement.IsLessThan
+import net.fwbrasil.activate.statement.IsGreaterOrEqualTo
+import net.fwbrasil.activate.statement.IsNotEqualTo
+import net.fwbrasil.activate.statement.IsEqualTo
+import net.fwbrasil.activate.statement.IsLessOrEqualTo
+import net.fwbrasil.activate.statement.IsNotNull
+import net.fwbrasil.activate.statement.IsNull
+import net.fwbrasil.activate.statement.IsGreaterThan
+import net.fwbrasil.activate.statement.And
 
 object cqlIdiom extends QlIdiom {
 
     override def concat(strings: String*): String = strings.mkString(" + ")
+
     override def escape(string: String): String = string
-    override def findConstraintStatement(tableName: String, constraintName: String): String = "USE ACTIVATE_TEST"
-    override def findIndexStatement(tableName: String, indexName: String): String = "USE ACTIVATE_TEST"
-    override def findTableColumnStatement(tableName: String, columnName: String): String = "USE ACTIVATE_TEST"
-    override def findTableStatement(tableName: String): String = "USE ACTIVATE_TEST"
-    override def toSqlDdl(action: ModifyStorageAction): String = {
-        action match {
-            case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
-                "DROP TABLE " + escape(ownerTableName + listName.capitalize)
-            case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
-                "CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
-                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
-                    toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
-                    ")"
-            case StorageCreateTable(tableName, columns, ifNotExists) =>
-                "CREATE TABLE " + escape(tableName) + "(\n" +
-                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
-                    columns.map(toSqlDdl).mkString(", \n") +
-                    ")"
-            case StorageRenameTable(oldName, newName, ifExists) =>
-                "ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
-            case StorageRemoveTable(name, ifExists, isCascade) =>
-                "DROP TABLE " + escape(name) + (if (isCascade) " CASCADE constraints" else "")
-            case StorageAddColumn(tableName, column, ifNotExists) =>
-                "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
-            case StorageRenameColumn(tableName, oldName, column, ifExists) =>
-                "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
-            case StorageRemoveColumn(tableName, name, ifExists) =>
-                "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
-            case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
-                "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
-            case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-                "DROP INDEX " + escape(name)
-            case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-                "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
-            case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-                "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
-        }
-    }
+
+    override def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
+        List(new NormalQlStatement(toSqlDdl(action)))
+
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {
             case value: IntStorageValue =>
                 "int"
             case value: LongStorageValue =>
-                "decimal"
+                "bigint"
             case value: BooleanStorageValue =>
                 "boolean"
             case value: StringStorageValue =>
@@ -100,10 +87,16 @@ object cqlIdiom extends QlIdiom {
             case value: ReferenceStorageValue =>
                 "ascii"
         }
+
     override def toSqlDmlRegexp(value: String, regex: String): String =
         value + ".*" + regex
+
     override def toSqlDml(value: Operator)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
+            case value: IsNull =>
+                " = null "
+            case value: IsNotNull =>
+                " != null "
             case op: Or =>
                 throw new UnsupportedOperationException("Cassandra does not support the OR operator.")
             case other =>
@@ -123,9 +116,6 @@ object cqlIdiom extends QlIdiom {
         query: Query[_], entitiesReadFromCache: List[List[Entity]])(
             implicit binds: MutableMap[StorageValue, String]) = {
 
-        def bind(id: String) =
-            this.bind(StringStorageValue(Some(id)))
-
         val entitySources = query.from.entitySources
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
@@ -133,8 +123,7 @@ object cqlIdiom extends QlIdiom {
                     (for (i <- 0 until entitySources.size) yield {
                         val entity = entities(i)
                         val entitySource = entitySources(i)
-                        entitySource.entityClass.isAssignableFrom(entity.getClass)
-                        entitySources(i).name + ".id != " + bind(entity.id)
+                        entitySources(i).name + ".id != " + bindId(entity.id)
                     }).mkString(" OR ")
                 s"($condition)"
             }
@@ -143,5 +132,48 @@ object cqlIdiom extends QlIdiom {
         else
             ""
     }
+
+    override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
+        "SELECT " + toSqlDml(query.select) +
+            " FROM " + toSqlDml(query.from) +
+            " WHERE " + toSqlDml(query.where) +
+            toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
+            toSqlDmlOrderBy(query)
+
+    override def toSqlDml[V](value: StatementEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
+        value match {
+            case value: StatementEntityInstanceValue[_] =>
+                bind(StringStorageValue(Option(value.entityId)))
+            case value: StatementEntitySourcePropertyValue[v] =>
+                val propertyName = value.propertyPathNames.mkString(".")
+                value.entityValue match {
+                    case entityValue: ListEntityValue[_] =>
+                        listColumnSelect(value, propertyName)
+                    case entityValue: LazyListEntityValue[_] =>
+                        listColumnSelect(value, propertyName)
+                    case other =>
+                        escape(propertyName)
+                }
+            case value: StatementEntitySourceValue[v] =>
+                "id"
+        }
+
+    override def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
+        val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
+        val res = concat(escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
+        res
+    }
+
+    override def toSqlDml(value: From)(implicit binds: MutableMap[StorageValue, String]): String =
+        (for (source <- value.entitySources)
+            yield toTableName(source.entityClass)).mkString(", ")
+
+    override def toSqlDml(value: SimpleValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
+        value.anyValue match {
+            case null =>
+                "= null"
+            case other =>
+                bind(Marshaller.marshalling(value.entityValue))
+        }
 
 }

@@ -33,6 +33,10 @@ object Migration {
                 createTableForEntity[StorageVersion]
                     .ifNotExists
                 createInexistentColumnsForEntity[StorageVersion]
+                table[StorageVersion].addIndex(
+                    columnName = "contextName",
+                    indexName = "IDX_CTX_NAME")
+                    .ifNotExists
                 customScript {
                     ctx.storages.foreach(_.prepareDatabase)
                 }
