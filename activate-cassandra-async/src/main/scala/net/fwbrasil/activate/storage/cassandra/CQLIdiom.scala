@@ -52,6 +52,7 @@ import net.fwbrasil.activate.statement.IsNotNull
 import net.fwbrasil.activate.statement.IsNull
 import net.fwbrasil.activate.statement.IsGreaterThan
 import net.fwbrasil.activate.statement.And
+import net.fwbrasil.activate.statement.Where
 
 object cqlIdiom extends QlIdiom {
 
@@ -133,12 +134,10 @@ object cqlIdiom extends QlIdiom {
             ""
     }
 
-    override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
-        "SELECT " + toSqlDml(query.select) +
-            " FROM " + toSqlDml(query.from) +
-            " WHERE " + toSqlDml(query.where) +
-            toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
-            toSqlDmlOrderBy(query)
+    override def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
+        value.valueOption.map {
+            value => " WHERE " + toSqlDml(value)
+        }.getOrElse("")
 
     override def toSqlDml[V](value: StatementEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
         value match {

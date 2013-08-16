@@ -19,7 +19,7 @@ class MassUpdateSpecs extends ActivateTest {
                     val newValue = 789
                     step {
                         update {
-                            (entity: ActivateTestEntity) => where(entity isNotNull) set (entity.intValue := newValue)
+                            (entity: ActivateTestEntity) => where() set (entity.intValue := newValue)
                         }
                     }
                     step {

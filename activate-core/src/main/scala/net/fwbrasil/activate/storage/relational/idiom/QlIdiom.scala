@@ -151,7 +151,7 @@ trait QlIdiom {
         }
 
     def toSqlDdl(storageValue: StorageValue): String
-    
+
     def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement]
 
     def toSqlDdl(column: StorageColumn): String =
@@ -172,7 +172,7 @@ trait QlIdiom {
     def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
         "SELECT " + toSqlDml(query.select) +
             " FROM " + toSqlDml(query.from) +
-            " WHERE (" + toSqlDml(query.where) + ")" +
+            toSqlDml(query.where) +
             toSqlDmlRemoveEntitiesReadFromCache(query, entitiesReadFromCache) +
             toSqlDmlOrderBy(query)
 
@@ -181,7 +181,7 @@ trait QlIdiom {
             implicit binds: MutableMap[StorageValue, String]) = {
 
         val entitySources = query.from.entitySources
-        
+
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
                 val condition =
@@ -192,8 +192,13 @@ trait QlIdiom {
                     }).mkString(" OR ")
                 s"($condition)"
             }
+        val base =
+            if(query.where.valueOption.isDefined)
+                " AND "
+            else
+                " WHERE "
         if (restrictions.nonEmpty)
-            " AND " + restrictions.mkString(" AND ")
+            base + restrictions.mkString(" AND ")
         else
             ""
     }
@@ -304,7 +309,9 @@ trait QlIdiom {
             yield toTableName(source.entityClass) + " " + source.name).mkString(", ")
 
     def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
-        toSqlDml(value.value)
+        value.valueOption.map {
+            value => " WHERE (" + toSqlDml(value) + ")"
+        }.getOrElse("")
 
     def toSqlDml(value: Criteria)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
@@ -361,11 +368,11 @@ trait QlIdiom {
         statement.statement match {
             case update: MassUpdateStatement =>
                 new NormalQlStatement(
-                    removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + " WHERE " + toSqlDml(update.where), update.from),
+                    removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + toSqlDml(update.where), update.from),
                     (Map() ++ binds) map { _.swap })
             case delete: MassDeleteStatement =>
                 new NormalQlStatement(
-                    removeAlias("DELETE FROM " + toSqlDml(delete.from) + " WHERE " + toSqlDml(delete.where), delete.from),
+                    removeAlias("DELETE FROM " + toSqlDml(delete.from) + toSqlDml(delete.where), delete.from),
                     (Map() ++ binds) map { _.swap })
         }
     }
@@ -394,7 +401,7 @@ trait QlIdiom {
         }
         toSqlDml(assignment.assignee) + " = " + value
     }
-    
+
     def toSqlDdl(action: ModifyStorageAction): String = {
         action match {
             case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>

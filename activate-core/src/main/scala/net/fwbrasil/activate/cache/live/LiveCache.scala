@@ -292,7 +292,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }
 
     def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[List[Any]] = {
-        val satisfyWhere = executeCriteria(query.where.value)(entitySourceInstancesMap)
+        val satisfyWhere = executeCriteria(query.where.valueOption)(entitySourceInstancesMap)
         if (satisfyWhere) {
             List(executeSelect[S](query.select.values: _*)(entitySourceInstancesMap))
         } else
@@ -300,7 +300,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     }
 
     def executeMassModificationWithEntitySourcesMap[S](statement: MassModificationStatement, entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
-        val satisfyWhere = executeCriteria(statement.where.value)(entitySourceInstancesMap)
+        val satisfyWhere = executeCriteria(statement.where.valueOption)(entitySourceInstancesMap)
         if (satisfyWhere)
             statement match {
                 case update: MassUpdateStatement =>
@@ -332,14 +332,16 @@ class LiveCache(val context: ActivateContext) extends Logging {
         }
     }
 
-    def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
-        criteria match {
-            case criteria: BooleanOperatorCriteria =>
+    def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+        criteriaOption match {
+            case Some(criteria: BooleanOperatorCriteria) =>
                 executeBooleanOperatorCriteria(criteria)
-            case criteria: SimpleOperatorCriteria =>
+            case Some(criteria: SimpleOperatorCriteria) =>
                 executeSimpleOperatorCriteria(criteria)
-            case criteria: CompositeOperatorCriteria =>
+            case Some(criteria: CompositeOperatorCriteria) =>
                 executeCompositeOperatorCriteria(criteria)
+            case None =>
+                true
         }
 
     def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean = {
@@ -416,13 +418,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
             case value: SimpleStatementBooleanValue =>
                 value.value
             case value: Criteria =>
-                executeCriteria(value)
+                executeCriteria(Some(value))
         }
 
     def executeStatementValue(value: StatementValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
         value match {
             case value: Criteria =>
-                executeCriteria(value)
+                executeCriteria(Some(value))
             case value: StatementBooleanValue =>
                 executeStatementBooleanValue(value)
             case value: StatementSelectValue[_] =>

@@ -73,7 +73,10 @@ trait StatementContext extends StatementValueContext with OperatorContext {
     }
 
     def where(value: Criteria) =
-        Where(value)
+        Where(Some(value))
+        
+    def where() = 
+        Where(None)
 
 }
 

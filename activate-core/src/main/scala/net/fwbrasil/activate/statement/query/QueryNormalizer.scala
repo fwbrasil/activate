@@ -61,10 +61,26 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
             }
             for (entitySource <- entitySourceSet)
                 normalizeMap.put(entitySource, entitySource)
-            var criteria = deepCopyMapping(query.where.value, normalizeMap)
-            for (i <- 0 until criteriaList.size)
-                criteria = And(criteria) :&& criteriaList(i)
-            normalizeMap.put(query.where.value, criteria)
+            val criteriaOption = 
+                query.where.valueOption.map {
+                value =>
+                    var criteria = deepCopyMapping(value, normalizeMap)
+                    for (i <- 0 until criteriaList.size)
+                        criteria = And(criteria) :&& criteriaList(i)
+                    Some(criteria)
+            }.getOrElse {
+                criteriaList.toList match {
+                    case Nil =>
+                        None
+                    case head :: Nil =>
+                        Some(head)
+                    case head :: tail =>
+                        val criteria = tail.foldLeft(head)((base, criteria) => And(base) :&& criteria)
+                        Some(criteria)
+                }
+            }
+
+            normalizeMap.put(query.where.valueOption, criteriaOption)
             normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
             val result = deepCopyMapping(query, normalizeMap)
             List(result)

@@ -591,5 +591,23 @@ class QuerySpecs extends ActivateTest {
                 })
         }
 
+        "support query with empty where" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            new TraitAttribute1("1").id
+                        }
+                    def expected = List(byId[TraitAttribute1](entityId).get)
+                    step {
+                        select[TraitAttribute1].where() === expected
+                        query {
+                            (e: TraitAttribute1) => where() select(e)
+                        } === expected
+                    }
+                })
+        }
+
     }
 }

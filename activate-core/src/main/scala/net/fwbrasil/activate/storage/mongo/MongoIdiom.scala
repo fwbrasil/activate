@@ -123,7 +123,7 @@ object mongoIdiom {
         }
 
     def toQueryWhere(where: Where) =
-        toQueryCriteria(where.value)
+        where.valueOption.map(toQueryCriteria).getOrElse(newObject())
 
     def toQuerySelect(select: Select) =
         (for (value <- select.values if (!value.isInstanceOf[SimpleValue[_]])) yield mongoStatementSelectValue(value) -> 1).toMap

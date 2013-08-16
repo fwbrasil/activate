@@ -18,7 +18,7 @@ class MassDeleteSpecs extends ActivateTest {
                     }
                     step {
                         step.ctx.delete {
-                            (entity: ActivateTestEntity) => where(entity isNotNull)
+                            (entity: ActivateTestEntity) => where()
                         }
                     }
                     step {

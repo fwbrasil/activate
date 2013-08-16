@@ -128,7 +128,7 @@ case class BooleanOperatorCriteria(valueA: StatementBooleanValue, operator: Bool
     override def toString = "(" + valueA + " " + operator + " " + valueB + ")"
 }
 
-case class Where(value: Criteria) {
+case class Where(valueOption: Option[Criteria]) {
 
     private[activate] def selectList(list: List[StatementSelectValue[_]]) =
         new Query[Product](From.from,
@@ -167,5 +167,5 @@ case class Where(value: Criteria) {
                 tval3(value3),
                 tval4(value4)))
 
-    override def toString = value.toString
+    override def toString = valueOption.map(_.toString).getOrElse("")
 }

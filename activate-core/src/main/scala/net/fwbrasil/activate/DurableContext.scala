@@ -193,7 +193,7 @@ trait DurableContext {
                             val storage = storageFor(entityClass)
                             if (!storage.isMemoryStorage)
                                 deletesByEntityClass.get(entityClass).map {
-                                    _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                                    _.filter(entity => liveCache.executeCriteria(massDelete.where.valueOption)(Map(entitySource -> entity))).toList
                                 }.getOrElse(List())
                             else List()
                         }
