@@ -134,41 +134,44 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
                 true
         }
     }
+    
+    private def getTable(name: String) =
+        Option(metadata.getTable(name))
+        
+    private def getColumn(table: String, column: String) =
+        getTable(table).flatMap(t => Option(t.getColumn(column)))
 
     private def satisfyRestrictionDdl(storageStatement: DdlStorageStatement) = {
         storageStatement.action match {
             case action: StorageCreateListTable =>
-                !action.ifNotExists || metadata.getTable(action.listTableName.toLowerCase) == null
+                !action.ifNotExists || getTable(action.listTableName).isEmpty
             case action: StorageRemoveListTable =>
-                !action.ifExists || metadata.getTable(action.listTableName.toLowerCase) != null
+                !action.ifExists || getTable(action.listTableName).nonEmpty
             case action: StorageCreateTable =>
-                !action.ifNotExists || metadata.getTable(action.tableName.toLowerCase) == null
+                !action.ifNotExists || getTable(action.tableName).isEmpty
             case action: StorageRenameTable =>
-                !action.ifExists || metadata.getTable(action.oldName.toLowerCase) != null
+                !action.ifExists || getTable(action.oldName).nonEmpty
             case action: StorageRemoveTable =>
-                !action.ifExists || metadata.getTable(action.name.toLowerCase) != null
+                !action.ifExists || getTable(action.name).nonEmpty
             case action: StorageAddColumn =>
                 !action.ifNotExists ||
-                    metadata.getTable(action.tableName.toLowerCase)
-                    .getColumn(action.column.name.toLowerCase) == null
+                    getColumn(action.tableName, action.column.name).isEmpty
             case action: StorageRenameColumn =>
                 !action.ifExists ||
-                    metadata.getTable(action.tableName.toLowerCase)
-                    .getColumn(action.oldName.toLowerCase) != null
+                    getColumn(action.tableName, action.oldName).nonEmpty
             case action: StorageRemoveColumn =>
                 !action.ifExists ||
-                    metadata.getTable(action.tableName.toLowerCase)
-                    .getColumn(action.name.toLowerCase) != null
+                    getColumn(action.tableName, action.name).nonEmpty
             case action: StorageAddIndex =>
                 !action.ifNotExists ||
-                    metadata.getTable(action.tableName.toLowerCase)
-                    .getColumn(action.columnName.toLowerCase)
-                    .getIndex == null
+                    getColumn(action.tableName, action.columnName)
+                    .flatMap(v => Option(v.getIndex))
+                    .isEmpty
             case action: StorageRemoveIndex =>
                 !action.ifExists ||
-                    metadata.getTable(action.tableName.toLowerCase)
-                    .getColumn(action.columnName.toLowerCase)
-                    .getIndex != null
+                    getColumn(action.tableName, action.columnName)
+                    .flatMap(v => Option(v.getIndex))
+                    .nonEmpty
             case action: StorageAddReference =>
                 true
             case action: StorageRemoveReference =>
@@ -222,11 +225,6 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
 
     private def toValue(storageValue: StorageValue) =
         storageValue match {
-            case value: ListStorageValue =>
-                if (value.value.isDefined)
-                    1
-                else
-                    0
             case other =>
                 other.value.getOrElse(null)
         }

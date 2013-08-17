@@ -266,8 +266,8 @@ object asyncCassandraContext extends ActivateTestContext {
         def keyspace = "ACTIVATE_TEST"
     }
 }
-class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(db2Context)
-class AsyncCassandraActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
+class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
+class AsyncCassandraActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncCassandraContext) {
     override def bigStringType = "ascii"
 }
 

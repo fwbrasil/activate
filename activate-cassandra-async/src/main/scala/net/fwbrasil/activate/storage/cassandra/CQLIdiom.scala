@@ -53,15 +53,31 @@ import net.fwbrasil.activate.statement.IsNull
 import net.fwbrasil.activate.statement.IsGreaterThan
 import net.fwbrasil.activate.statement.And
 import net.fwbrasil.activate.statement.Where
+import net.fwbrasil.activate.storage.relational.InsertStorageStatement
+import net.fwbrasil.activate.storage.relational.ModifyStorageStatement
+import net.fwbrasil.activate.storage.relational.DdlStorageStatement
+import net.fwbrasil.activate.storage.relational.StorageStatement
+import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
+import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 
 object cqlIdiom extends QlIdiom {
 
     override def concat(strings: String*): String = strings.mkString(" + ")
 
-    override def escape(string: String): String = string
+    override def escape(string: String): String = "\"" + string + "\""
 
     override def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
-        List(new NormalQlStatement(toSqlDdl(action)))
+    	action match {
+    	    case action: StorageCreateListTable =>
+                List()
+            case action: StorageRemoveListTable =>
+                List()
+            case action: StorageRemoveColumn =>
+                List()
+            case other =>
+                List(new NormalQlStatement(toSqlDdl(other)))
+    	}
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {
@@ -82,7 +98,7 @@ object cqlIdiom extends QlIdiom {
             case value: BigDecimalStorageValue =>
                 "decimal"
             case value: ListStorageValue =>
-                "int"
+                "list<" + toSqlDdl(value.emptyStorageValue) + ">"
             case value: ByteArrayStorageValue =>
                 "blob"
             case value: ReferenceStorageValue =>
@@ -146,15 +162,43 @@ object cqlIdiom extends QlIdiom {
             case value: StatementEntitySourcePropertyValue[v] =>
                 val propertyName = value.propertyPathNames.mkString(".")
                 value.entityValue match {
-                    case entityValue: ListEntityValue[_] =>
-                        listColumnSelect(value, propertyName)
-                    case entityValue: LazyListEntityValue[_] =>
-                        listColumnSelect(value, propertyName)
+                    //                    case entityValue: ListEntityValue[_] =>
+                    //                        listColumnSelect(value, propertyName)
+                    //                    case entityValue: LazyListEntityValue[_] =>
+                    //                        listColumnSelect(value, propertyName)
                     case other =>
                         escape(propertyName)
                 }
             case value: StatementEntitySourceValue[v] =>
                 "id"
+        }
+
+    override def toSqlStatement(statement: StorageStatement): List[NormalQlStatement] =
+        statement match {
+            case insert: InsertStorageStatement =>
+                List(new NormalQlStatement(
+                    statement = "INSERT INTO " + toTableName(insert.entityClass) +
+                        " (" + insert.propertyMap.keys.toList.sorted.map(escape).mkString(", ") + ") " +
+                        " VALUES (:" + insert.propertyMap.keys.toList.sorted.mkString(", :") + ")",
+                    binds = insert.propertyMap,
+                    expectedNumberOfAffectedRowsOption = Some(1)))
+            case update: UpdateStorageStatement =>
+                List(new NormalQlStatement(
+                    statement = "UPDATE " + toTableName(update.entityClass) +
+                        " SET " + (for (key <- update.propertyMap.keys.toList.sorted if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
+                        " WHERE ID = :id" + versionCondition(update.propertyMap),
+                    binds = update.propertyMap,
+                    expectedNumberOfAffectedRowsOption = Some(1)))
+            case delete: DeleteStorageStatement =>
+                List(new NormalQlStatement(
+                    statement = "DELETE FROM " + toTableName(delete.entityClass) +
+                        " WHERE ID = :id " + versionCondition(delete.propertyMap),
+                    binds = delete.propertyMap,
+                    expectedNumberOfAffectedRowsOption = Some(1)))
+            case ddl: DdlStorageStatement =>
+                toSqlDdlAction(ddl.action)
+            case modify: ModifyStorageStatement =>
+                List(toSqlModify(modify))
         }
 
     override def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
@@ -174,5 +218,27 @@ object cqlIdiom extends QlIdiom {
             case other =>
                 bind(Marshaller.marshalling(value.entityValue))
         }
+
+    override def toSqlDdl(action: ModifyStorageAction): String = {
+        action match {
+            case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
+                "CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + ",\n" +
+                    toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
+                    ")"
+            case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
+                "CREATE INDEX " + indexName + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
+            case StorageRemoveTable(name, ifExists, isCascade) =>
+                "DROP TABLE " + escape(name)
+            case StorageRemoveColumn(tableName, name, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " DROP " + escape(name)
+            case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                throw new UnsupportedOperationException("Cassandra hasn't references.")
+            case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+                throw new UnsupportedOperationException("Cassandra hasn't references.")
+            case other =>
+                super.toSqlDdl(other)
+        }
+    }
 
 }
