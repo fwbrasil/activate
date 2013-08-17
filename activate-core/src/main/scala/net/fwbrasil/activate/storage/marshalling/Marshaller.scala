@@ -53,6 +53,7 @@ import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.entity.LazyList
+import net.fwbrasil.activate.migration.ModifyColumnType
 
 object Marshaller {
 
@@ -180,6 +181,8 @@ object Marshaller {
                 StorageAddColumn(action.tableName, marshalling(action.column), action.onlyIfNotExists)
             case action: RenameColumn =>
                 StorageRenameColumn(action.tableName, action.oldName, marshalling(action.column), action.onlyIfExists)
+            case action: ModifyColumnType =>
+                StorageModifyColumnType(action.tableName, marshalling(action.column), action.onlyIfExists)
             case action: RemoveColumn =>
                 StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
             case action: AddIndex =>
@@ -213,6 +216,7 @@ case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolea
 case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends ModifyStorageAction
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction
 case class StorageRenameColumn(tableName: String, oldName: String, column: StorageColumn, ifExists: Boolean) extends ModifyStorageAction
+case class StorageModifyColumnType(tableName: String, column: StorageColumn, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveColumn(tableName: String, name: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageAddIndex(tableName: String, columnName: String, indexName: String, ifNotExists: Boolean, unique: Boolean) extends ModifyStorageAction
 case class StorageRemoveIndex(tableName: String, columnName: String, name: String, ifExists: Boolean) extends ModifyStorageAction

@@ -76,6 +76,7 @@ import net.fwbrasil.activate.storage.relational.QueryStorageStatement
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 trait QlIdiom {
 
@@ -155,7 +156,10 @@ trait QlIdiom {
     def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement]
 
     def toSqlDdl(column: StorageColumn): String =
-        "	" + escape(column.name) + " " + column.specificTypeOption.getOrElse(toSqlDdl(column.storageValue))
+        "	" + escape(column.name) + " " + columnType(column)
+
+    def columnType(column: StorageColumn) =
+        column.specificTypeOption.getOrElse(toSqlDdl(column.storageValue))
 
     def escape(string: String): String
 
@@ -193,7 +197,7 @@ trait QlIdiom {
                 s"($condition)"
             }
         val base =
-            if(query.where.valueOption.isDefined)
+            if (query.where.valueOption.isDefined)
                 " AND "
             else
                 " WHERE "
@@ -424,6 +428,8 @@ trait QlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>

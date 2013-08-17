@@ -29,6 +29,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object postgresqlDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -86,6 +87,8 @@ object postgresqlDialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
@@ -103,7 +106,7 @@ object postgresqlDialect extends SqlIdiom {
         "CONCAT(" + strings.mkString(", ") + ")"
 
     override def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
-        super.toSqlDml(criteria) + (if(criteria.direction == orderByAscendingDirection)" NULLS FIRST" else " NULLS LAST")
+        super.toSqlDml(criteria) + (if (criteria.direction == orderByAscendingDirection) " NULLS FIRST" else " NULLS LAST")
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {

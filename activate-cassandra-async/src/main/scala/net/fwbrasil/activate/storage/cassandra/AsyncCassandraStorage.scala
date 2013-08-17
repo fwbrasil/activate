@@ -58,6 +58,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 trait AsyncCassandraStorage extends RelationalStorage[Session] {
 
@@ -159,6 +160,9 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
             case action: StorageRenameColumn =>
                 !action.ifExists ||
                     getColumn(action.tableName, action.oldName).nonEmpty
+            case action: StorageModifyColumnType =>
+                !action.ifExists ||
+                    getColumn(action.tableName, action.column.name).nonEmpty
             case action: StorageRemoveColumn =>
                 !action.ifExists ||
                     getColumn(action.tableName, action.name).nonEmpty

@@ -98,6 +98,7 @@ import net.fwbrasil.activate.statement.ToLowerCase
 import net.fwbrasil.activate.storage.relational.InsertStorageStatement
 import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -254,6 +255,10 @@ trait SqlIdiom extends QlIdiom {
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
+            case action: StorageModifyColumnType =>
+                List(new NormalQlStatement(
+                    statement = toSqlDdl(action),
+                    restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifExists)))
             case action: StorageRemoveColumn =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),

@@ -34,6 +34,7 @@ import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object oracleDialect extends SqlIdiom {
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -108,6 +109,8 @@ object oracleDialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " MODIFY " + escape(column.name) + " " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>

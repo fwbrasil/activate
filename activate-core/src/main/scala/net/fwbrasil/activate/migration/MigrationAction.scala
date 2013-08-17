@@ -159,6 +159,17 @@ case class RemoveColumn(
     private[activate] def revertAction =
         throw CannotRevertMigration(this)
 }
+case class ModifyColumnType(
+    migration: Migration,
+    storage: Storage[_],
+    number: Int,
+    tableName: String,
+    column: Column[_])
+        extends StorageAction
+        with IfExists[ModifyColumnType] {
+    private[activate] def revertAction =
+        throw CannotRevertMigration(this)
+}
 case class AddIndex(
     migration: Migration,
     storage: Storage[_],

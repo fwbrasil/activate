@@ -354,6 +354,13 @@ abstract class Migration(implicit val context: ActivateContext) {
 
         def removeColumn(columnName: String): RemoveColumn =
             addAction(RemoveColumn(Migration.this, storage, nextNumber, name, columnName))
+            
+        def modifyColumnType(column: (ColumnDef) => Unit): ModifyColumnType = {
+            val columns = new ColumnDef()
+            column(columns)
+            val definition = columns.definitions.head
+            addAction(ModifyColumnType(Migration.this, storage, nextNumber, name, definition))
+        }
 
         def addIndex(columnName: String, indexName: String, unique: Boolean = false): AddIndex =
             addAction(AddIndex(Migration.this, storage, nextNumber, name, columnName, indexName, unique))

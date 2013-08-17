@@ -39,6 +39,8 @@ import net.fwbrasil.activate.storage.marshalling.Marshaller
 import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import java.util.Date
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object db2Dialect extends SqlIdiom {
 
@@ -111,6 +113,8 @@ object db2Dialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(oldName) + " RENAME TO " + escape(column.name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>

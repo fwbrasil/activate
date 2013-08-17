@@ -88,10 +88,8 @@ abstract class ActivateTestMigrationCustomColumnType(
 
     val timestamp = ActivateTestMigration.timestamp + 1
 
-    def up = {
-        table[ctx.ActivateTestEntity].removeColumn("bigStringValue").ifExists
-        table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
-    }
+    def up =
+        table[ctx.ActivateTestEntity].modifyColumnType(_.customColumn[String]("bigStringValue", bigStringType))
 
     def bigStringType: String
 
@@ -220,8 +218,14 @@ object derbyContext extends ActivateTestContext with SlickQueryContext {
 }
 
 class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
-class DerbyActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(derbyContext) {
-    override def bigStringType = "CLOB"
+class DerbyActivateTestMigrationCustomColumnType extends Migration()(derbyContext) {
+    
+    val timestamp = ActivateTestMigration.timestamp + 1
+    
+    def up = {
+        table[derbyContext.ActivateTestEntity].removeColumn("bigStringValue").ifExists
+        table[derbyContext.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", "CLOB"))
+    }
 }
 
 object mongoContext extends ActivateTestContext {

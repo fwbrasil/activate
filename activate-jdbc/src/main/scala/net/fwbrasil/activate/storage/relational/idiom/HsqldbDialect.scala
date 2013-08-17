@@ -25,6 +25,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object hsqldbDialect extends SqlIdiom {
 
@@ -84,6 +85,8 @@ object hsqldbDialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(oldName) + " RENAME TO " + escape(column.name)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
                 "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
             case StorageRemoveIndex(tableName, columnName, name, ifExists) =>

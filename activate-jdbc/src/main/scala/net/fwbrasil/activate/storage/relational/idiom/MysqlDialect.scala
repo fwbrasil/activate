@@ -30,6 +30,7 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import java.sql.Connection
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object mySqlDialect extends SqlIdiom {
 
@@ -106,6 +107,8 @@ object mySqlDialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " CHANGE " + escape(oldName) + " " + toSqlDdl(column)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " MODIFY COLUMN " + escape(column.name) + " " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>

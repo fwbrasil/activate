@@ -33,6 +33,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object derbyRegex {
     def regexp(src: String, pattern: String) = {
@@ -60,7 +61,7 @@ object derbyDialect extends SqlIdiom {
             case e: SQLException =>
                 e.getMessage match {
                     case "FUNCTION 'REGEXP' already exists." => //ok
-                    case other                               => throw e
+                    case other => throw e
                 }
         }
 
@@ -126,6 +127,8 @@ object derbyDialect extends SqlIdiom {
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "RENAME COLUMN " + escape(tableName) + "." + escape(oldName) + " TO " + escape(column.name)
+            case StorageModifyColumnType(tableName, column, ifExists) =>
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
@@ -177,7 +180,7 @@ object derbyDialect extends SqlIdiom {
     override def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String = {
         (for (value <- select.values) yield value match {
             case value: SimpleValue[_] => "cast (" + toSqlDmlSelect(value) + " as " + typeOf(value) + ")"
-            case other                 => toSqlDmlSelect(value)
+            case other => toSqlDmlSelect(value)
         }).mkString(", ")
     }
 

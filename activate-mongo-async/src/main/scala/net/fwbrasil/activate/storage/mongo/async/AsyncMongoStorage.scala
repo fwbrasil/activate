@@ -50,6 +50,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -201,6 +202,8 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             case action: StorageRemoveIndex =>
                 val manager = coll(action.tableName).indexesManager
                 manager.delete(Index(Seq((action.columnName, IndexType.Ascending))))
+            case action: StorageModifyColumnType =>
+            // Do nothing!
             case action: StorageAddReference =>
             // Do nothing!
             case action: StorageRemoveReference =>
