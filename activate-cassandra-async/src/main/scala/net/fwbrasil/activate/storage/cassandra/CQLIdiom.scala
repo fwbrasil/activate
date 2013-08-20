@@ -60,6 +60,7 @@ import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
+import net.fwbrasil.activate.statement.EntitySource
 
 object cqlIdiom extends QlIdiom {
 
@@ -68,8 +69,8 @@ object cqlIdiom extends QlIdiom {
     override def escape(string: String): String = "\"" + string + "\""
 
     override def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
-    	action match {
-    	    case action: StorageCreateListTable =>
+        action match {
+            case action: StorageCreateListTable =>
                 List()
             case action: StorageRemoveListTable =>
                 List()
@@ -77,7 +78,7 @@ object cqlIdiom extends QlIdiom {
                 List()
             case other =>
                 List(new NormalQlStatement(toSqlDdl(other)))
-    	}
+        }
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {
@@ -110,15 +111,30 @@ object cqlIdiom extends QlIdiom {
 
     override def toSqlDml(value: Operator)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
+            case value: IsEqualTo =>
+                " = "
+            case value: IsNotEqualTo =>
+                operatorNotSupported(value)
+            case value: IsGreaterThan =>
+                " > "
+            case value: IsLessThan =>
+                " < "
+            case value: IsGreaterOrEqualTo =>
+                " >= "
+            case value: IsLessOrEqualTo =>
+                " <= "
+            case value: And =>
+                " and "
+            case value: Or =>
+                operatorNotSupported(value)
             case value: IsNull =>
                 " = null "
             case value: IsNotNull =>
-                " != null "
-            case op: Or =>
-                throw new UnsupportedOperationException("Cassandra does not support the OR operator.")
-            case other =>
-                super.toSqlDml(other)
+                operatorNotSupported(value)
         }
+
+    private def operatorNotSupported(value: Operator) =
+        throw new UnsupportedOperationException(s"Cassandra does not support the $value operator.")
 
     override def versionCondition(propertyMap: Map[String, StorageValue]) = {
         propertyMap.get(versionVarName) match {
@@ -131,24 +147,14 @@ object cqlIdiom extends QlIdiom {
 
     override def toSqlDmlRemoveEntitiesReadFromCache(
         query: Query[_], entitiesReadFromCache: List[List[Entity]])(
-            implicit binds: MutableMap[StorageValue, String]) = {
+            implicit binds: MutableMap[StorageValue, String]) =
+        ""
 
-        val entitySources = query.from.entitySources
-        val restrictions =
-            for (entities <- entitiesReadFromCache) yield {
-                val condition =
-                    (for (i <- 0 until entitySources.size) yield {
-                        val entity = entities(i)
-                        val entitySource = entitySources(i)
-                        entitySources(i).name + ".id != " + bindId(entity.id)
-                    }).mkString(" OR ")
-                s"($condition)"
-            }
-        if (restrictions.nonEmpty)
-            " AND " + restrictions.mkString(" AND ")
-        else
-            ""
-    }
+    override def notEqualId(entity: Entity, entitySource: EntitySource)(
+        implicit binds: MutableMap[StorageValue, String]) =
+        List()
+    //        List("token(id) < token(" + bindId(entity.id) + ")",
+    //            "token(id) > token(" + bindId(entity.id) + ")")
 
     override def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
         value.valueOption.map {

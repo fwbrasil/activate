@@ -271,8 +271,11 @@ object asyncCassandraContext extends ActivateTestContext {
     }
 }
 class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
-class AsyncCassandraActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncCassandraContext) {
-    override def bigStringType = "ascii"
+class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCassandraContext) {
+    val timestamp = ActivateTestMigration.timestamp + 1
+    def up = {
+        table[asyncCassandraContext.ActivateTestEntity].addIndex("dummy", "IDX_DUMMY")
+    }
 }
 
 object db2Context extends ActivateTestContext with SlickQueryContext {

@@ -77,6 +77,7 @@ import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.statement.EntitySource
 
 trait QlIdiom {
 
@@ -188,13 +189,9 @@ trait QlIdiom {
 
         val restrictions =
             for (entities <- entitiesReadFromCache) yield {
-                val condition =
-                    (for (i <- 0 until entitySources.size) yield {
-                        val entity = entities(i)
-                        val entitySource = entitySources(i)
-                        entitySource.name + ".id != " + bindId(entity.id)
-                    }).mkString(" OR ")
-                s"($condition)"
+                (for (i <- 0 until entitySources.size) yield {
+                    notEqualId(entities(i), entitySources(i))
+                }).flatten.mkString(" AND ")
             }
         val base =
             if (query.where.valueOption.isDefined)
@@ -206,6 +203,10 @@ trait QlIdiom {
         else
             ""
     }
+    
+    def notEqualId(entity: Entity, entitySource: EntitySource)(
+            implicit binds: MutableMap[StorageValue, String]) = 
+        List(entitySource.name + ".id != " + bindId(entity.id))
 
     def bindId(id: String)(implicit binds: MutableMap[StorageValue, String]) =
         bind(StringStorageValue(Some(id)))
