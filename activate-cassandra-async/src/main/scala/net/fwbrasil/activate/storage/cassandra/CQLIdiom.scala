@@ -76,6 +76,10 @@ object cqlIdiom extends QlIdiom {
                 List()
             case action: StorageRemoveColumn =>
                 List()
+            case action: StorageAddReference =>
+                List()
+            case action: StorageRemoveReference =>
+                List()
             case other =>
                 List(new NormalQlStatement(toSqlDdl(other)))
         }
@@ -150,12 +154,6 @@ object cqlIdiom extends QlIdiom {
             implicit binds: MutableMap[StorageValue, String]) =
         ""
 
-    override def notEqualId(entity: Entity, entitySource: EntitySource)(
-        implicit binds: MutableMap[StorageValue, String]) =
-        List()
-    //        List("token(id) < token(" + bindId(entity.id) + ")",
-    //            "token(id) > token(" + bindId(entity.id) + ")")
-
     override def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
         value.valueOption.map {
             value => " WHERE " + toSqlDml(value)
@@ -167,14 +165,7 @@ object cqlIdiom extends QlIdiom {
                 bind(StringStorageValue(Option(value.entityId)))
             case value: StatementEntitySourcePropertyValue[v] =>
                 val propertyName = value.propertyPathNames.mkString(".")
-                value.entityValue match {
-                    //                    case entityValue: ListEntityValue[_] =>
-                    //                        listColumnSelect(value, propertyName)
-                    //                    case entityValue: LazyListEntityValue[_] =>
-                    //                        listColumnSelect(value, propertyName)
-                    case other =>
-                        escape(propertyName)
-                }
+                escape(propertyName)
             case value: StatementEntitySourceValue[v] =>
                 "id"
         }
@@ -207,12 +198,6 @@ object cqlIdiom extends QlIdiom {
                 List(toSqlModify(modify))
         }
 
-    override def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
-        val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
-        val res = concat(escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
-        res
-    }
-
     override def toSqlDml(value: From)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (source <- value.entitySources)
             yield toTableName(source.entityClass)).mkString(", ")
@@ -224,6 +209,10 @@ object cqlIdiom extends QlIdiom {
             case other =>
                 bind(Marshaller.marshalling(value.entityValue))
         }
+    
+    override def toSqlDmlOrderBy(query: Query[_])(implicit binds: MutableMap[StorageValue, String]): String = {
+        super.toSqlDmlOrderBy(query) + " ALLOW FILTERING "
+    }
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

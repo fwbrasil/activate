@@ -59,6 +59,9 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import java.nio.ByteBuffer
+import java.util.Date
 
 trait AsyncCassandraStorage extends RelationalStorage[Session] {
 
@@ -135,10 +138,10 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
                 true
         }
     }
-    
+
     private def getTable(name: String) =
         Option(metadata.getTable(name))
-        
+
     private def getColumn(table: String, column: String) =
         getTable(table).flatMap(t => Option(t.getColumn(column)))
 
@@ -221,28 +224,68 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
             case value: BigDecimalStorageValue =>
                 BigDecimalStorageValue(Option(row.getDecimal(i)).map(BigDecimal(_)))
             case value: ByteArrayStorageValue =>
-                ByteArrayStorageValue(Option(row.getBytes(i).array))
+                ByteArrayStorageValue(Option(row.getBytes(i)).map(toArray))
             case value: ReferenceStorageValue =>
                 ReferenceStorageValue(Option(row.getString(i)))
+            case value: ListStorageValue =>
+                val list = row.getList(i, classOf[Any])
+                val mapped = Option(list).map(_.map(fromValue(_, value.emptyStorageValue)).toList)
+                ListStorageValue(mapped, value.emptyStorageValue)
         }
     }
 
-    private def toValue(storageValue: StorageValue) =
+    private def fromValue(value: Any, storageValue: StorageValue) =
+        (value, storageValue) match {
+            case (value: Int, storageValue: IntStorageValue) =>
+                IntStorageValue(Option(value))
+            case (value: Long, storageValue: LongStorageValue) =>
+                LongStorageValue(Option(value))
+            case (value: Boolean, storageValue: BooleanStorageValue) =>
+                BooleanStorageValue(Option(value))
+            case (value: String, storageValue: StringStorageValue) =>
+                StringStorageValue(Option(value))
+            case (value: Float, storageValue: FloatStorageValue) =>
+                FloatStorageValue(Option(value))
+            case (value: Date, storageValue: DateStorageValue) =>
+                DateStorageValue(Option(value))
+            case (value: Double, storageValue: DoubleStorageValue) =>
+                DoubleStorageValue(Option(value))
+            case (value: java.math.BigDecimal, storageValue: BigDecimalStorageValue) =>
+                BigDecimalStorageValue(Option(value))
+            case (value: ByteBuffer, storageValue: ByteArrayStorageValue) =>
+                ByteArrayStorageValue(Option(value).map(toArray))
+            case (value: String, storageValue: ReferenceStorageValue) =>
+                ReferenceStorageValue(Option(value))
+        }
+
+    private def toValue(storageValue: StorageValue): Any =
         storageValue match {
+            case value: ListStorageValue =>
+                value.value.map(_.map(toValue)).getOrElse(null): java.util.List[Any]
+            case value: BigDecimalStorageValue =>
+                value.value.map(_.bigDecimal).getOrElse(null)
+            case value: ByteArrayStorageValue =>
+                value.value.map(ByteBuffer.wrap).getOrElse(null)
             case other =>
                 other.value.getOrElse(null)
         }
+    
+    private def toArray(buffer: ByteBuffer) ={
+        val array = new Array[Byte](buffer.remaining)
+        buffer.get(array)
+        array
+    }
 
     private def toBoundStatement(
-            query: Query[_], 
-            entitiesReadFromCache: List[List[Entity]]): BoundStatement = 
+        query: Query[_],
+        entitiesReadFromCache: List[List[Entity]]): BoundStatement =
         toBoundStatement(dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache)))
-    
+
     private def toBoundStatement(statement: NormalQlStatement): BoundStatement = {
-      val preparedStatement = session.prepare(statement.indexedStatement)
-      new BoundStatement(preparedStatement)
-          .bind(statement.valuesList.head.map(toValue)
-              .toSeq.asInstanceOf[Seq[Object]]: _*)
+        val preparedStatement = session.prepare(statement.indexedStatement)
+        new BoundStatement(preparedStatement)
+            .bind(statement.valuesList.head.map(toValue)
+                .toSeq.asInstanceOf[Seq[Object]]: _*)
     }
 
 }
