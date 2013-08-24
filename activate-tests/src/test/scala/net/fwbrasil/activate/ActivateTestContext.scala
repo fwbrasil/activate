@@ -219,9 +219,9 @@ object derbyContext extends ActivateTestContext with SlickQueryContext {
 
 class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
 class DerbyActivateTestMigrationCustomColumnType extends Migration()(derbyContext) {
-    
+
     val timestamp = ActivateTestMigration.timestamp + 1
-    
+
     def up = {
         table[derbyContext.ActivateTestEntity].removeColumn("bigStringValue").ifExists
         table[derbyContext.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", "CLOB"))
@@ -264,19 +264,19 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object asyncCassandraContext extends ActivateTestContext {
-    val storage = new AsyncCassandraStorage {
-        def contactPoints = List("localhost")
-        def keyspace = "ACTIVATE_TEST"
-    }
-}
-class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
-class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCassandraContext) {
-    val timestamp = ActivateTestMigration.timestamp + 1
-    def up = {
-        table[asyncCassandraContext.ActivateTestEntity].addIndex("dummy", "IDX_DUMMY")
-    }
-}
+//object asyncCassandraContext extends ActivateTestContext {
+//    val storage = new AsyncCassandraStorage {
+//        def contactPoints = List("localhost")
+//        def keyspace = "ACTIVATE_TEST"
+//    }
+//}
+//class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
+//class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCassandraContext) {
+//    val timestamp = ActivateTestMigration.timestamp + 1
+//    def up = {
+//        table[asyncCassandraContext.ActivateTestEntity].addIndex("dummy", "IDX_DUMMY")
+//    }
+//}
 
 object db2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
@@ -564,7 +564,24 @@ trait ActivateTestContext
     @Alias("sne")
     class ShortNameEntity(var string: String) extends Entity
 
-    class Box(var contains: List[Num] = Nil) extends Entity {
+    trait TreeNode[N <: TreeNode[N]] extends Entity {
+        
+        implicit protected def m: Manifest[N]
+        
+        var parent: Option[N] = None
+        
+        def children: List[N] = transactional {
+            query {
+                (node: N) => where(node.parent :== this) select (node)
+            }
+        }
+
+        def toPath: String =
+            List(Some(toString), parent.map(_.toPath)).flatten.mkString(" / ")
+    }
+    
+    class Box(var contains: List[Num] = Nil) extends TreeNode[Box] {
+        protected def m = manifest[Box]
         def add(n: Int) = {
             val num = new Num(this, n)
             contains = num :: contains

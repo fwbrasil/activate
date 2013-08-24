@@ -42,5 +42,29 @@ class NestedEntityListSpecs extends ActivateTest {
                     }
                 })
         }
+
+        "support box tree" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    def newBox = {
+                        val box = new Box
+                        (1 to 10).map(box.add(_)).map(_.id)
+                        box
+                    }
+                    val (box1Id, box2Id) =
+                        step {
+                            (newBox.id, newBox.id)
+                        }
+                    def box1 = byId[Box](box1Id).get
+                    def box2 = byId[Box](box2Id).get
+                    step {
+                    	box2.parent = Option(box1)
+                    }
+                    step {
+                        box1.children === List(box2)
+                    }
+                })
+        }
     }
 }

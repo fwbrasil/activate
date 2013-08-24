@@ -98,7 +98,7 @@ class CRUDSpecs extends ActivateTest {
                         }
                         step {
                             if (step.isInstanceOf[OneTransaction])
-                            	byId[EntityWithoutAttribute](entityId).get.isDeleted must beTrue
+                                byId[EntityWithoutAttribute](entityId).get.isDeleted must beTrue
                             else
                                 byId[EntityWithoutAttribute](entityId) must beNone
                         }
@@ -124,7 +124,7 @@ class CRUDSpecs extends ActivateTest {
                         }
                         step {
                             if (step.isInstanceOf[OneTransaction])
-                            	byId[EntityWithUninitializedValue](entityId).get.isDeleted must beTrue
+                                byId[EntityWithUninitializedValue](entityId).get.isDeleted must beTrue
                             else
                                 byId[EntityWithUninitializedValue](entityId) must beNone
                         }
@@ -144,7 +144,7 @@ class CRUDSpecs extends ActivateTest {
                         }
                         step {
                             if (step.isInstanceOf[OneTransaction])
-                            	byId[CaseClassEntity](entityId).get.isDeleted must beTrue
+                                byId[CaseClassEntity](entityId).get.isDeleted must beTrue
                             else
                                 byId[CaseClassEntity](entityId) must beNone
                         }
