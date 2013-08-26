@@ -258,7 +258,9 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         allWhereQuery[E](criterias: _*).executeAsync
 
     def asyncAll[E <: Entity: Manifest](implicit texctx: TransactionalExecutionContext) =
-        _asyncAllWhere[E](_ isNotNull)
+        asyncQuery {
+            (e: E) => where() select (e)
+        }
 
     class AsyncSelectEntity[E <: Entity: Manifest] {
         def where(criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =

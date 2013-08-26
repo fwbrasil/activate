@@ -261,7 +261,7 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
     private def toValue(storageValue: StorageValue): Any =
         storageValue match {
             case value: ListStorageValue =>
-                value.value.map(_.map(toValue)).getOrElse(null): java.util.List[Any]
+                value.value.map(_.map(toValue): java.util.List[Any]).getOrElse(null)
             case value: BigDecimalStorageValue =>
                 value.value.map(_.bigDecimal).getOrElse(null)
             case value: ByteArrayStorageValue =>

@@ -29,7 +29,7 @@ class MigrationTest extends ActivateTest {
                     Migration.storageVersion(ctx) // Crate StorageVersion if not exists
                     ctx.transactional {
                         ctx.delete {
-                            (s: StorageVersion) => where(s isNotNull)
+                            (s: StorageVersion) => where()
                         }
                     }
                     if (ctx.storage.isInstanceOf[PooledJdbcRelationalStorage])

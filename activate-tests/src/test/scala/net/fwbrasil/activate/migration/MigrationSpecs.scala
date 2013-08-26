@@ -16,7 +16,7 @@ import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
 
-    override def contexts = super.contexts.filter(c => c != polyglotContext && !c.storage.supportsAsync)
+    override def contexts = super.contexts.filter(c => c != polyglotContext)// && !c.storage.supportsAsync)
 
     "Migration" should {
 

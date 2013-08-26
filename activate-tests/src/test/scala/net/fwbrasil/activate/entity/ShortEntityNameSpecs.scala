@@ -17,7 +17,7 @@ class ShortEntityNameSpecs extends ActivateTest {
                     import step.ctx._
                     step {
                         step.ctx.delete {
-                            (e: ShortNameEntity) => where(e isNotNull)
+                            (e: ShortNameEntity) => where()
                         }
                     }
                     val id = step {

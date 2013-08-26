@@ -44,42 +44,42 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.intValue)
+                                where() select (entity) orderBy (entity.intValue)
                         } must beEqualTo(entities.sortBy(_.intValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.longValue)
+                                where() select (entity) orderBy (entity.longValue)
                         } must beEqualTo(entities.sortBy(_.longValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.floatValue)
+                                where() select (entity) orderBy (entity.floatValue)
                         } must beEqualTo(entities.sortBy(_.floatValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.doubleValue)
+                                where() select (entity) orderBy (entity.doubleValue)
                         } must beEqualTo(entities.sortBy(_.doubleValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.dateValue)
+                                where() select (entity) orderBy (entity.dateValue)
                         } must beEqualTo(entities.sortBy(_.dateValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue)
+                                where() select (entity) orderBy (entity.jodaInstantValue)
                         } must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.calendarValue)
+                                where() select (entity) orderBy (entity.calendarValue)
                         } must beEqualTo(entities.sortBy(_.calendarValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue)
+                                where() select (entity) orderBy (entity.stringValue)
                         } must beEqualTo(entities.sortBy(_.stringValue))
 
                     }
@@ -87,47 +87,47 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.intValue asc)
+                                where() select (entity) orderBy (entity.intValue asc)
                         } must beEqualTo(entities.sortBy(_.intValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.longValue asc)
+                                where() select (entity) orderBy (entity.longValue asc)
                         } must beEqualTo(entities.sortBy(_.longValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.floatValue asc)
+                                where() select (entity) orderBy (entity.floatValue asc)
                         } must beEqualTo(entities.sortBy(_.floatValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.doubleValue asc)
+                                where() select (entity) orderBy (entity.doubleValue asc)
                         } must beEqualTo(entities.sortBy(_.doubleValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.dateValue asc)
+                                where() select (entity) orderBy (entity.dateValue asc)
                         } must beEqualTo(entities.sortBy(_.dateValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue asc)
+                                where() select (entity) orderBy (entity.jodaInstantValue asc)
                         } must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.calendarValue asc)
+                                where() select (entity) orderBy (entity.calendarValue asc)
                         } must beEqualTo(entities.sortBy(_.calendarValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue asc)
+                                where() select (entity) orderBy (entity.stringValue asc)
                         } must beEqualTo(entities.sortBy(_.stringValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.optionValue asc)
+                                where() select (entity) orderBy (entity.optionValue asc)
                         } must beEqualTo(entities.sortBy(_.optionValue))
 
                     }
@@ -135,47 +135,47 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.intValue desc)
+                                where() select (entity) orderBy (entity.intValue desc)
                         } must beEqualTo(entities.sortBy(_.intValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.longValue desc)
+                                where() select (entity) orderBy (entity.longValue desc)
                         } must beEqualTo(entities.sortBy(_.longValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.floatValue desc)
+                                where() select (entity) orderBy (entity.floatValue desc)
                         } must beEqualTo(entities.sortBy(_.floatValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.doubleValue desc)
+                                where() select (entity) orderBy (entity.doubleValue desc)
                         } must beEqualTo(entities.sortBy(_.doubleValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.dateValue desc)
+                                where() select (entity) orderBy (entity.dateValue desc)
                         } must beEqualTo(entities.sortBy(_.dateValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.jodaInstantValue desc)
+                                where() select (entity) orderBy (entity.jodaInstantValue desc)
                         } must beEqualTo(entities.sortBy(_.jodaInstantValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.calendarValue desc)
+                                where() select (entity) orderBy (entity.calendarValue desc)
                         } must beEqualTo(entities.sortBy(_.calendarValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue desc)
+                                where() select (entity) orderBy (entity.stringValue desc)
                         } must beEqualTo(entities.sortBy(_.stringValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.optionValue desc)
+                                where() select (entity) orderBy (entity.optionValue desc)
                         } must beEqualTo(entities.sortBy(_.optionValue).reverse)
 
                     }
@@ -199,7 +199,7 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.intValue, entity.longValue)
+                                where() select (entity) orderBy (entity.intValue, entity.longValue)
                         }.map(entity => (entity.intValue, entity.longValue)).toList must beEqualTo(expected)
                     }
                 })
@@ -217,7 +217,7 @@ class OrderedQuerySpecs extends ActivateTest {
                     step {
                         query {
                             (entity: ActivateTestEntity) =>
-                                where(entity isNotNull) select (entity) orderBy (entity.stringValue)
+                                where() select (entity) orderBy (entity.stringValue)
                         }.toList.map(_.stringValue) must beEqualTo(expected)
                     }
                 })
@@ -235,7 +235,7 @@ class OrderedQuerySpecs extends ActivateTest {
                     }
                     step {
                         query {
-                            (e: TraitAttribute) => where(e isNotNull) select (e.attribute) orderBy (e.attribute)
+                            (e: TraitAttribute) => where() select (e.attribute) orderBy (e.attribute)
                         } mustEqual (List("a", "b", "c", "d"))
                     }
                 })
@@ -254,11 +254,11 @@ class OrderedQuerySpecs extends ActivateTest {
                         step {
                             query {
                                 (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2)
+                                    where() select (entity) orderBy (entity.stringValue) limit (2)
                             }.toList.map(_.stringValue) must beEqualTo(List(null, "a"))
                             query {
                                 (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10)
+                                    where() select (entity) orderBy (entity.stringValue) limit (10)
                             }.toList.map(_.stringValue) must beEqualTo(List(null, "a", "b", "c"))
                         }
                     }
@@ -279,7 +279,7 @@ class OrderedQuerySpecs extends ActivateTest {
                             def runQuery(limit: Int) =
                                 query {
                                     (entity: ActivateTestEntity) =>
-                                        where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (limit)
+                                        where() select (entity) orderBy (entity.stringValue) limit (limit)
                                 }
 
                             runQuery(limit = 2).toList.map(_.stringValue) must beEqualTo(List(null, "a"))
@@ -302,11 +302,11 @@ class OrderedQuerySpecs extends ActivateTest {
                         step {
                             query {
                                 (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
+                                    where() select (entity) orderBy (entity.stringValue) limit (2) offset (1)
                             }.toList.map(_.stringValue) must beEqualTo(List("a", "b"))
                             query {
                                 (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (10) offset (2)
+                                    where() select (entity) orderBy (entity.stringValue) limit (10) offset (2)
                             }.toList.map(_.stringValue) must beEqualTo(List("b", "c"))
                         }
                     }
@@ -327,7 +327,7 @@ class OrderedQuerySpecs extends ActivateTest {
                             def runQuery(limit: Int, offset: Int) =
                             query {
                                 (entity: ActivateTestEntity) =>
-                                    where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (limit) offset (offset)
+                                    where() select (entity) orderBy (entity.stringValue) limit (limit) offset (offset)
                             }
                             
                             runQuery(limit = 2, offset = 1).toList.map(_.stringValue) must beEqualTo(List("a", "b"))
@@ -351,7 +351,7 @@ class OrderedQuerySpecs extends ActivateTest {
                             val entities =
                                 query {
                                     (entity: ActivateTestEntity) =>
-                                        where(entity isNotNull) select (entity) orderBy (entity.stringValue) limit (2) offset (1)
+                                        where() select (entity) orderBy (entity.stringValue) limit (2) offset (1)
                                 }.toList
                             entities.map(_.isInitialized).toSet === Set(false)
                         }

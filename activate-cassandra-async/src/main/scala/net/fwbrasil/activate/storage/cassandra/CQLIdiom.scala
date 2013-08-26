@@ -155,9 +155,8 @@ object cqlIdiom extends QlIdiom {
         ""
 
     override def toSqlDml(value: Where)(implicit binds: MutableMap[StorageValue, String]): String =
-        value.valueOption.map {
-            value => " WHERE " + toSqlDml(value)
-        }.getOrElse("")
+        " WHERE " +
+            value.valueOption.map(toSqlDml).getOrElse("id = id")
 
     override def toSqlDml[V](value: StatementEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
@@ -209,7 +208,7 @@ object cqlIdiom extends QlIdiom {
             case other =>
                 bind(Marshaller.marshalling(value.entityValue))
         }
-    
+
     override def toSqlDmlOrderBy(query: Query[_])(implicit binds: MutableMap[StorageValue, String]): String = {
         super.toSqlDmlOrderBy(query) + " ALLOW FILTERING "
     }
