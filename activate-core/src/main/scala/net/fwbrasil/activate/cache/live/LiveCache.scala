@@ -68,6 +68,7 @@ import net.fwbrasil.activate.statement.FunctionApply
 import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.entity.StringEntityValue
 import net.fwbrasil.activate.statement.ToLowerCase
+import scala.collection.concurrent.TrieMap
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -76,13 +77,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
     import context._
 
     val cache =
-        new MutableHashMap[Class[_ <: Entity], ReferenceSoftValueMap[String, _ <: Entity] with Lockable] with Lockable
+        new TrieMap[Class[_ <: Entity], ReferenceSoftValueMap[String, _ <: Entity] with Lockable]
 
     def reinitialize =
         logInfo("live cache reinitialize") {
-            cache.doWithWriteLock {
-                cache.clear
-            }
+            cache.clear
         }
 
     def byId[E <: Entity: Manifest](id: String): Option[E] =
@@ -126,21 +125,11 @@ class LiveCache(val context: ActivateContext) extends Logging {
         entityInstacesMap(manifestToClass(manifest[E]))
 
     def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceSoftValueMap[String, E] with Lockable = {
-        val mapOption =
-            cache.doWithReadLock {
-                cache.get(entityClass)
-            }
-        if (mapOption.isDefined)
-            mapOption.get
-        else {
-            cache.doWithWriteLock {
-                cache.get(entityClass).getOrElse {
-                    val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
-                    cache += (entityClass -> entitiesMap)
-                    entitiesMap
-                }
-            }
-        }
+        cache.getOrElseUpdate(entityClass, {
+            val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
+            cache += (entityClass -> entitiesMap)
+            entitiesMap
+        })
     }.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
 
     def executeMassModification(statement: MassModificationStatement) = {
@@ -435,7 +424,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     def executeFunctionApply(apply: FunctionApply[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
         apply match {
-        	case value: ToUpperCase =>
+            case value: ToUpperCase =>
                 executeStatementSelectValue(value.value).asInstanceOf[String].toUpperCase()
             case value: ToLowerCase =>
                 executeStatementSelectValue(value.value).asInstanceOf[String].toLowerCase()
@@ -443,7 +432,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     def executeStatementSelectValue(value: StatementSelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
         value match {
-        	case value: FunctionApply[_] =>
+            case value: FunctionApply[_] =>
                 executeFunctionApply(value)
             case value: StatementEntityValue[_] =>
                 executeStatementEntityValue(value)
