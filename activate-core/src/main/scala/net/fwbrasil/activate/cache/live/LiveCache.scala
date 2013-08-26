@@ -77,11 +77,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
     import context._
 
     val cache =
-        new TrieMap[Class[_ <: Entity], ReferenceSoftValueMap[String, _ <: Entity] with Lockable]
+        EntityHelper.allConcreteEntityClasses
+            .map((_, new ReferenceSoftValueMap[String, Entity] with Lockable))
+            .toMap
 
     def reinitialize =
         logInfo("live cache reinitialize") {
-            cache.clear
+            cache.values.foreach(_.clear)
         }
 
     def byId[E <: Entity: Manifest](id: String): Option[E] =
@@ -125,11 +127,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
         entityInstacesMap(manifestToClass(manifest[E]))
 
     def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceSoftValueMap[String, E] with Lockable = {
-        cache.getOrElseUpdate(entityClass, {
-            val entitiesMap = new ReferenceSoftValueMap[String, E] with Lockable
-            cache += (entityClass -> entitiesMap)
-            entitiesMap
-        })
+        cache(entityClass.asInstanceOf[Class[Entity]])
     }.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
 
     def executeMassModification(statement: MassModificationStatement) = {

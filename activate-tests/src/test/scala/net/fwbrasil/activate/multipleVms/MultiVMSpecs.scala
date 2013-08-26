@@ -36,7 +36,7 @@ class MultiVMSpecs extends ActivateTest {
     }
 
     private def test(mainVmOptions: List[String], forkVmOptions: List[String], expectSucess: Boolean) = {
-        val numOfVMs = 2
+        val numOfVMs = 4
         val numOfThreads = 4
         val numOfTransactions = 30
         val result =

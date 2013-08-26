@@ -5,17 +5,27 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.postgresqlContext
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.asyncPostgresqlContext
+import net.fwbrasil.activate.migration.ManualMigration
 
 trait MultiVMContext extends StoppableActivateContext {
-    
+
     override val milisToWaitBeforeRetry = 1
 
     class IntEntity extends Entity {
         var intValue = 0
     }
 
-    val storage = mongoContext.storage
+    object versionMigration extends ManualMigration {
+        def up =
+            table[IntEntity]
+                .addColumn(_.column[Long]("version"))
+                .ifNotExists
+    }
 
+    val storage = postgresqlContext.storage
+    
+    versionMigration.execute
+    
     def run[A](f: => A) = {
         start
         try
