@@ -181,7 +181,7 @@ trait SprayJsonContext extends JsonContext {
     val entity = context.liveCache.createLazyEntity(entityClass, id)
     entity.setInitialized
     entity.setNotPersisted
-    context.context.liveCache.toCache(entityClass, () => entity)
+    context.context.liveCache.toCache(entityClass, entity)
     updateFromJsonObject(entity, jsValue.asJsObject)
     entity
   }

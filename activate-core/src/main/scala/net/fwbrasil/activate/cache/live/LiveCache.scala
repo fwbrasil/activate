@@ -102,11 +102,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
             .remove(entityId)
 
     def toCache[E <: Entity](entity: E): E =
-        toCache(entity.niceClass, () => entity)
+        toCache(entity.niceClass, entity)
 
-    def toCache[E <: Entity](entityClass: Class[E], fEntity: () => E): E = {
+    def toCache[E <: Entity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
-        val entity = fEntity()
         map.put(entity.id, entity)
         entity
     }
@@ -178,11 +177,14 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
+		val map = entityInstacesMap(entityClass)
         entityId.intern.synchronized {
-            val map = entityInstacesMap(entityClass)
-            if(!map.containsKey(entityId))
-                toCache(entityClass, () => createLazyEntity(entityClass, entityId))
-            map.get(entityId)
+            if (!map.containsKey(entityId)) {
+                val entity = createLazyEntity(entityClass, entityId)
+                map.put(entityId, entity)
+                entity
+            } else
+                map.get(entityId)
         }
     }
 
@@ -499,10 +501,9 @@ class LiveCache(val context: ActivateContext) extends Logging {
         entitiesFromStorage(query, List()).headOption
     }
 
-    private def materializeLines(lines: List[List[net.fwbrasil.activate.entity.EntityValue[_]]]): List[List[Any]] = {
+    private def materializeLines(lines: List[List[net.fwbrasil.activate.entity.EntityValue[_]]]): List[List[Any]] =
         for (line <- lines)
             yield for (column <- line)
             yield materialize(column)
-    }
 
 }
