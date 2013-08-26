@@ -193,12 +193,11 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     }
 
     private def releasePreparedStatement(jdbcStatement: QlStatement, connection: Connection, ps: PreparedStatement) =
-        preparedStatementCache.release(connection, jdbcStatement.indexedStatement, ps)
+        preparedStatementCache.release(connection, jdbcStatement, ps)
 
     protected[activate] def acquirePreparedStatement(jdbcStatement: QlStatement, connection: Connection, readOnly: Boolean) = {
-        val statement = jdbcStatement.indexedStatement
         val valuesList = jdbcStatement.valuesList
-        val ps = preparedStatementCache.acquireFor(connection, statement, readOnly)
+        val ps = preparedStatementCache.acquireFor(connection, jdbcStatement, readOnly)
         try {
             for (binds <- valuesList) {
                 var i = 1

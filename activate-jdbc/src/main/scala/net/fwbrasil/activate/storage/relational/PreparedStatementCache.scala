@@ -16,16 +16,16 @@ class PreparedStatementCache {
     def clear =
         cache.clear
 
-    def acquireFor(connection: Connection, statement: String, readOnly: Boolean) =
-        acquireFrom(cacheFor(connection), statement, readOnly).getOrElse {
+    def acquireFor(connection: Connection, statement: QlStatement, readOnly: Boolean) =
+        acquireFrom(cacheFor(connection), statement.statement).getOrElse {
             if (!readOnly)
-                connection.prepareStatement(statement)
+                connection.prepareStatement(statement.indexedStatement)
             else
-                connection.prepareStatement(statement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
+                connection.prepareStatement(statement.indexedStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
         }
 
-    def release(connection: Connection, statement: String, ps: PreparedStatement) = {
-        val stack = stackFor(cacheFor(connection), statement)
+    def release(connection: Connection, statement: QlStatement, ps: PreparedStatement) = {
+        val stack = stackFor(cacheFor(connection), statement.statement)
         stack.synchronized {
             stack.push(ps)
         }
@@ -41,11 +41,10 @@ class PreparedStatementCache {
 
     private def acquireFrom(
         cache: TrieMap[String, Stack[PreparedStatement]],
-        statement: String,
-        readOnly: Boolean): Option[PreparedStatement] =
-        aquireFrom(stackFor(cache, statement), readOnly)
+        statement: String): Option[PreparedStatement] =
+        aquireFrom(stackFor(cache, statement))
 
-    private def aquireFrom(stack: Stack[PreparedStatement], readOnly: Boolean): Option[PreparedStatement] =
+    private def aquireFrom(stack: Stack[PreparedStatement]): Option[PreparedStatement] =
         stack.synchronized {
             if (stack.isEmpty)
                 None
@@ -53,12 +52,17 @@ class PreparedStatementCache {
                 Some(stack.pop)
         }
 
-    private def cacheFor(connection: Connection) = {
-        val realConnection = this.realConnection(connection)
-        cache.getOrElseUpdate(realConnection, new TrieMap[String, Stack[PreparedStatement]])
-    }
+    private def cacheFor(connection: Connection) =
+        cache.getOrElseUpdate(
+            realConnection(connection),
+            new TrieMap[String, Stack[PreparedStatement]])
 
     private def stackFor(cache: TrieMap[String, Stack[PreparedStatement]], statement: String) =
-        cache.getOrElseUpdate(statement, Stack())
+        if (!cache.contains(statement)) {
+            val stack = Stack[PreparedStatement]()
+            cache.put(statement, stack)
+            stack
+        } else
+            cache(statement)
 
 }
