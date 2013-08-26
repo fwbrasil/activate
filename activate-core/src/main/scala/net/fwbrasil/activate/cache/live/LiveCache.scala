@@ -17,7 +17,6 @@ import net.fwbrasil.activate.statement.SimpleValue
 import net.fwbrasil.activate.statement.CompositeOperatorCriteria
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
-import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
 import net.fwbrasil.activate.util.ReferenceWeakKeyMap
@@ -69,6 +68,8 @@ import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.entity.StringEntityValue
 import net.fwbrasil.activate.statement.ToLowerCase
 import scala.collection.concurrent.TrieMap
+import com.google.common.collect.MapMaker
+import java.util.concurrent.ConcurrentMap
 
 class LiveCache(val context: ActivateContext) extends Logging {
 
@@ -78,7 +79,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     val cache =
         EntityHelper.allConcreteEntityClasses
-            .map((_, new ReferenceSoftValueMap[String, Entity] with Lockable))
+            .map((_, (new MapMaker).softValues.makeMap[String, Entity]))
             .toMap
 
     def reinitialize =
@@ -87,48 +88,41 @@ class LiveCache(val context: ActivateContext) extends Logging {
         }
 
     def byId[E <: Entity: Manifest](id: String): Option[E] =
-        entityInstacesMap[E].get(id)
+        Option(entityInstacesMap[E].get(id))
 
-    def contains[E <: Entity](entity: E) = {
-        val map = entityInstacesMap(entity.getClass)
-        map.doWithReadLock(map.contains(entity.id))
-    }
+    def contains[E <: Entity](entity: E) =
+        entityInstacesMap(entity.getClass)
+            .containsKey(entity.id)
 
     def delete(entity: Entity): Unit =
         delete(entity.id)
 
-    def delete(entityId: String) = {
-        val map = entityInstacesMap(EntityHelper.getEntityClassFromId(entityId))
-        map.doWithWriteLock {
-            map -= entityId
-        }
-    }
+    def delete(entityId: String) =
+        entityInstacesMap(EntityHelper.getEntityClassFromId(entityId))
+            .remove(entityId)
 
     def toCache[E <: Entity](entity: E): E =
         toCache(entity.niceClass, () => entity)
 
     def toCache[E <: Entity](entityClass: Class[E], fEntity: () => E): E = {
         val map = entityInstacesMap(entityClass)
-        map.doWithWriteLock {
-            val entity = fEntity()
-            map.put(entity.id, entity)
-            entity
-        }
+        val entity = fEntity()
+        map.put(entity.id, entity)
+        entity
     }
 
     def fromCache[E <: Entity](entityClass: Class[E]) = {
+        import scala.collection.JavaConversions._
         val map = entityInstacesMap(entityClass)
-        map.doWithReadLock {
-            map.values.toList.filter(e => e.isInitialized && !e.isDeleted)
-        }
+        map.values.toList.filter(e => e.isInitialized && !e.isDeleted)
     }
 
-    def entityInstacesMap[E <: Entity: Manifest]: ReferenceSoftValueMap[String, E] with Lockable =
+    def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[String, E] =
         entityInstacesMap(manifestToClass(manifest[E]))
 
-    def entityInstacesMap[E <: Entity](entityClass: Class[E]): ReferenceSoftValueMap[String, E] with Lockable = {
+    def entityInstacesMap[E <: Entity](entityClass: Class[E]): ConcurrentMap[String, E] = {
         cache(entityClass.asInstanceOf[Class[Entity]])
-    }.asInstanceOf[ReferenceSoftValueMap[String, E] with Lockable]
+    }.asInstanceOf[ConcurrentMap[String, E]]
 
     def executeMassModification(statement: MassModificationStatement) = {
         val entities =
@@ -185,9 +179,10 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
         entityId.intern.synchronized {
-            entityInstacesMap(entityClass).getOrElse(entityId, {
+            val map = entityInstacesMap(entityClass)
+            if(!map.containsKey(entityId))
                 toCache(entityClass, () => createLazyEntity(entityClass, entityId))
-            })
+            map.get(entityId)
         }
     }
 

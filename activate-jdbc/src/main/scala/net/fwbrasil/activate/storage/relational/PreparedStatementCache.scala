@@ -3,20 +3,18 @@ package net.fwbrasil.activate.storage.relational
 import java.sql.Connection
 import scala.collection.mutable.HashMap
 import java.sql.PreparedStatement
-import net.fwbrasil.radon.util.Lockable
 import scala.collection.mutable.Stack
 import java.sql.ResultSet
 import net.fwbrasil.activate.util.IdentityHashMap
 import com.jolbox.bonecp.ConnectionHandle
+import scala.collection.concurrent.TrieMap
 
 class PreparedStatementCache {
 
-    private val cache = new IdentityHashMap[Connection, HashMap[String, Stack[PreparedStatement]] with Lockable]() with Lockable
+    private val cache = new TrieMap[Connection, TrieMap[String, Stack[PreparedStatement]]]()
 
     def clear =
-        cache.doWithWriteLock {
-            cache.clear
-        }
+        cache.clear
 
     def acquireFor(connection: Connection, statement: String, readOnly: Boolean) =
         acquireFrom(cacheFor(connection), statement, readOnly).getOrElse {
@@ -42,7 +40,7 @@ class PreparedStatementCache {
         }
 
     private def acquireFrom(
-        cache: HashMap[String, Stack[PreparedStatement]] with Lockable,
+        cache: TrieMap[String, Stack[PreparedStatement]],
         statement: String,
         readOnly: Boolean): Option[PreparedStatement] =
         aquireFrom(stackFor(cache, statement), readOnly)
@@ -57,22 +55,10 @@ class PreparedStatementCache {
 
     private def cacheFor(connection: Connection) = {
         val realConnection = this.realConnection(connection)
-        cache.doWithReadLock {
-            cache.get(realConnection)
-        }.getOrElse {
-            cache.doWithWriteLock {
-                cache.getOrElseUpdate(realConnection, new HashMap[String, Stack[PreparedStatement]] with Lockable)
-            }
-        }
+        cache.getOrElseUpdate(realConnection, new TrieMap[String, Stack[PreparedStatement]])
     }
 
-    private def stackFor(cache: HashMap[String, Stack[PreparedStatement]] with Lockable, statement: String) =
-        cache.doWithReadLock {
-            cache.get(statement)
-        }.getOrElse {
-            cache.doWithWriteLock {
-                cache.getOrElseUpdate(statement, Stack())
-            }
-        }
+    private def stackFor(cache: TrieMap[String, Stack[PreparedStatement]], statement: String) =
+        cache.getOrElseUpdate(statement, Stack())
 
 }

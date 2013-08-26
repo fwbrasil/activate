@@ -1,33 +1,22 @@
 package net.fwbrasil.activate.util
 
+import java.lang.annotation.Annotation
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Date
+
+import scala.collection.concurrent.TrieMap
+import scala.collection.mutable.{HashMap => MutableHashMap}
+import scala.language.existentials
+import scala.language.implicitConversions
+
 import org.joda.time.base.AbstractInstant
 import org.objenesis.ObjenesisStd
 import org.reflections.Reflections
-import javassist.bytecode.LocalVariableAttribute
-import javassist.ClassClassPath
-import javassist.ClassPool
-import javassist.CtBehavior
+
 import net.fwbrasil.activate.entity.Entity
-import javassist.CtClass
-import javassist.CtPrimitiveType
-import org.reflections.util.ConfigurationBuilder
-import org.reflections.util.FilterBuilder
-import org.reflections.util.ClasspathHelper
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.scanners.TypeAnnotationsScanner
-import org.reflections.scanners.Scanner
-import org.reflections.scanners.AbstractScanner
-import org.reflections.adapters.MetadataAdapter
-import scala.collection.mutable.{ HashMap => MutableHashMap }
-import scala.collection.mutable.SynchronizedMap
-import net.fwbrasil.radon.util.Lockable
-import java.lang.annotation.Annotation
-import net.fwbrasil.activate.ActivateContext
 
 object Reflection {
 
@@ -203,7 +192,7 @@ object Reflection {
         materialized.asInstanceOf[AbstractInstant]
     }
 
-    private val bitmapFieldsCache = new MutableHashMap[Class[_], List[Field]]() with Lockable
+    private val bitmapFieldsCache = new TrieMap[Class[_], List[Field]]()
 
     def initializeBitmaps(res: Any) =
         setBitmaps(res, Byte.MaxValue)
@@ -214,17 +203,11 @@ object Reflection {
     private def setBitmaps(res: Any, value: Byte) = {
         val clazz = res.getClass
         val fields =
-            bitmapFieldsCache.doWithReadLock {
-                bitmapFieldsCache.get(clazz)
-            }.getOrElse {
-                bitmapFieldsCache.doWithWriteLock {
-                    bitmapFieldsCache.getOrElseUpdate(
-                        clazz,
-                        getDeclaredFieldsIncludingSuperClasses(res.getClass)
-                            .filter(field => !Modifier.isTransient(field.getModifiers) &&
-                                field.getName.startsWith("bitmap$") && field.getType == classOf[Byte]))
-                }
-            }
+            bitmapFieldsCache.getOrElseUpdate(
+                clazz,
+                getDeclaredFieldsIncludingSuperClasses(res.getClass)
+                    .filter(field => !Modifier.isTransient(field.getModifiers) &&
+                        field.getName.startsWith("bitmap$") && field.getType == classOf[Byte]))
         for (field <- fields) {
             field.setAccessible(true)
             field.set(res, value)
