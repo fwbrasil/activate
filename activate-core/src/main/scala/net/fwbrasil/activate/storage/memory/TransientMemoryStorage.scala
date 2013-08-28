@@ -15,14 +15,11 @@ import scala.collection.mutable.HashSet
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.TransactionHandle
+import scala.collection.concurrent.TrieMap
 
-class TransientMemoryStorageSet extends HashSet[Entity] with SynchronizedSet[Entity] {
-    override def elemHashCode(key: Entity) = java.lang.System.identityHashCode(key)
-}
+class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
 
-class TransientMemoryStorage extends Storage[HashSet[Entity]] {
-
-    val storageSet = new TransientMemoryStorageSet
+    private val storageMap = new TrieMap[String, Entity]
 
     def isSchemaless = true
     def isTransactional = false
@@ -31,10 +28,10 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
     override def supportsAsync = true
 
     def directAccess =
-        storageSet
+        storageMap
 
     override def reinitialize =
-        for (entity <- storageSet)
+        for (entity <- storageMap.values)
             entity.addToLiveCache
 
     override def toStorage(
@@ -44,9 +41,9 @@ class TransientMemoryStorage extends Storage[HashSet[Entity]] {
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle] = {
 
         for ((entity, properties) <- insertList)
-            storageSet += entity
+            storageMap += entity.id -> entity
         for ((entity, properties) <- deleteList)
-            storageSet -= entity
+            storageMap -= entity.id
 
         None
     }
