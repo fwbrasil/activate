@@ -20,6 +20,8 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object prevalentTransactionSerializer {
+    
+    private val magicBooleanInteger = 211
 
     def write(transaction: PrevalentTransaction)(implicit buffer: ByteBuffer) = {
         writeBoolean(true)
@@ -28,26 +30,30 @@ object prevalentTransactionSerializer {
         writeStringArray(transaction.deleteList)
     }
 
-    def read(implicit buffer: ByteBuffer) =
+    def read(implicit buffer: ByteBuffer) = {
         if (hasTrue) {
-            buffer.get
             Some(
                 new PrevalentTransaction(
                     insertList = readValuesArray,
                     updateList = readValuesArray,
                     deleteList = readStringArray))
-        } else 
+        } else
             None
+    }
 
     private def hasTrue(implicit buffer: ByteBuffer) =
         try {
             buffer.mark
-            buffer.get == Byte.MaxValue
+            if(!readBoolean){
+                buffer.reset
+                false
+            } else 
+                true
         } catch {
             case e: BufferUnderflowException =>
+                buffer.reset
                 false
-        } finally
-            buffer.reset
+        }
 
     private def writeStringArray(array: Array[String])(implicit buffer: ByteBuffer) = {
         buffer.putInt(array.length)
@@ -84,8 +90,9 @@ object prevalentTransactionSerializer {
         (readString, readMap)
 
     private def writeString(string: String)(implicit buffer: ByteBuffer) = {
-        buffer.putInt(string.length)
-        buffer.put(string.getBytes)
+        val bytes = string.getBytes
+        buffer.putInt(bytes.length)
+        buffer.put(bytes)
     }
 
     private def readString(implicit buffer: ByteBuffer) = {
@@ -119,12 +126,12 @@ object prevalentTransactionSerializer {
 
     private def writeBoolean(value: Boolean)(implicit buffer: ByteBuffer) =
         if (value)
-            buffer.put(Byte.MaxValue)
+            buffer.put(4: Byte)
         else
-            buffer.put(Byte.MinValue)
+            buffer.put(1: Byte)
 
     private def readBoolean(implicit buffer: ByteBuffer) =
-        buffer.get == Byte.MaxValue
+        buffer.get == (4: Byte)
 
     private def writeValue(value: StorageValue)(implicit buffer: ByteBuffer): Unit =
         value match {

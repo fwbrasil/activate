@@ -5,13 +5,15 @@ import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.serialization.Serializer
+import java.nio.ByteOrder
 
 class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
     private val fileSeparator = System.getProperty("file.separator")
+
+    directory.mkdirs
 
     private var (currentBuffer, currentBufferIdx) = {
         val buffers = directoryBuffers
@@ -77,6 +79,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     private def fileToBuffer(file: File, size: Long) =
         new RandomAccessFile(file, "rw").getChannel
             .map(FileChannel.MapMode.READ_WRITE, 0, size)
+            .order(ByteOrder.nativeOrder)
 
     private def createWriteBuffer(totalSize: Int) =
         synchronized {
@@ -90,7 +93,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
 
     private def recoverTransactions(
         system: PrevalentStorageSystem,
-        buffer: MappedByteBuffer)(implicit ctx: ActivateContext) = {
+        buffer: ByteBuffer)(implicit ctx: ActivateContext) = {
         var transactionOption = prevalentTransactionSerializer.read(buffer)
         while (transactionOption.isDefined) {
             transactionOption.get.recover(system)
@@ -98,7 +101,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         }
     }
 
-    private def readTransactionBytes(buffer: MappedByteBuffer) = {
+    private def readTransactionBytes(buffer: ByteBuffer) = {
         val transactionSize = buffer.getInt
         val bytes = new Array[Byte](transactionSize)
         buffer.get(bytes)

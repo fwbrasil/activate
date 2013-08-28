@@ -17,7 +17,6 @@ trait QlStatement extends Serializable {
         val pattern = Pattern.compile("(:[a-zA-Z0-9_]*)")
         var matcher = pattern.matcher(statement)
         var result = statement
-        matcher.matches
         val columns = ListBuffer[String]()
         while (matcher.find) {
             val group = matcher.group
