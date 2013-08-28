@@ -3,16 +3,16 @@ package net.fwbrasil.activate.slick
 import java.sql.Connection
 
 import scala.collection.mutable.{Map => MutableMap}
-import scala.slick.driver.DerbyDriver
-import scala.slick.driver.H2Driver
-import scala.slick.driver.HsqldbDriver
-import scala.slick.driver.MySQLDriver
-import scala.slick.driver.PostgresDriver
-import scala.slick.session.Database
-import scala.slick.session.Session
-
-import com.typesafe.slick.driver.db2.DB2Driver
-import com.typesafe.slick.driver.oracle.OracleDriver
+//import scala.slick.driver.DerbyDriver
+//import scala.slick.driver.H2Driver
+//import scala.slick.driver.HsqldbDriver
+//import scala.slick.driver.MySQLDriver
+//import scala.slick.driver.PostgresDriver
+//import scala.slick.session.Database
+//import scala.slick.session.Session
+//
+//import com.typesafe.slick.driver.db2.DB2Driver
+//import com.typesafe.slick.driver.oracle.OracleDriver
 
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.EntityHelper
@@ -33,45 +33,45 @@ import language.implicitConversions
 trait SlickQueryContext {
     this: ActivateContext =>
         
-    type Queryable[T] = slick.direct.Queryable[T]
-
-    val storage: JdbcRelationalStorage
-    lazy val driver =
-        storage.asInstanceOf[JdbcRelationalStorage].dialect match {
-            case d: db2Dialect.type =>
-                DB2Driver
-            case d: derbyDialect.type =>
-                DerbyDriver
-            case d: h2Dialect.type =>
-                H2Driver
-            case d: hsqldbDialect.type =>
-                HsqldbDriver
-            case d: mySqlDialect.type =>
-                MySQLDriver
-            case d: oracleDialect.type =>
-                OracleDriver
-            case d: postgresqlDialect.type =>
-                PostgresDriver
-        }
-
-    import driver.simple._
-
-    implicit class QueryableToSeq[T](queryable: Queryable[T]) {
-        def toSeq =
-            database.withSession {
-                session: Session =>
-                    backend.result(queryable, session).toSeq
-            }
-    }
-
-    implicit val mirror = scala.reflect.runtime.currentMirror
-
-    private lazy val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect
-    lazy val backend = new ActivateSlickBackend(driver, dialect, new ActivateEntityMapper(dialect))
-
-    lazy val database =
-        new Database {
-            override def createConnection = storage.directAccess.asInstanceOf[Connection]
-        }
+//    type Queryable[T] = slick.direct.Queryable[T]
+//
+//    val storage: JdbcRelationalStorage
+//    lazy val driver =
+//        storage.asInstanceOf[JdbcRelationalStorage].dialect match {
+//            case d: db2Dialect.type =>
+//                DB2Driver
+//            case d: derbyDialect.type =>
+//                DerbyDriver
+//            case d: h2Dialect.type =>
+//                H2Driver
+//            case d: hsqldbDialect.type =>
+//                HsqldbDriver
+//            case d: mySqlDialect.type =>
+//                MySQLDriver
+//            case d: oracleDialect.type =>
+//                OracleDriver
+//            case d: postgresqlDialect.type =>
+//                PostgresDriver
+//        }
+//
+//    import driver.simple._
+//
+//    implicit class QueryableToSeq[T](queryable: Queryable[T]) {
+//        def toSeq =
+//            database.withSession {
+//                session: Session =>
+//                    backend.result(queryable, session).toSeq
+//            }
+//    }
+//
+//    implicit val mirror = scala.reflect.runtime.currentMirror
+//
+//    private lazy val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect
+//    lazy val backend = new ActivateSlickBackend(driver, dialect, new ActivateEntityMapper(dialect))
+//
+//    lazy val database =
+//        new Database {
+//            override def createConnection = storage.directAccess.asInstanceOf[Connection]
+//        }
 
 }

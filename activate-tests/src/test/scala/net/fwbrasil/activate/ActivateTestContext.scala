@@ -34,7 +34,6 @@ import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
-import scala.slick.direct.AnnotationMapper.table
 import java.util.concurrent.Executors
 import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
