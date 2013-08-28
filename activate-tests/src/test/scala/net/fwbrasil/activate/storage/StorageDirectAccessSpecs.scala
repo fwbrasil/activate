@@ -6,7 +6,6 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import net.fwbrasil.activate.storage.memory.TransientMemoryStorageSet
 import java.sql.Connection
 import com.mongodb.DB
 import org.prevayler.Prevayler
@@ -15,6 +14,7 @@ import org.prevayler.{ Transaction => PrevaylerTransaction }
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorageSystem
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
+import scala.collection.concurrent.TrieMap
 
 @RunWith(classOf[JUnitRunner])
 class StorageDirectAccessSpecs extends ActivateTest {
@@ -36,8 +36,8 @@ class StorageDirectAccessSpecs extends ActivateTest {
                         }
                     step {
                         storage.directAccess match {
-                            case memorySet: TransientMemoryStorageSet =>
-                                memorySet.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
+                            case memorySet: TrieMap[String, Entity] =>
+                                memorySet.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                             case jdbcConnection: Connection =>
                                 try {
                                     val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect

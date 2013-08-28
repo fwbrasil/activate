@@ -137,6 +137,22 @@ class CRUDSpecs extends ActivateTest {
                     })
             }
 
+            "Insert equal case class instances multiple times" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        if (step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactions]) {
+                            for (i <- 0 until 10000)
+                                step {
+                                    CaseClassEntity(fullStringValue, fullEntityValue, fullEntityWithoutAttributeValue)
+                                }
+                            step {
+                                all[CaseClassEntity].size === 10000
+                            }
+                        }
+                    })
+            }
+
         }
     }
 

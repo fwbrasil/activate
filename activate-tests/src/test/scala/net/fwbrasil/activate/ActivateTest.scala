@@ -37,12 +37,12 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-//            memoryContext,
-//            prevaylerContext,
-//            mongoContext,
-//            asyncMongoContext,
-//            asyncPostgresqlContext,
-//            polyglotContext,
+            memoryContext,
+            prevaylerContext,
+            mongoContext,
+            asyncMongoContext,
+            asyncPostgresqlContext,
+            polyglotContext,
             postgresqlContext//,
 //            mysqlContext,
 //            derbyContext,
