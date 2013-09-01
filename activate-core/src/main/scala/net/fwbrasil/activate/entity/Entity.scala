@@ -91,7 +91,7 @@ trait Entity extends Serializable with EntityValidation {
             delete
 
     def canDelete =
-        references.find(_._2.nonEmpty).isEmpty
+        references.find(_._2.filter(_ != this).nonEmpty).isEmpty
 
     def references =
         EntityHelper.getEntityMetadata(this.getClass).references.mapValues {

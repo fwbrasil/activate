@@ -141,6 +141,43 @@ class EntitySpecs extends ActivateTest {
                     }
                 })
         }
+        
+        "perform cascade delete with circular reference" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val entity = newEmptyActivateTestEntity
+                        entity.entityValue = entity
+                    }
+                    step {
+                        all[ActivateTestEntity].head.deleteCascade
+                    }
+                    step {
+                        all[ActivateTestEntity] must beEmpty
+                    }
+                })
+        }
+        
+        "allow delete if there is only one reference and it is from self" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val entity = newEmptyActivateTestEntity
+                        entity.entityValue = entity
+                    }
+                    step {
+                        all[ActivateTestEntity].head.canDelete must beTrue
+                    }
+                    step {
+                        all[ActivateTestEntity].head.delete
+                    }
+                    step {
+                        all[ActivateTestEntity] must beEmpty
+                    }
+                })
+        }
 
     }
 
