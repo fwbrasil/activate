@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.entity
 
+import net.fwbrasil.activate.util.Reflection._
 import language.existentials
 import net.fwbrasil.activate.util.Reflection
 import java.lang.reflect.Field
@@ -130,6 +131,12 @@ class EntityMetadata(
     val metadataField = entityClass.getDeclaredField("metadata_entity")
     metadataField.setAccessible(true)
     metadataField.set(entityClass, this)
+
+    lazy val references = 
+        EntityHelper.metadatas
+            .filter(_.entityClass.isConcreteClass)
+            .map(m => (m, m.persistentPropertiesMetadata.filter(_.propertyType.isAssignableFrom(this.entityClass))))
+            .filter(_._2.nonEmpty).toMap
 
     override def toString = "Entity metadata for " + name
 }

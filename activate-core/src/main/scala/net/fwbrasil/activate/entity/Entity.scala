@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.entity
 
+import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.uuid.UUIDUtil
@@ -15,6 +16,7 @@ import java.util.{ HashMap => JHashMap }
 import net.fwbrasil.activate.OptimisticOfflineLocking
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
+import net.fwbrasil.activate.statement.Criteria
 
 trait Entity extends Serializable with EntityValidation {
 
@@ -76,6 +78,33 @@ trait Entity extends Serializable with EntityValidation {
         for (ref <- vars; if (ref != _baseVar))
             ref.destroy
     }
+
+    def deleteCascade: Unit = {
+        this.delete
+        references.values.foreach(_.foreach(_.deleteCascade))
+    }
+
+    def deleteIfHasntReferences =
+        if (!canDelete)
+            throw new CannotDeleteEntity(references)
+        else
+            delete
+
+    def canDelete =
+        references.find(_._2.nonEmpty).isEmpty
+
+    def references =
+        EntityHelper.getEntityMetadata(this.getClass).references.mapValues {
+            references =>
+                val ctx = context
+                ctx.select[Entity](manifestClass(references.head.entityMetadata.entityClass)).where { entity =>
+                    import ctx._
+                    var criteria: Criteria = (entity.varNamed(references.head.name).get :== this)
+                    for (reference <- references.tail)
+                        criteria = criteria :|| (entity.varNamed(reference.name).get :== this)
+                    criteria
+                }.filter(!_.isDeleted)
+        }
 
     private[activate] def deleteWithoutInitilize = {
         baseVar.destroyWithoutInitilize
@@ -228,6 +257,9 @@ object Entity {
         toStringLoopSeen.get -= entity
 
 }
+
+case class CannotDeleteEntity(references: Map[EntityMetadata, List[Entity]])
+    extends Exception(s"Can't delete entity due references from ${references.keys.map(_.name)}.")
 
 class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
     val id = entity.id

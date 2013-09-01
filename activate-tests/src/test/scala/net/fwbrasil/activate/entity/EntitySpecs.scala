@@ -93,6 +93,55 @@ class EntitySpecs extends ActivateTest {
                 })
         }
 
+        "handle references" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val (id1, id2, id3) =
+                        step {
+                            val e1 = newEmptyActivateTestEntity
+                            val e2 = newEmptyActivateTestEntity
+                            val e3 = newEmptyActivateTestEntity
+                            e1.entityValue = e2
+                            e2.entityValue = e3
+                            (e1.id, e2.id, e3.id)
+                        }
+                    def metadata[E <: Entity: Manifest] =
+                        EntityHelper.getEntityMetadata(manifest[E].runtimeClass)
+                    def entity(id: String) =
+                        byId[ActivateTestEntity](id).get
+                    step {
+                        entity(id3).references ===
+                            Map(metadata[CaseClassEntity] -> List(),
+                                metadata[ActivateTestEntity] -> List(entity(id2)))
+                        entity(id2).references ===
+                            Map(metadata[CaseClassEntity] -> List(),
+                                metadata[ActivateTestEntity] -> List(entity(id1)))
+                        entity(id1).references ===
+                            Map(metadata[CaseClassEntity] -> List(),
+                                metadata[ActivateTestEntity] -> List())        
+                    }
+                    step {
+                        entity(id1).canDelete === true
+                        entity(id2).canDelete === false
+                        entity(id3).canDelete === false
+                    }
+                    step {
+                        entity(id2).deleteIfHasntReferences must throwA[CannotDeleteEntity]
+                        entity(id3).deleteIfHasntReferences must throwA[CannotDeleteEntity]
+                    }
+                    step {
+                        entity(id3).deleteCascade
+                        entity(id3).isDeleted === true
+                        entity(id2).isDeleted === true
+                        entity(id1).isDeleted === true
+                    }
+                    step {
+                        all[ActivateTestEntity] must beEmpty
+                    }
+                })
+        }
+
     }
 
 }
