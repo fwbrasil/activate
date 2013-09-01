@@ -1,6 +1,5 @@
 package net.fwbrasil.activate.slick
 
-//import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.ActivateTest
@@ -19,6 +18,8 @@ import scala.slick.ast.ScalaType
 import net.fwbrasil.activate.entity._
 import scala.slick.ast.TypedType
 import scala.reflect.ClassTag
+import org.joda.time.DateTime
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class SlickQuerySpecs extends ActivateTest {
@@ -29,14 +30,13 @@ class SlickQuerySpecs extends ActivateTest {
     override def contexts =
         super.contexts.filter(_.isInstanceOf[SlickQueryContext])
 
-    "The Slick query support" should {
-        "perform simple query" in {
+    "The Slick query" should {
+        "support the coffee system" in {
             activateTest(
                 (step: StepExecutor) => {
                     val ctx = step.ctx.asInstanceOf[ActivateTestContext with SlickQueryContext]
                     import ctx._
                     import ctx.driver.simple._
-
 
                     step {
                         val sup1 = new Supplier("Acme, Inc.", "Groundsville")
@@ -50,53 +50,67 @@ class SlickQuerySpecs extends ActivateTest {
                         new Coffee("French_Roast_Decaf", sup2, 9.99)
                     }
 
+                    def testCompare[T](slick: Query[_, _], activate: List[_]) =
+                        slick.execute === activate
+
+                    def testCompareSet(slick: Query[_, _], activate: List[_]) =
+                        slick.execute.toSet === activate.toSet
+
                     step {
 
-                        val q2 = (for {
-                            c <- SlickQuery[Coffee]
-                            s <- c.supplier.~
-                        } yield (c, s)).sortBy(tuple => EntityValueToColumn(tuple._2.city).~)
+                        testCompareSet(
+                            slick =
+                                SlickQuery[Coffee].map(_.price.col),
+                            activate =
+                                query {
+                                    (c: Coffee) => where() select (c.price)
+                                })
 
-                        println(q2.selectStatement)
-                        val a = q2.execute
-                        println(a)
+                        testCompare(
+                            slick =
+                                (for {
+                                    c <- SlickQuery[Coffee]
+                                    s <- c.supplier.col
+                                } yield (c, s)).sortBy(_._1.id.col),
+                            activate =
+                                query {
+                                    (c: Coffee) => where() select (c, c.supplier) orderBy (c.id)
+                                })
 
-                        val slickQuery =
-                            (for (
-                                emptyEntity <- SlickQuery[ActivateTestEntity];
-                                fullEntity <- SlickQuery[ActivateTestEntity] if (fullEntity.~ === fullEntity.entityValue.~)
-                            ) yield (fullEntity, emptyEntity))
-                        val slick = slickQuery.execute
-                        val activate =
-                            query {
-                                (full: ActivateTestEntity, empty: ActivateTestEntity) =>
-                                    where(full.entityValue :== empty) select (full, empty)
-                            }
-                        slick === activate
+                        testCompare(
+                            slick =
+                                (for {
+                                    c <- SlickQuery[Coffee]
+                                    s <- SlickQuery[Supplier].sortBy(_.id.col) if c.supplier.col === s.col
+                                } yield (c.name.col)).sortBy(_.asc).take(2),
+                            activate =
+                                query {
+                                    (c: Coffee) => where() select (c.name) orderBy (c.name) limit (2)
+                                })
+
+                        testCompareSet(
+                            slick =
+                                (for {
+                                    c <- SlickQuery[Coffee]
+                                    s <- c.supplier.col
+                                } yield (s.name.col, c)).groupBy(_._1).map {
+                                    case (sname, ts) =>
+                                        (sname, ts.length, ts.map(_._2.price.col).min.get)
+                                },
+                            activate = {
+                                all[Coffee]
+                                    .groupBy(_.supplier.name)
+                                    .map {
+                                        tuple =>
+                                            val (supName, coffees) = tuple
+                                            val prices = coffees.map(_.price)
+                                            (supName, prices.size, prices.min)
+                                    }.toList
+                            })
+
                     }
                 })
         }
-        //        "perform query that selects partial values" in {
-        //            activateTest(
-        //                (step: StepExecutor) => {
-        //                    val ctx = step.ctx.asInstanceOf[ActivateTestContext with SlickQueryContext]
-        //                    import ctx._
-        //                    val entityId =
-        //                        step {
-        //                            newFullActivateTestEntity.id
-        //                        }
-        //                    step {
-        //                        val q = Queryable[ActivateTestEntity]
-        //                        val string = fullStringValue
-        //                        val slick = q.filter(_.stringValue == string).map(e => (e.intValue, e.stringValue)).toSeq.toList
-        //                        val activate =
-        //                            query {
-        //                                (e: ActivateTestEntity) => where(e.stringValue :== string) select (e.intValue, e.stringValue)
-        //                            }
-        //                        slick === activate
-        //                    }
-        //                })
-        //        }
     }
 
 }

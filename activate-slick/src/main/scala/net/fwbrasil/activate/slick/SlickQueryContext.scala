@@ -92,7 +92,7 @@ trait SlickQueryContext {
     implicit class EntityInstance[E <: Entity](table: EntityTable[E])(implicit tm: TypedType[E]) {
         def instance =
             table.column[E]("id")
-        def ~ = instance
+        def col = instance
     }
 
     implicit class EntityValueToColumn[V](value: V)(implicit tm: TypedType[V]) {
@@ -110,7 +110,7 @@ trait SlickQueryContext {
                 throw new IllegalStateException("Invalid column")
             }
         }
-        def ~ = column
+        def col = column
     }
 
     implicit class QueryRun[T, U](query: Query[T, U]) {

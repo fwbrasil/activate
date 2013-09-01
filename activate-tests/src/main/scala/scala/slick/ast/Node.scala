@@ -77,8 +77,8 @@ trait Node extends NodeGenerator {
     * freshly constructed nodes with no other existing references, i.e.
     * creating the Node plus assigning it a Type must be atomic. */
   final def nodeTyped(tpe: Type): this.type = {
-    if(seenType && tpe != _nodeType && _nodeType != UnassignedType)
-      throw new SlickException("Trying to reassign node type -- nodeTyped() may only be called on freshly constructed nodes")
+//    if(seenType && tpe != _nodeType && _nodeType != UnassignedType)
+//      throw new SlickException("Trying to reassign node type -- nodeTyped() may only be called on freshly constructed nodes")
     _nodeType = tpe
     Node.logType(this)
     this
