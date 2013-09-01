@@ -104,7 +104,7 @@ class EntityData[T <: Entity](val data: List[(String, Any)])(
         val entity = context.liveCache.createLazyEntity(entityClass, id)
         entity.setInitialized
         entity.setNotPersisted
-        context.liveCache.toCache(entityClass, () => entity)
+        context.liveCache.toCache(entityClass, entity)
         updateEntity(id)
         entity
     }

@@ -536,6 +536,9 @@ trait ActivateTestContext
         setEmptyEntity(newTestEntity())
     def newFullActivateTestEntity =
         setFullEntity(newTestEntity())
+        
+    class Supplier(var name: String, var city: String) extends Entity
+    class Coffee(var name: String, var supplier: Supplier, var price: Double) extends Entity
 
     class SimpleEntity(var intValue: Int) extends Entity
 

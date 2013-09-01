@@ -24,7 +24,7 @@ object StatementMocks {
     val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
 
     var _lastFakeVarCalled =
-        new ThreadLocal[Stack[Var[_]]] {
+        new ThreadLocal[Stack[FakeVar[_]]] {
             override def initialValue = Stack()
         }
 
