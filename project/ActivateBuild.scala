@@ -26,6 +26,7 @@ object ActivateBuild extends Build {
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
 	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.2"
+	val shapeless = "com.chuusai" % "shapeless" % "2.0.0-M1" cross CrossVersion.full
 	
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -72,7 +73,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo)
+		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo, shapeless)
 		    )
 		)
 
@@ -242,7 +243,9 @@ object ActivateBuild extends Build {
   	    "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
   	    "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository",
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
-  	    "spray" at "http://repo.spray.io/"
+  	    "spray" at "http://repo.spray.io/",
+  	    "Sonatype OSS Releases"  at "http://oss.sonatype.org/content/repositories/releases/",
+  		"Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
   	)
 
     	
@@ -250,7 +253,7 @@ object ActivateBuild extends Build {
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "1.4-SNAPSHOT",
-    		scalaVersion := "2.10.1",
+    		scalaVersion := "2.10.2",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
