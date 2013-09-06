@@ -95,7 +95,7 @@ object Marshaller {
                 val value = if (stringValue.value.isDefined) {
                     val enumerationValueClass = enumerationValue.enumerationClass
                     val enumerationClass = enumerationValueClass.getEnclosingClass
-                    val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+                    val enumerationObjectClass = enumerationClass.getClassLoader.loadClass(enumerationClass.getName + "$")
                     val obj = getObject[Enumeration](enumerationObjectClass)
                     Option(obj.withName(stringValue.value.get))
                 } else None
