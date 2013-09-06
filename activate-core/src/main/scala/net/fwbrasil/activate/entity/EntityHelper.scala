@@ -38,6 +38,7 @@ object EntityHelper {
     def initialize(referenceClass: Class[_]): Unit =
         synchronized {
             UUIDUtil.generateUUID
+            EntityValue.registerEncodersFor(referenceClass)
             for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
                 if (!entityClass.isInterface()) {
                     val entityClassHashId = getEntityClassHashId(entityClass)

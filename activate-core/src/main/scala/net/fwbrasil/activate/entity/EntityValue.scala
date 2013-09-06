@@ -8,6 +8,8 @@ import net.fwbrasil.activate.util.Reflection.getObject
 import net.fwbrasil.activate.serialization.SerializationContext
 import net.fwbrasil.activate.serialization.Serializer
 import net.fwbrasil.activate.serialization.javaSerializer
+import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.util.Reflection
 
 abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable {
     def emptyValue: V
@@ -137,6 +139,17 @@ case class SerializableEntityValue[S: Manifest](override val value: Option[S], v
 
 object EntityValue extends ValueContext {
 
+    private val encoders =
+        MutableMap[Class[_], Encoder[Any, Any]]()
+
+    def registerEncodersFor(referenceClass: Class[_]) = {
+        val encoders =
+            Reflection.getAllImplementorsNames(List(referenceClass), classOf[Encoder[_, _]])
+                .map(Class.forName).map(_.newInstance.asInstanceOf[Encoder[Any, Any]])
+        for(encoder <- encoders) 
+            this.encoders(encoder.clazz) = encoder
+    }
+
     def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
         Option((
             if (clazz == classOf[String])
@@ -174,7 +187,9 @@ object EntityValue extends ValueContext {
             else if (classOf[Serializable].isAssignableFrom(clazz) || clazz.isArray)
                 (value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
             else
-                null).asInstanceOf[(Option[T]) => EntityValue[T]])
+                encoders.get(clazz).map { encoder =>
+                    (value: Option[Any]) => encoder.entityValue(value)
+                }.orNull).asInstanceOf[(Option[T]) => EntityValue[T]])
 
     private[activate] def tvalFunction[T](clazz: Class[_], genericParameter: Class[_]): Option[T] => EntityValue[T] =
         tvalFunctionOption[T](clazz, genericParameter).getOrElse(throw new IllegalStateException("Invalid entity property type. " + clazz))

@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.storage.cassandra.AsyncCassandraStorage
 import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
@@ -536,7 +537,7 @@ trait ActivateTestContext
         setEmptyEntity(newTestEntity())
     def newFullActivateTestEntity =
         setFullEntity(newTestEntity())
-        
+
     class Supplier(var name: String, var city: String) extends Entity
     class Coffee(var name: String, var supplier: Supplier, var price: Double) extends Entity
 
@@ -567,9 +568,11 @@ trait ActivateTestContext
     }
 
     case class CaseClassEntity(
-        var stringValue: String,
-        var entityValue: ActivateTestEntity,
-        var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity
+            var stringValue: String,
+            var entityValue: ActivateTestEntity,
+            var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
+        var customEncodedEntityValue = new CustomEncodedEntityValue(1)
+    }
 
     abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 

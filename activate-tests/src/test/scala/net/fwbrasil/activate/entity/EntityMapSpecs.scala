@@ -17,7 +17,7 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = EntityMap[User](_.email -> "a@a.com")
+                        val map = new EntityMap[User](_.email -> "a@a.com")
 
                         val email: String = map(_.email)
 

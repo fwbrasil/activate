@@ -1,9 +1,12 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.util.RichList._
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.entity.EntityValue
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
@@ -163,6 +166,20 @@ class CRUDSpecs extends ActivateTest {
                             step {
                                 all[CaseClassEntity].size === 10000
                             }
+                        }
+                    })
+            }
+
+            "custom entity value" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val i = Random.nextInt
+                        step {
+                            fullCaseClassEntityValue.customEncodedEntityValue = new CustomEncodedEntityValue(i) 
+                        }
+                        step {
+                            fullCaseClassEntityValue.customEncodedEntityValue.i === i
                         }
                     })
             }

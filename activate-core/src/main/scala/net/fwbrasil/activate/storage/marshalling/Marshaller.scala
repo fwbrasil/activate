@@ -54,6 +54,7 @@ import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.migration.ModifyColumnType
+import net.fwbrasil.activate.entity.EncoderEntityValue
 
 object Marshaller {
 
@@ -121,6 +122,11 @@ object Marshaller {
                     new LazyList[Entity](ids)(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
                 }
                 LazyListEntityValue(v)
+            case (storageValue: StorageValue, entityValue: EncoderEntityValue[_, _]) =>
+                val anyEncoderEntityValue = entityValue.asInstanceOf[EncoderEntityValue[Any, Any]] 
+                val tempValue = unmarshalling(storageValue, entityValue.emptyTempValue)
+                val value = anyEncoderEntityValue.decode(tempValue.asInstanceOf[EntityValue[Any]])
+                EncoderEntityValue[Any, Any](anyEncoderEntityValue.encoder)(value)
             case other =>
                 throw new IllegalStateException("Invalid storage value.")
         }
@@ -163,6 +169,8 @@ object Marshaller {
                 ListStorageValue(value.value.map(list => list.ids.map(e => StringStorageValue(Some(e)))), marshalling(value.emptyValueEntityValue))
             case value: SerializableEntityValue[_] =>
                 ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
+            case value: EncoderEntityValue[_, _] =>
+                marshalling(value.encodedEntityValue)
         }
 
     def marshalling(action: StorageAction): ModifyStorageAction =
