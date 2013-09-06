@@ -38,7 +38,7 @@ class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(impli
                         val message = S.?(violation.invariantName)
                         for (property <- violation.properties) yield FieldError(
                             new FieldIdentifier {
-                                override def uniqueFieldId = Box.legacyNullTest("." + property)
+                                override def uniqueFieldId = Box.legacyNullTest(property)
                             }, message)
                     }
                 throw InvalidForm(errors.flatten.toList)
