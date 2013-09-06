@@ -331,6 +331,8 @@ object mongoIdiom {
     private def expectedVersion(
         properties: Map[String, StorageValue]) =
         getMongoValue(properties(versionVarName)) match {
+            case null =>
+                null
             case value: Long =>
                 value - 1l
         }
