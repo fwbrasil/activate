@@ -1,8 +1,5 @@
 package net.fwbrasil.activate.entity
 
-import shapeless._
-import syntax.singleton._
-import record._
 import scala.language._
 import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
@@ -52,12 +49,13 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
         val entity = context.liveCache.createLazyEntity(entityClass, id)
         entity.setInitialized
         entity.setNotPersisted
+        updateEntity(entity)
+        entity.validate
         context.liveCache.toCache(entityClass, entity)
-        updateEntity(id)
         entity
     }
 
-    private def updateEntity(entity: E) = {
+    protected def updateEntity(entity: E) = {
         val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[E])
         val metadatasMap =
             entityMetadata.propertiesMetadata
@@ -84,18 +82,18 @@ object EntityMap {
     def forEntity[E <: Entity](entity: E)(implicit m: Manifest[E], context: ActivateContext) =
         new EntityMap(entity)
 
-    private[EntityMap] def mock[E <: Entity: Manifest] =
+    private[activate] def mock[E <: Entity: Manifest] =
         StatementMocks.mockEntity(erasureOf[E]).asInstanceOf[E]
 
-    private[EntityMap] def lastVarNameCalled =
+    private[activate] def lastVarNameCalled =
         StatementMocks.lastFakeVarCalled.get.name
 
-    private[EntityMap] def keyFor[E <: Entity: Manifest](f: E => Any) = {
+    private[activate] def keyFor[E <: Entity: Manifest](f: E => Any) = {
         f(mock)
         lastVarNameCalled
     }
 
-    private[EntityMap] def keyAndValueFor[E <: Entity: Manifest](f: E => (_, _)) = {
+    private[activate] def keyAndValueFor[E <: Entity: Manifest](f: E => (_, _)) = {
         val value = f(mock)
         (lastVarNameCalled, value._2)
     }

@@ -19,7 +19,7 @@ class TestValidationEntity(var string1: String) extends Entity {
             string1.nonEmpty
         }
     def string2MustNotBeEmpty =
-        invariant {
+        on(_.string2).invariant {
             string2.nonEmpty
         }
     override protected def validationOptions = TestValidationEntity.validationOptions

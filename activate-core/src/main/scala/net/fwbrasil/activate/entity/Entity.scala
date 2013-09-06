@@ -106,6 +106,9 @@ trait Entity extends Serializable with EntityValidation {
                 }.filter(!_.isDeleted)
         }
 
+    def toMap =
+        EntityMap.forEntity[this.type](this)(manifest[this.type], context)
+
     private[activate] def deleteWithoutInitilize = {
         baseVar.destroyWithoutInitilize
         for (ref <- vars; if (ref != _baseVar))
@@ -276,6 +279,7 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type Entity = net.fwbrasil.activate.entity.Entity
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
+    type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.EntityMap[E]
 
     protected[activate] val liveCache = new LiveCache(this)
 

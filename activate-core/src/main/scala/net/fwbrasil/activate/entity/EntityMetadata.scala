@@ -102,7 +102,7 @@ class EntityMetadata(
         Reflection.getDeclaredMethodsIncludingSuperClasses(entityClass)
     val invariantMethods =
         allMethods.filter((method: Method) =>
-            method.getReturnType == classOf[Invariant]
+            method.getReturnType == classOf[Invariant[_]]
                 && method.getName != "invariant"
                 && method.getParameterTypes.isEmpty)
     val varFields =

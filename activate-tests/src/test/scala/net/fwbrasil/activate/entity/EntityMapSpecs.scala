@@ -28,6 +28,8 @@ class EntityMapSpecs extends ActivateTest {
                         map.put(_.email)(newEmail)
 
                         map(_.email) === newEmail
+                        
+                        map.createEntity.email === newEmail
                     }
                 })
         }

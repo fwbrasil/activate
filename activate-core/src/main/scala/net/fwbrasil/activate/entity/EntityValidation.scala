@@ -5,6 +5,7 @@ import scala.collection.SeqLike
 import net.fwbrasil.radon.ref.Ref
 import net.fwbrasil.activate.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.util.Reflection._
+import net.fwbrasil.activate.util.ManifestUtil._
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.radon.transaction.Transaction
 import scala.collection.mutable.SynchronizedMap
@@ -13,8 +14,9 @@ import scala.collection.mutable.HashSet
 import scala.collection.mutable.SynchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
 import net.fwbrasil.radon.transaction.NestedTransaction
-
 import net.fwbrasil.activate.OptimisticOfflineLocking
+
+import net.fwbrasil.activate.statement.StatementMocks
 
 case class PostCond[R](f: () => R) {
 
@@ -41,7 +43,11 @@ case class PostCond[R](f: () => R) {
             throw new PostCondidionViolationException(name)
 }
 
-case class Invariant(f: () => Boolean, errorParams: () => List[Any], exceptionOption: Option[Exception] = None)
+case class Invariant[E <: Entity: Manifest](
+    f: () => Boolean,
+    errorParams: () => List[Any],
+    properties: () => List[String],
+    exceptionOption: Option[Exception] = None)
 
 abstract class ViolationExceptions(violations: String*) extends Exception {
     override def toString = violations.toString
@@ -52,7 +58,7 @@ case class InvariantViolationException(violations: InvariantViolation*) extends 
 case class PreCondidionViolationException(violations: String*) extends ViolationExceptions(violations: _*)
 case class PostCondidionViolationException(violations: String*) extends ViolationExceptions(violations: _*)
 
-case class InvariantViolation(invariantName: String, errorParams: List[Any])
+case class InvariantViolation(invariantName: String, errorParams: List[Any], properties: List[String])
 
 object EntityValidationOption extends Enumeration {
     case class EntityValidationOption(name: String) extends Val
@@ -61,14 +67,29 @@ object EntityValidationOption extends Enumeration {
     val onCreate = EntityValidationOption("onCreate")
     val onTransactionEnd = EntityValidationOption("onTransactionEnd")
 }
-
 import EntityValidationOption._
 
 trait EntityValidation {
     this: Entity =>
 
     @transient
-    private var _invariants: List[(String, Invariant)] = null
+    private var _invariants: List[(String, Invariant[_])] = null
+
+    protected implicit class on(funcs: (this.type => Any)*) {
+        val properties =
+            (for (func <- funcs) yield {
+                func(StatementMocks.mockEntity(EntityValidation.this.getClass.asInstanceOf[Class[EntityValidation.this.type]]))
+                StatementMocks.lastFakeVarCalled.get.name
+            }).toList
+        def invariant(f: => Boolean) =
+            Invariant[EntityValidation.this.type](() => f, () => List(), () => properties)
+
+        def invariant(errorParams: => List[Any])(f: => Boolean) =
+            Invariant[EntityValidation.this.type](() => f, () => errorParams, () => properties)
+
+        def invariant(exception: Exception)(f: => Boolean) =
+            Invariant[EntityValidation.this.type](() => f, () => List(), () => properties, exceptionOption = Some(exception))
+    }
 
     private[activate] def invariants = {
         if (_invariants == null) {
@@ -76,7 +97,7 @@ trait EntityValidation {
             if (metadata.invariantMethods.nonEmpty) {
                 initializeListener
                 _invariants = for (method <- metadata.invariantMethods)
-                    yield (method.getName, method.invoke(this).asInstanceOf[Invariant])
+                    yield (method.getName, method.invoke(this).asInstanceOf[Invariant[Entity]])
             } else
                 _invariants = List()
         }
@@ -109,13 +130,13 @@ trait EntityValidation {
             ref.addWeakListener(listener)
 
     protected def invariant(f: => Boolean) =
-        Invariant(() => f, () => List())
+        Invariant[this.type](() => f, () => List(), () => List())
 
     protected def invariant(errorParams: => List[Any])(f: => Boolean) =
-        Invariant(() => f, () => errorParams)
+        Invariant[this.type](() => f, () => errorParams, () => List())
 
     protected def invariant(exception: Exception)(f: => Boolean) =
-        Invariant(() => f, () => List(), exceptionOption = Some(exception))
+        Invariant[this.type](() => f, () => List(), () => List(), exceptionOption = Some(exception))
 
     import language.implicitConversions
 
@@ -148,7 +169,7 @@ trait EntityValidation {
             if (invalid.nonEmpty) {
                 invalid.map(_._3).flatten.headOption.map(throw _)
                 val invariantViolations =
-                    invalidInvariants.map(tuple => InvariantViolation(tuple._1, tuple._2))
+                    invalidInvariants.map(tuple => InvariantViolation(tuple._1, tuple._2, tuple._4))
                 throw new InvariantViolationException(invariantViolations: _*)
             }
         }
@@ -156,7 +177,7 @@ trait EntityValidation {
 
     private def invalidInvariants =
         for ((name, invariant) <- invariants; if (!invariant.f()))
-            yield (name, invariant.errorParams(), invariant.exceptionOption)
+            yield (name, invariant.errorParams(), invariant.exceptionOption, invariant.properties())
 
     protected def validationOptions: Option[Set[EntityValidationOption]] = None
 

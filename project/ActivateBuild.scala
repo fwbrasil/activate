@@ -26,8 +26,7 @@ object ActivateBuild extends Build {
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
 	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.2"
-	val shapeless = "com.chuusai" % "shapeless" % "2.0.0-M1" cross CrossVersion.full
-	
+
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
 	val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.6"
@@ -61,7 +60,7 @@ object ActivateBuild extends Build {
     		    activateJdbc, activateMongo, activateTests, activatePlay,
     		    activateGraph, activateSprayJson, activateJdbcAsync,
     		    activateSlick, activateMongoAsync, activatePrevalent,
-    		    activateCassandraAsync),
+    		    activateCassandraAsync, activateLift),
     		settings = commonSettings
     	)
 
@@ -73,7 +72,7 @@ object ActivateBuild extends Build {
 		      libraryDependencies ++= 
 		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo, shapeless)
+		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo)
 		    )
 		)
 
@@ -191,6 +190,19 @@ object ActivateBuild extends Build {
 		    )
     	)
 
+    val lift = "net.liftweb" %% "lift-webkit" % "2.5"
+
+    lazy val activateLift =
+    	Project(
+    	    id = "activate-lift",
+    	    base = file("activate-lift"),
+    	    dependencies = Seq(activateCore),
+			settings = commonSettings ++ Seq(
+		      libraryDependencies ++= 
+		    	  Seq(lift)
+		    )
+    	)
+
     val sprayJson = "io.spray" %%  "spray-json" % "1.2.4"
 
     lazy val activateSprayJson = 
@@ -228,7 +240,7 @@ object ActivateBuild extends Build {
 			base = file("activate-tests"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
-			    activateSlick, activateMongoAsync, activatePrevalent, activateCassandraAsync),
+			    activateSlick, activateMongoAsync, activatePrevalent, activateCassandraAsync, activateLift),
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
@@ -253,7 +265,7 @@ object ActivateBuild extends Build {
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
     		version := "1.4-SNAPSHOT",
-    		scalaVersion := "2.10.2",
+    		scalaVersion := "2.10.1",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
     	    // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
