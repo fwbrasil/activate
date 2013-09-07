@@ -20,8 +20,8 @@ class EntityPropertyMetadata(
         Option(varField.getAnnotation(classOf[InternalAlias]))
             .map(_.value)
             .getOrElse(originalName)
-    val getter = entityMethods.find(_.getName == javaName).getOrElse(null)
-    val setter = entityMethods.find(_.getName == javaName + "_$eq").getOrElse(null)
+    val getter = entityMethods.find(m => m.getName == javaName || m.getName == originalName).getOrElse(null)
+    val setter = entityMethods.find(m => m.getName == javaName + "_$eq" || m.getName == originalName + "_$eq").getOrElse(null)
     val genericParameter = {
         if (getter == null)
             classOf[Object]
@@ -48,19 +48,19 @@ class EntityPropertyMetadata(
             }
     }
     val propertyType = {
-        if (getter == null)
-            classOf[Object]
-        else {
-            val typ = getter.getReturnType
-            if (typ == classOf[Option[_]])
-                genericParameter
-            else if (typ == classOf[Object]) {
-                val fields = entityMetadata.sClass.fields
-                val fieldOption = fields.find(_.name == originalName)
-                fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
-            } else
-                typ
-        }
+        val typ =
+            if (getter == null)
+                classOf[Object]
+            else
+                getter.getReturnType
+        if (typ == classOf[Option[_]])
+            genericParameter
+        else if (typ == classOf[Object]) {
+            val fields = entityMetadata.sClass.fields
+            val fieldOption = fields.find(_.name == originalName)
+            fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
+        } else
+            typ
     }
     require(propertyType != null)
     if (propertyType == classOf[Enumeration#Value])
@@ -132,7 +132,7 @@ class EntityMetadata(
     metadataField.setAccessible(true)
     metadataField.set(entityClass, this)
 
-    lazy val references = 
+    lazy val references =
         EntityHelper.metadatas
             .filter(_.entityClass.isConcreteClass)
             .map(m => (m, m.persistentPropertiesMetadata.filter(_.propertyType.isAssignableFrom(this.entityClass))))

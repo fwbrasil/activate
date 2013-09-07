@@ -34,7 +34,7 @@ object EntityEnhancer extends Logging {
     val idVarClassName = classOf[IdVar].getName
     val entityClassName = classOf[Entity].getName
     val entityClassFieldPrefix = entityClassName.replace(".", "$")
-    val scalaVariablesPrefixes = Array("$outer" , "bitmap$init$" )
+    val scalaVariablesPrefixes = Array("$outer", "bitmap$init$")
     val entityValidationFields = Array("invariants", "listener")
     val transientBitmapFlagName = "bitmap$"
 
@@ -268,11 +268,13 @@ object EntityEnhancer extends Logging {
 
                 val localsMap = localVariablesMap(codeAttribute)
                 for (field <- fields) {
+                    def getLocal(name: String) =
+                        localsMap.get(name).getOrElse(localsMap(name.split('$').last))
                     val (originalField, optionFlag) = enhancedFieldsMap.get(field).get
                     if (optionFlag)
-                        replace += "this." + field.getName + ".putWithoutInitialize(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
+                        replace += "this." + field.getName + ".putWithoutInitialize(" + box(originalField.getType, getLocal(field.getName).toString) + ");\n"
                     else
-                        replace += "this." + field.getName + ".putValueWithoutInitialize(" + box(originalField.getType, localsMap(field.getName).toString) + ");\n"
+                        replace += "this." + field.getName + ".putValueWithoutInitialize(" + box(originalField.getType, getLocal(field.getName).toString) + ");\n"
                 }
 
                 c.insertBeforeBody(replace)
@@ -307,7 +309,7 @@ object EntityEnhancer extends Logging {
             })
     }
 
-    private def enhanceFieldAccess(fa: FieldAccess, originalField: CtField, optionFlag: Boolean) = 
+    private def enhanceFieldAccess(fa: FieldAccess, originalField: CtField, optionFlag: Boolean) =
         if (fa.isWriter) {
             if (optionFlag)
                 fa.replace("this." + fa.getFieldName + ".put(" + box(originalField.getType, "$") + ");")

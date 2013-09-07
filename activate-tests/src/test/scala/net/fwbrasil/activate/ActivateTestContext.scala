@@ -43,6 +43,8 @@ import java.io.File
 import net.fwbrasil.activate.entity.EntityMetadata
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.ManifestUtil._
+import scala.xml.Elem
+import net.fwbrasil.activate.storage.relational.idiom.sqlServerDialect
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)
@@ -50,7 +52,6 @@ object EnumerationValue extends Enumeration {
     val value2 = EnumerationValue("v2")
     val value3 = EnumerationValue("v3")
 }
-
 import EnumerationValue._
 
 case class DummySeriablizable(val string: String)
@@ -86,14 +87,18 @@ abstract class ActivateTestMigration(
     }
 }
 
-abstract class ActivateTestMigrationCustomColumnType(
+abstract class ActivateTestMigrationCustomColumnType(recreate: Boolean = false)(
     implicit val ctx: ActivateTestContext)
         extends Migration {
 
     val timestamp = ActivateTestMigration.timestamp + 1
 
     def up =
-        table[ctx.ActivateTestEntity].modifyColumnType(_.customColumn[String]("bigStringValue", bigStringType))
+        if (recreate) {
+            table[ctx.ActivateTestEntity].removeColumn("bigStringValue")
+            table[ctx.ActivateTestEntity].addColumn(_.customColumn[String]("bigStringValue", bigStringType))
+        } else
+            table[ctx.ActivateTestEntity].modifyColumnType(_.customColumn[String]("bigStringValue", bigStringType))
 
     def bigStringType: String
 
@@ -256,7 +261,7 @@ object oracleContext extends ActivateTestContext with SlickQueryContext {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
         val password = "activate_test"
-        val url = "jdbc:oracle:thin:@192.168.1.8:1521:orcl"
+        val url = "jdbc:oracle:thin:@192.168.0.114:1521:orcl"
         val dialect = oracleDialect
         // Some oracle versions does not return the number of updated rows
         // when using batch operations correctly. Disable it.
@@ -264,7 +269,7 @@ object oracleContext extends ActivateTestContext with SlickQueryContext {
     }
 }
 class OracleActivateTestMigration extends ActivateTestMigration()(oracleContext)
-class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(oracleContext) {
+class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType(recreate = true)(oracleContext) {
     override def bigStringType = "CLOB"
 }
 
@@ -295,14 +300,28 @@ class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCas
 object db2Context extends ActivateTestContext with SlickQueryContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
-        val user = "db2inst1"
-        val password = "db2inst1"
-        val url = "jdbc:db2://192.168.1.8:50000/ACTTST"
+        val user = "db2admin"
+        val password = "db2admin"
+        val url = "jdbc:db2://192.168.0.114:50000/SAMPLE"
         val dialect = db2Dialect
     }
 }
 class Db2ActivateTestMigration extends ActivateTestMigration()(db2Context)
-class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(db2Context) {
+class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType(recreate = true)(db2Context) {
+    override def bigStringType = "CLOB"
+}
+
+object sqlServerContext extends ActivateTestContext with SlickQueryContext {
+    val storage = new PooledJdbcRelationalStorage {
+        val jdbcDriver = "net.sourceforge.jtds.jdbc.Driver"
+        val user = "SQLEXPRESS"
+        val password = "SQLEXPRESS"
+        val url = "jdbc:jtds:sqlserver://192.168.0.114:49481/sample"
+        val dialect = sqlServerDialect
+    }
+}
+class SqlServerActivateTestMigration extends ActivateTestMigration()(sqlServerContext)
+class SqlServerActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(sqlServerContext) {
     override def bigStringType = "CLOB"
 }
 
@@ -565,6 +584,28 @@ trait ActivateTestContext
 
     class EntityWithUninitializedValue extends Entity {
         var uninitializedValue: String = _
+    }
+
+    abstract class Page(var title: String, parent: Option[Page])
+            extends Entity {
+        def toXHtml: Elem
+    }
+
+    class BasicPage(pTitle: String, var content: String, parent: Option[Page] = None)
+            extends Page(pTitle, parent) {
+        def toXHtml = <div class="row">
+                          <div class="col-md-12">
+                              <span class="label label-info">{ title }</span>
+                              <hr/>
+                              <p>{ content }</p>
+                          </div>
+                      </div>
+
+        protected def invariantTitleMustBeLongEnough =
+            on(_.title).invariant(title.size > 3)
+
+        protected def invariantContentMustBeLongEnough =
+            on(_.content).invariant(content.size > 3)
     }
 
     case class CaseClassEntity(

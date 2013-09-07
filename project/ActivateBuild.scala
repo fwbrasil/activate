@@ -46,6 +46,7 @@ object ActivateBuild extends Build {
 	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
 	val db2jcc = "com.ibm.db2" % "db2jcc4" % "10.0.1"
+	val jtds = "net.sourceforge.jtds" % "jtds" % "1.3.1"
 
 	val gfork = "org.gfork" % "gfork" % "0.11"
   	
@@ -244,7 +245,7 @@ object ActivateBuild extends Build {
 			settings = commonSettings ++ Seq(
 		     	libraryDependencies ++= 
 		    	  Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
-		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j),
+		    	  	h2, derby, hqsqldb, gfork, blueprintsNeo4j, jtds),
 		    	 scalacOptions ++= Seq("-Xcheckinit")
 		    )
 		)

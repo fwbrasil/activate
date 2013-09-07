@@ -5,6 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.lift.EntityForm
 
 class User(var email: String) extends Entity
 
@@ -17,7 +18,7 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = new EntityMap[User](_.email -> "a@a.com")
+                        val map = new EntityForm[User](_.email -> "a@a.com")
 
                         val email: String = map(_.email)
 
@@ -28,8 +29,9 @@ class EntityMapSpecs extends ActivateTest {
                         map.put(_.email)(newEmail)
 
                         map(_.email) === newEmail
-                        
+
                         map.createEntity.email === newEmail
+
                     }
                 })
         }
