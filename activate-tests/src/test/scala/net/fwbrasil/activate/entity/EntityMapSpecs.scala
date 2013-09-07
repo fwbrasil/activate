@@ -7,7 +7,17 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
 
-class User(var email: String) extends Entity
+class User(var name: String, var email: String) extends Entity {
+    
+    private def emailPattern =
+        "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+
+    protected def invariantNameMustBeNotEmpty =
+        on(_.name).invariant(name.nonEmpty)
+        
+    protected def invariantEmailMustBeValid =
+        on(_.email).invariant(email.matches(emailPattern))
+}
 
 @RunWith(classOf[JUnitRunner])
 class EntityMapSpecs extends ActivateTest {
@@ -18,7 +28,7 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = new EntityForm[User](_.email -> "a@a.com")
+                        val map = new EntityMap[User](_.email -> "a@a.com")
 
                         val email: String = map(_.email)
 
@@ -27,6 +37,7 @@ class EntityMapSpecs extends ActivateTest {
                         val newEmail = "b@a.com"
 
                         map.put(_.email)(newEmail)
+                        map.put(_.name)("aaaa")
 
                         map(_.email) === newEmail
 

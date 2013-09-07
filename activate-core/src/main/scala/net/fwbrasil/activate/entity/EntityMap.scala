@@ -50,24 +50,29 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
         entity.setInitialized
         entity.setNotPersisted
         updateEntity(entity)
-        entity.validate
         context.liveCache.toCache(entityClass, entity)
         entity
     }
 
     protected def updateEntity(entity: E) = {
-        val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[E])
-        val metadatasMap =
-            entityMetadata.propertiesMetadata
-                .groupBy(_.name)
-                .mapValues(_.head)
-        for ((property, value) <- values) {
-            val ref = entity.varNamed(property)
-            val propertyMetadata = metadatasMap(property)
-            if (propertyMetadata.isOption)
-                ref.put(value.asInstanceOf[Option[_]])
-            else
-                ref.putValue(value)
+        try {
+            EntityValidation.setThreadOptions(Set())
+            val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[E])
+            val metadatasMap =
+                entityMetadata.propertiesMetadata
+                    .groupBy(_.name)
+                    .mapValues(_.head)
+            for ((property, value) <- values) {
+                val ref = entity.varNamed(property)
+                val propertyMetadata = metadatasMap(property)
+                if (propertyMetadata.isOption)
+                    ref.put(value.asInstanceOf[Option[_]])
+                else
+                    ref.putValue(value)
+            }
+        } finally {
+        	EntityValidation.setThreadOptions(EntityValidation.getGlobalOptions)
+        	entity.validate
         }
         entity
     }
