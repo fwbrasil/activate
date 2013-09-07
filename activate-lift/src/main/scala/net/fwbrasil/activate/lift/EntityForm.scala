@@ -9,7 +9,7 @@ import net.liftweb.http.S
 import net.liftweb.util.FieldIdentifier
 import net.liftweb.common.Box
 
-class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(implicit m: Manifest[E], context: ActivateContext) extends EntityMap[E] {
+class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(implicit m: Manifest[E], context: ActivateContext) extends EntityMap[E](values) {
 
     def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
         this(entity.vars.map(ref => (ref.name, ref.getValue)).toMap)
