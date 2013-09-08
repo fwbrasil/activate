@@ -69,7 +69,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == derbyContext)
+        if (ctx == mysqlContext || ctx == derbyContext || ctx == sqlServerContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -261,7 +261,7 @@ object oracleContext extends ActivateTestContext with SlickQueryContext {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
         val password = "activate_test"
-        val url = "jdbc:oracle:thin:@192.168.0.114:1521:orcl"
+        val url = "jdbc:oracle:thin:@192.168.1.10:1521:orcl"
         val dialect = oracleDialect
         // Some oracle versions does not return the number of updated rows
         // when using batch operations correctly. Disable it.
@@ -302,7 +302,7 @@ object db2Context extends ActivateTestContext with SlickQueryContext {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2admin"
         val password = "db2admin"
-        val url = "jdbc:db2://192.168.0.114:50000/SAMPLE"
+        val url = "jdbc:db2://192.168.1.10:50000/SAMPLE"
         val dialect = db2Dialect
     }
 }
@@ -311,18 +311,18 @@ class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCust
     override def bigStringType = "CLOB"
 }
 
-object sqlServerContext extends ActivateTestContext with SlickQueryContext {
+object sqlServerContext extends ActivateTestContext {
     val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "net.sourceforge.jtds.jdbc.Driver"
-        val user = "SQLEXPRESS"
-        val password = "SQLEXPRESS"
-        val url = "jdbc:jtds:sqlserver://192.168.0.114:49481/sample"
+        val user = "activate"
+        val password = "activate"
+        val url = "jdbc:jtds:sqlserver://192.168.1.10:49503/activate_test2"
         val dialect = sqlServerDialect
     }
 }
 class SqlServerActivateTestMigration extends ActivateTestMigration()(sqlServerContext)
 class SqlServerActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(sqlServerContext) {
-    override def bigStringType = "CLOB"
+    override def bigStringType = "TEXT"
 }
 
 object polyglotContext extends ActivateTestContext {

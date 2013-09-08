@@ -43,6 +43,8 @@ import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object db2Dialect extends SqlIdiom {
+    
+    override def supportsLimitedQueries = false
 
     def toSqlDmlRegexp(value: String, regex: String) =
         throw new UnsupportedOperationException("DB2 dialect does not support regexp operator.")

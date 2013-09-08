@@ -333,7 +333,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.name != "db2Context") { //UnsupportedOperationException
+                    if (step.ctx.storage.supportsRegex) { //UnsupportedOperationException
                         val entityId =
                             step {
                                 newFullActivateTestEntity.id
@@ -364,7 +364,7 @@ class QuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx.name != "db2Context") { //UnsupportedOperationException
+                    if (step.ctx.storage.supportsRegex) { //UnsupportedOperationException
                         val entityId =
                             step {
                                 newFullActivateTestEntity.id

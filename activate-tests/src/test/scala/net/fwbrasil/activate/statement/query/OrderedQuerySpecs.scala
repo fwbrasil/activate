@@ -11,7 +11,6 @@ import scala.util.Random.nextDouble
 import scala.util.Random.nextFloat
 import scala.util.Random.nextInt
 import scala.util.Random.nextLong
-import net.fwbrasil.activate.oracleContext
 
 @RunWith(classOf[JUnitRunner])
 class OrderedQuerySpecs extends ActivateTest {
@@ -245,7 +244,7 @@ class OrderedQuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != oracleContext) {
+                    if (step.ctx.storage.supportsLimitedQueries) {
                         val expected = List(null, "a", "b", "c")
                         step {
                             expected.randomize.foreach(v =>
@@ -269,7 +268,7 @@ class OrderedQuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != oracleContext) {
+                    if (step.ctx.storage.supportsLimitedQueries) {
                         val expected = List(null, "a", "b", "c")
                         step {
                             expected.randomize.foreach(v =>
@@ -292,7 +291,7 @@ class OrderedQuerySpecs extends ActivateTest {
         "support limit with offset" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (!step.isInstanceOf[OneTransaction] && step.ctx != oracleContext) {
+                    if (!step.isInstanceOf[OneTransaction] && step.ctx.storage.supportsLimitedQueries) {
                         import step.ctx._
                         val expected = List(null, "a", "b", "c")
                         step {
@@ -316,7 +315,7 @@ class OrderedQuerySpecs extends ActivateTest {
         "fo not cache the offset value" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (!step.isInstanceOf[OneTransaction] && step.ctx != oracleContext) {
+                    if (!step.isInstanceOf[OneTransaction] && step.ctx.storage.supportsLimitedQueries) {
                         import step.ctx._
                         val expected = List(null, "a", "b", "c")
                         step {
@@ -340,7 +339,7 @@ class OrderedQuerySpecs extends ActivateTest {
         "do not initalize entities unnecessarily" in {
             activateTest(
                 (step: StepExecutor) => {
-                    if (step.isInstanceOf[MultipleTransactionsWithReinitialize] && !step.ctx.storage.isMemoryStorage) {
+                    if (step.isInstanceOf[MultipleTransactionsWithReinitialize] && !step.ctx.storage.isMemoryStorage && step.ctx.storage.supportsLimitedQueries) {
                         import step.ctx._
                         val expected = List(null, "a", "b", "c")
                         step {

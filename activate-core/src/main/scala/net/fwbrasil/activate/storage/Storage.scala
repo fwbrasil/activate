@@ -67,6 +67,8 @@ trait Storage[T] extends Logging {
     def isTransactional: Boolean
     def supportsQueryJoin: Boolean
     def supportsAsync = false
+    def supportsLimitedQueries = true
+    def supportsRegex = true
 
     protected[activate] def reinitialize = {}
     protected[activate] def migrate(action: StorageAction): Unit

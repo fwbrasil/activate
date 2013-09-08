@@ -148,6 +148,10 @@ case class JdbcActivateResultSet(rs: ResultSet)
 }
 
 trait SqlIdiom extends QlIdiom {
+    
+    def supportsLimitedQueries = true
+    
+    def supportsRegex = true
 
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
     

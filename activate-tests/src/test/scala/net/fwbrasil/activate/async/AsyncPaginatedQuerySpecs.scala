@@ -20,37 +20,38 @@ class AsyncPaginatedQuerySpecs extends ActivateTest {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._
-                        val numbers = (0 until numberOfEntities).toList
-                        transactional {
-                            numbers.foreach(newEmptyActivateTestEntity.intValue = _)
+                        if (step.ctx.storage.supportsLimitedQueries) {
+                            val numbers = (0 until numberOfEntities).toList
+                            transactional {
+                                numbers.foreach(newEmptyActivateTestEntity.intValue = _)
+                            }
+                            def test(pageSize: Int) = {
+                                val navigator =
+                                    await(asyncTransactionalChain {
+                                        implicit ctx =>
+                                            asyncPaginatedQuery {
+                                                (e: ActivateTestEntity) => where(e isNotNull) select (e) orderBy (e.intValue)
+                                            }.navigator(pageSize)
+                                    })
+                                val expectedNumberOfPages =
+                                    (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
+                                navigator.numberOfPages must beEqualTo(expectedNumberOfPages)
+                                def page(n: Int) =
+                                    asyncTransactionalChain {
+                                        implicit ctx =>
+                                            navigator.page(n)
+                                    }
+                                await(page(-1)) must throwA[IndexOutOfBoundsException]
+                                if (navigator.numberOfPages > 0) {
+                                    await(page(0))
+                                    await(page(expectedNumberOfPages - 1))
+                                } else
+                                    await(page(0)) must throwA[IndexOutOfBoundsException]
+                                await(page(expectedNumberOfPages)) must throwA[IndexOutOfBoundsException]
+                            }
+                            for (i <- 1 until 6)
+                                test(pageSize = i)
                         }
-                        def test(pageSize: Int) = {
-                            val navigator =
-                                await(asyncTransactionalChain {
-                                    implicit ctx =>
-                                        asyncPaginatedQuery {
-                                            (e: ActivateTestEntity) => where(e isNotNull) select (e) orderBy (e.intValue)
-                                        }.navigator(pageSize)
-                                })
-                            val expectedNumberOfPages =
-                                (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
-                            navigator.numberOfPages must beEqualTo(expectedNumberOfPages)
-                            def page(n: Int) =
-                                asyncTransactionalChain {
-                                    implicit ctx =>
-                                        navigator.page(n)
-                                }
-                            await(page(-1)) must throwA[IndexOutOfBoundsException]
-                            if (navigator.numberOfPages > 0) {
-                                await(page(0))
-                                await(page(expectedNumberOfPages - 1))
-                            } else
-                                await(page(0)) must throwA[IndexOutOfBoundsException]
-                            await(page(expectedNumberOfPages)) must throwA[IndexOutOfBoundsException]
-                        }
-                        for (i <- 1 until 6)
-                            test(pageSize = i)
-
                     })
             }
         }

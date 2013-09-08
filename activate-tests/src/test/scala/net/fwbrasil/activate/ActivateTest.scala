@@ -44,14 +44,14 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             //            asyncMongoContext,
             //            asyncPostgresqlContext,
             //            polyglotContext,
-            postgresqlContext //,
+//            postgresqlContext //,
             //            mysqlContext,
             //            derbyContext,
             //            h2Context,
             //            hsqldbContext //,
             //            oracleContext //,
             //            db2Context //            asyncCassandraContext,
-            //            sqlServerContext
+                        sqlServerContext
             )
         ret.foreach(_.stop)
         val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))

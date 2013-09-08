@@ -45,6 +45,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     private val preparedStatementCache = new PreparedStatementCache
 
     protected def getConnection: Connection
+    
+    override def supportsRegex = 
+        dialect.supportsRegex
+    
+    override def supportsLimitedQueries =
+        dialect.supportsLimitedQueries
 
     override def reinitialize = {
         preparedStatementCache.clear
@@ -79,7 +85,9 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
         val statements =
-            BatchQlStatement.group(sqlStatements, batchLimit)
+            BatchQlStatement
+                .group(sqlStatements, batchLimit)
+                .filter(satisfyRestriction)
         Some(executeWithTransactionAndReturnHandle {
             connection =>
                 for (statement <- statements)
@@ -108,22 +116,20 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         }).getOrElse(true)
 
     def execute(jdbcStatement: QlStatement, connection: Connection) =
-        try
-            if (satisfyRestriction(jdbcStatement)) {
-                val stmt = acquirePreparedStatement(jdbcStatement, connection, true)
-                try {
-                    val result = jdbcStatement match {
-                        case normal: NormalQlStatement =>
-                            Array(stmt.executeUpdate)
-                        case batch: BatchQlStatement =>
-                            stmt.executeBatch
-                    }
-                    verifyStaleData(jdbcStatement, result)
+        try {
+            val stmt = acquirePreparedStatement(jdbcStatement, connection, true)
+            try {
+                val result = jdbcStatement match {
+                    case normal: NormalQlStatement =>
+                        Array(stmt.executeUpdate)
+                    case batch: BatchQlStatement =>
+                        stmt.executeBatch
+                }
+                verifyStaleData(jdbcStatement, result)
 
-                } finally
-                    releasePreparedStatement(jdbcStatement, connection, stmt)
-            }
-        catch {
+            } finally
+                releasePreparedStatement(jdbcStatement, connection, stmt)
+        } catch {
             case e: BatchUpdateException =>
                 throw JdbcStatementException(jdbcStatement, e, e.getNextException)
             case e: ActivateConcurrentTransactionException =>

@@ -26,8 +26,14 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import java.sql.PreparedStatement
+import java.util.Date
+import java.sql.Types
 
 object sqlServerDialect extends SqlIdiom {
+    
+    override def supportsLimitedQueries = false
+    override def supportsRegex = false
 
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " LIKE " + regex
@@ -46,21 +52,25 @@ object sqlServerDialect extends SqlIdiom {
             "   AND COLUMN_NAME = '" + columnName.toUpperCase + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
-        "SELECT COUNT(1) " +
-            "  FROM INFORMATION_SCHEMA.INDEXES " +
-            " WHERE TABLE_SCHEMA = SCHEMA_NAME() " +
-            "   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
-            "   AND INDEX_NAME = '" + indexName.toUpperCase + "'"
+        "SELECT COUNT(1)" +
+            " FROM SYS.INDEXES I, " +
+            "      SYS.TABLES T, " +
+            "      SYS.SCHEMAS S " +
+            "WHERE T.OBJECT_ID = I.OBJECT_ID " +
+            "  AND T.SCHEMA_ID = S.SCHEMA_ID " +
+            "  AND S.NAME = SCHEMA_NAME() " +
+            s"  AND T.NAME = '${tableName.toUpperCase}' " +
+            s"  AND I.NAME = '${indexName.toUpperCase}' "
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
-            "  FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+            "  FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
             " WHERE TABLE_SCHEMA = SCHEMA_NAME() " +
             "   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
             "   AND CONSTRAINT_NAME = '" + constraintName.toUpperCase + "'"
 
     override def escape(string: String) =
-        "\"" + string.toUpperCase + "\""
+        "\"" + string + "\""
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {
@@ -79,28 +89,46 @@ object sqlServerDialect extends SqlIdiom {
             case StorageRenameTable(oldName, newName, ifExists) =>
                 "ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
             case StorageRemoveTable(name, ifExists, isCascade) =>
-                "DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else "")
+                "DROP TABLE " + escape(name)
             case StorageAddColumn(tableName, column, ifNotExists) =>
                 "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
             case StorageRenameColumn(tableName, oldName, column, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(oldName) + " RENAME TO " + escape(column.name)
             case StorageModifyColumnType(tableName, column, ifExists) =>
-                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
+                "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
             case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
                 "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
             case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-                "DROP INDEX " + escape(name)
+                "DROP INDEX " + escape(name) + " ON " + escape(tableName)
             case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
                 "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
             case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
         }
     }
+    
+    override def getValue(resultSet: ActivateResultSet, i: Int, storageValue: StorageValue) = {
+        storageValue match {
+            case value: DateStorageValue =>
+                DateStorageValue(resultSet.getLong(i).map((t: Long) => new Date(t)))
+            case other =>
+                super.getValue(resultSet, i, storageValue)
+        }
+    }
+
+    override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
+        storageValue match {
+            case value: DateStorageValue =>
+                setValue(ps, (v: Date) => ps.setLong(i, v.getTime), i, value.value, Types.BIGINT)
+            case other =>
+                super.setValue(ps, i, storageValue)
+        }
+    }
 
     def concat(strings: String*) =
-        "CONCAT(" + strings.mkString(", ") + ")"
+        strings.map(s => s" CAST($s AS VARCHAR(1000))").mkString(" + ") 
 
     override def toSqlDdl(storageValue: StorageValue): String =
         storageValue match {
@@ -111,21 +139,21 @@ object sqlServerDialect extends SqlIdiom {
             case value: BooleanStorageValue =>
                 "BIT"
             case value: StringStorageValue =>
-                "VARCHAR"
+                "VARCHAR(1000)"
             case value: FloatStorageValue =>
                 "REAL"
             case value: DateStorageValue =>
-                "TIMESTAMP"
+                "BIGINT"
             case value: DoubleStorageValue =>
-                "DOUBLE"
+                "DOUBLE PRECISION"
             case value: BigDecimalStorageValue =>
                 "DECIMAL"
             case value: ByteArrayStorageValue =>
-                "BINARY"
+                "VARBINARY(8000)"
             case value: ListStorageValue =>
                 "INTEGER"
             case value: ReferenceStorageValue =>
-                "VARCHAR"
+                "VARCHAR(45)"
         }
 }
 

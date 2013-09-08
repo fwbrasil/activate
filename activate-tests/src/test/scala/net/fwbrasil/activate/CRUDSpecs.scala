@@ -176,7 +176,7 @@ class CRUDSpecs extends ActivateTest {
                         import step.ctx._
                         val i = Random.nextInt
                         step {
-                            fullCaseClassEntityValue.customEncodedEntityValue = new CustomEncodedEntityValue(i) 
+                            fullCaseClassEntityValue.customEncodedEntityValue = new CustomEncodedEntityValue(i)
                         }
                         step {
                             fullCaseClassEntityValue.customEncodedEntityValue.i === i

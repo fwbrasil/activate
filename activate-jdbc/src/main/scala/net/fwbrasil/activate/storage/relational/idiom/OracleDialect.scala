@@ -37,6 +37,9 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object oracleDialect extends SqlIdiom {
+    
+    override def supportsLimitedQueries = false
+    
     def toSqlDmlRegexp(value: String, regex: String) =
         "REGEXP_LIKE(" + value + ", " + regex + ")"
 
