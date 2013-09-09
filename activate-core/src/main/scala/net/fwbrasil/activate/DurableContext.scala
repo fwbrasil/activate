@@ -58,7 +58,7 @@ trait DurableContext {
         val assignments = transaction.assignments
         if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(assignments.toList)
-            val deletes = filterDeletes(statements, deletesUnfiltered)
+            val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
             val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
             validateTransactionEnd(transaction, entities)
             store(statements.toList, inserts, updates, deletes)
@@ -73,7 +73,7 @@ trait DurableContext {
         val assignments = transaction.assignments
         if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments.toList)
-            val deletes = filterDeletes(statements, deletesUnfiltered)
+            val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
             val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
                 storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
@@ -178,6 +178,7 @@ trait DurableContext {
             }
 
     private def filterDeletes(
+        transaction: Transaction,
         statements: ListBuffer[MassModificationStatement],
         deletesUnfiltered: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
 
@@ -187,7 +188,8 @@ trait DurableContext {
             statements.map {
                 _ match {
                     case massDelete: MassDeleteStatement =>
-                        transactional(transient) {
+                        val nestedTransaction = new NestedTransaction(transaction)
+                        try transactional(nestedTransaction) {
                             val entitySource = massDelete.from.entitySources.onlyOne
                             val entityClass = entitySource.entityClass
                             val storage = storageFor(entityClass)
@@ -196,11 +198,9 @@ trait DurableContext {
                                     _.filter(entity => liveCache.executeCriteria(massDelete.where.valueOption)(Map(entitySource -> entity))).toList
                                 }.getOrElse(List())
                             else List()
-                        }
-                    case other =>
-                        List()
+                        } finally
+                            nestedTransaction.rollback
                 }
-
             }.flatten
 
         // performance

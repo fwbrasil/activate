@@ -136,6 +136,29 @@ class MassDeleteSpecs extends ActivateTest {
                     }
                 })
         }
+        "work combined with a mass update" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        new TraitAttribute1("a")
+                        new TraitAttribute2("b")
+                    }
+                    step {
+                        step.ctx.update {
+                            (entity: TraitAttribute) => where(entity isNotNull) set(entity.attribute := "1")
+                        }
+                    }
+                    step {
+                        step.ctx.delete {
+                            (entity: TraitAttribute) => where(entity.attribute :== "1")
+                        }
+                    }
+                    step {
+                        all[TraitAttribute].isEmpty must beTrue
+                    }
+                })
+        }
 
     }
 }
