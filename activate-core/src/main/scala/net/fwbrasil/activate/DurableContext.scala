@@ -56,7 +56,7 @@ trait DurableContext {
 
         val statements = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
+        val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
         if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
@@ -72,7 +72,7 @@ trait DurableContext {
         // TODO Refactoring (see makeDurable)
         val statements = statementsForTransaction(transaction)
         val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments)
-        val deletes = filterDeletes(statements, deletesUnfiltered)
+        val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
         val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
 
         if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty || statements.nonEmpty) {
@@ -180,6 +180,7 @@ trait DurableContext {
             }
 
     private def filterDeletes(
+            transaction: Transaction,
         statements: ListBuffer[MassModificationStatement],
         deletesUnfiltered: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
 
@@ -193,16 +194,20 @@ trait DurableContext {
         lazy val deletesByEntityClass = persistentDeletes.map(_._1).groupBy(_.getClass)
         val deletedByMassStatement =
             massDeletes.toList.map { massDelete =>
-                transactional(transient) {
+                val nestedTransaction = new NestedTransaction(transaction)
+                try transactional(nestedTransaction) {
                     val entitySource = massDelete.from.entitySources.onlyOne
                     val entityClass = entitySource.entityClass
                     val storage = storageFor(entityClass)
                     if (!storage.isMemoryStorage)
                         deletesByEntityClass.get(entityClass).map {
-                            _.filter(entity => liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))).toList
+                            _.filter(entity => {
+                                liveCache.executeCriteria(massDelete.where.value)(Map(entitySource -> entity))
+                            }).toList
                         }.getOrElse(List())
                     else List()
-                }
+                } finally
+                    nestedTransaction.rollback
             }.flatten
 
         persistentDeletes -- deletedByMassStatement
