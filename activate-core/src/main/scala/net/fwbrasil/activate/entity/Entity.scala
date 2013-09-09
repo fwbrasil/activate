@@ -280,6 +280,7 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
     type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.EntityMap[E]
+    type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
 
     protected[activate] val liveCache = new LiveCache(this)
 

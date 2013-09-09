@@ -7,6 +7,7 @@ import org.specs2.runner._
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityValue
 import scala.util.Random
+import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
 
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {

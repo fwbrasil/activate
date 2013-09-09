@@ -45,6 +45,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.xml.Elem
 import net.fwbrasil.activate.storage.relational.idiom.sqlServerDialect
+import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
 
 object EnumerationValue extends Enumeration {
     case class EnumerationValue(name: String) extends Val(name)

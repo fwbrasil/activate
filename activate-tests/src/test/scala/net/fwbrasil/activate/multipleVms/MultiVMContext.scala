@@ -1,10 +1,8 @@
 package net.fwbrasil.activate.multipleVms
 
 import net.fwbrasil.activate.StoppableActivateContext
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.postgresqlContext
-import net.fwbrasil.activate.mongoContext
-import net.fwbrasil.activate.asyncPostgresqlContext
+import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.migration.ManualMigration
 
 trait MultiVMContext extends StoppableActivateContext {

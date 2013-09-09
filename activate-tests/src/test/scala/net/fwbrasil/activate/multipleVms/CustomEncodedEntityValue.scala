@@ -1,9 +1,8 @@
-package net.fwbrasil.activate
+package net.fwbrasil.activate.multipleVms
 
-import memoryContext._
-import net.fwbrasil.activate.entity.Encoder
+import net.fwbrasil.activate.postgresqlContext._
 
-class CustomEncodedEntityValue(val i: Int)
+class CustomEncodedEntityValue(val i: Int) extends Serializable
 
 class CustomEncodedEntityValueEncoder
         extends Encoder[CustomEncodedEntityValue, Int] {
