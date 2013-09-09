@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat
 import spray.json._
 import java.nio.charset.Charset
 import net.fwbrasil.activate.json.JsonContext
+import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 
 trait SprayJsonContext extends JsonContext {
   val jsonCharset = Charset.defaultCharset
@@ -92,6 +93,8 @@ trait SprayJsonContext extends JsonContext {
         })(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
       case (JsString(value), entityValue: SerializableEntityValue[_]) =>
         entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
+      case (obj: JsObject, entityValue: EntityInstanceEntityValue[_]) =>
+          createEntityFromJson(obj)(entityValue.entityManifest)
     }
 
   private def toJsValue[T](entityValue: EntityValue[T]): JsValue =

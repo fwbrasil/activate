@@ -8,6 +8,20 @@ import net.fwbrasil.activate.memoryContext
 import spray.json._
 import DefaultJsonProtocol._
 import net.fwbrasil.activate.entity.Entity
+import org.joda.time.DateTime
+
+class Event(
+    val name: String,
+    val description: String,
+    val subdomain: String,
+    val internalId: String,
+    val singleTerms: List[String],
+    val compoundTerms: List[String],
+    var boundingBoxes: List[BoundingBox]) extends Entity
+
+class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends Entity
+
+case class GeoData(latitude: Float, longitude: Float) extends Serializable
 
 @RunWith(classOf[JUnitRunner])
 class SprayJsonSpecs extends ActivateTest {
@@ -18,7 +32,7 @@ class SprayJsonSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     object SprayJsonContext extends SprayJsonContext {
-                      val context = step.ctx
+                        val context = step.ctx
                     }
                     import SprayJsonContext._
 
@@ -63,6 +77,46 @@ class SprayJsonSpecs extends ActivateTest {
                     step {
                         validateEmptyTestEntity(byId[ActivateTestEntity](newEmptyEntityId2).get)
                         validateFullTestEntity(byId[ActivateTestEntity](newFullEntityId2).get)
+                    }
+                })
+        }
+
+        "support entity lists" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    object SprayJsonContext extends SprayJsonContext {
+                        val context = step.ctx
+                    }
+                    import SprayJsonContext._
+                    step {
+                        val entity =
+                            createEntityFromJson[Event]("""
+                                {
+								    "name": "Foo",
+								    "singleTerms": [
+								        "Foo",
+								        "Bar"
+								    ],
+								    "compoundTerms": [
+								        "foo bar"
+								    ],
+								    "boundingBoxes": [
+								        {
+								            "swCorner": {
+								                "latitude": 30.2,
+								                "longitude": -81.75
+								            },
+								            "neCorner": {
+								                "latitude": 30.37,
+								                "longitude": -81.45
+								            }
+								        }
+								    ]
+								}
+                                """)
+
+                        println(entity)
                     }
                 })
         }
