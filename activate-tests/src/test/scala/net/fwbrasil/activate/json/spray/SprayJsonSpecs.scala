@@ -21,7 +21,7 @@ class Event(
 
 class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends Entity
 
-case class GeoData(latitude: Float, longitude: Float) extends Serializable
+case class GeoData(latitude: Float, longitude: Float) extends Entity
 
 @RunWith(classOf[JUnitRunner])
 class SprayJsonSpecs extends ActivateTest {

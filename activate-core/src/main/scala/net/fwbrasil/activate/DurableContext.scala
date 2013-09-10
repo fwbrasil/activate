@@ -200,6 +200,8 @@ trait DurableContext {
                             else List()
                         } finally
                             nestedTransaction.rollback
+                    case other =>
+                        List()
                 }
             }.flatten
 

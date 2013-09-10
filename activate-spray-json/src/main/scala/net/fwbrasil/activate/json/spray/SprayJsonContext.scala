@@ -95,6 +95,8 @@ trait SprayJsonContext extends JsonContext {
         entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
       case (obj: JsObject, entityValue: EntityInstanceEntityValue[_]) =>
           createEntityFromJson(obj)(entityValue.entityManifest)
+      case (jsValue, entityValue) =>
+          throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
     }
 
   private def toJsValue[T](entityValue: EntityValue[T]): JsValue =
