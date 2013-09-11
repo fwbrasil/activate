@@ -4,7 +4,7 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.radon.transaction.TransactionContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.uuid.UUIDUtil
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.RichList._
 import java.lang.reflect.Field

@@ -27,7 +27,7 @@ trait MassUpdateContext extends StatementContext {
             f(mockEntity[E1])
         }
     def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): Unit =
-        executeStatementWithCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
+        executeStatementWithParseCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
 
 }
 

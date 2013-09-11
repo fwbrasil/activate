@@ -5,7 +5,7 @@ import net.fwbrasil.scala.UnsafeLazy._
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.statement.mass.MassDeleteContext
 import net.fwbrasil.activate.entity.EntityContext
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.statement.query.QueryContext
 import net.fwbrasil.activate.statement.mass.MassUpdateContext
@@ -68,6 +68,7 @@ trait ActivateContext
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
+        	clearCachedQueries
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
         }

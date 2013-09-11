@@ -17,7 +17,7 @@ import net.fwbrasil.activate.serialization.Serializer
 import net.fwbrasil.activate.serialization.javaSerializer
 import net.fwbrasil.activate.storage.marshalling.Marshaller
 import java.nio.BufferUnderflowException
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.serialization.kryoSerializer
 
 class PrevalentStorageSystem extends HashMap[String, Entity]

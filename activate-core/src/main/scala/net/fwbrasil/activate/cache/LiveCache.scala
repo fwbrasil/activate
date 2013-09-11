@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.cache.live
+package net.fwbrasil.activate.cache
 
 import language.existentials
 import net.fwbrasil.activate.ActivateContext
@@ -160,10 +160,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 other.value.getOrElse(null)
         }
 
-    def executeQuery[S](query: Query[S]): List[List[Any]] = {
+    def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[List[Any]] = {
         val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
-        val result = entitiesFromStorage(query, entitiesReadFromCache) ++ rowsFromCache
-        result
+        if (onlyInMemory)
+            rowsFromCache
+        else
+            entitiesFromStorage(query, entitiesReadFromCache) ++ rowsFromCache
     }
 
     def executeQueryAsync[S](query: Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[List[Any]]] = {
@@ -177,7 +179,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
-		val map = entityInstacesMap(entityClass)
+        val map = entityInstacesMap(entityClass)
         entityId.intern.synchronized {
             if (!map.containsKey(entityId)) {
                 val entity = createLazyEntity(entityClass, entityId)

@@ -9,10 +9,10 @@ trait StoppableActivateContext extends ActivateContext {
 
     def start = synchronized {
         ActivateContext.clearCaches()
-        EntityHelper.initialize(this.getClass)
         running = true
         Migration.update(this)
     }
+    
     def stop = synchronized {
         running = false
     }

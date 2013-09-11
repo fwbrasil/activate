@@ -23,7 +23,7 @@ trait MassDeleteContext extends StatementContext {
             f(mockEntity[E1])
         }
     def delete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): Unit =
-        executeStatementWithCache[MassDeleteStatement, Unit](f, () => produceDelete(f), (delete: MassDeleteStatement) => delete.execute)
+        executeStatementWithParseCache[MassDeleteStatement, Unit](f, () => produceDelete(f), (delete: MassDeleteStatement) => delete.execute)
 
 }
 

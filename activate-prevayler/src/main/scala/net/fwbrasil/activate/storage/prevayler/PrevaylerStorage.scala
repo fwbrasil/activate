@@ -35,7 +35,7 @@ import org.prevayler.implementation.TransactionCapsule
 import org.prevayler.implementation.DummyTransactionCapsule
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 import net.fwbrasil.activate.entity.EntityHelper
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Var
 

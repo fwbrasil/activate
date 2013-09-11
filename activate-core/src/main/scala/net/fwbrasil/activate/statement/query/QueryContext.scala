@@ -1,9 +1,8 @@
 package net.fwbrasil.activate.statement.query
 
 import scala.concurrent.Future
-
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.statement.Criteria
@@ -19,15 +18,18 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import scala.concurrent.duration.Duration
+import com.google.common.collect.MapMaker
+import java.util.concurrent.ConcurrentHashMap
 
-trait QueryContext extends StatementContext with OrderedQueryContext {
+trait QueryContext extends StatementContext with OrderedQueryContext with CachedQueryContext {
     this: ActivateContext =>
 
-    def executeQuery[S](query: Query[S]): List[S] = {
+    def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[S] = {
         transactionManager.getRequiredActiveTransaction.startIfNotStarted
         val results =
             (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
-                liveCache.executeQuery(normalized)
+                liveCache.executeQuery(normalized, onlyInMemory)
             }).flatten
         treatResults(query, results)
     }
@@ -49,7 +51,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -69,7 +71,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -90,7 +92,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, E3, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -113,7 +115,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -138,7 +140,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -165,7 +167,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, E6, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f),
             (query: Query[S]) => query.execute,
@@ -194,7 +196,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext {
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, E6, E7, OrderedQuery[S]](f))
 
     def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
-        executeStatementWithCache[Query[S], List[S]](
+        executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f),
             (query: Query[S]) => query.execute,

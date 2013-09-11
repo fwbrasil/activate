@@ -3,7 +3,7 @@ package net.fwbrasil.activate.statement
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import scala.collection.mutable.{ Map => MutableMap }
@@ -18,9 +18,9 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
     // Use Any instead of Function1,2,3... There isn't a generic Function trait
     type Function = Any
-    val cache = MutableMap[(Class[_], Seq[Manifest[_]]), (List[Field], Stack[(Function, Statement)])]()
+    private val cache = MutableMap[(Class[_], Seq[Manifest[_]]), (List[Field], Stack[(Function, Statement)])]()
 
-    protected def executeStatementWithCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
+    private[activate] def executeStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
         val (fields, stack) =
             cache.synchronized {
                 cache.getOrElseUpdate((f.getClass.asInstanceOf[Class[_]], manifests), {

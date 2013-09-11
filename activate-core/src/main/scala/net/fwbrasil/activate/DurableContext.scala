@@ -59,11 +59,15 @@ trait DurableContext {
         if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(assignments.toList)
             val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
-            val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
+            val insertsEntities = inserts.keys.toList
+            val updatesEntities = updates.keys.toList
+            val deletesEntities = deletes.keys.toList
+            val entities = insertsEntities ++ updatesEntities ++ deletesEntities 
             validateTransactionEnd(transaction, entities)
             store(statements.toList, inserts, updates, deletes)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
+            updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
         }
     }
 
@@ -74,11 +78,15 @@ trait DurableContext {
         if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments.toList)
             val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
-            val entities = inserts.keys.toList ++ updates.keys ++ deletes.keys
+            val insertsEntities = inserts.keys.toList
+            val updatesEntities = updates.keys.toList
+            val deletesEntities = deletes.keys.toList
+            val entities = insertsEntities ++ updatesEntities ++ deletesEntities
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
                 storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
+                    updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
                 }
             }
         } else

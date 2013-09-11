@@ -172,7 +172,6 @@ object EntityEnhancer extends Logging {
         import ActivateContext.classLoaderFor
         for (enhancedEntityClass <- resolved) yield try
             enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName)).asInstanceOf[Class[Entity]]
-
         catch {
             case e: CannotCompileException =>
                 classLoaderFor(enhancedEntityClass.getName).loadClass(enhancedEntityClass.getName).asInstanceOf[Class[Entity]]

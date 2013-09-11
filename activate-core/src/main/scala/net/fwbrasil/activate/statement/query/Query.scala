@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.statement.query
 
 import net.fwbrasil.activate.util.ManifestUtil._
-import net.fwbrasil.activate.cache.live.LiveCache
+import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.From.runAndClearFrom
 import net.fwbrasil.activate.statement.Criteria
