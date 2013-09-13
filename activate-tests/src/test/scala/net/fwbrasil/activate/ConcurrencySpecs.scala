@@ -161,7 +161,9 @@ class ConcurrencySpecs extends ActivateTest {
                         step {
                             runWithThreads(threads) {
                                 transactional {
-                                    all[ActivateTestEntity].head.delete
+                                    all[ActivateTestEntity]
+                                        .head
+                                        .delete
                                 }
                             }
                         }

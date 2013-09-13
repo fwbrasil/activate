@@ -181,12 +181,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
         val map = entityInstacesMap(entityClass)
         entityId.intern.synchronized {
-            if (!map.containsKey(entityId)) {
+            val entity = map.get(entityId)
+            if (entity == null) {
                 val entity = createLazyEntity(entityClass, entityId)
                 map.put(entityId, entity)
                 entity
             } else
-                map.get(entityId)
+                entity
         }
     }
 
