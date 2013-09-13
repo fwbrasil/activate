@@ -30,6 +30,9 @@ import net.fwbrasil.activate.OptimisticOfflineLocking
 
 object EntityEnhancer extends Logging {
 
+    val classPool = new ClassPool(false)
+    classPool.appendClassPath(new ClassClassPath(this.getClass))
+
     val varClassName = classOf[Var[_]].getName
     val idVarClassName = classOf[IdVar].getName
     val entityClassName = classOf[Entity].getName
@@ -76,9 +79,6 @@ object EntityEnhancer extends Logging {
         fieldsToEnhance.filter((field: CtField) => lazyValues.filter(_.getName() + lazyValueValueSuffix == field.getName()).isEmpty)
     }
 
-    def isEnhanced(clazz: CtClass) =
-        clazz.getDeclaredFields.filter(_.getName() == "varTypes").nonEmpty
-
     def box(typ: CtClass, ref: String) =
         typ match {
             case typ: CtPrimitiveType =>
@@ -88,7 +88,7 @@ object EntityEnhancer extends Logging {
         }
 
     def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-        if (!clazz.isInterface() && !clazz.isFrozen && !isEnhanced(clazz) && isEntityClass(clazz, classPool)) {
+        if (!clazz.isInterface() && !clazz.isFrozen() && isEntityClass(clazz, classPool)) {
             try {
                 val allFields = clazz.getDeclaredFields
                 val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
@@ -157,7 +157,6 @@ object EntityEnhancer extends Logging {
     }
 
     def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
-        val classPool = buildClassPool
         val enhancedEntityClasses =
             entityClassesNames(referenceClass)
                 .map(enhance(_, classPool)).flatten
@@ -180,12 +179,6 @@ object EntityEnhancer extends Logging {
 
     private def entityClassesNames(referenceClass: Class[_]) =
         Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
-
-    private def buildClassPool = {
-        val classPool = new ClassPool(false)
-        classPool.appendClassPath(new ClassClassPath(this.getClass))
-        classPool
-    }
 
     private def resolveDependencies(enhancedEntityClasses: Set[CtClass]) = {
         val tree = new DependencyTree(enhancedEntityClasses)

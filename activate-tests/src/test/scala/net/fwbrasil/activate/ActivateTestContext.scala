@@ -116,7 +116,7 @@ object prevalentContext extends ActivateTestContext {
 class PrevalentActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object memoryContext extends ActivateTestContext {
-    lazy val storage = new TransientMemoryStorage
+    val storage = new TransientMemoryStorage
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
@@ -127,7 +127,7 @@ object mysqlContext extends ActivateTestContext with SlickQueryContext {
     System.getProperties.put("activate.storage.mysql.password", "root")
     System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/activate_test")
     System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
-    val storage =
+    lazy val storage =
         StorageFactory.fromSystemProperties("mysql").asInstanceOf[PooledJdbcRelationalStorage]
 }
 class MysqlActivateTestMigration extends ActivateTestMigration()(mysqlContext)
@@ -331,14 +331,14 @@ class SqlServerActivateTestMigrationCustomColumnType extends ActivateTestMigrati
 }
 
 object polyglotContext extends ActivateTestContext {
-    val postgre = new PooledJdbcRelationalStorage {
+    lazy val postgre = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
         val user = "postgres"
         val password = "postgres"
         val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
         val dialect = postgresqlDialect
     }
-    val asyncPostgre = new AsyncPostgreSQLStorage {
+    lazy val asyncPostgre = new AsyncPostgreSQLStorage {
         def configuration =
             new Configuration(
                 username = "postgres",
@@ -349,41 +349,41 @@ object polyglotContext extends ActivateTestContext {
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
         val dialect = postgresqlDialect
     }
-    val mysql = new PooledJdbcRelationalStorage {
+    lazy val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
         val user = "root"
         val password = "root"
         val url = "jdbc:mysql://127.0.0.1/activate_test_polyglot"
         val dialect = mySqlDialect
     }
-    val prevayler = new PrevaylerStorage("testPrevalenceBase/testPolyglotPrevaylerMemoryStorage" + (new java.util.Date).getTime)
-    val mongo = new MongoStorage {
+    lazy val prevayler = new PrevaylerStorage("testPrevalenceBase/testPolyglotPrevaylerMemoryStorage" + (new java.util.Date).getTime)
+    lazy val mongo = new MongoStorage {
         override val authentication = Option(("activate_test", "activate_test"))
         override val host = "localhost"
         override val port = 27017
         override val db = "activate_test_polyglot"
     }
-    val asyncMongo = new AsyncMongoStorage {
+    lazy val asyncMongo = new AsyncMongoStorage {
         override val host = "localhost"
         override val port = 27017
         override val db = "activate_test_polyglot_async"
     }
 
-    val derby = new PooledJdbcRelationalStorage {
+    lazy val derby = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
         val user = ""
         val password = ""
         val url = "jdbc:derby:memory:activate_test_derby_polygot;create=true"
         val dialect = derbyDialect
     }
-    val h2 = new SimpleJdbcRelationalStorage {
+    lazy val h2 = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.h2.Driver"
         val user = "sa"
         val password = ""
         val url = "jdbc:h2:mem:activate_test_h2_polyglot;DB_CLOSE_DELAY=-1"
         val dialect = h2Dialect
     }
-    val memory = new TransientMemoryStorage
+    lazy val memory = new TransientMemoryStorage
     lazy val storage = mysql
     override def additionalStorages = Map(
         derby -> Set(classOf[Num]),

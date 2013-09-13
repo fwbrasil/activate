@@ -18,8 +18,81 @@ import net.fwbrasil.activate.migration.Migration
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
+import javax.swing.JOptionPane
+import javax.swing.JFrame
+import javax.swing.JList
 
 object runningFlag
+
+object ActivateTestContextCategory extends Enumeration {
+    type ActivateTestContextCategory = Value
+    val memory = Value("memory")
+    val prevalent = Value("prevalent")
+    val mongo = Value("mongo")
+    val cassandra = Value("cassandra")
+    val relational = Value("relational")
+    val proprietary = Value("proprietary")
+    val polyglot = Value("polyglot")
+}
+
+object ActivateTest {
+    import ActivateTestContextCategory._
+
+    val contextsCategoriesMap =
+        Map[ActivateTestContextCategory, List[ActivateTestContext]](
+            memory -> List(memoryContext),
+            prevalent -> List(prevaylerContext, prevalentContext),
+            mongo -> List(mongoContext, asyncMongoContext),
+            relational -> List(postgresqlContext, asyncPostgresqlContext,
+                mysqlContext, derbyContext, h2Context, hsqldbContext),
+            proprietary -> List(oracleContext, db2Context, sqlServerContext),
+            cassandra -> List(asyncCassandraContext),
+            polyglot -> List(polyglotContext))
+
+    val allContexts = contextsCategoriesMap.values.flatten
+
+    val contexts: List[ActivateTestContext] = {
+
+        val contexts =
+            propertyOption("context")
+                .map(contextsByName)
+                .getOrElse {
+                    val selected =
+                        propertyOption("category")
+                            .map(categoriesFromString)
+                            .getOrElse(contextsCategoriesMap)
+                    selected.values.flatten.toList
+                }
+        contexts.foreach(_.stop)
+        contexts
+    }
+
+    private def propertyOption(name: String) =
+        Option(System.getenv(name))
+            .orElse(Option(System.getProperty(name)))
+
+    private def contextsByName(name: String) =
+        allContexts.filter(_.name == name).toList
+
+    private def categoriesFromString(string: String) = {
+        val selectedCategories =
+            if (string == "ask")
+                askForCategories
+            else
+                string.split(',')
+        contextsCategoriesMap.filterKeys(c => selectedCategories.contains(c.toString))
+    }
+
+    private def askForCategories = {
+        import scala.collection.JavaConversions._
+        val values = ActivateTestContextCategory.values.map(_.toString).toArray
+        val list = new JList(values)
+        JOptionPane.showMessageDialog(
+            null, list, "Select turn", JOptionPane.PLAIN_MESSAGE)
+        list.getSelectedIndices.map(values(_).toString)
+    }
+
+}
 
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
@@ -35,44 +108,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
-    def contexts = _contexts
-
-    lazy val _contexts = {
-        val ret = List[ActivateTestContext](
-            memoryContext //,
-            //            prevalentContext,
-            //            prevaylerContext,
-            //            mongoContext,
-            //            asyncMongoContext,
-            //            asyncPostgresqlContext,
-            //            polyglotContext,
-            //            postgresqlContext,
-            //            mysqlContext,
-            //            derbyContext,
-            //            h2Context,
-            //            hsqldbContext //,
-            //            //                        oracleContext,
-            //            //                        db2Context, //            asyncCassandraContext,
-            //            //            sqlServerContext
-            )
-        ret.foreach(_.stop)
-        val db = Option(System.getenv("DB")).getOrElse(System.getProperty("DB"))
-        if (db == null)
-            ret
-        else
-            db match {
-                case "memoryStorage" =>
-                    List(memoryContext)
-                case "prevaylerStorage" =>
-                    List(prevaylerContext)
-                case "mongoStorage" =>
-                    List(mongoContext)
-                case "postgresStorage" =>
-                    List(postgresqlContext)
-                case "mysqlStorage" =>
-                    List(mysqlContext)
-            }
-    }
+    def contexts = ActivateTest.contexts
 
     trait StepExecutor {
         def apply[A](step: => A): A
