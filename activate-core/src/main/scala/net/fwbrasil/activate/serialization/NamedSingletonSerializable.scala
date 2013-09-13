@@ -1,11 +1,12 @@
 package net.fwbrasil.activate.serialization
 
-import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, SynchronizedMap, HashSet => MutableHashSet }
+import scala.collection.mutable.{ HashMap => MutableHashMap, ListBuffer, HashSet => MutableHashSet }
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.util.ManifestUtil.manifestClass
 import net.fwbrasil.activate.ActivateContext
+import java.util.concurrent.ConcurrentHashMap
 
 trait NamedSingletonSerializable extends java.io.Serializable {
 
@@ -22,19 +23,25 @@ class NamedSingletonSerializableWrapper(instance: NamedSingletonSerializable) ex
     val name = instance.name
     val clazz = instance.getClass
     protected def readResolve(): Any =
-        NamedSingletonSerializable.instances(clazz.getName)(name)
+        NamedSingletonSerializable.instances.get(clazz.getName)(name)
 }
 
 object NamedSingletonSerializable {
     val instances =
-        new MutableHashMap[String, MutableHashMap[String, NamedSingletonSerializable]] with SynchronizedMap[String, MutableHashMap[String, NamedSingletonSerializable]]
+        new ConcurrentHashMap[String, MutableHashMap[String, NamedSingletonSerializable]] 
 
-    private[this] def instancesMapOf[T: Manifest] =
-        instances.getOrElseUpdate(
-            erasureOf[T].getName,
-            new MutableHashMap[String, NamedSingletonSerializable]()).asInstanceOf[MutableHashMap[String, T]]
+    private[this] def instancesMapOf[T: Manifest] = {
+        val key = erasureOf[T].getName
+        var map = instances.get(key)
+        if(map == null) {
+            map = new MutableHashMap[String, NamedSingletonSerializable]
+            instances.put(key, map)
+        }
+        map.asInstanceOf[MutableHashMap[String, T]]
+    }
 
     def instancesOf[T <: NamedSingletonSerializable: Manifest] = {
+        import scala.collection.JavaConversions._
         val ret = MutableHashSet[T]()
         for ((clazz, instancesMap) <- instances; if (erasureOf[T].isAssignableFrom(ActivateContext.loadClass(clazz))))
             ret ++= instancesMap.values.asInstanceOf[Iterable[T]]

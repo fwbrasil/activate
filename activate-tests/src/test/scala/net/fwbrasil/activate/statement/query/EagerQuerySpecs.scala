@@ -9,11 +9,12 @@ import net.fwbrasil.activate.statement.StatementSelectValue
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.derbyContext
 
 @RunWith(classOf[JUnitRunner])
 class EagerQuerySpecs extends ActivateTest {
 
-    override def contexts = super.contexts.filter(_.storage.supportsQueryJoin)
+    override def contexts = super.contexts.filter(c => c.storage.supportsQueryJoin && c != derbyContext)
 
     override def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(MultipleTransactionsWithReinitialize(ctx))

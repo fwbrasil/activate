@@ -8,15 +8,14 @@ import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.radon.transaction.Transaction
-import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.activate.ActivateContext
 import scala.collection.mutable.HashSet
-import scala.collection.mutable.SynchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
 import net.fwbrasil.radon.transaction.NestedTransaction
 import net.fwbrasil.activate.OptimisticOfflineLocking
-
 import net.fwbrasil.activate.statement.StatementMocks
+import java.util.concurrent.ConcurrentSkipListSet
+import com.google.common.collect.MapMaker
 
 case class PostCond[R](f: () => R) {
 
@@ -185,10 +184,10 @@ trait EntityValidation {
 
 object EntityValidation {
 
-    private val globalOptions = new HashSet[EntityValidationOption]() with SynchronizedSet[EntityValidationOption]
+    private val globalOptions = new ConcurrentSkipListSet[EntityValidationOption]()
 
     private val transactionOptionsMap =
-        new ReferenceWeakKeyMap[Transaction, Set[EntityValidationOption]]() with SynchronizedMap[Transaction, Set[EntityValidationOption]]
+        (new MapMaker).weakKeys.makeMap[Transaction, Set[EntityValidationOption]]
 
     private var threadOptionsThreadLocal: ThreadLocal[Option[Set[EntityValidationOption]]] = _
 
@@ -196,8 +195,8 @@ object EntityValidation {
 
     def removeAllCustomOptions = synchronized {
         globalOptions.clear
-        globalOptions += onWrite
-        globalOptions += onCreate
+        globalOptions.add(onWrite)
+        globalOptions.add(onCreate)
         transactionOptionsMap.clear
         threadOptionsThreadLocal =
             new ThreadLocal[Option[Set[EntityValidationOption]]]() {
@@ -206,38 +205,39 @@ object EntityValidation {
     }
 
     def addGlobalOption(option: EntityValidationOption): Unit =
-        globalOptions += option
+        globalOptions.add(option)
 
     def removeGlobalOption(option: EntityValidationOption): Unit =
-        globalOptions -= option
+        globalOptions.add(option)
 
     def setGlobalOptions(options: Set[EntityValidationOption]): Unit = {
+        import scala.collection.JavaConversions._
         globalOptions.clear
-        globalOptions ++= options
+        globalOptions.addAll(options)
     }
 
-    def getGlobalOptions: Set[EntityValidationOption] =
+    def getGlobalOptions: Set[EntityValidationOption] = {
+        import scala.collection.JavaConversions._
         globalOptions.toSet
+    }
 
-    def addTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit =
-        transactionOptionsMap.synchronized {
-            val key = ctx.currentTransaction
-            val old = transactionOptionsMap.getOrElse(key, Set())
-            transactionOptionsMap.put(key, old + option)
-        }
+    def addTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit = {
+        val key = ctx.currentTransaction
+        val old = Option(transactionOptionsMap.get(key)).getOrElse(Set())
+        transactionOptionsMap.put(key, old + option)
+    }
 
-    def removeTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit =
-        transactionOptionsMap.synchronized {
-            val key = ctx.currentTransaction
-            val old = transactionOptionsMap.getOrElse(key, Set())
-            transactionOptionsMap.put(key, old - option)
-        }
+    def removeTransactionOption(option: EntityValidationOption)(implicit ctx: ActivateContext): Unit = {
+        val key = ctx.currentTransaction
+        val old = Option(transactionOptionsMap.get(key)).getOrElse(Set())
+        transactionOptionsMap.put(key, old - option)
+    }
 
     def setTransactionOptions(options: Set[EntityValidationOption])(implicit ctx: ActivateContext): Unit =
         transactionOptionsMap.put(ctx.currentTransaction, options)
 
     def getTransactionOptions(implicit ctx: ActivateContext): Option[Set[EntityValidationOption]] =
-        transactionOptionsMap.get(ctx.currentTransaction)
+        Option(transactionOptionsMap.get(ctx.currentTransaction))
 
     def addThreadOption(option: EntityValidationOption): Unit =
         threadOptionsThreadLocal.set(Option(threadOptionsThreadLocal.get.getOrElse(Set()) + option))
@@ -257,9 +257,9 @@ object EntityValidation {
     private def transactionOptions(transaction: Transaction): Option[Set[EntityValidationOption]] = {
         transaction match {
             case nested: NestedTransaction =>
-                transactionOptionsMap.get(transaction).orElse(transactionOptions(nested.parent))
+                Option(transactionOptionsMap.get(transaction)).orElse(transactionOptions(nested.parent))
             case normal: Transaction =>
-                transactionOptionsMap.get(transaction)
+                Option(transactionOptionsMap.get(transaction))
         }
     }
 
@@ -267,6 +267,7 @@ object EntityValidation {
         obj.validationOptions.getOrElse {
             transactionOptions(transaction).getOrElse {
                 threadOptionsThreadLocal.get.getOrElse {
+                    import scala.collection.JavaConversions._
                     globalOptions.toSet
                 }
             }

@@ -4,7 +4,6 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.statement.mass.MassModificationStatementNormalizer
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 
 trait StatementsContext {

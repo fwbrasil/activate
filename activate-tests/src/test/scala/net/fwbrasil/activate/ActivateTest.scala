@@ -23,6 +23,8 @@ object runningFlag
 
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
+    args.execute(threadsNb = 1)
+
     System.setProperty("activate.coordinator.server", "true")
 
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
@@ -37,18 +39,18 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     lazy val _contexts = {
         val ret = List[ActivateTestContext](
-//            memoryContext,
-//            prevalentContext,
-//            prevaylerContext,
+            memoryContext,
+            prevalentContext,
+            prevaylerContext,
             mongoContext,
             asyncMongoContext,
             asyncPostgresqlContext,
             polyglotContext,
-            postgresqlContext //,
-            //            mysqlContext,
-            //            derbyContext,
-            //            h2Context,
-            //            hsqldbContext //,
+            postgresqlContext,
+            mysqlContext,
+            derbyContext,
+            h2Context,
+            hsqldbContext //,
             //            //                        oracleContext,
             //            //                        db2Context, //            asyncCassandraContext,
             //            //            sqlServerContext

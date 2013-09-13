@@ -1,10 +1,11 @@
 package net.fwbrasil.activate.entity
 
-import net.fwbrasil.activate.util.uuid.UUIDUtil
-import scala.collection.mutable.{ Map => MutableMap }
+import java.util.concurrent.ConcurrentHashMap
+
+import scala.collection.mutable.{Map => MutableMap}
+
 import net.fwbrasil.activate.util.Reflection.toRichClass
-import scala.collection.mutable.SynchronizedMap
-import scala.collection.mutable.HashMap
+import net.fwbrasil.activate.util.uuid.UUIDUtil
 
 object EntityHelper {
 
@@ -58,11 +59,16 @@ object EntityHelper {
     // |---------------UUID---------------| |-hash-|
     // 0                                 35 37    44
 
-    private def classHashIdsCache = new HashMap[Class[_], String]() with SynchronizedMap[Class[_], String]
+    private def classHashIdsCache = new ConcurrentHashMap[Class[_], String]()
 
-    def getEntityClassHashId(entityClass: Class[_]): String =
-        classHashIdsCache.getOrElseUpdate(
-            entityClass, getEntityClassHashId(getEntityName(entityClass)))
+    def getEntityClassHashId(entityClass: Class[_]): String = {
+        var hash = classHashIdsCache.get(entityClass)
+        if (hash == null) {
+            hash = getEntityClassHashId(getEntityName(entityClass))
+            classHashIdsCache.put(entityClass, hash)
+        }
+        hash
+    }
 
     def getEntityClassFromId(entityId: String) =
         getEntityClassFromIdOption(entityId)

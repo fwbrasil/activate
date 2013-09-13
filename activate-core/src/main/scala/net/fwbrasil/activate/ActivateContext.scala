@@ -14,7 +14,6 @@ import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
-import scala.collection.mutable.SynchronizedMap
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable
 import scala.collection.mutable.{ HashMap => MutableHashMap }
@@ -26,6 +25,7 @@ import net.fwbrasil.activate.serialization.SerializationContext
 import net.fwbrasil.activate.util.CollectionUtil
 import net.fwbrasil.activate.migration.MigrationContext
 import net.fwbrasil.activate.util.Reflection
+import java.util.concurrent.ConcurrentHashMap
 
 trait ActivateContext
         extends EntityContext
@@ -68,7 +68,7 @@ trait ActivateContext
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
-        	clearCachedQueries
+            clearCachedQueries
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
         }
@@ -110,10 +110,16 @@ object ActivateContext {
             currentClassLoader
 
     private[activate] val contextCache =
-        new MutableHashMap[Class[_], ActivateContext]() with SynchronizedMap[Class[_], ActivateContext]
+        new ConcurrentHashMap[Class[_], ActivateContext]()
 
-    private[activate] def contextFor[E <: Entity](entityClass: Class[E]) =
-        contextCache.getOrElseUpdate(entityClass, context(entityClass))
+    private[activate] def contextFor[E <: Entity](entityClass: Class[E]) = {
+        var context = contextCache.get(entityClass)
+        if (context == null) {
+            context = this.context(entityClass)
+            contextCache.put(entityClass, context)
+        }
+        context
+    }
 
     def clearCaches(forClassReload: Boolean = false) = {
         Migration.storageVersionCache.clear

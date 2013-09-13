@@ -10,7 +10,6 @@ import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.Statement
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import scala.collection.mutable.SynchronizedSet
 import scala.collection.mutable.HashSet
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory

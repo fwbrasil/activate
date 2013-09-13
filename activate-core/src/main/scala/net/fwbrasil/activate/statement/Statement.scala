@@ -11,6 +11,8 @@ import net.fwbrasil.activate.statement.query.Query
 import java.lang.reflect.Field
 import scala.collection.mutable.Stack
 import java.lang.reflect.Modifier
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 trait StatementContext extends StatementValueContext with OperatorContext {
 
@@ -18,25 +20,24 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
     // Use Any instead of Function1,2,3... There isn't a generic Function trait
     type Function = Any
-    private val cache = MutableMap[(Class[_], Seq[Manifest[_]]), (List[Field], Stack[(Function, Statement)])]()
+    private val cache = new ConcurrentHashMap[(Class[_], Seq[Manifest[_]]), (List[Field], ConcurrentLinkedQueue[(Function, Statement)])]()
 
     private[activate] def executeStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
-        val (fields, stack) =
-            cache.synchronized {
-                cache.getOrElseUpdate((f.getClass.asInstanceOf[Class[_]], manifests), {
-                    val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
-                    fields.foreach(_.setAccessible(true))
-                    (fields, new Stack[(Function, Statement)]())
-                })
+        val (fields, stack) = {
+            var tuple = cache.get((f.getClass.asInstanceOf[Class[_]], manifests))
+            if (tuple == null) {
+                val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
+                fields.foreach(_.setAccessible(true))
+                tuple = (fields, new ConcurrentLinkedQueue[(Function, Statement)]())
             }
+            tuple
+        }
         val fromCacheOption =
-            stack.synchronized {
-                if (stack.isEmpty)
-                    None
-                else {
-                    val (function, statement) = stack.pop
-                    Some(function, statement.asInstanceOf[S])
-                }
+            if (stack.isEmpty)
+                None
+            else {
+                val (function, statement) = stack.poll
+                Some(function, statement.asInstanceOf[S])
             }
         val (function, statement) =
             if (fromCacheOption.isDefined) {
@@ -54,9 +55,7 @@ trait StatementContext extends StatementValueContext with OperatorContext {
         try
             execute(statement)
         finally
-            stack.synchronized {
-                stack.push((function, statement))
-            }
+            stack.offer((function, statement))
     }
 
     protected def mockEntity[E <: Entity: Manifest]: E =
@@ -74,8 +73,8 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
     def where(value: Criteria) =
         Where(Some(value))
-        
-    def where() = 
+
+    def where() =
         Where(None)
 
 }

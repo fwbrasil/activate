@@ -2,7 +2,6 @@ package net.fwbrasil.activate.statement.query
 
 import java.util.IdentityHashMap
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.SynchronizedMap
 import scala.language.existentials
 import net.fwbrasil.activate.statement.And
 import net.fwbrasil.activate.statement.Criteria

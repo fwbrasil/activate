@@ -20,6 +20,9 @@ import scala.slick.ast.TypedType
 import scala.reflect.ClassTag
 import org.joda.time.DateTime
 import java.util.Date
+import net.fwbrasil.activate.derbyContext
+import net.fwbrasil.activate.h2Context
+import net.fwbrasil.activate.hsqldbContext
 
 @RunWith(classOf[JUnitRunner])
 class SlickQuerySpecs extends ActivateTest {
@@ -28,7 +31,7 @@ class SlickQuerySpecs extends ActivateTest {
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
 
     override def contexts =
-        super.contexts.filter(_.isInstanceOf[SlickQueryContext])
+        super.contexts.filter(c => c.isInstanceOf[SlickQueryContext] && c != derbyContext && c != h2Context && c != hsqldbContext)
 
     "The Slick query" should {
         "support the coffee system" in {

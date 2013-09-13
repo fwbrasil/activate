@@ -6,14 +6,20 @@ import java.util.IdentityHashMap
 import net.fwbrasil.activate.util.Reflection.deepCopyMapping
 import net.fwbrasil.activate.statement.query.Query
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.SynchronizedMap
+import java.util.concurrent.ConcurrentHashMap
 
 trait StatementNormalizer[S <: Statement] {
 
-    val cache = new HashMap[S, List[S]]() with SynchronizedMap[S, List[S]]
+    val cache = new ConcurrentHashMap[S, List[S]]()
 
-    def normalize[T](statement: S): List[T] =
-        cache.getOrElseUpdate(statement, normalizeStatement(statement)).asInstanceOf[List[T]]
+    def normalize[T](statement: S): List[T] = {
+        var list = cache.get(statement)
+        if(list == null) {
+            list = normalizeStatement(statement)
+            cache.put(statement, list)
+        }
+        list.asInstanceOf[List[T]]
+    }
 
     def normalizeFrom[S <: Statement](statementList: List[S]): List[S] =
         statementList.map(normalizeFrom(_)).flatten

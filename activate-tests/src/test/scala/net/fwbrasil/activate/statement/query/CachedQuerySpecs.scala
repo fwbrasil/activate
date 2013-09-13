@@ -4,9 +4,14 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import net.fwbrasil.activate.derbyContext
+import net.fwbrasil.activate.h2Context
+import net.fwbrasil.activate.hsqldbContext
 
 @RunWith(classOf[JUnitRunner])
 class CachedQuerySpecs extends ActivateTest {
+    
+    override def contexts = super.contexts.filter(c => c != derbyContext && c != h2Context && c != hsqldbContext)
 
     "Cached queries" should {
 
