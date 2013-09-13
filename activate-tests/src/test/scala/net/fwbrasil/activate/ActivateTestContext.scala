@@ -185,14 +185,16 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
 //}
 
 object h2Context extends ActivateTestContext with SlickQueryContext {
-    lazy val storage = new SimpleJdbcRelationalStorage {
-        val jdbcDriver = "org.h2.Driver"
-        val user = "sa"
-        val password = ""
-        val url = "jdbc:h2:mem:activate_test_h2;DB_CLOSE_DELAY=-1"
-        val dialect = h2Dialect
+    lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
+        val storage = new SimpleJdbcRelationalStorage {
+            val jdbcDriver = "org.h2.Driver"
+            val user = "sa"
+            val password = ""
+            val url = "jdbc:h2:mem:activate_test_h2;DB_CLOSE_DELAY=-1"
+            val dialect = h2Dialect
+        }
+        (storage, storage.getConnection)
     }
-    val permanentConnectionToHoldMemoryDatabase = storage.getConnection
 }
 
 class H2ActivateTestMigration extends ActivateTestMigration()(h2Context)
@@ -201,14 +203,16 @@ class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCusto
 }
 
 object hsqldbContext extends ActivateTestContext with SlickQueryContext {
-    lazy val storage = new SimpleJdbcRelationalStorage {
-        val jdbcDriver = "org.hsqldb.jdbcDriver"
-        val user = "sa"
-        val password = ""
-        val url = "jdbc:hsqldb:mem:activate_test_hsqldb"
-        val dialect = hsqldbDialect
+    lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
+        val storage = new SimpleJdbcRelationalStorage {
+            val jdbcDriver = "org.hsqldb.jdbcDriver"
+            val user = "sa"
+            val password = ""
+            val url = "jdbc:hsqldb:mem:activate_test_hsqldb"
+            val dialect = hsqldbDialect
+        }
+        (storage, storage.getConnection)
     }
-    val permanentConnectionToHoldMemoryDatabase = storage.getConnection
 }
 
 class HsqldbActivateTestMigration extends ActivateTestMigration()(hsqldbContext)
@@ -473,18 +477,23 @@ trait ActivateTestContext
 
     val fullByteArrayValue = "S".getBytes
     def fullEntityValue =
-        select[ActivateTestEntity].where(_.dummy :== true).headOption.getOrElse({
+        cachedQuery {
+            (e: ActivateTestEntity) => where(e.dummy :== true)
+        }.headOption.getOrElse {
             val entity = newEmptyActivateTestEntity
             entity.dummy = true
             entity
-        })
+        }
 
     val fullJodaInstantValue = new DateTime(78317811l)
     val fullOptionValue = Some("string")
     val fullOptionWithPrimitiveValue = Some(1)
     def fullEntityWithoutAttributeValue =
-        all[EntityWithoutAttribute].headOption.getOrElse(
-            new EntityWithoutAttribute)
+        cachedQuery {
+            (e: EntityWithoutAttribute) => where()
+        }.headOption.getOrElse {
+            new EntityWithoutAttribute
+        }
 
     def fullCaseClassEntityValue =
         all[CaseClassEntity].headOption.getOrElse(
