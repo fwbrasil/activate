@@ -4,7 +4,6 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class CachedQuerySpecs extends ActivateTest {

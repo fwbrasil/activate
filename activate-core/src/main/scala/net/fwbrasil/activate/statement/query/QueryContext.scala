@@ -22,7 +22,10 @@ import scala.concurrent.duration.Duration
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentHashMap
 
-trait QueryContext extends StatementContext with OrderedQueryContext with CachedQueryContext {
+trait QueryContext extends StatementContext
+        with OrderedQueryContext
+        with CachedQueryContext
+        with EagerQueryContext {
     this: ActivateContext =>
 
     def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[S] = {
@@ -312,7 +315,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext with Cached
 
     def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).executeAsync
-
+        
     private def treatResults[S](query: Query[S], results: List[List[Any]]): List[S] = {
         val orderedResuts =
             query.orderByClause
@@ -320,7 +323,7 @@ trait QueryContext extends StatementContext with OrderedQueryContext with Cached
                 .getOrElse(results)
         val tuples =
             QueryNormalizer
-                .denormalizeSelectWithOrderBy(query, orderedResuts)
+                .denormalizeSelectResults(query, orderedResuts)
                 .map(CollectionUtil.toTuple[S])
         query match {
             case query: LimitedOrderedQuery[_] =>

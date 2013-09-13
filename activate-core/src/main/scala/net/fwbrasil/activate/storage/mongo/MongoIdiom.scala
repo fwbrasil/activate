@@ -136,7 +136,7 @@ object mongoIdiom {
 
     def transformResultToTheExpectedTypes[DOC](
         expectedTypes: List[StorageValue],
-        selectValues: Seq[StatementSelectValue[_]],
+        selectValues: Seq[StatementSelectValue],
         rows: List[DOC],
         rowToColumn: (DOC, String) => Any,
         fromDBList: Any => List[Any]) =
@@ -245,13 +245,13 @@ object mongoIdiom {
         }
     }
 
-    private def mongoStatementSelectValue(value: StatementSelectValue[_]): String =
+    private def mongoStatementSelectValue(value: StatementSelectValue): String =
         value match {
             case value: ToUpperCase =>
                 throw new UnsupportedOperationException("Mongo storage doesn't support the toUpperCase function for queries.")
             case value: ToLowerCase =>
                 throw new UnsupportedOperationException("Mongo storage doesn't support the toLowerCase function for queries.")
-            case value: StatementEntitySourcePropertyValue[_] =>
+            case value: StatementEntitySourcePropertyValue =>
                 val name = value.propertyPathNames.onlyOne
                 if (name == "id")
                     "_id"
@@ -283,7 +283,7 @@ object mongoIdiom {
                 unsupported("Mongo storage doesn't support the toUpperCase function for queries.")
             case value: ToLowerCase =>
                 unsupported("Mongo storage doesn't support the toLowerCase function for queries.")
-            case value: StatementEntitySourcePropertyValue[_] =>
+            case value: StatementEntitySourcePropertyValue =>
                 val name = value.propertyPathNames.onlyOne
                 if (name == "id")
                     "_id"

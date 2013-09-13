@@ -17,7 +17,7 @@ trait MassUpdateContext extends StatementContext {
 
     import language.implicitConversions
 
-    implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T]) =
+    implicit def toUpdateAssignee[T](value: T)(implicit tval: (=> T) => StatementSelectValue) =
         UpdateAssigneeDecorator(tval(value))
     implicit def toWhereDecorator(where: Where) =
         WhereUpdateDecorator(where)
@@ -36,11 +36,11 @@ case class WhereUpdateDecorator(where: Where) {
         MassUpdateStatement(From.from, where, assignments: _*)
 }
 
-case class UpdateAssigneeDecorator(assignee: StatementSelectValue[_]) {
+case class UpdateAssigneeDecorator(assignee: StatementSelectValue) {
     def :=[T](value: => T)(implicit tval: (=> T) => StatementValue) =
         UpdateAssignment(assignee, tval(value))
 }
-case class UpdateAssignment(assignee: StatementSelectValue[_], value: StatementValue) {
+case class UpdateAssignment(assignee: StatementSelectValue, value: StatementValue) {
     override def toString = assignee.toString + " := " + value.toString
 }
 

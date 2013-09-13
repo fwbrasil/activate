@@ -246,13 +246,13 @@ trait QlIdiom {
         value match {
             case value: StatementBooleanValue =>
                 toSqlDml(value)
-            case value: StatementSelectValue[_] =>
+            case value: StatementSelectValue =>
                 toSqlDmlSelect(value)
             case null =>
                 null
         }
 
-    def toSqlDmlSelect(value: StatementSelectValue[_])(implicit binds: MutableMap[StorageValue, String]): String =
+    def toSqlDmlSelect(value: StatementSelectValue)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
             case value: FunctionApply[_] =>
                 toSqlDmlFunctionApply(value)
@@ -293,7 +293,7 @@ trait QlIdiom {
         value match {
             case value: StatementEntityInstanceValue[_] =>
                 bind(StringStorageValue(Option(value.entityId)))
-            case value: StatementEntitySourcePropertyValue[v] =>
+            case value: StatementEntitySourcePropertyValue =>
                 val propertyName = value.propertyPathNames.mkString(".")
                 value.entityValue match {
                     case entityValue: ListEntityValue[_] =>
@@ -444,7 +444,7 @@ trait QlIdiom {
         }
     }
 
-    def listColumnSelect(value: StatementEntitySourcePropertyValue[_], propertyName: String) = {
+    def listColumnSelect(value: StatementEntitySourcePropertyValue, propertyName: String) = {
         val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
         val res = concat(value.entitySource.name + "." + escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
         res

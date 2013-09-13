@@ -232,28 +232,43 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 executeMassModificationWithEntitySources(statement, entities)
             }
 
+    def initializeEntityIfNecessary[E <: Entity: Manifest](values: Map[String, Any]) = {
+        val id = values("id").asInstanceOf[String]
+        val entity = context.byId[E](id).get
+        entity.synchronized { 
+            if (!entity.isInitialized) {
+                val map = values.map(tuple => (entity.varNamed(tuple._1), tuple._2)).toMap
+                setEntityValues(entity, true, map)
+                entity.setInitialized
+            }
+        }
+        entity
+    }
+
     def loadFromDatabase(entity: Entity, withinTransaction: Boolean): Unit = {
         val vars = entity.vars.toList.filter(p => !p.isTransient)
         if (vars.size != 1) {
-            val row = loadRowFromDatabase(entity)
-            if (row.isDefined) {
-                if (withinTransaction)
-                    transactional(transient) {
-                        val varsIterator = vars.iterator
-                        for (value <- row.get)
-                            varsIterator.next.putValueWithoutInitialize(value)
-                    }
-                else {
-                    val varsIterator = vars.iterator
-                    for (value <- row.get)
-                        varsIterator.next.setRefContent(Option(value))
-                }
-                executePendingMassStatements(entity)
-            } else
+            loadRowFromDatabase(entity).map {
+                row => setEntityValues(entity, withinTransaction, vars.zip(row).toMap)
+            }.getOrElse {
                 transactional(transient) {
                     entity.deleteWithoutInitilize
                 }
+            }
         }
+
+    }
+
+    def setEntityValues(entity: Entity, withinTransaction: Boolean, values: Map[Var[Any], Any]): Unit = {
+        if (withinTransaction)
+            transactional(transient) {
+                for ((ref, value) <- values)
+                    ref.putValueWithoutInitialize(value)
+            }
+        else
+            for ((ref, value) <- values)
+                ref.setRefContent(Option(value))
+        executePendingMassStatements(entity)
     }
 
     def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[List[Any]] = {
@@ -296,7 +311,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
             }
     }
 
-    def executeSelect[S](values: StatementSelectValue[_]*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): List[Any] = {
+    def executeSelect[S](values: StatementSelectValue*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): List[Any] = {
         val list = ListBuffer[Any]()
         for (value <- values)
             list += executeStatementSelectValue(value)
@@ -307,7 +322,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
         for (assignment <- updateAssignments) {
             val valueToSet = executeStatementValue(assignment.value)
             assignment.assignee match {
-                case prop: StatementEntitySourcePropertyValue[_] =>
+                case prop: StatementEntitySourcePropertyValue =>
                     val ref = prop.propertyPathVars.onlyOne("Update statement does not support nested properties")
                     val entity = entitySourceInstancesMap.values.onlyOne("Update statement does not support nested properties")
                     val entityRef = entity.varNamed(ref.name)
@@ -413,7 +428,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 executeCriteria(Some(value))
             case value: StatementBooleanValue =>
                 executeStatementBooleanValue(value)
-            case value: StatementSelectValue[_] =>
+            case value: StatementSelectValue =>
                 executeStatementSelectValue(value)
             case null =>
                 null
@@ -427,7 +442,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
                 executeStatementSelectValue(value.value).asInstanceOf[String].toLowerCase()
         }
 
-    def executeStatementSelectValue(value: StatementSelectValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+    def executeStatementSelectValue(value: StatementSelectValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
         value match {
             case value: FunctionApply[_] =>
                 executeFunctionApply(value)
@@ -448,7 +463,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def executeStatementEntitySourceValue(value: StatementEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any = {
         val entity = entitySourceInstancesMap.get(value.entitySource).get
         value match {
-            case value: StatementEntitySourcePropertyValue[_] =>
+            case value: StatementEntitySourcePropertyValue =>
                 entityPropertyPathRef(entity, value.propertyPathVars.toList)
             case value: StatementEntitySourceValue[_] =>
                 entity

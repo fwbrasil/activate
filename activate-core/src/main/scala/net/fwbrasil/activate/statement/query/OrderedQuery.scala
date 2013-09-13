@@ -16,10 +16,10 @@ trait OrderedQueryContext {
         def compare(x: A, y: A) = x.toDate.compareTo(y.toDate)
     }
 
-    implicit def toOrderByCriteria[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T], ordering: Ordering[T]) =
+    implicit def toOrderByCriteria[T](value: T)(implicit tval: (=> T) => StatementSelectValue, ordering: Ordering[T]) =
         OrderByCriteria[T](value, orderByAscendingDirection, ordering)
 
-    implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (=> T) => StatementSelectValue[T], ordering: Ordering[T]) =
+    implicit def toOrderByDirectionWrapper[T](value: T)(implicit tval: (=> T) => StatementSelectValue, ordering: Ordering[T]) =
         OrderByDirectionWrapper[T](value)
 
     implicit def toOrderByWrapper[S](query: Query[S]) =
@@ -142,13 +142,13 @@ case object orderByDescendingDirection extends OrderByDirection {
 }
 
 @implicitNotFound("Can't find a Ordering implicit. Maybe the type does not support ordering.")
-case class OrderByDirectionWrapper[T](value: StatementSelectValue[T])(implicit ordering: Ordering[T]) {
+case class OrderByDirectionWrapper[T](value: StatementSelectValue)(implicit ordering: Ordering[T]) {
     def asc =
         OrderByCriteria[T](value, orderByAscendingDirection, ordering)
     def desc =
         OrderByCriteria[T](value, orderByDescendingDirection, ordering)
 }
 
-case class OrderByCriteria[T](value: StatementSelectValue[T], direction: OrderByDirection, ordering: Ordering[T]) {
+case class OrderByCriteria[T](value: StatementSelectValue, direction: OrderByDirection, ordering: Ordering[T]) {
     override def toString = value.toString() + " " + direction.toString
 }

@@ -162,7 +162,7 @@ object cqlIdiom extends QlIdiom {
         value match {
             case value: StatementEntityInstanceValue[_] =>
                 bind(StringStorageValue(Option(value.entityId)))
-            case value: StatementEntitySourcePropertyValue[v] =>
+            case value: StatementEntitySourcePropertyValue =>
                 val propertyName = value.propertyPathNames.mkString(".")
                 escape(propertyName)
             case value: StatementEntitySourceValue[v] =>

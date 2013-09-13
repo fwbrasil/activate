@@ -62,6 +62,6 @@ class Query[S](override val from: From, override val where: Where, val select: S
     override def toString = from + " => where" + where + " select " + select + ""
 }
 
-case class Select(values: StatementSelectValue[_]*) {
+case class Select(values: StatementSelectValue*) {
     override def toString = "(" + values.mkString(", ") + ")"
 }

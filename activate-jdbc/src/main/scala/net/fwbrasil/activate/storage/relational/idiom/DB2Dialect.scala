@@ -141,7 +141,7 @@ object db2Dialect extends SqlIdiom {
             else
                 "desc")
 
-    private def firstValue(value: StatementSelectValue[_])(implicit binds: MutableMap[StorageValue, String]): StorageValue = {
+    private def firstValue(value: StatementSelectValue)(implicit binds: MutableMap[StorageValue, String]): StorageValue = {
         Marshaller.marshalling(value.entityValue) match {
             case value: IntStorageValue =>
                 IntStorageValue(Some(Int.MinValue))
