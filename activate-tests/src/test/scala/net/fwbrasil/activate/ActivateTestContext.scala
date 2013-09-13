@@ -106,17 +106,17 @@ abstract class ActivateTestMigrationCustomColumnType(recreate: Boolean = false)(
 }
 
 object prevaylerContext extends ActivateTestContext {
-    val storage = new PrevaylerStorage("testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime)
+    lazy val storage = new PrevaylerStorage("testPrevalenceBase/testPrevaylerMemoryStorage" + (new java.util.Date).getTime)
 }
 class PrevaylerActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object prevalentContext extends ActivateTestContext {
-    val storage = new PrevalentStorage("testPrevalenceBase/testPrevalentStorage" + (new java.util.Date).getTime)
+    lazy val storage = new PrevalentStorage("testPrevalenceBase/testPrevalentStorage" + (new java.util.Date).getTime)
 }
 class PrevalentActivateTestMigration extends ActivateTestMigration()(prevaylerContext)
 
 object memoryContext extends ActivateTestContext {
-    val storage = new TransientMemoryStorage
+    lazy val storage = new TransientMemoryStorage
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
@@ -136,7 +136,7 @@ class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCu
 }
 
 object postgresqlContext extends ActivateTestContext with SlickQueryContext {
-    val storage = new PooledJdbcRelationalStorage {
+    lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
         val user = "postgres"
         val password = "postgres"
@@ -150,7 +150,7 @@ class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
 }
 
 object asyncPostgresqlContext extends ActivateTestContext {
-    val storage = new AsyncPostgreSQLStorage {
+    lazy val storage = new AsyncPostgreSQLStorage {
         def configuration =
             new Configuration(
                 username = "postgres",
@@ -167,7 +167,7 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
 }
 
 //object asyncMysqlContext extends ActivateTestContext {
-//    val storage = new AsyncJdbcRelationalStorage[MySQLConnection] {
+//    lazy val storage = new AsyncJdbcRelationalStorage[MySQLConnection] {
 //        def configuration =
 //            new Configuration(
 //                username = "root",
@@ -185,7 +185,7 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
 //}
 
 object h2Context extends ActivateTestContext with SlickQueryContext {
-    val storage = new SimpleJdbcRelationalStorage {
+    lazy val storage = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.h2.Driver"
         val user = "sa"
         val password = ""
@@ -201,7 +201,7 @@ class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCusto
 }
 
 object hsqldbContext extends ActivateTestContext with SlickQueryContext {
-    val storage = new SimpleJdbcRelationalStorage {
+    lazy val storage = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.hsqldb.jdbcDriver"
         val user = "sa"
         val password = ""
@@ -218,7 +218,7 @@ class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
 
 object derbyContext extends ActivateTestContext with SlickQueryContext {
     System.setProperty("derby.locks.deadlockTrace", "true")
-    val storage = new PooledJdbcRelationalStorage {
+    lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
         val user = ""
         val password = ""
@@ -239,7 +239,7 @@ class DerbyActivateTestMigrationCustomColumnType extends Migration()(derbyContex
 }
 
 object mongoContext extends ActivateTestContext {
-    val storage = new MongoStorage {
+    lazy val storage = new MongoStorage {
         override val authentication = Option(("activate_test", "activate_test"))
         override val host = "localhost"
         override val port = 27017
@@ -249,7 +249,7 @@ object mongoContext extends ActivateTestContext {
 class MongoActivateTestMigration extends ActivateTestMigration()(mongoContext)
 
 object asyncMongoContext extends ActivateTestContext {
-    val storage = new AsyncMongoStorage {
+    lazy val storage = new AsyncMongoStorage {
         override val host = "localhost"
         override val port = 27017
         override val db = "activate_test_async"
@@ -258,7 +258,7 @@ object asyncMongoContext extends ActivateTestContext {
 class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
 object oracleContext extends ActivateTestContext with SlickQueryContext {
-    val storage = new PooledJdbcRelationalStorage {
+    lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
         val password = "activate_test"
@@ -275,7 +275,7 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
 }
 
 object asyncCassandraContext extends ActivateTestContext {
-    val storage = new AsyncCassandraStorage {
+    lazy val storage = new AsyncCassandraStorage {
         def contactPoints = List("localhost")
         def keyspace = "ACTIVATE_TEST"
     }
@@ -299,7 +299,7 @@ class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCas
 }
 
 object db2Context extends ActivateTestContext with SlickQueryContext {
-    val storage = new PooledJdbcRelationalStorage {
+    lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2admin"
         val password = "db2admin"
@@ -313,7 +313,7 @@ class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCust
 }
 
 object sqlServerContext extends ActivateTestContext {
-    val storage = new PooledJdbcRelationalStorage {
+    lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "net.sourceforge.jtds.jdbc.Driver"
         val user = "activate"
         val password = "activate"
@@ -380,7 +380,7 @@ object polyglotContext extends ActivateTestContext {
         val dialect = h2Dialect
     }
     val memory = new TransientMemoryStorage
-    val storage = mysql
+    lazy val storage = mysql
     override def additionalStorages = Map(
         derby -> Set(classOf[Num]),
         h2 -> Set(classOf[EntityWithUninitializedValue]),

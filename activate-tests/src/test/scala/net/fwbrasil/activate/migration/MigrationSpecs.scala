@@ -12,11 +12,12 @@ import java.util.NoSuchElementException
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
+import net.fwbrasil.activate.asyncPostgresqlContext
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
 
-    override def contexts = super.contexts.filter(c => c != polyglotContext)// && !c.storage.supportsAsync)
+    override def contexts = super.contexts.filter(c => c != polyglotContext && c != asyncPostgresqlContext)
 
     "Migration" should {
 

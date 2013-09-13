@@ -17,7 +17,7 @@ class PolyglotPersistenceSpecs extends ActivateTest {
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
 
-    override def contexts = List(polyglotContext)
+    override def contexts = super.contexts.filter(_ == polyglotContext)
 
     import polyglotContext._
 
