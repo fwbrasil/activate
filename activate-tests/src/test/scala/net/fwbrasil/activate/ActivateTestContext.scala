@@ -380,14 +380,14 @@ object polyglotContext extends ActivateTestContext {
         val dialect = h2Dialect
     }
     val memory = new TransientMemoryStorage
-    val storage = postgre
+    val storage = mysql
     override def additionalStorages = Map(
         derby -> Set(classOf[Num]),
         h2 -> Set(classOf[EntityWithUninitializedValue]),
         memory -> Set(classOf[SimpleEntity]),
         asyncMongo -> Set(classOf[EntityWithoutAttribute]),
         mongo -> Set(classOf[Box]),
-        mysql -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
+        postgre -> Set(classOf[ActivateTestEntity], classOf[TraitAttribute], classOf[TraitAttribute1], classOf[TraitAttribute2]),
         asyncPostgre -> Set(classOf[Employee]),
         prevayler -> Set(classOf[CaseClassEntity]))
 }

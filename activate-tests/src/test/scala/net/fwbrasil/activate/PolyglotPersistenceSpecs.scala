@@ -46,7 +46,7 @@ class PolyglotPersistenceSpecs extends ActivateTest {
                         }
                         step {
                             createEntitiesForAllStorages
-                        }
+                        } 
                         step {
                             modifyStoragesEntities()
                             subvertSchema

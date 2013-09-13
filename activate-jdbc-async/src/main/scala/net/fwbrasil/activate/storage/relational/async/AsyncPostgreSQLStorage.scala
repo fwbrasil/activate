@@ -1,17 +1,13 @@
 package net.fwbrasil.activate.storage.relational.async
 
 import java.sql.Timestamp
-
 import scala.Option.option2Iterable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-
-import org.jboss.netty.util.CharsetUtil
 import org.joda.time.DateTime
-
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.RowData
@@ -20,7 +16,6 @@ import com.github.mauricio.async.db.pool.ObjectFactory
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
-
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.Query
@@ -41,6 +36,7 @@ import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import io.netty.util.CharsetUtil
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 

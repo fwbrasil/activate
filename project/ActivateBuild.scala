@@ -132,7 +132,7 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.3"
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.7"
 
     lazy val activateJdbcAsync =
     	Project(
