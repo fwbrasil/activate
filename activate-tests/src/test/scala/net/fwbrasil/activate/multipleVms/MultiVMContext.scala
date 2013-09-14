@@ -20,7 +20,7 @@ trait MultiVMContext extends StoppableActivateContext {
                 .ifNotExists
     }
 
-    val storage = postgresqlContext.storage
+    lazy val storage = postgresqlContext.storage
     
     versionMigration.execute
     

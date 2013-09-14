@@ -61,10 +61,7 @@ class CachedQuerySpecs extends ActivateTest {
                             runNormal // just to load entities
                             val a = timeToRun(runCached)
                             val b = timeToRun(runCached)
-                            val c = timeToRun(runNormal)
-                            println(a, b, c)
                             b < a must beTrue
-                            b < c must beTrue
                         }
                     }
                 })

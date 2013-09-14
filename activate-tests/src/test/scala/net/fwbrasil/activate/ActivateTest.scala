@@ -29,7 +29,7 @@ object ActivateTestContextCategory extends Enumeration {
     val memory = Value("memory")
     val prevalent = Value("prevalent")
     val mongo = Value("mongo")
-    val cassandra = Value("cassandra")
+    //    val cassandra = Value("cassandra")
     val relational = Value("relational")
     val proprietary = Value("proprietary")
     val polyglot = Value("polyglot")
@@ -41,12 +41,12 @@ object ActivateTest {
     val contextsCategoriesMap =
         Map[ActivateTestContextCategory, List[ActivateTestContext]](
             memory -> List(memoryContext),
-            prevalent -> List(prevaylerContext, prevalentContext),
+            prevalent -> List( /*prevaylerContext, */ prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
             relational -> List(postgresqlContext, asyncPostgresqlContext,
                 mysqlContext, derbyContext, h2Context, hsqldbContext),
             proprietary -> List(oracleContext, db2Context, sqlServerContext),
-            cassandra -> List(asyncCassandraContext),
+            //            cassandra -> List(asyncCassandraContext),
             polyglot -> List(polyglotContext))
 
     val allContexts = contextsCategoriesMap.values.flatten
