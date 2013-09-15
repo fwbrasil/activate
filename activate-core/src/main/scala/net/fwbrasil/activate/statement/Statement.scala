@@ -24,11 +24,13 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
     private[activate] def executeStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
         val (fields, stack) = {
-            var tuple = cache.get((f.getClass.asInstanceOf[Class[_]], manifests))
+            val key = (f.getClass.asInstanceOf[Class[Any]], manifests)
+            var tuple = cache.get(key)
             if (tuple == null) {
                 val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
                 fields.foreach(_.setAccessible(true))
                 tuple = (fields, new ConcurrentLinkedQueue[(Function, Statement)]())
+                cache.put(key, tuple)
             }
             tuple
         }
