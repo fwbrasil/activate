@@ -24,9 +24,9 @@ import net.fwbrasil.activate.util.ManifestUtil._
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
     def normalizeStatement(query: Query[_]): List[Query[_]] = {
-        val normalizedPropertyPath = normalizePropertyPath(List(query))
-		val normalizedEagerEntities = normalizeEagerEntities(normalizedPropertyPath)
-        val normalizedFrom = normalizeFrom(normalizedEagerEntities)
+		val normalizedEagerEntities = normalizeEagerEntities(List(query))
+		val normalizedPropertyPath = normalizePropertyPath(normalizedEagerEntities)
+        val normalizedFrom = normalizeFrom(normalizedPropertyPath)
         val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
         normalizedSelectWithOrderBy
     }
@@ -53,7 +53,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
             query
     }
 
-    def normalizePropertyPath[S](queryList: List[Query[S]]): List[Query[S]] =
+    def normalizePropertyPath[S](queryList: List[Query[_]]): List[Query[_]] =
         (for (query <- queryList)
             yield normalizePropertyPath(query)).flatten
 
@@ -121,12 +121,12 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
                 } else
                     nested.entitySource
             if (i != 0) {
-                criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars(i - 1))) :== new StatementEntitySourceValue(entitySource))
+                criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, List(nested.propertyPathVars(i - 1)))) :== new StatementEntitySourceValue(entitySource))
                 entitySources += entitySource
             }
         }
         val propValue =
-            new StatementEntitySourcePropertyValue(entitySources.last, nested.propertyPathVars.last)
+            new StatementEntitySourcePropertyValue(entitySources.last, List(nested.propertyPathVars.last))
         (entitySources, criterias, propValue)
     }
 

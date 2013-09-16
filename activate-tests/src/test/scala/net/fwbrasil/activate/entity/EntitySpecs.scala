@@ -6,6 +6,7 @@ import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.OptimisticOfflineLocking
 import net.fwbrasil.activate.mysqlContext
+import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])
 class EntitySpecs extends ActivateTest {
@@ -111,16 +112,19 @@ class EntitySpecs extends ActivateTest {
                         EntityHelper.getEntityMetadata(manifest[E].runtimeClass)
                     def entity(id: String) =
                         byId[ActivateTestEntity](id).get
+                    def verifyReferences(id: String, map: Map[EntityMetadata, List[Entity]]) =
+                        (HashMap() ++ entity(id).references) ===
+                            (HashMap() ++ map)
                     step {
-                        entity(id3).references ===
+                        verifyReferences(id3,
+                            Map(metadata[ActivateTestEntity] -> List(entity(id2)),
+                                metadata[CaseClassEntity] -> List()))
+                        verifyReferences(id2,
                             Map(metadata[CaseClassEntity] -> List(),
-                                metadata[ActivateTestEntity] -> List(entity(id2)))
-                        entity(id2).references ===
+                                metadata[ActivateTestEntity] -> List(entity(id1))))
+                        verifyReferences(id1,
                             Map(metadata[CaseClassEntity] -> List(),
-                                metadata[ActivateTestEntity] -> List(entity(id1)))
-                        entity(id1).references ===
-                            Map(metadata[CaseClassEntity] -> List(),
-                                metadata[ActivateTestEntity] -> List())
+                                metadata[ActivateTestEntity] -> List()))
                     }
                     step {
                         entity(id1).canDelete === true
@@ -180,6 +184,21 @@ class EntitySpecs extends ActivateTest {
                         step {
                             all[ActivateTestEntity] must beEmpty
                         }
+                    }
+                })
+        }
+
+        "do not return in queries entities deleted in the current transaction" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            newEmptyActivateTestEntity.id
+                        }
+                    step {
+                        byId[ActivateTestEntity](entityId).get.delete
+                        select[ActivateTestEntity].where(_.intValue :== emptyIntValue) must beEmpty
                     }
                 })
         }

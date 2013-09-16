@@ -113,7 +113,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def fromCache[E <: Entity](entityClass: Class[E]) = {
         import scala.collection.JavaConversions._
         val map = entityInstacesMap(entityClass)
-        map.values.toList.filter(e => e.isInitialized && !e.isDeleted)
+        map.values.toList.filter(_.isInitialized)
     }
 
     def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[String, E] =
@@ -126,18 +126,21 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def executeMassModification(statement: MassModificationStatement) = {
         val entities =
             entitySourceInstancesCombined(statement.from)
-                .filter(list => list.head.isInitialized)
+                .filter(list => list.head.isInitialized && !list.head.isDeleted)
         executeMassModificationWithEntitySources(statement, entities)
     }
 
     def entitiesFromCache[S](query: Query[S]) = {
         val entities =
             entitySourceInstancesCombined(query.from)
-        val filtered = entities.filter(list =>
-            list.find(entity => !entity.isPersisted || entity.isDirty || storageFor(entity.niceClass).isMemoryStorage)
-                .isDefined)
-        val rows = executeQueryWithEntitySources(query, filtered)
-        (rows, filtered)
+        val filteredWithDeletedEntities =
+            entities.filter(list =>
+                list.find(entity => !entity.isPersisted || entity.isDirty || storageFor(entity.niceClass).isMemoryStorage)
+                    .isDefined)
+        val filteredWithoutDeletedEntities = 
+            filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
+        val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
+        (rows, filteredWithDeletedEntities)
     }
 
     private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
@@ -236,7 +239,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def initializeEntityIfNecessary[E <: Entity: Manifest](values: Map[String, Any]) = {
         val id = values("id").asInstanceOf[String]
         val entity = context.byId[E](id).get
-        entity.synchronized { 
+        entity.synchronized {
             if (!entity.isInitialized) {
                 val map = values.map(tuple => (entity.varNamed(tuple._1), tuple._2)).toMap
                 setEntityValues(entity, true, map)

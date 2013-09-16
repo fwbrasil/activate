@@ -22,7 +22,7 @@ trait StatementValueContext extends ValueContext {
         val (entity, path) = propertyPath(ref)
         val sourceOption = From.entitySourceFor(entity)
         if (sourceOption.isDefined)
-            new StatementEntitySourcePropertyValue(sourceOption.get, path: _*)
+            new StatementEntitySourcePropertyValue(sourceOption.get, path)
         else new SimpleValue[V](() => ref.get.get, ref.tval)
 
     }
@@ -95,43 +95,54 @@ case class StatementEntityInstanceValue[E <: Entity](val fEntity: () => E) exten
     override def hashCode = System.identityHashCode(this)
 }
 
-class StatementEntitySourceValue[V](val entitySource: EntitySource) extends StatementEntityValue[V] with Product {
-    
-    val eager = EagerQueryContext.isEager
-    
+class StatementEntitySourceValue[V](val entitySource: EntitySource, val eager: Boolean = EagerQueryContext.isEager) extends StatementEntityValue[V] with Product {
+
     override def entityValue: EntityValue[_] = EntityInstanceEntityValue(None)(manifestClass(entitySource.entityClass))
-    override def toString = entitySource.name + (if(eager) "eager" else "")
-    
+    override def toString = entitySource.name + (if (eager) ".eager" else "")
+
     def entityClass = entitySource.entityClass
     def explodedSelectValues =
-        StatementMocks.mockEntity(entityClass).vars.filter(p => !p.isTransient).map(v => new StatementEntitySourcePropertyValue(entitySource, v)).toList
+        StatementMocks.mockEntity(entityClass)
+            .vars.filter(p => !p.isTransient)
+            .map(propertyFor).toList
+            
+    def propertyFor(ref: Var[_]) =
+        new StatementEntitySourcePropertyValue(entitySource, List(ref), false)
 
     def productElement(n: Int): Any =
         n match {
             case 0 => entitySource
+            case 1 => eager
         }
-    def productArity: Int = 1
+    def productArity: Int = 2
     def canEqual(that: Any): Boolean =
         that.getClass == classOf[StatementEntitySourceValue[V]]
     override def equals(that: Any): Boolean =
         canEqual(that) &&
-            that.asInstanceOf[StatementEntitySourceValue[V]].entitySource == entitySource
+            that.asInstanceOf[StatementEntitySourceValue[V]].entitySource == entitySource &&
+            that.asInstanceOf[StatementEntitySourceValue[V]].eager == eager
 }
 
-class StatementEntitySourcePropertyValue(override val entitySource: EntitySource, val propertyPathVars: Var[_]*) extends StatementEntitySourceValue(entitySource) {
+class StatementEntitySourcePropertyValue(override val entitySource: EntitySource, val propertyPathVars: List[Var[_]], pEager: Boolean = EagerQueryContext.isEager)
+        extends StatementEntitySourceValue(entitySource, pEager) {
+    override def entityClass = propertyPathVars.last.valueClass.asInstanceOf[Class[Entity]]
     def lastVar = propertyPathVars.last
     def propertyPathNames =
         for (prop <- propertyPathVars)
             yield prop.name
     override def entityValue: EntityValue[_] = lastVar.asInstanceOf[StatementMocks.FakeVar[_]].tval(None).asInstanceOf[EntityValue[_]]
-    override def toString = entitySource.name + "." + propertyPathNames.mkString(".")
+    override def toString = entitySource.name + "." + propertyPathNames.mkString(".") + (if (eager) ".eager" else "")
+
+    override def propertyFor(ref: Var[_]) =
+        new StatementEntitySourcePropertyValue(entitySource, propertyPathVars.toList ++ List(ref), false)
 
     override def productElement(n: Int): Any =
         n match {
             case 0 => entitySource
             case 1 => propertyPathVars
+            case 2 => eager
         }
-    override def productArity: Int = 2
+    override def productArity: Int = 3
     override def canEqual(that: Any): Boolean =
         that.getClass == classOf[StatementEntitySourcePropertyValue]
     override def equals(that: Any): Boolean =

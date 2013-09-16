@@ -167,5 +167,5 @@ case class Where(valueOption: Option[Criteria]) {
                 tval3(value3),
                 tval4(value4)))
 
-    override def toString = valueOption.map(_.toString).getOrElse("")
+    override def toString = valueOption.map(_.toString).getOrElse("()")
 }
