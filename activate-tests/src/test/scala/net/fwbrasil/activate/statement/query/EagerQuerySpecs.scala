@@ -21,51 +21,51 @@ class EagerQuerySpecs extends ActivateTest {
 
     "Eager queries" should {
 
-        //        "initialize eager entities with the query result" in {
-        //            activateTest(
-        //                (step: StepExecutor) => {
-        //                    import step.ctx._
-        //                    step {
-        //                        newFullActivateTestEntity
-        //                    }
-        //                    step {
-        //                        val (a, b) =
-        //                            query {
-        //                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
-        //                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a.eager, b)
-        //                            }.head
-        //
-        //                        a.isInitialized must beTrue
-        //                        if (storage.isMemoryStorage)
-        //                            b.isInitialized must beTrue
-        //                        else
-        //                            b.isInitialized must beFalse
-        //                    }
-        //                    step {
-        //                        val (a, b) =
-        //                            query {
-        //                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
-        //                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a, b.eager)
-        //                            }.head
-        //
-        //                        b.isInitialized must beTrue
-        //                        if (storage.isMemoryStorage)
-        //                            a.isInitialized must beTrue
-        //                        else
-        //                            a.isInitialized must beFalse
-        //                    }
-        //                    step {
-        //                        val (a, b) =
-        //                            query {
-        //                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
-        //                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a.eager, b.eager)
-        //                            }.head
-        //
-        //                        a.isInitialized must beTrue
-        //                        b.isInitialized must beTrue
-        //                    }
-        //                })
-        //        }
+        "initialize eager entities with the query result" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newFullActivateTestEntity
+                    }
+                    step {
+                        val (a, b) =
+                            query {
+                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
+                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a.eager, b)
+                            }.head
+
+                        a.isInitialized must beTrue
+                        if (storage.isMemoryStorage)
+                            b.isInitialized must beTrue
+                        else
+                            b.isInitialized must beFalse
+                    }
+                    step {
+                        val (a, b) =
+                            query {
+                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
+                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a, b.eager)
+                            }.head
+
+                        b.isInitialized must beTrue
+                        if (storage.isMemoryStorage)
+                            a.isInitialized must beTrue
+                        else
+                            a.isInitialized must beFalse
+                    }
+                    step {
+                        val (a, b) =
+                            query {
+                                (a: ActivateTestEntity, b: ActivateTestEntity) =>
+                                    where((a.entityValue :== b) :&& (a.intValue :== fullIntValue)) select (a.eager, b.eager)
+                            }.head
+
+                        a.isInitialized must beTrue
+                        b.isInitialized must beTrue
+                    }
+                })
+        }
 
         "support eager nested entity" in {
             activateTest(
@@ -75,17 +75,23 @@ class EagerQuerySpecs extends ActivateTest {
                         newFullActivateTestEntity
                     }
                     step {
-                        val res =
+                        val traitValue1 =
                             query {
                                 (e: ActivateTestEntity) =>
                                     where(e.intValue :== fullIntValue) select (e.traitValue1.eager)
-                            }
+                            }.onlyOne
 
-                        query {
-                            (e: ActivateTestEntity) =>
-                                where(e.intValue :== fullIntValue) select (e.entityValue.eager)
-                        }
-                        println(res)
+                        traitValue1.isInitialized must beTrue
+                        traitValue1 == fullTraitValue1
+                    }
+                    step {
+                        val entityValue =
+                            query {
+                                (e: ActivateTestEntity) =>
+                                    where(e.intValue :== fullIntValue) select (e.entityValue.eager)
+                            }.onlyOne
+                        entityValue.isInitialized must beTrue
+                        entityValue == fullEntityValue
                     }
                 })
         }

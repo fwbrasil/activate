@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.statement.query
 
 import java.util.IdentityHashMap
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ ListBuffer, Map => MutableMap }
 import scala.language.existentials
 import net.fwbrasil.activate.statement.And
 import net.fwbrasil.activate.statement.Criteria
@@ -24,8 +24,8 @@ import net.fwbrasil.activate.util.ManifestUtil._
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
     def normalizeStatement(query: Query[_]): List[Query[_]] = {
-		val normalizedEagerEntities = normalizeEagerEntities(List(query))
-		val normalizedPropertyPath = normalizePropertyPath(normalizedEagerEntities)
+        val normalizedEagerEntities = normalizeEagerEntities(List(query))
+        val normalizedPropertyPath = normalizePropertyPath(normalizedEagerEntities)
         val normalizedFrom = normalizeFrom(normalizedPropertyPath)
         val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
         normalizedSelectWithOrderBy
@@ -38,7 +38,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
         val selectValues =
             (query.select.values.map {
                 _ match {
-                    case value: StatementEntitySourceValue[_] if(value.eager)=>
+                    case value: StatementEntitySourceValue[_] if (value.eager) =>
                         value.explodedSelectValues
                     case other =>
                         List(other)
@@ -55,79 +55,48 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
     def normalizePropertyPath[S](queryList: List[Query[_]]): List[Query[_]] =
         (for (query <- queryList)
-            yield normalizePropertyPath(query)).flatten
+            yield normalizePropertyPath(query)).toList
 
-    def normalizePropertyPath[S](query: Query[S]): List[Query[S]] = {
-        var count = 0
-        def nextNumber = {
-            count += 1
-            count
-        }
-        val nestedProperties = findObject[StatementEntitySourcePropertyValue](query) {
-            _ match {
-                case obj: StatementEntitySourcePropertyValue =>
-                    obj.propertyPathVars.size > 1
-                case other =>
-                    false
-            }
-        }
+    def normalizePropertyPath(query: Query[_]): Query[_] = {
+        val nestedProperties = findNestedProperties(query)
         if (nestedProperties.nonEmpty) {
-            var entitySourceSet = query.from.entitySources.toSet
-            val criteriaList = ListBuffer[Criteria]()
-            val normalizeMap = new IdentityHashMap[Any, Any]()
+            val pathNormalizationCache = MutableMap[(EntitySource, Var[Any]), (Criteria, EntitySource)]()
+            val normalizationMap = new IdentityHashMap[Any, Any]()
             for (nested <- nestedProperties) {
-                val (entitySources, criterias, propValue) = normalizePropertyPath(nested, nextNumber)
-                entitySourceSet ++= entitySources
-                criteriaList ++= criterias
-                normalizeMap.put(nested, propValue)
+                val path = nested.propertyPathVars.reverse.tail.reverse
+                val entitySource = entitySourceForNormalizedPath(nested.entitySource, path.asInstanceOf[List[Var[Any]]])(pathNormalizationCache)
+                val property = new StatementEntitySourcePropertyValue(entitySource, List(nested.propertyPathVars.last))
+                normalizationMap.put(nested, property)
             }
-            for (entitySource <- entitySourceSet)
-                normalizeMap.put(entitySource, entitySource)
-            val criteriaOption =
-                query.where.valueOption.map {
-                    value =>
-                        var criteria = deepCopyMapping(value, normalizeMap)
-                        for (i <- 0 until criteriaList.size)
-                            criteria = And(criteria) :&& criteriaList(i)
-                        Some(criteria)
-                }.getOrElse {
-                    criteriaList.toList match {
-                        case Nil =>
-                            None
-                        case head :: Nil =>
-                            Some(head)
-                        case head :: tail =>
-                            val criteria = tail.foldLeft(head)((base, criteria) => And(base) :&& criteria)
-                            Some(criteria)
-                    }
-                }
-
-            normalizeMap.put(query.where.valueOption, criteriaOption)
-            normalizeMap.put(query.from, From(entitySourceSet.toSeq: _*))
-            val result = deepCopyMapping(query, normalizeMap)
-            List(result)
+            val entitySources = query.from.entitySources ++ pathNormalizationCache.values.map(_._2)
+            normalizationMap.put(query.from, From(entitySources: _*))
+            val criterias = pathNormalizationCache.values.map(_._1).toList
+            val criteriaOption = normalizedWhereCriteria(query, normalizationMap, criterias)
+            normalizationMap.put(query.where.valueOption, criteriaOption)
+            deepCopyMapping(query, normalizationMap)
         } else
-            List(query)
+            query
     }
 
-    def normalizePropertyPath(nested: StatementEntitySourcePropertyValue, nextNumber: => Int) = {
-        val entitySources = ListBuffer[EntitySource](nested.entitySource)
-        val criterias = ListBuffer[Criteria]()
-        for (i <- 0 until nested.propertyPathVars.size) {
-            val prop = nested.propertyPathVars(i)
-            val entitySource =
-                if (i != 0) {
-                    EntitySource(prop.outerEntityClass, "t" + nextNumber)
-                } else
-                    nested.entitySource
-            if (i != 0) {
-                criterias += (IsEqualTo(new StatementEntitySourcePropertyValue(entitySources.last, List(nested.propertyPathVars(i - 1)))) :== new StatementEntitySourceValue(entitySource))
-                entitySources += entitySource
-            }
+    def entitySourceForNormalizedPath(
+        base: EntitySource,
+        path: List[Var[Any]])(implicit pathNormalizationCache: MutableMap[(EntitySource, Var[Any]), (Criteria, EntitySource)]): EntitySource =
+
+        path match {
+            case Nil =>
+                throw new IllegalStateException("Path should not be Nil.")
+            case ref :: Nil =>
+                entitySourceFor(base, ref)
+            case ref :: tail =>
+                entitySourceForNormalizedPath(entitySourceFor(base, ref), tail)
         }
-        val propValue =
-            new StatementEntitySourcePropertyValue(entitySources.last, List(nested.propertyPathVars.last))
-        (entitySources, criterias, propValue)
+
+    def entitySourceFor(base: EntitySource, ref: Var[Any])(implicit pathNormalizationCache: MutableMap[(EntitySource, Var[Any]), (Criteria, EntitySource)]) = {
+        pathNormalizationCache.getOrElseUpdate((base, ref), {
+            val entitySource = EntitySource(ref.valueClass.asInstanceOf[Class[Entity]], "t" + (pathNormalizationCache.size + 1))
+            val criteria = IsEqualTo(new StatementEntitySourcePropertyValue(base, List(ref))) :== new StatementEntitySourceValue(entitySource)
+            (criteria, entitySource)
+        })._2
     }
 
     def normalizeSelectWithOrderBy(queryList: List[Query[_]]): List[Query[_]] =
@@ -157,7 +126,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
             val iterator = columns.iterator
             originalQuery.select.values.toList.map {
                 _ match {
-                    case value: StatementEntitySourceValue[_] if(value.eager) =>
+                    case value: StatementEntitySourceValue[_] if (value.eager) =>
                         val values = value.explodedSelectValues.map(v => (v.lastVar.name, iterator.next)).toMap
                         ctx.liveCache.initializeEntityIfNecessary[Entity](values)(manifestClass(value.entityClass).asInstanceOf[Manifest[Entity]])
                     case other =>
@@ -171,5 +140,34 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
             results.map(_.take(originalQuery.select.values.size))
         else
             results
+
+    private def findNestedProperties(query: Query[_]) =
+        findObject[StatementEntitySourcePropertyValue](query) {
+            _ match {
+                case obj: StatementEntitySourcePropertyValue =>
+                    obj.propertyPathVars.size > 1
+                case other =>
+                    false
+            }
+        }
+
+    private def normalizedWhereCriteria(query: Query[_], normalizationMap: IdentityHashMap[Any, Any], criterias: List[Criteria]) =
+        query.where.valueOption.map {
+            value =>
+                var criteria = deepCopyMapping(value, normalizationMap)
+                for (i <- 0 until criterias.size)
+                    criteria = And(criteria) :&& criterias(i)
+                Some(criteria)
+        }.getOrElse {
+            criterias match {
+                case Nil =>
+                    None
+                case head :: Nil =>
+                    Some(head)
+                case head :: tail =>
+                    val criteria = tail.foldLeft(head)((base, criteria) => And(base) :&& criteria)
+                    Some(criteria)
+            }
+        }
 
 }
