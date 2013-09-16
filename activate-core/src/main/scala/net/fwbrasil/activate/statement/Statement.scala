@@ -34,13 +34,15 @@ trait StatementContext extends StatementValueContext with OperatorContext {
             }
             tuple
         }
-        val fromCacheOption =
-            if (stack.isEmpty)
+        val fromCacheOption = {
+            val tuple = stack.poll
+            if (tuple == null)
                 None
             else {
-                val (function, statement) = stack.poll
+                val (function, statement) = tuple
                 Some(function, statement.asInstanceOf[S])
             }
+        }
         val (function, statement) =
             if (fromCacheOption.isDefined) {
                 val (function, statement) = fromCacheOption.get
