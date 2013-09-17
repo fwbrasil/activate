@@ -117,7 +117,7 @@ class LiveCache(
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
         customCaches.foreach(
-            _.asInstanceOf[CustomCache[Entity]].add(entity))
+            _.asInstanceOf[CustomCache[Entity]].add(entity)(context))
         entity
     }
 

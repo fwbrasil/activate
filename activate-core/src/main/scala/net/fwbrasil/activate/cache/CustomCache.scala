@@ -15,14 +15,14 @@ case class CustomCache[E <: Entity: Manifest](
         transactionalCondition: Boolean = false,
         condition: E => Boolean = (e: E) => true,
         limitOption: Option[Long] = None,
-        expiration: Duration = Duration.Inf)(implicit ctx: ActivateContext) {
+        expiration: Duration = Duration.Inf) {
 
     private val cache = cacheBuilder.build[String, E]
 
     def entityClass = erasureOf[E]
 
-    def add(entity: E) =
-        if (entity.getClass.isAssignableFrom(erasureOf[E]) && satifyCondition(entity))
+    def add(entity: E)(implicit ctx: ActivateContext) =
+        if (erasureOf[E].isAssignableFrom(entity.getClass) && satifyCondition(entity))
             cache.put(entity.id, entity)
 
     def clear =
@@ -34,16 +34,15 @@ case class CustomCache[E <: Entity: Manifest](
     def remove(entityId: String) =
         cache.invalidate(entityId)
 
-    private def satifyCondition(entity: E) =
-        if (transactionalCondition) {
-            val transaction =
-                ctx.transactionManager
-                    .getActiveTransaction
-                    .map(new NestedTransaction(_))
-                    .getOrElse(new Transaction)
-            ctx.transactional(transaction) {
-                condition(entity)
-            }
+    private def satifyCondition(entity: E)(implicit ctx: ActivateContext) =
+        if (transactionalCondition && ctx.transactionManager.getActiveTransaction.isEmpty) {
+            val transaction = new Transaction
+            try
+                ctx.transactional(transaction) {
+                    condition(entity)
+                }
+            finally
+                transaction.rollback
         } else
             condition(entity)
 
