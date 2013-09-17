@@ -21,8 +21,6 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 
 object prevalentTransactionSerializer {
     
-    private val magicBooleanInteger = 211
-
     def write(transaction: PrevalentTransaction)(implicit buffer: ByteBuffer) = {
         writeBoolean(true)
         writeValuesArray(transaction.insertList)
@@ -30,7 +28,7 @@ object prevalentTransactionSerializer {
         writeStringArray(transaction.deleteList)
     }
 
-    def read(implicit buffer: ByteBuffer) = {
+    def read(implicit buffer: ByteBuffer) = 
         if (hasTrue) {
             Some(
                 new PrevalentTransaction(
@@ -39,7 +37,6 @@ object prevalentTransactionSerializer {
                     deleteList = readStringArray))
         } else
             None
-    }
 
     private def hasTrue(implicit buffer: ByteBuffer) =
         try {

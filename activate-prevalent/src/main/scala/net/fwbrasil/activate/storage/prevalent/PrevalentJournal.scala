@@ -8,6 +8,10 @@ import java.nio.channels.FileChannel
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.serialization.Serializer
 import java.nio.ByteOrder
+import java.io.FileOutputStream
+import java.io.ObjectOutputStream
+import java.io.ObjectInputStream
+import java.io.FileInputStream
 
 class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
@@ -15,26 +19,29 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
 
     directory.mkdirs
 
-    private var (currentBuffer, currentBufferIdx) = {
-        val buffers = directoryBuffers
-        if (buffers.isEmpty)
-            (createBuffer(0), 0)
-        else {
-            buffers.reverse.tail.foreach(byteBufferCleaner.cleanDirect)
-            (buffers.last, buffers.size - 1)
-        }
-    }
+    private var currentBuffer: ByteBuffer = null
+    private var currentBufferIdx = 0
 
     private val bufferPool = new DirectBufferPool(fileSize, bufferPoolSize)
 
     Runtime.getRuntime.addShutdownHook(
         new Thread {
             override def run = {
-                byteBufferCleaner.cleanDirect(currentBuffer)
-                currentBuffer = null
+                if (currentBuffer != null) {
+                    byteBufferCleaner.cleanDirect(currentBuffer)
+                    currentBuffer = null
+                }
                 bufferPool.destroy
             }
         })
+
+    def takeSnapshot(system: PrevalentStorageSystem) = {
+        val snapshotFile = new File(directory, fileName(nextFileIndex, ".snapshot"))
+        require(snapshotFile.createNewFile)
+        val stream = new ObjectOutputStream(new FileOutputStream(snapshotFile))
+        stream.writeObject(system)
+        stream.close
+    }
 
     def add(transaction: PrevalentTransaction): Unit = {
         val temp = bufferPool.pop
@@ -49,12 +56,31 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         }
     }
 
-    def recover(system: PrevalentStorageSystem)(implicit ctx: ActivateContext) =
-        for (buffer <- directoryBuffers) yield {
+    def recover(implicit ctx: ActivateContext) = {
+        val (nextFileId, system) = recoverSnapshot
+        val buffers = directoryBuffers(nextFileId)
+        for (buffer <- buffers) yield {
             recoverTransactions(system, buffer)
             byteBufferCleaner.cleanDirect(currentBuffer)
             currentBuffer = buffer
         }
+        if (buffers.isEmpty) {
+            currentBuffer = createBuffer(nextFileId)
+            currentBufferIdx = nextFileId + buffers.size
+        } else
+            currentBufferIdx = nextFileId + buffers.size - 1
+        system
+    }
+
+    private def recoverSnapshot(implicit ctx: ActivateContext) =
+        snapshotFiles.lastOption.map { file =>
+            val stream = new ObjectInputStream(new FileInputStream(file))
+            val system = stream.readObject.asInstanceOf[PrevalentStorageSystem]
+            import scala.collection.JavaConversions._
+            ctx.hidrateEntities(system.values)
+            val idx = fileNameToIndex(file)
+            (idx + 1, system)
+        }.getOrElse((0, new PrevalentStorageSystem))
 
     private def serializeToTempBuffer(temp: ByteBuffer, transaction: PrevalentTransaction) = {
         prevalentTransactionSerializer.write(transaction)(temp)
@@ -64,17 +90,17 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         temp
     }
 
-    private def directoryBuffers = {
-        val files = journalFiles
-        verifyJournalFiles(files)
+    private def directoryBuffers(startIdx: Int) = {
+        val files = journalFiles.filter(file => fileNameToIndex(file) >= startIdx)
+        verifyJournalFiles(files, startIdx)
         files.map(f => fileToBuffer(f, f.length))
     }
 
     private def createBuffer(fileIdx: Int) =
         fileToBuffer(new File(newFilePath(fileIdx)), fileSize)
 
-    private def fileName(idx: Int) =
-        idx.formatted("%020d") + ".journal"
+    private def fileName(idx: Int, sufix: String = ".journal") =
+        idx.formatted("%020d") + sufix
 
     private def fileToBuffer(file: File, size: Long) =
         new RandomAccessFile(file, "rw").getChannel
@@ -110,22 +136,37 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
 
     private def createNewBufferIfNecessary(totalSize: Int) = {
         if (currentBuffer.remaining < totalSize) {
-            currentBufferIdx += 1
-            currentBuffer = createBuffer(currentBufferIdx)
+            currentBuffer = createBuffer(nextFileIndex)
         }
         currentBuffer
     }
 
+    private def nextFileIndex = {
+        currentBufferIdx += 1
+        currentBufferIdx
+    }
+
+    private def fileNameToIndex(file: File) =
+        file.getName
+            .replace(".journal", "")
+            .replace(".snapshot", "")
+            .toInt
+
     private def journalFiles =
+        files.filter(_.getName.endsWith(".journal"))
+
+    private def snapshotFiles =
+        files.filter(_.getName.endsWith(".snapshot"))
+
+    private def files =
         directory
             .listFiles
             .toList
-            .filter(_.getName.endsWith(".journal"))
             .sortBy(_.getName)
 
-    private def verifyJournalFiles(files: List[File]) =
-        for (idx <- 0 until files.size)
-            if (files(idx).getName != fileName(idx))
+    private def verifyJournalFiles(files: List[File], startIdx: Int) =
+        for (idx <- startIdx until files.size)
+            if (fileNameToIndex(files(idx)) != idx)
                 throw new IllegalStateException(s"Can't find ${fileName(idx)}")
 
 }

@@ -19,20 +19,24 @@ import net.fwbrasil.activate.storage.marshalling.Marshaller
 import java.nio.BufferUnderflowException
 import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.serialization.kryoSerializer
+import java.io.FileOutputStream
+import net.fwbrasil.activate.storage.SnapshotableStorage
 
 class PrevalentStorageSystem extends HashMap[String, Entity]
 
 class PrevalentStorage(
-        directory: String, 
-        serializer: Serializer = javaSerializer, 
-        fileSize: Int = 10 * 1000 * 1000, 
-        bufferPoolSize: Int = Runtime.getRuntime.availableProcessors)(implicit context: ActivateContext)
-        extends MarshalStorage[PrevalentStorageSystem] {
-    
-    private val system = new PrevalentStorageSystem
+    directory: String,
+    serializer: Serializer = javaSerializer,
+    fileSize: Int = 10 * 1000 * 1000,
+    bufferPoolSize: Int = Runtime.getRuntime.availableProcessors)(implicit context: ActivateContext)
+        extends MarshalStorage[PrevalentStorageSystem]
+        with SnapshotableStorage[PrevalentStorageSystem] {
+
     private val directoryFile = new File(directory)
     directoryFile.mkdir
     private val journal = new PrevalentJournal(directoryFile, serializer, fileSize, bufferPoolSize)
+
+    private var system = journal.recover
 
     def directAccess = system
 
@@ -43,13 +47,18 @@ class PrevalentStorage(
 
     initialize
 
-    protected[activate] def initialize = {
-        system.clear
-        journal.recover(system)
-    }
+    protected[activate] def initialize = {}
+
+    def snapshot =
+        try {
+            Entity.serializeUsingEvelope = false
+            journal.takeSnapshot(system)
+        } finally {
+            Entity.serializeUsingEvelope = true
+        }
 
     override protected[activate] def reinitialize =
-        initialize
+        system = journal.recover
 
     override protected[activate] def store(
         statements: List[MassModificationStatement],

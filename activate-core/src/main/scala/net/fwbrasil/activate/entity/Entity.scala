@@ -285,5 +285,24 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     protected[activate] val liveCache = new LiveCache(this)
 
     protected[activate] def entityMaterialized(entity: Entity) = {}
+    
+    protected[activate] def hidrateEntities(entities: Iterable[Entity])(implicit context: ActivateContext) =
+        for (entity <- entities) {
+            initializeBitmaps(entity)
+            entity.invariants
+            context.transactional(context.transient) {
+                initializeLazyFlags(entity)
+            }
+            context.liveCache.toCache(entity)
+        }
+
+    private def initializeLazyFlags(entity: net.fwbrasil.activate.entity.Entity): Unit = {
+        val metadata = EntityHelper.getEntityMetadata(entity.getClass)
+        val lazyFlags = metadata.propertiesMetadata.filter(p => p.isLazyFlag && p.isTransient)
+        for (propertyMetadata <- lazyFlags) {
+            val ref = new Var(propertyMetadata, entity, true)
+            propertyMetadata.varField.set(entity, ref)
+        }
+    }
 
 }

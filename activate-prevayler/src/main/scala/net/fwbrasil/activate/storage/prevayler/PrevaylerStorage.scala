@@ -38,13 +38,15 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.storage.SnapshotableStorage
 
 class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
     val factory: PrevaylerFactory[PrevaylerStorageSystem])(implicit val context: ActivateContext)
-        extends MarshalStorage[Prevayler[PrevaylerStorageSystem]] {
+        extends MarshalStorage[Prevayler[PrevaylerStorageSystem]]
+        with SnapshotableStorage[Prevayler[PrevaylerStorageSystem]] {
 
     protected[activate] var prevayler: Prevayler[PrevaylerStorageSystem] = _
 
@@ -72,24 +74,8 @@ class PrevaylerStorage(
         factory.configurePrevalentSystem(prevalentSystem)
         prevayler = factory.create()
         prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
-        prevalentSystem.values.foreach(Reflection.initializeBitmaps)
-        prevalentSystem.values.foreach(_.invariants)
         hackPrevaylerToActAsARedoLogOnly
-        for (entity <- prevalentSystem.values) {
-            context.transactional(context.transient) {
-                initializeLazyFlags(entity)
-            }
-            context.liveCache.toCache(entity)
-        }
-    }
-
-    private def initializeLazyFlags(entity: net.fwbrasil.activate.entity.Entity): Unit = {
-        val metadata = EntityHelper.getEntityMetadata(entity.getClass)
-        val lazyFlags = metadata.propertiesMetadata.filter(p => p.isLazyFlag && p.isTransient)
-        for(propertyMetadata <- lazyFlags) {
-            val ref = new Var(propertyMetadata, entity, true)
-            propertyMetadata.varField.set(entity, ref)
-        }
+        context.hidrateEntities(prevalentSystem.values)
     }
 
     private def hackPrevaylerToActAsARedoLogOnly = {
