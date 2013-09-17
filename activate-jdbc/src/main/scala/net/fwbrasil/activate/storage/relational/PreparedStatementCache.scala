@@ -8,10 +8,12 @@ import java.sql.ResultSet
 import net.fwbrasil.activate.util.IdentityHashMap
 import com.jolbox.bonecp.ConnectionHandle
 import scala.collection.concurrent.TrieMap
+import com.google.common.collect.MapMaker
+import net.fwbrasil.activate.util.ConcurrentCache
 
 class PreparedStatementCache {
 
-    private val cache = new TrieMap[Connection, TrieMap[String, Stack[PreparedStatement]]]()
+    private val cache = (new MapMaker).weakKeys.makeMap[Connection, TrieMap[String, ConcurrentCache[PreparedStatement]]]
 
     def clear =
         cache.clear
@@ -24,12 +26,8 @@ class PreparedStatementCache {
                 connection.prepareStatement(statement.indexedStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
         }
 
-    def release(connection: Connection, statement: QlStatement, ps: PreparedStatement) = {
-        val stack = stackFor(cacheFor(connection), statement.statement)
-        stack.synchronized {
-            stack.push(ps)
-        }
-    }
+    def release(connection: Connection, statement: QlStatement, ps: PreparedStatement) =
+        stackFor(cacheFor(connection), statement.statement).offer(ps)
 
     private def realConnection(connection: Connection) =
         connection match {
@@ -40,26 +38,26 @@ class PreparedStatementCache {
         }
 
     private def acquireFrom(
-        cache: TrieMap[String, Stack[PreparedStatement]],
+        cache: TrieMap[String, ConcurrentCache[PreparedStatement]],
         statement: String): Option[PreparedStatement] =
         aquireFrom(stackFor(cache, statement))
 
-    private def aquireFrom(stack: Stack[PreparedStatement]): Option[PreparedStatement] =
-        stack.synchronized {
-            if (stack.isEmpty)
-                None
-            else
-                Some(stack.pop)
+    private def aquireFrom(stack: ConcurrentCache[PreparedStatement]): Option[PreparedStatement] =
+        Option(stack.poll)
+
+    private def cacheFor(connection: Connection) = {
+        val key = realConnection(connection)
+        var value = cache.get(key)
+        if (value == null) {
+            value = new TrieMap[String, ConcurrentCache[PreparedStatement]]
+            cache.putIfAbsent(key, value)
         }
+        value
+    }
 
-    private def cacheFor(connection: Connection) =
-        cache.getOrElseUpdate(
-            realConnection(connection),
-            new TrieMap[String, Stack[PreparedStatement]])
-
-    private def stackFor(cache: TrieMap[String, Stack[PreparedStatement]], statement: String) =
+    private def stackFor(cache: TrieMap[String, ConcurrentCache[PreparedStatement]], statement: String) =
         if (!cache.contains(statement)) {
-            val stack = Stack[PreparedStatement]()
+            val stack = new ConcurrentCache[PreparedStatement]("PreparedStatementCache", 10)
             cache.put(statement, stack)
             stack
         } else

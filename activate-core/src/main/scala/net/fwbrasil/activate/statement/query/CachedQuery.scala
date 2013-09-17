@@ -16,6 +16,8 @@ import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.radon.transaction.NestedTransaction
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.Reflection
+import java.util.concurrent.atomic.AtomicInteger
+import net.fwbrasil.activate.util.ConcurrentCache
 
 class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: ActivateContext) {
 
@@ -27,7 +29,8 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
 
     fields.foreach(_.setAccessible(true))
 
-    val parseCache = new ConcurrentLinkedQueue[(Function, Query[String])]
+    val parseCache = new ConcurrentCache[(Function, Query[String])]("CachedQuery.parseCache", 50)
+
     val resultsCache = new ConcurrentHashMap[List[Any], Set[String]]
 
     def deleteEntities(entities: List[Entity]) =
@@ -70,7 +73,7 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
     }
 
     def queryFor(values: List[Any], fOption: Option[(E) => Where]) = {
-        val tuple = parseCache.poll()
+        val tuple = parseCache.poll
         if (tuple != null) {
             val (function, query) = tuple
             setValues(function, values)

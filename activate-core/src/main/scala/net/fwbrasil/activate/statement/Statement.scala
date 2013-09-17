@@ -13,6 +13,7 @@ import scala.collection.mutable.Stack
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import net.fwbrasil.activate.util.ConcurrentCache
 
 trait StatementContext extends StatementValueContext with OperatorContext {
 
@@ -20,7 +21,7 @@ trait StatementContext extends StatementValueContext with OperatorContext {
 
     // Use Any instead of Function1,2,3... There isn't a generic Function trait
     type Function = Any
-    private val cache = new ConcurrentHashMap[(Class[_], Seq[Manifest[_]]), (List[Field], ConcurrentLinkedQueue[(Function, Statement)])]()
+    private val cache = new ConcurrentHashMap[(Class[_], Seq[Manifest[_]]), (List[Field], ConcurrentCache[(Function, Statement)])]()
 
     private[activate] def executeStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
         val (fields, stack) = {
@@ -29,7 +30,7 @@ trait StatementContext extends StatementValueContext with OperatorContext {
             if (tuple == null) {
                 val fields = f.getClass.getDeclaredFields.toList.filter(field => !Modifier.isStatic(field.getModifiers))
                 fields.foreach(_.setAccessible(true))
-                tuple = (fields, new ConcurrentLinkedQueue[(Function, Statement)]())
+                tuple = (fields, new ConcurrentCache[(Function, Statement)]("StatementContext.cache", 20))
                 cache.put(key, tuple)
             }
             tuple
