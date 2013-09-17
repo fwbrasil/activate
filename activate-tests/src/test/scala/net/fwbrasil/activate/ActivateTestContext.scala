@@ -46,14 +46,11 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import scala.xml.Elem
 import net.fwbrasil.activate.storage.relational.idiom.sqlServerDialect
 import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
-
-object EnumerationValue extends Enumeration {
-    case class EnumerationValue(name: String) extends Val(name)
-    val value1a = EnumerationValue("v1")
-    val value2 = EnumerationValue("v2")
-    val value3 = EnumerationValue("v3")
-}
 import EnumerationValue._
+import scala.util.Random
+import net.fwbrasil.activate.cache.CacheType
+import net.liftweb.http.js.JE.Num
+import net.fwbrasil.activate.cache.CustomCache
 
 case class DummySeriablizable(val string: String)
 
@@ -414,6 +411,28 @@ trait ActivateTestContext
         extends StoppableActivateContext {
 
     override val milisToWaitBeforeRetry = 1
+
+    override def liveCacheType =
+        Random.nextInt(3) match {
+            case 0 =>
+                CacheType.hardReferences
+            case 1 =>
+                CacheType.softReferences
+            case 2 =>
+                CacheType.weakReferences
+        }
+
+    override def customCaches =
+        List(
+            CustomCache[ActivateTestEntity](
+                cacheType = CacheType.hardReferences),
+            CustomCache[Box](
+                cacheType = CacheType.softReferences,
+                condition = _.id.charAt(0).toInt < 40),
+            CustomCache[ActivateTestDummyEntity](
+                cacheType = CacheType.weakReferences,
+                transactionalCondition = true,
+                condition = _.dummy == true))
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 

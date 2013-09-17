@@ -70,8 +70,13 @@ import net.fwbrasil.activate.statement.ToLowerCase
 import scala.collection.concurrent.TrieMap
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
+import CacheType._
+import net.fwbrasil.activate.entity.Entity
 
-class LiveCache(val context: ActivateContext) extends Logging {
+class LiveCache(
+        val context: ActivateContext,
+        cacheType: CacheType,
+        customCaches: List[CustomCache[_]]) extends Logging {
 
     info("Initializing live cache for context " + context.contextName)
 
@@ -79,12 +84,13 @@ class LiveCache(val context: ActivateContext) extends Logging {
 
     val cache =
         EntityHelper.allConcreteEntityClasses
-            .map((_, (new MapMaker).softValues.makeMap[String, Entity]))
+            .map((_, cacheType.mapMaker.makeMap[String, Entity]))
             .toMap
 
     def reinitialize =
         logInfo("live cache reinitialize") {
             cache.values.foreach(_.clear)
+            customCaches.foreach(_.clear)
         }
 
     def byId[E <: Entity: Manifest](id: String): Option[E] =
@@ -97,9 +103,12 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def delete(entity: Entity): Unit =
         delete(entity.id)
 
-    def delete(entityId: String) =
-        entityInstacesMap(EntityHelper.getEntityClassFromId(entityId))
+    def delete(entityId: String) = {
+        val entityClass = EntityHelper.getEntityClassFromId(entityId)
+        entityInstacesMap(entityClass)
             .remove(entityId)
+        customCaches.foreach(_.remove(entityId))
+    }
 
     def toCache[E <: Entity](entity: E): E =
         toCache(entity.niceClass, entity)
@@ -107,6 +116,8 @@ class LiveCache(val context: ActivateContext) extends Logging {
     def toCache[E <: Entity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
+        customCaches.foreach(
+            _.asInstanceOf[CustomCache[Entity]].add(entity))
         entity
     }
 
@@ -137,7 +148,7 @@ class LiveCache(val context: ActivateContext) extends Logging {
             entities.filter(list =>
                 list.find(entity => !entity.isPersisted || entity.isDirty || storageFor(entity.niceClass).isMemoryStorage)
                     .isDefined)
-        val filteredWithoutDeletedEntities = 
+        val filteredWithoutDeletedEntities =
             filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
         val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
         (rows, filteredWithDeletedEntities)

@@ -17,6 +17,8 @@ import net.fwbrasil.activate.OptimisticOfflineLocking
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.statement.Criteria
+import net.fwbrasil.activate.cache.CacheType
+import net.fwbrasil.activate.cache.CustomCache
 
 trait Entity extends Serializable with EntityValidation {
 
@@ -282,10 +284,14 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.EntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
 
-    protected[activate] val liveCache = new LiveCache(this)
+    protected def liveCacheType = CacheType.softReferences
+
+    protected def customCaches: List[CustomCache[_]] = List()
+
+    protected[activate] val liveCache = new LiveCache(this, liveCacheType, customCaches)
 
     protected[activate] def entityMaterialized(entity: Entity) = {}
-    
+
     protected[activate] def hidrateEntities(entities: Iterable[Entity])(implicit context: ActivateContext) =
         for (entity <- entities) {
             initializeBitmaps(entity)
