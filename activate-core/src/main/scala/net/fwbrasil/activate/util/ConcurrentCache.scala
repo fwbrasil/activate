@@ -20,5 +20,10 @@ class ConcurrentCache[V](name: String, defaultLimit: Int) {
             queue.offer(value)
         }
     }
+    
+    import scala.collection.JavaConversions._
+    
+    def toList =
+        queue.toList
 
 }

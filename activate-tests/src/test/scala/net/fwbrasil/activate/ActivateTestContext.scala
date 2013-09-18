@@ -258,12 +258,12 @@ object asyncMongoContext extends ActivateTestContext {
 }
 class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongoContext)
 
-object oracleContext extends ActivateTestContext with SlickQueryContext {
+object oracleContext extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
         val user = "activate_test"
         val password = "activate_test"
-        val url = "jdbc:oracle:thin:@192.168.1.10:1521:orcl"
+        val url = "jdbc:oracle:thin:@192.168.0.114:1521:orcl"
         val dialect = oracleDialect
         // Some oracle versions does not return the number of updated rows
         // when using batch operations correctly. Disable it.
@@ -299,12 +299,12 @@ class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCas
     }
 }
 
-object db2Context extends ActivateTestContext with SlickQueryContext {
+object db2Context extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
         val user = "db2admin"
         val password = "db2admin"
-        val url = "jdbc:db2://192.168.1.10:50000/SAMPLE"
+        val url = "jdbc:db2://192.168.0.114:50000/SAMPLE"
         val dialect = db2Dialect
     }
 }
@@ -318,7 +318,7 @@ object sqlServerContext extends ActivateTestContext {
         val jdbcDriver = "net.sourceforge.jtds.jdbc.Driver"
         val user = "activate"
         val password = "activate"
-        val url = "jdbc:jtds:sqlserver://192.168.1.10:49503/activate_test2"
+        val url = "jdbc:jtds:sqlserver://192.168.0.114:49503/activate_test2"
         val dialect = sqlServerDialect
     }
 }

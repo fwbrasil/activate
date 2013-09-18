@@ -15,8 +15,11 @@ class PreparedStatementCache {
 
     private val cache = (new MapMaker).weakKeys.makeMap[Connection, TrieMap[String, ConcurrentCache[PreparedStatement]]]
 
-    def clear =
+    def clear = {
+        import scala.collection.JavaConversions._
+        cache.values.foreach(_.values.foreach(_.toList.foreach(_.close)))
         cache.clear
+    }
 
     def acquireFor(connection: Connection, statement: QlStatement, readOnly: Boolean) =
         acquireFrom(cacheFor(connection), statement.statement).getOrElse {
