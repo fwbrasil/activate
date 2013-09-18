@@ -76,8 +76,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         snapshotFiles.lastOption.map { file =>
             val stream = new ObjectInputStream(new FileInputStream(file))
             val system = stream.readObject.asInstanceOf[PrevalentStorageSystem]
-            import scala.collection.JavaConversions._
-            ctx.hidrateEntities(system.values)
+
             val idx = fileNameToIndex(file)
             (idx + 1, system)
         }.getOrElse((0, new PrevalentStorageSystem))

@@ -57,8 +57,11 @@ class PrevalentStorage(
             Entity.serializeUsingEvelope = true
         }
 
-    override protected[activate] def reinitialize =
+    override protected[activate] def reinitialize = {
         system = journal.recover
+        import scala.collection.JavaConversions._
+        context.hidrateEntities(system.values)
+    }
 
     override protected[activate] def store(
         statements: List[MassModificationStatement],

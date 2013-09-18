@@ -27,6 +27,7 @@ class PrevalentTransaction(
                 val entity = liveCache.materializeEntity(entityId)
                 entity.setInitialized
                 liveCache.delete(entity)
+                system.remove(entityId)
                 for (ref <- entity.vars)
                     ref.destroyInternal
             }

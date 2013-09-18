@@ -12,6 +12,9 @@ import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
 
+    override def executors(ctx: ActivateTestContext): List[StepExecutor] =
+        super.executors(ctx) ++ List(MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+
     "Activate perssitence framework" should {
         "support CRUD" in {
             "create and retreive" in {
@@ -160,10 +163,10 @@ class CRUDSpecs extends ActivateTest {
                     (step: StepExecutor) => {
                         import step.ctx._
                         if (step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactions]) {
-                            for (i <- 0 until 10000)
-                                step {
+                            step {
+                                for (i <- 0 until 10000)
                                     CaseClassEntity(fullStringValue, fullEntityValue, fullEntityWithoutAttributeValue)
-                                }
+                            }
                             step {
                                 all[CaseClassEntity].size === 10000
                             }

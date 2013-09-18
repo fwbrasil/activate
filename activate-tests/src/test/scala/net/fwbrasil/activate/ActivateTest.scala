@@ -22,6 +22,7 @@ import scala.concurrent.ExecutionContext
 import javax.swing.JOptionPane
 import javax.swing.JFrame
 import javax.swing.JList
+import java.util.prefs.Preferences
 
 object runningFlag
 
@@ -58,10 +59,13 @@ object ActivateTest {
             propertyOption("context")
                 .map(contextsByName)
                 .getOrElse {
-                    val selected =
+                    val selectedCategories =
                         propertyOption("category")
                             .map(categoriesFromString)
-                            .getOrElse(contextsCategoriesMap)
+                            .getOrElse(askForCategories)
+                    val selected =
+                        contextsCategoriesMap.filterKeys(c =>
+                            selectedCategories.contains(c.toString))
                     selected.values.flatten.toList
                 }
         contexts.foreach(_.stop)
@@ -75,22 +79,31 @@ object ActivateTest {
     private def contextsByName(name: String) =
         allContexts.filter(_.name == name).toList
 
-    private def categoriesFromString(string: String) = {
-        val selectedCategories =
-            if (string == "ask")
-                askForCategories
-            else
-                string.split(',')
-        contextsCategoriesMap.filterKeys(c => selectedCategories.contains(c.toString))
-    }
+    private def categoriesFromString(string: String) =
+        if (string == "ask" || string.isEmpty())
+            askForCategories
+        else
+            string.split(',')
 
     private def askForCategories = {
         import scala.collection.JavaConversions._
         val values = ActivateTestContextCategory.values.map(_.toString).toArray
         val list = new JList(values)
+        list.setSelectedIndices(categoriesIndicesFromPreferences)
         JOptionPane.showMessageDialog(
             null, list, "Select turn", JOptionPane.PLAIN_MESSAGE)
-        list.getSelectedIndices.map(values(_).toString)
+        val indices = list.getSelectedIndices
+        setCategoriesIndicesToPreferences(indices)
+        indices.map(values(_).toString)
+    }
+
+    def prefs = Preferences.userNodeForPackage(this.getClass);
+
+    private def categoriesIndicesFromPreferences =
+        prefs.get("categories", "").split(',').filter(_.nonEmpty).map(_.toInt)
+
+    private def setCategoriesIndicesToPreferences(indices: Array[Int]) = {
+        prefs.put("categories", indices.mkString(","))
     }
 
 }
@@ -99,15 +112,12 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     args.execute(threadsNb = 1)
 
-    System.setProperty("activate.coordinator.server", "true")
-
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(
             OneTransaction(ctx),
             MultipleTransactions(ctx),
             MultipleAsyncTransactions(ctx),
-            MultipleTransactionsWithReinitialize(ctx),
-            MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+            MultipleTransactionsWithReinitialize(ctx)).filter(_.accept(ctx))
 
     def contexts = ActivateTest.contexts
 
@@ -176,6 +186,8 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             reinitializeContext
             ret
         }
+        override def accept(ctx: ActivateTestContext) =
+            !ctx.storage.isInstanceOf[SnapshotableStorage[_]]
     }
 
     case class MultipleAsyncTransactionsWithReinitialize(ctx: ActivateTestContext) extends StepExecutor {
