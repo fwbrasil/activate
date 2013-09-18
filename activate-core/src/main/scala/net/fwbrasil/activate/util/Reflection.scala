@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier
 import java.util.Date
 
 import scala.collection.concurrent.TrieMap
-import scala.collection.mutable.{HashMap => MutableHashMap}
+import scala.collection.mutable.{ HashMap => MutableHashMap }
 import scala.language.existentials
 import scala.language.implicitConversions
 
@@ -195,12 +195,28 @@ object Reflection {
     private val bitmapFieldsCache = new TrieMap[Class[_], List[Field]]()
 
     def initializeBitmaps(res: Any) =
-        setBitmaps(res, Byte.MaxValue)
+        setBitmaps(res, initializedBitmapValuesMap)
 
     def uninitializeBitmaps(res: Any) =
-        setBitmaps(res, 0)
+        setBitmaps(res, uninitializedBitmapValuesMap)
 
-    private def setBitmaps(res: Any, value: Byte) = {
+    private val initializedBitmapValuesMap =
+        Map[Class[_], Any](classOf[Boolean] -> true, classOf[Int] -> initializedInt, classOf[Byte] -> initializedByte)
+
+    private val uninitializedBitmapValuesMap =
+        Map[Class[_], Any](classOf[Boolean] -> false, classOf[Int] -> 0, classOf[Byte] -> 0.toByte)
+        
+    private def initializedByte =
+        (0.toByte | 0x1 | 0x2 | 0x4 | 0x5 | 0x10 | 0x20 | 0x40 | 0x80).toByte
+        
+    private def initializedInt = {
+        var int = 0
+        for(i <- 0 to 31)
+            int = int | Math.pow(2, i).intValue
+        int
+    }
+
+    private def setBitmaps(res: Any, valuesMap: Map[Class[_], Any]) = {
         val clazz = res.getClass
         val fields =
             bitmapFieldsCache.getOrElseUpdate(
@@ -210,7 +226,7 @@ object Reflection {
                         field.getName.startsWith("bitmap$") && field.getType == classOf[Byte]))
         for (field <- fields) {
             field.setAccessible(true)
-            field.set(res, value)
+            field.set(res, valuesMap(field.getType))
         }
         res
     }

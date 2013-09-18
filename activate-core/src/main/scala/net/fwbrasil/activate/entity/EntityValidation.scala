@@ -16,6 +16,7 @@ import net.fwbrasil.activate.OptimisticOfflineLocking
 import net.fwbrasil.activate.statement.StatementMocks
 import java.util.concurrent.ConcurrentSkipListSet
 import com.google.common.collect.MapMaker
+import net.fwbrasil.activate.statement.Criteria
 
 case class PostCond[R](f: () => R) {
 
@@ -80,6 +81,7 @@ trait EntityValidation {
                 func(StatementMocks.mockEntity(EntityValidation.this.getClass.asInstanceOf[Class[EntityValidation.this.type]]))
                 StatementMocks.lastFakeVarCalled.get.name
             }).toList
+
         def invariant(f: => Boolean) =
             Invariant[EntityValidation.this.type](() => f, () => List(), () => properties)
 
@@ -88,6 +90,9 @@ trait EntityValidation {
 
         def invariant(exception: Exception)(f: => Boolean) =
             Invariant[EntityValidation.this.type](() => f, () => List(), () => properties, exceptionOption = Some(exception))
+
+        def invariant(invariant: Invariant[_]) =
+            invariant.copy(properties = () => properties)
     }
 
     private[activate] def invariants = {
@@ -179,6 +184,43 @@ trait EntityValidation {
             yield (name, invariant.errorParams(), invariant.exceptionOption, invariant.properties())
 
     protected def validationOptions: Option[Set[EntityValidationOption]] = None
+
+    private def emailPattern =
+        "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+
+    protected def email(string: => String) =
+        invariant(string != null && string.matches(emailPattern))
+
+    protected def notEmpty[T](iterable: => Iterable[T]) =
+        invariant(iterable != null && iterable.nonEmpty)
+
+    protected def notNull(obj: => Any) =
+        invariant(obj != null)
+
+    protected def unique(criterias: (this.type => Any)*)(implicit m: Manifest[this.type]) = {
+        val ctx = context
+        import ctx._
+        invariant {
+            val found =
+                if (criterias.isEmpty)
+                    select[this.type].where()
+                else
+                    select[this.type].where { entity =>
+                        val entityCriterias =
+                            for (criteria <- criterias) yield {
+                                criteria(entity)
+                                implicit val tval = StatementMocks.lastFakeVarCalled.get.tval.asInstanceOf[Option[Any] => EntityValue[Any]]
+                                val value = criteria(this)
+                                if (value == null)
+                                    criteria(entity) isNull
+                                else
+                                    criteria(entity) :== value
+                            }
+                        entityCriterias.tail.foldLeft(entityCriterias.head)((base, criteria) => base :&& criteria)
+                    }
+            found.filter(_ != this).isEmpty
+        }
+    }
 
 }
 

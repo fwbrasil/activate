@@ -20,8 +20,14 @@ class TestValidationEntity(var string1: String) extends Entity {
         }
     def string2MustNotBeEmpty =
         on(_.string2).invariant {
-            string2.nonEmpty
+            notEmpty(string2)
         }
+
+    var email = "some@email.com"
+    def invariantEmailMustNotBeNull = notNull(email)
+    def invariantEmailMustBeValid = email(email)
+    def invariantEmailMustBeUnique = unique(_.email)
+
     override protected def validationOptions = TestValidationEntity.validationOptions
 }
 
@@ -230,6 +236,33 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
                         }
                         step {
                             entity.string1 must beEqualTo("s2")
+                        }
+                    }
+                }))
+        }
+
+        "helper invariant methods" in {
+            activateTest(invariantValidationTest(_)(onTransactionEnd)(
+                (step: EntityValidationStepExecutor) => {
+                    if (!step.wrapped.isInstanceOf[OneTransaction]) {
+                        import step.ctx._
+                        val entityId =
+                            step {
+                                new TestValidationEntity("s1").id
+                            }
+                        def entity =
+                            byId[TestValidationEntity](entityId).get
+                        def test(email: String) =
+                            mustThrowACause[InvariantViolationException] {
+                                step {
+                                    entity.email = email
+                                }
+                            }
+                        test("")
+                        test(null)
+                        test("aaa")
+                        step {
+                            entity.email = "a@a.com"
                         }
                     }
                 }))
