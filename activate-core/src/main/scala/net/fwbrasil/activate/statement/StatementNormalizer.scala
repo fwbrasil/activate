@@ -7,10 +7,13 @@ import net.fwbrasil.activate.util.Reflection.deepCopyMapping
 import net.fwbrasil.activate.statement.query.Query
 import scala.collection.mutable.HashMap
 import java.util.concurrent.ConcurrentHashMap
+import com.google.common.collect.MapMaker
+import com.google.common.cache.CacheBuilder
+import net.fwbrasil.activate.util.ConcurrentMapCache
 
 trait StatementNormalizer[S <: Statement] {
 
-    val cache = new ConcurrentHashMap[S, List[S]]()
+    val cache = new ConcurrentMapCache[S, List[S]]("StatementNormalizer.cache", 100)
 
     def normalize[T](statement: S): List[T] = {
         var list = cache.get(statement)

@@ -207,7 +207,7 @@ object Reflection {
         Map[Class[_], Any](classOf[Boolean] -> false, classOf[Int] -> 0, classOf[Byte] -> 0.toByte)
         
     private def initializedByte =
-        (0.toByte | 0x1 | 0x2 | 0x4 | 0x5 | 0x10 | 0x20 | 0x40 | 0x80).toByte
+        (0.toByte | 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20 | 0x40 | 0x80).toByte
         
     private def initializedInt = {
         var int = 0
