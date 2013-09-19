@@ -30,9 +30,6 @@ import net.fwbrasil.activate.OptimisticOfflineLocking
 
 object EntityEnhancer extends Logging {
 
-    val classPool = new ClassPool(false)
-    classPool.appendClassPath(new ClassClassPath(this.getClass))
-
     val varClassName = classOf[Var[_]].getName
     val idVarClassName = classOf[IdVar].getName
     val entityClassName = classOf[Entity].getName
@@ -157,11 +154,21 @@ object EntityEnhancer extends Logging {
     }
 
     def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
+        val classPool = new ClassPool(false)
+        classPool.appendClassPath(new ClassClassPath(this.getClass))
+        val names = entityClassesNames(referenceClass).filter(!isLoaded(_))
         val enhancedEntityClasses =
-            entityClassesNames(referenceClass)
-                .map(enhance(_, classPool)).flatten
+            names.map(enhance(_, classPool)).flatten
         val resolved = resolveDependencies(enhancedEntityClasses)
         materializeClasses(resolved)
+    }
+
+    private val findLoadedClassMethod = classOf[ClassLoader].getDeclaredMethod("findLoadedClass", classOf[String])
+    findLoadedClassMethod.setAccessible(true)
+
+    private def isLoaded(className: String) = {
+        val classLoader = ActivateContext.classLoaderFor(className)
+        findLoadedClassMethod.invoke(classLoader, className) != null
     }
 
     private def enhance(clazzName: String, classPool: ClassPool): Set[CtClass] =
@@ -169,12 +176,8 @@ object EntityEnhancer extends Logging {
 
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
-        for (enhancedEntityClass <- resolved) yield try
+        for (enhancedEntityClass <- resolved) yield
             enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName)).asInstanceOf[Class[Entity]]
-        catch {
-            case e: CannotCompileException =>
-                classLoaderFor(enhancedEntityClass.getName).loadClass(enhancedEntityClass.getName).asInstanceOf[Class[Entity]]
-        }
     }
 
     private def entityClassesNames(referenceClass: Class[_]) =

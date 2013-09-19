@@ -11,7 +11,7 @@ class ConcurrentMapCache[K, V](name: String, defaultLimit: Int) {
     private val map = CacheBuilder.newBuilder.maximumSize(limit).build.asInstanceOf[Cache[K, V]]
 	
     def get(key: K) = 
-        map.get(key)
+        map.getIfPresent(key)
         
     def put(key: K, value: V) =
         map.put(key, value)
