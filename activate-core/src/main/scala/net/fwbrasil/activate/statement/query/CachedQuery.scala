@@ -126,7 +126,7 @@ trait CachedQueryContext {
             for (((functionClass, entityClass), cachedQuery) <- cachedQueries) {
 
                 val filteredDeletes =
-                    deletes.filter(insert => entityClass.isAssignableFrom(insert.getClass))
+                    deletes.filter(delete => entityClass.isAssignableFrom(delete.getClass))
                 if (filteredDeletes.nonEmpty)
                     cachedQuery.deleteEntities(filteredDeletes)
 

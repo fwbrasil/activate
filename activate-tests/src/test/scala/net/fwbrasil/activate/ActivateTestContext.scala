@@ -433,6 +433,8 @@ trait ActivateTestContext
                 cacheType = CacheType.weakReferences,
                 transactionalCondition = true,
                 condition = _.dummy == true))
+                
+    val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity]("indexActivateTestEntityByIntValue").on(_.intValue)
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 

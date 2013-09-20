@@ -68,6 +68,7 @@ trait DurableContext {
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
+            updateMemoryIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
         }
     }
 
@@ -87,6 +88,7 @@ trait DurableContext {
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
+                    updateMemoryIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
                 }
             }
         } else

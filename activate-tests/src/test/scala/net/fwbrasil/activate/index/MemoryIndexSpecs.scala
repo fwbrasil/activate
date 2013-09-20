@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.statement.query
+package net.fwbrasil.activate.index
 
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTest
@@ -9,11 +9,11 @@ import net.fwbrasil.activate.h2Context
 import net.fwbrasil.activate.hsqldbContext
 
 @RunWith(classOf[JUnitRunner])
-class CachedQuerySpecs extends ActivateTest {
-    
+class MemoryIndexSpecs extends ActivateTest {
+
     override def contexts = super.contexts.filter(c => c != derbyContext && c != h2Context && c != hsqldbContext)
 
-    "Cached queries" should {
+    "Memory indexes" should {
 
         "return correct values" in {
             activateTest(
@@ -25,44 +25,13 @@ class CachedQuerySpecs extends ActivateTest {
                             newFullActivateTestEntity.id
                         }
                     step {
-                        val cached =
-                            cachedQuery {
-                                (e: ActivateTestEntity) => where(e.intValue :== fullIntValue)
-                            }
+                        val indexed =
+                            indexActivateTestEntityByIntValue.get(fullIntValue).toSet
                         val normal =
                             query {
                                 (e: ActivateTestEntity) => where(e.intValue :== fullIntValue) select (e)
                             }
-                        cached.toList === normal
-                    }
-                })
-        }
-
-        "be faster after the initial load" in {
-            activateTest(
-                (step: StepExecutor) => {
-                    import step.ctx._
-                    if (!step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
-                        val entityId =
-                            step {
-                                for (i <- 0 until 100)
-                                    newEmptyActivateTestEntity
-                            }
-                        def runCached =
-                            cachedQuery {
-                                (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue)
-                            }
-
-                        def runNormal =
-                            query {
-                                (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue) select (e)
-                            }
-                        step {
-                            runNormal // just to load entities
-                            val a = timeToRun(runCached)
-                            val b = timeToRun(runCached)
-                            b < a must beTrue
-                        }
+                        indexed.toList === normal
                     }
                 })
         }
@@ -74,41 +43,39 @@ class CachedQuerySpecs extends ActivateTest {
                     step {
                         newEmptyActivateTestEntity
                     }
-                    def runCached =
-                        cachedQuery {
-                            (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue)
-                        }.toSet
-                    def runCachedAndVerify =
-                        runCached ===
+                    def runIndexed =
+                        indexActivateTestEntityByIntValue.get(emptyIntValue).toSet
+                    def runIndexedAndVerify =
+                        runIndexed ===
                             query {
                                 (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue) select (e)
                             }.toSet
                     step {
-                        runCachedAndVerify
+                        runIndexedAndVerify
                     }
                     step {
                         newEmptyActivateTestEntity
                     }
                     step {
-                        runCachedAndVerify
+                        runIndexedAndVerify
                     }
                     step {
                         newEmptyActivateTestEntity.intValue = fullIntValue
                     }
                     step {
-                        runCachedAndVerify
+                        runIndexedAndVerify
                     }
                     step {
-                        runCached.head.intValue = fullIntValue
+                        runIndexed.head.intValue = fullIntValue
                     }
                     step {
-                        runCachedAndVerify
+                        runIndexedAndVerify
                     }
                     step {
                         all[ActivateTestEntity].foreach(_.delete)
                     }
                     step {
-                        runCachedAndVerify
+                        runIndexedAndVerify
                     }
                 })
         }

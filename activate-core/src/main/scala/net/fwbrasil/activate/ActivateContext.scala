@@ -26,6 +26,7 @@ import net.fwbrasil.activate.util.CollectionUtil
 import net.fwbrasil.activate.migration.MigrationContext
 import net.fwbrasil.activate.util.Reflection
 import java.util.concurrent.ConcurrentHashMap
+import net.fwbrasil.activate.statement.index.MemoryIndexContext
 
 trait ActivateContext
         extends EntityContext
@@ -38,7 +39,8 @@ trait ActivateContext
         with DurableContext
         with StatementsContext
         with SerializationContext
-        with MigrationContext {
+        with MigrationContext
+        with MemoryIndexContext {
 
     info("Initializing context " + contextName)
 
@@ -71,6 +73,7 @@ trait ActivateContext
             clearCachedQueries
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
+            reloadMemoryIndexes
         }
 
     def currentTransaction =
@@ -85,7 +88,7 @@ trait ActivateContext
         contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
     protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
-
+    
     override def toString = "ActivateContext: " + name
 
 }
