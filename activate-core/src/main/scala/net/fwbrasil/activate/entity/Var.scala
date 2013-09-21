@@ -15,6 +15,7 @@ class Var[T](
     val valueClass: Class[_],
     val isLazyFlag: Boolean,
     val outerEntity: Entity,
+    val isOptionalValue: Boolean,
     initialize: Boolean,
     valueOption: Option[T])
         extends Ref[T](valueOption, initialize)(outerEntity.context)
@@ -28,6 +29,7 @@ class Var[T](
             metadata.propertyType,
             metadata.isLazyFlag,
             outerEntity,
+            metadata.isOption,
             initialize || metadata.isLazyFlag,
             if (metadata.isLazyFlag)
                 Some(false.asInstanceOf[T])

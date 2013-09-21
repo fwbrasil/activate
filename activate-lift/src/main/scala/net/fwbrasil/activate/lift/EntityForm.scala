@@ -12,7 +12,7 @@ import net.liftweb.common.Box
 class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(implicit m: Manifest[E], context: ActivateContext) extends EntityMap[E](values) {
 
     def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
-        this(entity.vars.map(ref => (ref.name, ref.getValue)).toMap)
+        this(entity.vars.map(ref => (ref.name, EntityMap.varToValue(ref))).toMap)
 
     def this(init: ((E) => (_, _))*)(implicit m: Manifest[E], context: ActivateContext) =
         this(init.map(EntityMap.keyAndValueFor[E](_)(m)).toMap)
@@ -22,7 +22,7 @@ class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(impli
             super.createEntity
         }
 
-    override protected def updateEntity(entity: E) =
+    override def updateEntity(entity: E) =
         translateInvariantsExceptions {
             super.updateEntity(entity)
         }

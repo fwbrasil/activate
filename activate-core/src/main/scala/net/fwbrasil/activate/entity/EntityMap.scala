@@ -12,7 +12,8 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
     import EntityMap._
 
     def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
-        this(entity.vars.map(ref => (ref.name, ref.getValue)).toMap)
+        this(entity.vars.map(ref =>
+            (ref.name, EntityMap.varToValue(ref))).toMap)
 
     def this(init: ((E) => (_, _))*)(implicit m: Manifest[E], context: ActivateContext) =
         this(init.map(EntityMap.keyAndValueFor[E](_)(m)).toMap)
@@ -54,7 +55,7 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
         entity
     }
 
-    protected def updateEntity(entity: E) = {
+    def updateEntity(entity: E) = {
         try {
             EntityValidation.setThreadOptions(Set())
             val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[E])
@@ -71,8 +72,8 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
                     ref.putValue(value)
             }
         } finally {
-        	EntityValidation.setThreadOptions(EntityValidation.getGlobalOptions)
-        	entity.validate
+            EntityValidation.setThreadOptions(EntityValidation.getGlobalOptions)
+            entity.validate
         }
         entity
     }
@@ -81,11 +82,11 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
 
 object EntityMap {
 
-    def apply[E <: Entity](init: ((E) => (_, _))*)(implicit m: Manifest[E], context: ActivateContext): EntityMap[E] =
-        new EntityMap(init: _*)
-
-    def forEntity[E <: Entity](entity: E)(implicit m: Manifest[E], context: ActivateContext) =
-        new EntityMap(entity)
+    private[activate] def varToValue(ref: Var[Any]) =
+        if (ref.isOptionalValue)
+            ref.get
+        else
+            ref.getValue
 
     private[activate] def mock[E <: Entity: Manifest] =
         StatementMocks.mockEntity(erasureOf[E]).asInstanceOf[E]

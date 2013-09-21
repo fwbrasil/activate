@@ -109,7 +109,7 @@ trait Entity extends Serializable with EntityValidation {
         }
 
     def toMap =
-        EntityMap.forEntity[this.type](this)(manifest[this.type], context)
+        new EntityMap[this.type](this.asInstanceOf[this.type])(manifest[this.type], context) 
 
     private[activate] def deleteWithoutInitilize = {
         baseVar.destroyWithoutInitilize
