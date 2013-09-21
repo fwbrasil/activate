@@ -174,7 +174,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         }
 
     private def loadList(resultSet: ResultSet, i: Int, connection: Connection, value: ListStorageValue) = {
-        val split = resultSet.getString(i).split('|')
+        val split = Option(resultSet.getString(i)).getOrElse("0").split('|')
         val notEmptyFlag = split.head
         val listOption =
             if (notEmptyFlag != "1")

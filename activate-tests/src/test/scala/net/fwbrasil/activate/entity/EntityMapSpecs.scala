@@ -21,13 +21,61 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        "update entity" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val entity = newFullActivateTestEntity
+                        val map = new EntityMap[ActivateTestEntity](entity)
+                        map.put(_.intValue)(emptyIntValue)
+                        map.updateEntity(entity)
+                        entity.intValue === emptyIntValue
+                    }
+                })
+        }
         "initialize based on an entity and create an entity" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    step {  
+                    val entityId = 
+                        step {
                         val map = new EntityMap[ActivateTestEntity](newFullActivateTestEntity)
-                        validateFullTestEntity(map.createEntity)
+                        map.createEntity.id
+                    }
+                    step {
+                        validateFullTestEntity(entity(entityId))
+                    }
+                })
+        }
+        "create entity with partial values" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId = 
+                        step {
+                        val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
+                        		map.createEntity.id
+                        }
+                    step {
+                        entity(entityId).intValue === fullIntValue
+                    }
+                })
+        }
+        "update entity with partial values" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId = 
+                        step {
+                        newEmptyActivateTestEntity.id
+                    }
+                    step {
+                        val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
+                        map.updateEntity(entity(entityId))
+                    }
+                    step {
+                        entity(entityId).intValue === fullIntValue
                     }
                 })
         }
@@ -35,7 +83,7 @@ class EntityMapSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    step {  
+                    step {
                         val map = new EntityMap[ActivateTestEntity]()
                         map.put(_.intValue)(fullIntValue)
                         map(_.intValue) === fullIntValue
@@ -46,26 +94,18 @@ class EntityMapSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    step {  
+                    step {
                         val map = new EntityMap[ActivateTestEntity]()
                         map.put(_.optionValue)(fullOptionValue)
                         map(_.optionValue) === fullOptionValue
                     }
                 })
         }
-        "update entity" in {
-            activateTest(
-                (step: StepExecutor) => {
-                    import step.ctx._
-                    step {  
-                        val entity = newFullActivateTestEntity
-                        val map = new EntityMap[ActivateTestEntity](entity)
-                        map.put(_.intValue)(emptyIntValue)
-                        map.updateEntity(entity)
-                        entity.intValue === emptyIntValue
-                    }
-                })
-        }
+    }
+    
+    private def entity(id: String)(implicit ctx: ActivateTestContext) = {
+        import ctx._
+        byId[ActivateTestEntity](id).get
     }
 
 }

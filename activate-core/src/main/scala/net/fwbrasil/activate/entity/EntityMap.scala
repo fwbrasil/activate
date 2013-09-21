@@ -58,15 +58,13 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
     def updateEntity(entity: E) = {
         try {
             EntityValidation.setThreadOptions(Set())
-            val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[E])
-            val metadatasMap =
-                entityMetadata.propertiesMetadata
-                    .groupBy(_.name)
-                    .mapValues(_.head)
             for ((property, value) <- values) {
                 val ref = entity.varNamed(property)
-                val propertyMetadata = metadatasMap(property)
-                if (propertyMetadata.isOption)
+                if(ref == null)
+                    throw new NullPointerException(s"Invalid property name $property for class ${m.runtimeClass}.")
+                if(ref.valueClass.isPrimitive && value == null)
+                    throw new NullPointerException(s"Cant set null to a primitive property $property for class ${m.runtimeClass}.")
+                if (ref.isOptionalValue)
                     ref.put(value.asInstanceOf[Option[_]])
                 else
                     ref.putValue(value)

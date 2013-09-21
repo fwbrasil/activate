@@ -39,12 +39,19 @@ case class CustomCache[E <: Entity: Manifest](
             val transaction = new Transaction
             try
                 ctx.transactional(transaction) {
-                    condition(entity)
+                    tryCondition(entity)
                 }
             finally
                 transaction.rollback
         } else
-            condition(entity)
+            tryCondition(entity)
+
+    private def tryCondition(entity: E) =
+        try condition(entity)
+        catch {
+            case e: Throwable =>
+                false
+        }
 
     private def cacheBuilder = {
         var builder = cacheType.cacheBuilder
