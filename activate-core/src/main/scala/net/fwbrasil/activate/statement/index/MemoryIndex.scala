@@ -30,7 +30,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     private val invertedIndex = new HashMap[String, T]()
     val entityClass = erasureOf[E]
 
-    private val lazyInit = unsafeLazy(reload)
+    private var lazyInit = unsafeLazy(reload)
 
     def get(key: T) =
         synchronized {
@@ -82,9 +82,14 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             }
         }
 
-    private[index] def reload = {
-        info(s"Reloading index $name")
+    private[index] def unload = {
         index.clear
+        invertedIndex.clear
+        lazyInit = unsafeLazy(reload)
+    }
+
+    private[index] def reload: Unit = {
+        info(s"Reloading index $name")
         transactional {
             val ids =
                 query {
@@ -147,7 +152,7 @@ trait MemoryIndexContext {
         }
     }
 
-    private[activate] def reloadMemoryIndexes =
-        memoryIndexes.foreach(_.reload)
+    private[activate] def unloadMemoryIndexes =
+        memoryIndexes.foreach(_.unload)
 
 } 

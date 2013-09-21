@@ -6,6 +6,7 @@ object UnsafeLazy {
 
     case class UnsafeLazyItem[T](f: () => T) {
         private var item: T = _
+        def initialized = item != null
         def get = {
             if (item == null)
                 item = f() 

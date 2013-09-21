@@ -73,7 +73,7 @@ trait ActivateContext
             clearCachedQueries
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
-            reloadMemoryIndexes
+            unloadMemoryIndexes
         }
 
     def currentTransaction =
