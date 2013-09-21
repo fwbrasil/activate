@@ -26,7 +26,7 @@ import net.fwbrasil.activate.util.CollectionUtil
 import net.fwbrasil.activate.migration.MigrationContext
 import net.fwbrasil.activate.util.Reflection
 import java.util.concurrent.ConcurrentHashMap
-import net.fwbrasil.activate.statement.index.MemoryIndexContext
+import net.fwbrasil.activate.index.MemoryIndexContext
 
 trait ActivateContext
         extends EntityContext

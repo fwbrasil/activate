@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.statement.index
+package net.fwbrasil.activate.index
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
@@ -106,7 +106,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 trait MemoryIndexContext {
     this: ActivateContext =>
 
-    type MemoryIndex[E <: Entity, T] = net.fwbrasil.activate.statement.index.MemoryIndex[E, T]
+    type MemoryIndex[E <: Entity, T] = net.fwbrasil.activate.index.MemoryIndex[E, T]
 
     private val memoryIndexes = new ListBuffer[MemoryIndex[_, _]]()
 
