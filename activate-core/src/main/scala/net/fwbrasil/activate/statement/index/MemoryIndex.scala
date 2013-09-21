@@ -18,6 +18,7 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.HashMap
+import scala.collection.JavaConversions._
 
 case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     name: String, keyProducer: E => T, context: ActivateContext)
@@ -31,17 +32,18 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 
     private val lazyInit = unsafeLazy(reload)
 
-    def get(key: T, considerDirtyEntities: Boolean = true) =
+    def get(key: T) =
         synchronized {
-            context.transactionManager.getRequiredActiveTransaction
             lazyInit.get
+            val transaction = context.transactionManager.getRequiredActiveTransaction
+            val dirtyEntities =
+                transaction.refsSnapshot.collect {
+                    case (ref: Var[_], snapshot) if (snapshot.isWrite && ref.outerEntityClass == entityClass) =>
+                        ref.outerEntity.asInstanceOf[E]
+                }
             val fromLiveCache =
-                if (considerDirtyEntities)
-                    context.liveCache.fromCache(entityClass)
-                        .filter(e => e.isDirty && keyProducer(e) == key)
-                        .map(_.id)
-                else
-                    List()
+                dirtyEntities.filter(e => keyProducer(e) == key)
+                    .map(_.id)
             val ids =
                 index.get(key)
                     .map(_ ++ fromLiveCache)
