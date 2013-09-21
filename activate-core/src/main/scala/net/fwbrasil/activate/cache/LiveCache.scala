@@ -121,23 +121,10 @@ class LiveCache(
         entity
     }
 
-    def fromCache[E <: Entity](entityClass: Class[E], onlyDirtyEntities: Boolean = false) = {
-        if (onlyDirtyEntities)
-            dirtyEntitiesFromTransaction[E](entityClass)
-        else {
-            import scala.collection.JavaConversions._
-            val map = entityInstacesMap(entityClass)
-            map.values.toList.filter(_.isInitialized)
-        }
-    }
-
-    def dirtyEntitiesFromTransaction[E <: Entity](entityClass: Class[E]) = {
+    def fromCache[E <: Entity](entityClass: Class[E]) = {
         import scala.collection.JavaConversions._
-        val transaction = context.transactionManager.getRequiredActiveTransaction
-        transaction.refsSnapshot.collect {
-            case (ref: Var[_], snapshot) if (snapshot.isWrite && ref.outerEntityClass == entityClass) =>
-                ref.outerEntity.asInstanceOf[E]
-        }.toSeq.distinct
+        val map = entityInstacesMap(entityClass)
+        map.values.toList.filter(_.isInitialized)
     }
 
     def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[String, E] =
@@ -155,12 +142,26 @@ class LiveCache(
     }
 
     def entitiesFromCache[S](query: Query[S]) = {
+        val entities =
+            entitySourceInstancesCombined(query.from)
         val filteredWithDeletedEntities =
-            entitySourceInstancesCombined(query.from, onlyDirtyEntities = !storageFor(query).isMemoryStorage)
+            if (storageFor(query).isMemoryStorage)
+                entities
+            else
+                entities.filter(_.find(_.isDirty).isDefined)
         val filteredWithoutDeletedEntities =
             filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
         val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
         (rows, filteredWithDeletedEntities)
+    }
+
+    def dirtyEntitiesFromTransaction[E <: Entity](entityClass: Class[E]) = {
+        import scala.collection.JavaConversions._
+        val transaction = context.transactionManager.getRequiredActiveTransaction
+        transaction.refsSnapshot.collect {
+            case (ref: Var[_], snapshot) if (snapshot.isWrite && entityClass.isAssignableFrom(ref.outerEntityClass)) =>
+                ref.outerEntity.asInstanceOf[E]
+        }.toSeq.distinct
     }
 
     private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
@@ -519,15 +520,20 @@ class LiveCache(
             ref.getValue).asInstanceOf[T]
     }
 
-    def entitySourceInstancesCombined(from: From, onlyDirtyEntities: Boolean = false) = {
-        for (entitySource <- from.entitySources if(!storageFor(entitySource.entityClass).isMemoryStorage)) 
-            fromCache(entitySource.entityClass, onlyDirtyEntities = true).foreach(_.initializeGraph)
-        CollectionUtil.combine(entitySourceInstances(onlyDirtyEntities, from.entitySources: _*))
+    def entitySourceInstancesCombined(from: From) = {
+        for (entitySource <- from.entitySources) {
+            val entities = fromCache(entitySource.entityClass)
+            for (entity <- entities)
+                if ((!entity.isPersisted || entity.isDirty) &&
+                    !storageFor(entity.niceClass).isMemoryStorage)
+                    entity.initializeGraph
+        }
+        CollectionUtil.combine(entitySourceInstances(from.entitySources: _*))
     }
 
-    def entitySourceInstances(onlyDirtyEntities: Boolean, entitySources: EntitySource*) =
+    def entitySourceInstances(entitySources: EntitySource*) =
         for (entitySource <- entitySources)
-            yield fromCache(entitySource.entityClass, onlyDirtyEntities)
+            yield fromCache(entitySource.entityClass)
 
     private def loadRowFromDatabase(entity: Entity) = {
         val query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>

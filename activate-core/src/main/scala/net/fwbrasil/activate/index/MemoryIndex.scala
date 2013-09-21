@@ -106,8 +106,6 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 trait MemoryIndexContext {
     this: ActivateContext =>
 
-    type MemoryIndex[E <: Entity, T] = net.fwbrasil.activate.index.MemoryIndex[E, T]
-
     private val memoryIndexes = new ListBuffer[MemoryIndex[_, _]]()
 
     protected class MemoryIndexProducer[E <: Entity: Manifest](name: String) {
