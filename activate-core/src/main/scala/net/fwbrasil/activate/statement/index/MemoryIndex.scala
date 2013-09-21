@@ -35,19 +35,15 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     def get(key: T) =
         synchronized {
             lazyInit.get
-            val transaction = context.transactionManager.getRequiredActiveTransaction
             val dirtyEntities =
-                transaction.refsSnapshot.collect {
-                    case (ref: Var[_], snapshot) if (snapshot.isWrite && ref.outerEntityClass == entityClass) =>
-                        ref.outerEntity.asInstanceOf[E]
-                }
-            val fromLiveCache =
-                dirtyEntities.filter(e => keyProducer(e) == key)
+                context.liveCache
+                    .dirtyEntitiesFromTransaction(entityClass)
+                    .filter(e => keyProducer(e) == key)
                     .map(_.id)
             val ids =
                 index.get(key)
-                    .map(_ ++ fromLiveCache)
-                    .getOrElse(fromLiveCache)
+                    .map(_ ++ dirtyEntities)
+                    .getOrElse(dirtyEntities)
                     .toList
             new LazyList(ids)
         }
