@@ -19,10 +19,12 @@ import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.HashMap
 import scala.collection.JavaConversions._
+import net.fwbrasil.radon.util.Lockable
 
 case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     name: String, keyProducer: E => T, context: ActivateContext)
-        extends Logging {
+        extends Logging
+        with Lockable {
 
     import context._
 
@@ -33,7 +35,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     private var lazyInit = unsafeLazy(reload)
 
     def get(key: T) =
-        synchronized {
+        doWithReadLock {
             lazyInit.get
             val dirtyEntities =
                 context.liveCache
@@ -49,12 +51,10 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
         }
 
     private[index] def deleteEntities(entities: List[Entity]): Unit =
-        synchronized {
-            deleteEntities(entities.map(_.id).toSet)
-        }
+        deleteEntities(entities.map(_.id).toSet)
 
     private[index] def deleteEntities(ids: Set[String]) =
-        synchronized {
+        doWithWriteLock {
             for (id <- ids) {
                 invertedIndex.get(id).map {
                     key =>
@@ -67,9 +67,9 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             }
         }
 
-    private[index] def updateEntities(entities: List[Entity], delete: Boolean = true) =
-        synchronized {
-            if (delete) deleteEntities(entities)
+    private[index] def updateEntities(entities: List[Entity]) =
+        doWithWriteLock {
+            deleteEntities(entities)
             for (entity <- entities) {
                 val key = keyProducer(entity.asInstanceOf[E])
                 val value = index.getOrElseUpdate(key, Set())
@@ -87,16 +87,11 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     private[index] def reload: Unit = {
         info(s"Reloading index $name")
         transactional {
-            val ids =
+            val entities =
                 query {
-                    (e: E) => where() select (e.id)
+                    (e: E) => where() select (e)
                 }.toSet
-            deleteEntities(ids)
-            for (id <- ids) {
-                val entity = context.byId[E](id).get
-                if (entity.isPersisted)
-                    updateEntities(List(entity), false)
-            }
+            updateEntities(entities.filter(_.isPersisted).toList)
         }
         info(s"Index $name loaded")
     }
