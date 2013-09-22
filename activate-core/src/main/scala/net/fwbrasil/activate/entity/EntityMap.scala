@@ -44,37 +44,39 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
     def asyncTryUpdate(id: String)(implicit ctx: TransactionalExecutionContext): Future[Option[E]] =
         context.asyncById[E](id).map(_.map(updateEntity))
 
-    def createEntity = {
-        val entityClass = erasureOf[E]
-        val id = IdVar.generateId(entityClass)
-        val entity = context.liveCache.createLazyEntity(entityClass, id)
-        entity.setInitialized
-        entity.setNotPersisted
-        updateEntity(entity)
-        context.liveCache.toCache(entityClass, entity)
-        entity
-    }
-
-    def updateEntity(entity: E) = {
-        try {
-            EntityValidation.setThreadOptions(Set())
-            for ((property, value) <- values) {
-                val ref = entity.varNamed(property)
-                if(ref == null)
-                    throw new NullPointerException(s"Invalid property name $property for class ${m.runtimeClass}.")
-                if(ref.valueClass.isPrimitive && value == null)
-                    throw new NullPointerException(s"Cant set null to a primitive property $property for class ${m.runtimeClass}.")
-                if (ref.isOptionalValue)
-                    ref.put(value.asInstanceOf[Option[_]])
-                else
-                    ref.putValue(value)
-            }
-        } finally {
-            EntityValidation.setThreadOptions(EntityValidation.getGlobalOptions)
-            entity.validate
+    def createEntity =
+        context.transactional(context.nested) {
+            val entityClass = erasureOf[E]
+            val id = IdVar.generateId(entityClass)
+            val entity = context.liveCache.createLazyEntity(entityClass, id)
+            entity.setInitialized
+            entity.setNotPersisted
+            updateEntity(entity)
+            context.liveCache.toCache(entityClass, entity)
+            entity
         }
-        entity
-    }
+
+    def updateEntity(entity: E) =
+        context.transactional(context.nested) {
+            try {
+                EntityValidation.setThreadOptions(Set())
+                for ((property, value) <- values) {
+                    val ref = entity.varNamed(property)
+                    if (ref == null)
+                        throw new NullPointerException(s"Invalid property name $property for class ${m.runtimeClass}.")
+                    if (ref.valueClass.isPrimitive && value == null)
+                        throw new NullPointerException(s"Cant set null to a primitive property $property for class ${m.runtimeClass}.")
+                    if (ref.isOptionalValue)
+                        ref.put(value.asInstanceOf[Option[_]])
+                    else
+                        ref.putValue(value)
+                }
+            } finally {
+                EntityValidation.setThreadOptions(EntityValidation.getGlobalOptions)
+                entity.validate
+            }
+            entity
+        }
 
 }
 

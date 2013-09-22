@@ -23,6 +23,7 @@ import javax.swing.JOptionPane
 import javax.swing.JFrame
 import javax.swing.JList
 import java.util.prefs.Preferences
+import net.fwbrasil.activate.entity.TestValidationEntity
 
 object runningFlag
 
@@ -227,6 +228,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             try {
                 runMigration
                 def clear = transactional {
+                    all[TestValidationEntity].foreach(_.delete)
                     all[ActivateTestEntity].foreach(_.delete)
                     all[TraitAttribute].foreach(_.delete)
                     all[EntityWithoutAttribute].foreach(_.delete)

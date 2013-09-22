@@ -1,9 +1,11 @@
 package net.fwbrasil.activate.entity
 
+
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
 
@@ -38,11 +40,11 @@ class EntityMapSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val entityId = 
+                    val entityId =
                         step {
-                        val map = new EntityMap[ActivateTestEntity](newFullActivateTestEntity)
-                        map.createEntity.id
-                    }
+                            val map = new EntityMap[ActivateTestEntity](newFullActivateTestEntity)
+                            map.createEntity.id
+                        }
                     step {
                         validateFullTestEntity(entity(entityId))
                     }
@@ -52,10 +54,10 @@ class EntityMapSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val entityId = 
+                    val entityId =
                         step {
-                        val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
-                        		map.createEntity.id
+                            val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
+                            map.createEntity.id
                         }
                     step {
                         entity(entityId).intValue === fullIntValue
@@ -66,10 +68,10 @@ class EntityMapSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val entityId = 
+                    val entityId =
                         step {
-                        newEmptyActivateTestEntity.id
-                    }
+                            newEmptyActivateTestEntity.id
+                        }
                     step {
                         val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
                         map.updateEntity(entity(entityId))
@@ -101,8 +103,41 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        "do not create invalid entities" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val map = new EntityMap[TestValidationEntity]()
+                        map.put(_.string1)("")
+                        map.createEntity must throwA[String1MustNotBeEmpty]
+                    }
+                    step {
+                        all[TestValidationEntity] must beEmpty
+                    }
+                })
+        }
+        "do not update entity to invalid values" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            new TestValidationEntity("a").id
+                        }
+                    def entity = byId[TestValidationEntity](entityId).get
+                    step {
+                        val map = new EntityMap[TestValidationEntity]()
+                        map.put(_.string1)("")
+                        map.updateEntity(entity) must throwA[String1MustNotBeEmpty]
+                    }
+                    step {
+                        all[TestValidationEntity].onlyOne.string1 === "a"
+                    }
+                })
+        }
     }
-    
+
     private def entity(id: String)(implicit ctx: ActivateTestContext) = {
         import ctx._
         byId[ActivateTestEntity](id).get
