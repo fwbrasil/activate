@@ -34,9 +34,9 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 
     private var lazyInit = unsafeLazy(reload)
 
-    def get(key: T) =
+    def get(key: T) = {
+        lazyInit.get
         doWithReadLock {
-            lazyInit.get
             val dirtyEntities =
                 context.liveCache
                     .dirtyEntitiesFromTransaction(entityClass)
@@ -49,6 +49,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
                     .toList
             new LazyList(ids)
         }
+    }
 
     private[index] def deleteEntities(entities: List[Entity]): Unit =
         deleteEntities(entities.map(_.id).toSet)
@@ -67,9 +68,9 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             }
         }
 
-    private[index] def updateEntities(entities: List[Entity]) =
+    private[index] def updateEntities(entities: List[Entity]) = {
+        deleteEntities(entities)
         doWithWriteLock {
-            deleteEntities(entities)
             for (entity <- entities) {
                 val key = keyProducer(entity.asInstanceOf[E])
                 val value = index.getOrElseUpdate(key, Set())
@@ -77,6 +78,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
                 invertedIndex.put(entity.id, key)
             }
         }
+    }
 
     private[index] def unload = {
         index.clear
