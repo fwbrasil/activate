@@ -39,8 +39,8 @@ trait Entity extends Serializable with EntityValidation {
         // Implementation injected by EntityEnhancer
     }
 
-    private[activate] def putVar(name: String, ref: Var[Any]) =
-        _varsMap.put(name, ref)
+    private[activate] def putVar(name: String, ref: Var[Any]) = 
+        _varsMap.put(name.split('$').last, ref)
 
     def vars = {
         if (_vars == null) {
