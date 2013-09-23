@@ -603,10 +603,35 @@ class QuerySpecs extends ActivateTest {
                     step {
                         select[TraitAttribute1].where() === expected
                         query {
-                            (e: TraitAttribute1) => where() select(e)
+                            (e: TraitAttribute1) => where() select (e)
                         } === expected
                     }
                 })
+        }
+
+        "support dynamic queries" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    def testQuery(asc: Boolean) =
+                        dynamicQuery {
+                            (e: ActivateTestEntity) =>
+                                where() select (e.intValue) orderBy {
+                                    if (asc)
+                                        e.intValue asc
+                                    else
+                                        e.intValue desc
+                                }
+                        }
+                        step {
+                            newFullActivateTestEntity
+                        }
+                    step {
+                        testQuery(false) === List(fullIntValue, emptyIntValue)
+                        testQuery(true) === List(emptyIntValue, fullIntValue)
+                    }
+                })
+
         }
 
     }

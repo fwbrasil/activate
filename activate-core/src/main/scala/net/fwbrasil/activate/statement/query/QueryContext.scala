@@ -60,6 +60,9 @@ trait QueryContext extends StatementContext
             (query: Query[S]) => query.execute,
             manifest[E1])
 
+    def dynamicQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
+        produceQuery[S, E1, Query[S]](f).execute
+
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2) => Q): Q =
         runAndClearFrom {
             val e1 = mockEntity[E1]
@@ -80,6 +83,9 @@ trait QueryContext extends StatementContext
             (query: Query[S]) => query.execute,
             manifest[E1],
             manifest[E2])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, Query[S]](f).execute
 
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3) => Q): Q =
         runAndClearFrom {
@@ -102,6 +108,9 @@ trait QueryContext extends StatementContext
             manifest[E1],
             manifest[E2],
             manifest[E3])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, E3, Query[S]](f).execute
 
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4) => Q): Q =
         runAndClearFrom {
@@ -126,6 +135,9 @@ trait QueryContext extends StatementContext
             manifest[E2],
             manifest[E3],
             manifest[E4])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, E3, E4, Query[S]](f).execute
 
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5) => Q): Q =
         runAndClearFrom {
@@ -152,6 +164,9 @@ trait QueryContext extends StatementContext
             manifest[E3],
             manifest[E4],
             manifest[E5])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f).execute
 
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6) => Q): Q =
         runAndClearFrom {
@@ -180,6 +195,9 @@ trait QueryContext extends StatementContext
             manifest[E4],
             manifest[E5],
             manifest[E6])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f).execute
 
     def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6, E7) => Q): Q =
         runAndClearFrom {
@@ -210,6 +228,9 @@ trait QueryContext extends StatementContext
             manifest[E5],
             manifest[E6],
             manifest[E7])
+
+    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
+        produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).execute
 
     private def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
         produceQuery[E, E, Query[E]] { (entity: E) =>
@@ -315,7 +336,7 @@ trait QueryContext extends StatementContext
 
     def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).executeAsync
-        
+
     private def treatResults[S](query: Query[S], results: List[List[Any]]): List[S] = {
         val orderedResuts =
             query.orderByClause
