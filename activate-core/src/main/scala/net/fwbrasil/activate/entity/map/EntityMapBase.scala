@@ -59,8 +59,8 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
             val values =
                 constructor.parameters.map {
                     parameter =>
-                        (parameter.name, 
-                                this.values.get(parameter.name)
+                        (parameter.name,
+                            this.values.get(parameter.name)
                             .orElse(parameter.defaultValueOption).get)
                 }
             val entity = constructor.invoke(values.map(_._2): _*)
@@ -77,8 +77,11 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
             context.liveCache.toCache(entityClass, entity)
             entity
         }
-    
-    def updateEntity(entity: E, values: Map[String, Any] = values) =
+
+    def updateEntity(entity: E): E =
+        updateEntity(entity, values)
+
+    def updateEntity(entity: E, values: Map[String, Any]) =
         context.transactional(context.nested) {
             try {
                 EntityValidation.setThreadOptions(Set())

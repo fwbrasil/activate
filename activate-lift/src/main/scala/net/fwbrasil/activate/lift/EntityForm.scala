@@ -23,7 +23,7 @@ class EntityForm[E <: Entity] private[activate] (values: Map[String, Any])(impli
             super.createEntity
         }
 
-    override def updateEntity(entity: E, values: Map[String, Any] = this.values) =
+    override def updateEntity(entity: E, values: Map[String, Any]) =
         EntityForm.translateInvariantsExceptions {
             super.updateEntity(entity, values)
         }
