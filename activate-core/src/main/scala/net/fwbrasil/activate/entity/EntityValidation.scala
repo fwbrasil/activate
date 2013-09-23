@@ -75,13 +75,10 @@ trait EntityValidation {
     @transient
     private var _invariants: List[(String, Invariant[_])] = null
 
-    protected implicit class on(funcs: (this.type => Any)*) {
-        val properties =
-            (for (func <- funcs) yield {
-                func(StatementMocks.mockEntity(EntityValidation.this.getClass.asInstanceOf[Class[EntityValidation.this.type]]))
-                StatementMocks.lastFakeVarCalled.get.name
-            }).toList
+    protected implicit class onInvariants(on: On) {
 
+        private def properties = on.vars.map(_.name).toList
+        
         def invariant(f: => Boolean) =
             Invariant[EntityValidation.this.type](() => f, () => List(), () => properties)
 

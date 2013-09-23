@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.statement
 
+import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.Reflection.materializeJodaInstant
 import net.fwbrasil.activate.util.Reflection.set
@@ -22,6 +23,11 @@ import net.fwbrasil.activate.entity.EntityPropertyMetadata
 object StatementMocks {
 
     val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
+    
+    def funcToVarName[E <: Entity: Manifest](func: E => _) = {
+        func(StatementMocks.mockEntity(erasureOf[E]))
+        StatementMocks.lastFakeVarCalled.get.name
+    }
 
     var _lastFakeVarCalled =
         new ThreadLocal[Stack[FakeVar[_]]] {

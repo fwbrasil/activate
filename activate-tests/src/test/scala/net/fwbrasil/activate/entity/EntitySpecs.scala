@@ -3,6 +3,7 @@ package net.fwbrasil.activate.entity
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.OptimisticOfflineLocking
 import net.fwbrasil.activate.mysqlContext
@@ -199,6 +200,25 @@ class EntitySpecs extends ActivateTest {
                     step {
                         byId[ActivateTestEntity](entityId).get.delete
                         select[ActivateTestEntity].where(_.intValue :== emptyIntValue) must beEmpty
+                    }
+                })
+        }
+
+        "return a field original value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    if (!step.isInstanceOf[OneTransaction]) {
+                        step {
+                            newEmptyActivateTestEntity
+                        }
+                        step {
+                            val entity = all[ActivateTestEntity].onlyOne
+                            entity.intValue === emptyIntValue
+                            entity.intValue = fullIntValue
+                            entity.intValue === fullIntValue
+                            entity.originalValue(_.intValue) === emptyIntValue
+                        }
                     }
                 })
         }

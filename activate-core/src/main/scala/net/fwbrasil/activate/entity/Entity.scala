@@ -20,8 +20,9 @@ import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.cache.CacheType
 import net.fwbrasil.activate.cache.CustomCache
 import net.fwbrasil.activate.entity.map.EntityMap
+import net.fwbrasil.activate.statement.StatementMocks
 
-trait Entity extends Serializable with EntityValidation {
+trait Entity extends Serializable with EntityValidation with EntityListeners {
 
     @transient
     private var _baseVar: Var[Any] = null
@@ -40,7 +41,7 @@ trait Entity extends Serializable with EntityValidation {
         // Implementation injected by EntityEnhancer
     }
 
-    private[activate] def putVar(name: String, ref: Var[Any]) = 
+    private[activate] def putVar(name: String, ref: Var[Any]) =
         _varsMap.put(name.split('$').last, ref)
 
     def vars = {
@@ -110,7 +111,7 @@ trait Entity extends Serializable with EntityValidation {
         }
 
     def toMap =
-        new EntityMap[this.type](this.asInstanceOf[this.type])(manifest[this.type], context) 
+        new EntityMap[this.type](this.asInstanceOf[this.type])(manifest[this.type], context)
 
     private[activate] def deleteWithoutInitilize = {
         baseVar.destroyWithoutInitilize
@@ -209,7 +210,13 @@ trait Entity extends Serializable with EntityValidation {
 
     def varNamed(name: String) =
         varsMap.get(name)
-
+        
+    def originalValue[T](f: this.type => T) = {
+        val name = StatementMocks.funcToVarName(f)
+        val ref = varNamed(name)
+        ref.getOriginalValue.getOrElse(null)
+    }
+    
     private[activate] def addToLiveCache =
         context.liveCache.toCache(this)
 
