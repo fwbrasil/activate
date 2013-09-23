@@ -23,7 +23,7 @@ import net.fwbrasil.activate.entity.EntityMetadata
 import scala.annotation.implicitNotFound
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.Future
-import net.fwbrasil.activate.entity.EntityMap
+import net.fwbrasil.activate.entity.map.EntityMap
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class EntityForm[T <: Entity](
@@ -75,7 +75,7 @@ object EntityForm {
 }
 
 class EntityData[T <: Entity](val data: List[(String, Any)])(
-    implicit val context: ActivateContext,
+    override implicit val context: ActivateContext,
     m: Manifest[T],
     entityMetadata: EntityMetadata)
         extends EntityMap[T](data.toMap)(m, context) with Serializable {
