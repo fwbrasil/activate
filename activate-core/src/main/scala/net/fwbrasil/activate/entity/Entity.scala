@@ -19,6 +19,7 @@ import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.cache.CacheType
 import net.fwbrasil.activate.cache.CustomCache
+import net.fwbrasil.activate.entity.map.EntityMap
 
 trait Entity extends Serializable with EntityValidation {
 
@@ -281,7 +282,8 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type Entity = net.fwbrasil.activate.entity.Entity
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
-    type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.EntityMap[E]
+    type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.EntityMap[E]
+    type MutableEntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
 
     protected def liveCacheType = CacheType.softReferences

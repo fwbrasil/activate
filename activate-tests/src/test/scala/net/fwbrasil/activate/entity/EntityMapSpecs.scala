@@ -1,6 +1,5 @@
 package net.fwbrasil.activate.entity
 
-
 import org.specs2.mutable._
 import org.junit.runner._
 import org.specs2.runner._
@@ -8,6 +7,7 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
+import java.util.NoSuchElementException
 
 @RunWith(classOf[JUnitRunner])
 class EntityMapSpecs extends ActivateTest {
@@ -29,8 +29,8 @@ class EntityMapSpecs extends ActivateTest {
                     import step.ctx._
                     step {
                         val entity = newFullActivateTestEntity
-                        val map = new EntityMap[ActivateTestEntity](entity)
-                        map.put(_.intValue)(emptyIntValue)
+                        var map = new EntityMap[ActivateTestEntity](entity)
+                        map = map.put(_.intValue)(emptyIntValue)
                         map.updateEntity(entity)
                         entity.intValue === emptyIntValue
                     }
@@ -86,8 +86,8 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = new EntityMap[ActivateTestEntity]()
-                        map.put(_.intValue)(fullIntValue)
+                        var map = new EntityMap[ActivateTestEntity]()
+                        map = map.put(_.intValue)(fullIntValue)
                         map(_.intValue) === fullIntValue
                     }
                 })
@@ -97,8 +97,8 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = new EntityMap[ActivateTestEntity]()
-                        map.put(_.optionValue)(fullOptionValue)
+                        var map = new EntityMap[ActivateTestEntity]()
+                        map = map.put(_.optionValue)(fullOptionValue)
                         map(_.optionValue) === fullOptionValue
                     }
                 })
@@ -108,8 +108,8 @@ class EntityMapSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        val map = new EntityMap[TestValidationEntity]()
-                        map.put(_.string1)("")
+                        var map = new EntityMap[TestValidationEntity]()
+                        map = map.put(_.string1)("")
                         map.createEntity must throwA[String1MustNotBeEmpty]
                     }
                     step {
@@ -127,8 +127,8 @@ class EntityMapSpecs extends ActivateTest {
                         }
                     def entity = byId[TestValidationEntity](entityId).get
                     step {
-                        val map = new EntityMap[TestValidationEntity]()
-                        map.put(_.string1)("")
+                        var map = new EntityMap[TestValidationEntity]()
+                        map = map.put(_.string1)("")
                         map.updateEntity(entity) must throwA[String1MustNotBeEmpty]
                     }
                     step {
@@ -136,6 +136,116 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        "throw an exception if hasn't a value and calls apply" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val map = new EntityMap[TestValidationEntity]()
+                        map(_.string1) must throwA[NoSuchElementException]
+                    }
+                })
+        }
+        "be immutable by default" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val map = new EntityMap[TestValidationEntity]()
+                        map.put(_.string1)("")
+                        map.get(_.string1) must beNone
+                    }
+                })
+        }
+        "have a mutable version" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val s = "s"
+                        val map = new MutableEntityMap[TestValidationEntity]()
+                        map.put(_.string1)(s)
+                        map(_.string1) === s
+                    }
+                })
+        }
+        "implement toString" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        val map = new EntityMap[ActivateTestEntity](_.intValue -> fullIntValue)
+                        map.put(_.stringValue)(fullStringValue)
+                        map.toString == s"EntityMap(intValue -> $fullIntValue, stringValue -> $fullStringValue)"
+                    }
+                })
+        }
+        "create entity using the constructor" in {
+
+            "with all parameters" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            val map = new EntityMap[TestValidationEntity](_.string1 -> "a", _.option -> Some(1))
+                            map.createEntityUsingConstructor.id
+                        }
+                        step {
+                            val entity = all[TestValidationEntity].onlyOne
+                            entity.string1 === "a"
+                            entity.option === Some(1)
+                        }
+                    })
+            }
+
+            "using default values" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            val map = new EntityMap[TestValidationEntity](_.string1 -> "a")
+                            map.createEntityUsingConstructor.id
+                        }
+                        step {
+                            val entity = all[TestValidationEntity].onlyOne
+                            entity.string1 === "a"
+                            entity.option === None
+                        }
+                    })
+            }
+
+            "can't find a constructor" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            val map = new EntityMap[TestValidationEntity]()
+                            map.createEntityUsingConstructor must throwA[IllegalStateException]
+                        }
+                        step {
+                            all[TestValidationEntity] must beEmpty
+                        }
+                    })
+            }
+
+            "update values not used in the constructor" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            val map = new EntityMap[TestValidationEntity](_.string1 -> "a", _.string2 -> "b")
+                            map.createEntityUsingConstructor.id
+                        }
+                        step {
+                            val entity = all[TestValidationEntity].onlyOne
+                            entity.string1 === "a"
+                            entity.string2 === "b"
+                            entity.option === None
+                        }
+                    })
+            }
+        }
+
     }
 
     private def entity(id: String)(implicit ctx: ActivateTestContext) = {

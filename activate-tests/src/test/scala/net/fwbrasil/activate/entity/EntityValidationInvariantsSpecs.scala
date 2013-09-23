@@ -12,7 +12,7 @@ import scala.util.Failure
 
 class String1MustNotBeEmpty extends Exception
 
-class TestValidationEntity(var string1: String) extends Entity {
+class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends Entity {
     var string2 = "s2"
     def string1MustNotBeEmpty =
         invariant(new String1MustNotBeEmpty) {

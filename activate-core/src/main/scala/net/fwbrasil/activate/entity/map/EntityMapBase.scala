@@ -1,39 +1,41 @@
-package net.fwbrasil.activate.entity
+package net.fwbrasil.activate.entity.map
 
-import scala.language._
-import net.fwbrasil.activate.statement.StatementMocks
-import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.util.ManifestUtil._
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import net.fwbrasil.activate.entity.IdVar
 import scala.concurrent.Future
+import net.fwbrasil.activate.entity.EntityValidation
+import net.fwbrasil.activate.statement.StatementMocks
+import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.smirror.SConstructor
+import net.fwbrasil.smirror.SClass
 
-class EntityMap[E <: Entity] private[activate] (private var values: Map[String, Any])(implicit m: Manifest[E], context: ActivateContext) {
+trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
-    import EntityMap._
+    import EntityMapBase._
 
-    def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
-        this(entity.vars.map(ref =>
-            (ref.name, EntityMap.varToValue(ref))).toMap)
-
-    def this(init: ((E) => (_, _))*)(implicit m: Manifest[E], context: ActivateContext) =
-        this(init.map(EntityMap.keyAndValueFor[E](_)(m)).toMap)
+    implicit val m: Manifest[E]
+    implicit val context: ActivateContext
 
     def get[V](f: E => V) =
         values.get(keyFor(f)).asInstanceOf[Option[V]]
 
-    def getOrElse[V](f: E => V, default: V) =
+    def getOrElse[V](f: E => V)(default: V) =
         values.getOrElse(keyFor(f), default).asInstanceOf[V]
 
     def apply[V](f: E => V) =
         values(keyFor(f)).asInstanceOf[V]
 
-    def put[V, V1 <: V](f: E => V)(value: V1) =
-        values += keyFor(f) -> value
+    def put[V, V1 <: V](f: E => V)(value: V1): T
 
     def updateEntity(id: String): E = tryUpdate(id).get
 
     def tryUpdate(id: String): Option[E] =
-        context.byId[E](id).map(updateEntity)
+        context.byId[E](id).map(updateEntity(_))
 
     def asyncCreateEntity(implicit ctx: TransactionalExecutionContext) =
         Future(createEntity)
@@ -42,11 +44,31 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
         asyncTryUpdate(id).map(_.get)
 
     def asyncTryUpdate(id: String)(implicit ctx: TransactionalExecutionContext): Future[Option[E]] =
-        context.asyncById[E](id).map(_.map(updateEntity))
+        context.asyncById[E](id).map(_.map(updateEntity(_)))
+
+    def createEntityUsingConstructor =
+        context.transactional(context.nested) {
+            val constructors = entityMetadata.sClass.asInstanceOf[SClass[E]].constructors
+            val availableProperties = this.values.keys.toSet
+            val selected =
+                constructors.filter(_.parameters.forall {
+                    parameter =>
+                        parameter.hasDefaultValue || availableProperties.contains(parameter.name)
+                })
+            val constructor = selected.onlyOne("More than one constructor found.")
+            val values =
+                constructor.parameters.map {
+                    parameter =>
+                        (parameter.name, 
+                                this.values.get(parameter.name)
+                            .orElse(parameter.defaultValueOption).get)
+                }
+            val entity = constructor.invoke(values.map(_._2): _*)
+            updateEntity(entity, this.values -- values.map(_._1))
+        }
 
     def createEntity =
         context.transactional(context.nested) {
-            val entityClass = erasureOf[E]
             val id = IdVar.generateId(entityClass)
             val entity = context.liveCache.createLazyEntity(entityClass, id)
             entity.setInitialized
@@ -55,8 +77,8 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
             context.liveCache.toCache(entityClass, entity)
             entity
         }
-
-    def updateEntity(entity: E) =
+    
+    def updateEntity(entity: E, values: Map[String, Any] = values) =
         context.transactional(context.nested) {
             try {
                 EntityValidation.setThreadOptions(Set())
@@ -78,9 +100,16 @@ class EntityMap[E <: Entity] private[activate] (private var values: Map[String, 
             entity
         }
 
+    def values: Map[String, Any]
+
+    override def toString = getClass.getSimpleName + "(" + values.mkString(",") + ")"
+
+    private val entityClass = erasureOf[E]
+    private val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+
 }
 
-object EntityMap {
+object EntityMapBase {
 
     private[activate] def varToValue(ref: Var[Any]) =
         if (ref.isOptionalValue)
@@ -105,4 +134,3 @@ object EntityMap {
     }
 
 }
-
