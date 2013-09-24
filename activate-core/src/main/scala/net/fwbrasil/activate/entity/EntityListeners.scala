@@ -11,6 +11,13 @@ trait EntityListeners {
 
     @transient
     private var listeners: List[Any] = null
+    
+    protected def beforeConstruct = {}
+    protected def afterConstruct = {}
+    protected def beforeInitialize = {}
+    protected def afterInitialize = {}
+    protected def beforeDelete = {}
+    protected def afterDelete = {}
 
     protected class On(val vars: List[Var[Any]]) {
         def change(f: => Unit): RefListener[_] = {

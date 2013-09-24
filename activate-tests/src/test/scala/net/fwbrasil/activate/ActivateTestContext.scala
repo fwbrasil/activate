@@ -686,10 +686,11 @@ trait ActivateTestContext
         val container: Box,
         var num: Int) extends Entity
 
-        object ActivateTestEntity {
+    object ActivateTestEntity {
         var onModifyFloatCallback = (oldValue: Float, newValue: Float) => {}
+        var lifecycleCallback = (event: String) => {}
     }
-        
+
     class ActivateTestEntity(
             var intValue: Int,
             var longValue: Long,
@@ -744,6 +745,14 @@ trait ActivateTestContext
             emptyTupleOptionValue,
             emptyStringValue)
 
+        ActivateTestEntity.lifecycleCallback("insideConstructor")
+
+        override protected def beforeConstruct = ActivateTestEntity.lifecycleCallback("beforeConstruct")
+        override protected def afterConstruct = ActivateTestEntity.lifecycleCallback("afterConstruct")
+        override protected def beforeInitialize = ActivateTestEntity.lifecycleCallback("beforeInitialize")
+        override protected def afterInitialize = ActivateTestEntity.lifecycleCallback("afterInitialize")
+        override protected def beforeDelete = ActivateTestEntity.lifecycleCallback("beforeDelete")
+        override protected def afterDelete = ActivateTestEntity.lifecycleCallback("afterDelete")
 
         def onModifyFloat =
             on(_.floatValue).change {

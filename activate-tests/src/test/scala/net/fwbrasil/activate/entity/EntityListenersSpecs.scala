@@ -8,12 +8,42 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
 import java.util.NoSuchElementException
+import net.fwbrasil.activate.memoryContext
 
 @RunWith(classOf[JUnitRunner])
 class EntityListenersSpecs extends ActivateTest {
 
-    "Entity listeners" should {
-        "be notified" in {
+    "Listeners" should {
+
+        "be notified of lifecycle events" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    if (step.ctx != memoryContext &&
+                        (step.isInstanceOf[MultipleTransactionsWithReinitialize] ||
+                            step.isInstanceOf[MultipleTransactionsWithReinitializeAndSnapshot])) {
+                        var events = List[String]()
+                        ActivateTestEntity.lifecycleCallback = (event: String) => events ++= List(event)
+                        step {
+                            newEmptyActivateTestEntity
+                        }
+                        step {
+                            val entity = all[ActivateTestEntity].onlyOne
+                            entity.intValue
+                            entity.delete
+                        }
+                        step {
+                            events === List(
+                                "beforeConstruct", "insideConstructor",
+                                "afterConstruct", "beforeInitialize",
+                                "afterInitialize", "beforeDelete",
+                                "afterDelete")
+                        }
+                    }
+                })
+        }
+
+        "be notified of vars modifications" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
@@ -31,7 +61,7 @@ class EntityListenersSpecs extends ActivateTest {
                     step {
                         ActivateTestEntity.onModifyFloatCallback =
                             (oldValue: Float, newValue: Float) => {
-                                if(called)
+                                if (called)
                                     throw new IllegalStateException("Called twice!")
                                 oldValue === emptyFloatValue
                                 newValue === fullFloatValue

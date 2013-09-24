@@ -252,7 +252,7 @@ object EntityEnhancer extends Logging {
                 }
             })
             if (isPrimaryConstructor) {
-                var replace = "setNotInitialized();\nsetInitializing();\n"
+                var replace = "setNotInitialized();\nsetInitializing();\nif(this.getClass() == " + clazz.getName + ".class) {beforeConstruct();}\n"
                 val initializedFields = fields.map(_.getName)
                 for ((field, optionFlag) <- enhancedFieldsMap) {
                     if (field.getName == "id")
@@ -273,7 +273,7 @@ object EntityEnhancer extends Logging {
                 }
 
                 c.insertBeforeBody(replace)
-                c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {setInitialized();postConstruct();}\n")
+                c.insertAfter("if(this.getClass() == " + clazz.getName + ".class) {setInitialized();postConstruct();afterConstruct();}\n")
             }
         }
     }

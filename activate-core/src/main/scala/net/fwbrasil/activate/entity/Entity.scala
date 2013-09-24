@@ -58,13 +58,13 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         _baseVar
     }
 
-    protected def postConstruct = {
+    private[activate] def postConstruct = {
         buildVarsMap
         validateOnCreate
         addToLiveCache
         initializeListeners
     }
-
+    
     def isDeleted =
         baseVar.isDestroyed
 
@@ -79,9 +79,11 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
     final val id: String = null
 
     def delete = {
+        beforeDelete
         baseVar.destroy
         for (ref <- vars; if (ref != _baseVar))
             ref.destroy
+        afterDelete
     }
 
     def deleteCascade: Unit = {
@@ -157,9 +159,10 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
             if (!initialized)
                 this.synchronized {
                     if (!initialized) {
+                        beforeInitialize
                         context.liveCache.loadFromDatabase(this, withinTransaction = false)
                         initialized = true
-                        postInitialize
+                        afterInitialize
                     }
                 }
             if ((forWrite || OptimisticOfflineLocking.validateReads) &&
@@ -169,8 +172,6 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
                     versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
             }
         }
-
-    protected def postInitialize = {}
 
     private[activate] def uninitialize =
         this.synchronized {
