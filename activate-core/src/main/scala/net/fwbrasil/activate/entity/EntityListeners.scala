@@ -10,7 +10,7 @@ trait EntityListeners {
     this: Entity =>
 
     @transient
-    private lazy val listeners = entityMetadata.listenerMethods.map(_.invoke(this))
+    private var listeners: List[Any] = null
 
     protected class On(val vars: List[Var[Any]]) {
         def change(f: => Unit): RefListener[_] = {
@@ -23,8 +23,8 @@ trait EntityListeners {
         }
     }
     
-    private[activate] def initializeListeners =
-        listeners
+    private[activate] def initializeListeners = 
+        listeners = entityMetadata.listenerMethods.map(_.invoke(this))
 
     protected def onAny =
         new On(vars)

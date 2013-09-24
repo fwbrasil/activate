@@ -9,16 +9,19 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 trait StatementsContext {
     this: ActivateContext =>
 
-    private[activate] def currentTransactionStatements = 
+    private[activate] def currentTransactionStatements =
         transactionManager.getActiveTransaction.map(statementsForTransaction).getOrElse(ListBuffer())
 
     private[activate] def statementsForTransaction(transaction: Transaction) =
-        transaction.attachments.asInstanceOf[ListBuffer[MassModificationStatement]]
+        transaction.attachments.collect {
+            case s: MassModificationStatement =>
+                s
+        }
 
     private[activate] def executeMassModification(statement: MassModificationStatement) =
         for (normalized <- MassModificationStatementNormalizer.normalize[MassModificationStatement](statement)) {
             liveCache.executeMassModification(normalized)
-            currentTransactionStatements += normalized
+            transactionManager.getRequiredActiveTransaction.attachments += normalized
         }
 
 }

@@ -35,7 +35,7 @@ object EntityEnhancer extends Logging {
     val entityClassName = classOf[Entity].getName
     val entityClassFieldPrefix = entityClassName.replace(".", "$")
     val scalaVariablesPrefixes = Array("$outer", "bitmap$init$")
-    val entityValidationFields = Array("invariants", "listener")
+    val entityValidationFields = Array("listeners", "invariants", "listener")
     val transientBitmapFlagName = "bitmap$"
 
     def isEntityClass(clazz: CtClass, classPool: ClassPool): Boolean =
@@ -56,7 +56,7 @@ object EntityEnhancer extends Logging {
         scalaVariablesPrefixes.filter((name: String) => field.getName.startsWith(name)).nonEmpty
 
     def isValidEntityField(field: CtField) =
-        entityValidationFields.filter((name: String) => field.getName == name).nonEmpty
+        entityValidationFields.filter((name: String) => field.getName.split("$").last == name).nonEmpty
 
     def isStatic(field: CtField) =
         Modifier.isStatic(field.getModifiers)

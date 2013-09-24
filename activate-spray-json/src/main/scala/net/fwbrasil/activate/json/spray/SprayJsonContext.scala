@@ -188,6 +188,8 @@ trait SprayJsonContext extends JsonContext {
     entity.setNotPersisted
     updateFromJsonObject(entity, jsValue.asJsObject)
     context.context.liveCache.toCache(entityClass, entity)
+    entity.invariants
+    entity.initializeListeners
     entity
   }
 
