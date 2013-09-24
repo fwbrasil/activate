@@ -64,7 +64,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         addToLiveCache
         initializeListeners
     }
-    
+
     def isDeleted =
         baseVar.isDestroyed
 
@@ -156,15 +156,14 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
     // Cyclic initializing
     private[activate] def initialize(forWrite: Boolean) =
         if (!initializing) {
-            if (!initialized)
-                this.synchronized {
-                    if (!initialized) {
-                        beforeInitialize
-                        context.liveCache.loadFromDatabase(this, withinTransaction = false)
-                        initialized = true
-                        afterInitialize
-                    }
+            this.synchronized {
+                if (!initialized) {
+                    beforeInitialize
+                    context.liveCache.loadFromDatabase(this, withinTransaction = false)
+                    initialized = true
+                    afterInitialize
                 }
+            }
             if ((forWrite || OptimisticOfflineLocking.validateReads) &&
                 OptimisticOfflineLocking.isEnabled && isPersisted) {
                 val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
@@ -212,12 +211,12 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
 
     def varNamed(name: String) =
         varsMap.get(name)
-        
+
     def originalValue[T](f: this.type => T) = {
         val name = StatementMocks.funcToVarName(f)
         varNamed(name).getOriginalValue.getOrElse(null).asInstanceOf[T]
     }
-    
+
     private[activate] def addToLiveCache =
         context.liveCache.toCache(this)
 

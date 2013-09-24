@@ -177,7 +177,7 @@ object EntityEnhancer extends Logging {
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
         for (enhancedEntityClass <- resolved) yield
-            enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName)).asInstanceOf[Class[Entity]]
+            enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
     }
 
     private def entityClassesNames(referenceClass: Class[_]) =

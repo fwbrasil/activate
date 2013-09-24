@@ -356,17 +356,23 @@ class LiveCache(
             }
         }
     }
-
+    
     def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
         criteriaOption match {
-            case Some(criteria: BooleanOperatorCriteria) =>
+        case Some(criteria: Criteria) =>
+            executeCriteria(criteria)
+        case None =>
+            true
+    }
+        
+    def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+        criteria match {
+            case criteria: BooleanOperatorCriteria =>
                 executeBooleanOperatorCriteria(criteria)
-            case Some(criteria: SimpleOperatorCriteria) =>
+            case criteria: SimpleOperatorCriteria =>
                 executeSimpleOperatorCriteria(criteria)
-            case Some(criteria: CompositeOperatorCriteria) =>
+            case criteria: CompositeOperatorCriteria =>
                 executeCompositeOperatorCriteria(criteria)
-            case None =>
-                true
         }
 
     def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean = {

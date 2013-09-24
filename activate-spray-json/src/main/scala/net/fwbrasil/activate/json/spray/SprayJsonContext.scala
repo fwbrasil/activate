@@ -119,19 +119,19 @@ trait SprayJsonContext extends JsonContext {
         jsValue[BigDecimal](value, JsNumber(_))
       case value: DateEntityValue =>
         jsValue[Date](value, d => JsString(jsonDateFormat.format(d)))
-      case value: JodaInstantEntityValue[AbstractInstant] =>
-        jsValue[AbstractInstant](value, d => JsString(jsonDateFormat.format(d.toDate)))
+      case value: JodaInstantEntityValue[_] =>
+        jsValue[AbstractInstant](value.asInstanceOf[JodaInstantEntityValue[AbstractInstant]], d => JsString(jsonDateFormat.format(d.toDate)))
       case value: CalendarEntityValue =>
         jsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
       case value: ByteArrayEntityValue =>
         jsValue[Array[Byte]](value, b => JsString(new String(b)))
-      case value: EntityInstanceEntityValue[Entity] =>
-        jsValue[Entity](value, e => JsString(e.id))
-      case value: EntityInstanceReferenceValue[Entity] =>
+      case value: EntityInstanceEntityValue[_] =>
+        jsValue[Entity](value.asInstanceOf[EntityInstanceEntityValue[Entity]], e => JsString(e.id))
+      case value: EntityInstanceReferenceValue[_] =>
         jsValue[String](value, JsString(_))
-      case value: EnumerationEntityValue[Enumeration#Value] =>
-        jsValue[Enumeration#Value](value, e => JsString(e.toString))
-      case value: ListEntityValue[Any] =>
+      case value: EnumerationEntityValue[_] =>
+        jsValue[Enumeration#Value](value.asInstanceOf[EnumerationEntityValue[Enumeration#Value]], e => JsString(e.toString))
+      case value: ListEntityValue[_] =>
         value.value.map(list =>
           JsArray(list.map(e => toJsValue(value.valueEntityValue(e)))))
           .getOrElse(JsNull)

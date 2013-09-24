@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.entity
 
+import language.postfixOps
 import net.fwbrasil.radon.ref.RefListener
 import scala.collection.SeqLike
 import net.fwbrasil.radon.ref.Ref

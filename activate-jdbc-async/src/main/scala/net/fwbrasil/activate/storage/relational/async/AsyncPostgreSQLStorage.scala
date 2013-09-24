@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.async
 
+import language.postfixOps
 import java.sql.Timestamp
 import scala.Option.option2Iterable
 import scala.collection.mutable.ListBuffer
@@ -37,10 +38,11 @@ import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import io.netty.util.CharsetUtil
+import scala.concurrent.duration.Duration
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
-    val defaultTimeout = 9999 seconds
+    val defaultTimeout: Duration = Duration.Inf
     val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     val objectFactory: ObjectFactory[PostgreSQLConnection]

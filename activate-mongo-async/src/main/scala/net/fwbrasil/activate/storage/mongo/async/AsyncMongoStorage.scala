@@ -291,8 +291,8 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         obj match {
             case null =>
                 BSONNull
-            case map: Map[String, Any] =>
-                dbObject(map)
+            case map: Map[_, _] =>
+                dbObject(map.asInstanceOf[Map[String, Any]])
             case list: List[Any] =>
                 dbList(list)
             case v: Array[Byte] =>
