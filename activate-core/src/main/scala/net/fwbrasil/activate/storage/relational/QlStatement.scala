@@ -1,11 +1,11 @@
 package net.fwbrasil.activate.storage.relational
 
 import java.util.regex.Pattern
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-
 import net.fwbrasil.activate.storage.marshalling.StorageValue
+import com.google.common.collect.MapMaker
+import com.google.common.cache.CacheBuilder
 
 trait QlStatement extends Serializable {
     val statement: String
@@ -13,7 +13,7 @@ trait QlStatement extends Serializable {
     val bindsList: List[Map[String, StorageValue]]
     def expectedNumbersOfAffectedRowsOption: List[Option[Int]]
 
-    lazy val (indexedStatement, valuesList) = {
+    lazy val (indexedStatement, columns) = {
         val pattern = Pattern.compile("(:[a-zA-Z0-9_]*)")
         var matcher = pattern.matcher(statement)
         var result = statement
@@ -24,18 +24,23 @@ trait QlStatement extends Serializable {
             matcher = pattern.matcher(result)
             columns += group.substring(1)
         }
-        val valuesList =
-            for (binds <- bindsList)
-                yield columns.map(binds(_))
-        (result, valuesList)
+        (result, columns.toList)
     }
+    
+    def valuesList(columns: List[String]) =
+        for (binds <- bindsList)
+            yield columns.map(binds(_))
+
+    def valuesList: List[List[StorageValue]] =
+        valuesList(columns)
+
     override def toString = statement + restrictionQuery.map(" restriction " + _).getOrElse("")
 }
 
 class NormalQlStatement(
-    val statement: String, 
-    val binds: Map[String, StorageValue] = Map(), 
-    val restrictionQuery: Option[(String, Int)] = None, 
+    val statement: String,
+    val binds: Map[String, StorageValue] = Map(),
+    val restrictionQuery: Option[(String, Int)] = None,
     val expectedNumberOfAffectedRowsOption: Option[Int] = None)
         extends QlStatement {
 

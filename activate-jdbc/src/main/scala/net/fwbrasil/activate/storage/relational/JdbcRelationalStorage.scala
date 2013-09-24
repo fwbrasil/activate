@@ -117,7 +117,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     def execute(jdbcStatement: QlStatement, connection: Connection) =
         try {
-            val stmt = acquirePreparedStatement(jdbcStatement, connection, true)
+            val (stmt, columns) = acquirePreparedStatement(jdbcStatement, connection, true)
             try {
                 val result = jdbcStatement match {
                     case normal: NormalQlStatement =>
@@ -128,7 +128,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 verifyStaleData(jdbcStatement, result)
 
             } finally
-                releasePreparedStatement(jdbcStatement, connection, stmt)
+                releasePreparedStatement(jdbcStatement, connection, stmt, columns)
         } catch {
             case e: BatchUpdateException =>
                 throw JdbcStatementException(jdbcStatement, e, e.getNextException)
@@ -144,7 +144,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     protected[activate] def executeQuery(sqlStatement: NormalQlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
         executeWithTransaction(autoCommit = true) {
             connection =>
-                val stmt = acquirePreparedStatement(sqlStatement, connection, false)
+                val (stmt, columns) = acquirePreparedStatement(sqlStatement, connection, false)
                 try {
                     val resultSet = stmt.executeQuery
                     try {
@@ -161,7 +161,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                     } finally
                         resultSet.close
                 } finally
-                    releasePreparedStatement(sqlStatement, connection, stmt)
+                    releasePreparedStatement(sqlStatement, connection, stmt, columns)
         }
     }
 
@@ -198,12 +198,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         ListStorageValue(listOption, value.emptyStorageValue)
     }
 
-    private def releasePreparedStatement(jdbcStatement: QlStatement, connection: Connection, ps: PreparedStatement) =
-        preparedStatementCache.release(connection, jdbcStatement, ps)
+    private def releasePreparedStatement(jdbcStatement: QlStatement, connection: Connection, ps: PreparedStatement, columns: List[String]) =
+        preparedStatementCache.release(connection, jdbcStatement, ps, columns)
 
     protected[activate] def acquirePreparedStatement(jdbcStatement: QlStatement, connection: Connection, readOnly: Boolean) = {
-        val valuesList = jdbcStatement.valuesList
-        val ps = preparedStatementCache.acquireFor(connection, jdbcStatement, readOnly)
+        val (ps, columns) = preparedStatementCache.acquireFor(connection, jdbcStatement, readOnly)
+		val valuesList = jdbcStatement.valuesList(columns)
         try {
             for (binds <- valuesList) {
                 var i = 1
@@ -219,7 +219,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 ps.close
                 throw e
         }
-        ps
+        (ps, columns)
     }
 
     def executeWithTransactionAndReturnHandle[R](f: (Connection) => R) = {
