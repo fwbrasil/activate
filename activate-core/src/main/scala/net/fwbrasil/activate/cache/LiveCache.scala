@@ -19,7 +19,6 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.statement.SimpleStatementBooleanValue
-import net.fwbrasil.activate.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.statement.StatementBooleanValue
 import net.fwbrasil.activate.statement.StatementEntityInstanceValue
 import net.fwbrasil.activate.statement.IsLessOrEqualTo
@@ -53,7 +52,6 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.util.Reflection
-import net.fwbrasil.activate.util.ReferenceSoftValueMap
 import net.fwbrasil.activate.entity.EntityMetadata
 import org.joda.time.base.AbstractInstant
 import net.fwbrasil.activate.entity.ListEntityValue

@@ -4,28 +4,27 @@ import Keys._
 object ActivateBuild extends Build {
   	
 	/* Core dependencies */
-  	val javassist = "org.javassist" % "javassist" % "3.17.1-GA"
+  	val javassist = "org.javassist" % "javassist" % "3.18.0-GA"
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.4-SNAPSHOT"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.6-SNAPSHOT"
-	val commonsCollections = "commons-collections" % "commons-collections" % "3.2.1"
-	val objenesis = "org.objenesis" % "objenesis" % "1.2"
+	val guava = "com.google.guava" % "guava" % "15.0"
+	val objenesis = "org.objenesis" % "objenesis" % "2.0"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
 	val reflections = "org.reflections" % "reflections" % "0.9.8" exclude("javassist", "javassist") exclude("dom4j", "dom4j")
-	val googleCollections = "com.google.collections" % "google-collections" % "1.0"
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "1.0.1"
-	val logbackClassic = "ch.qos.logback" % "logback-classic" % "0.9.29"
-	val jodaTime = "joda-time" % "joda-time" % "2.0"
-	val jodaConvert = "org.joda" % "joda-convert" % "1.1"
-	val play = "play" %% "play" % "2.1.0"
+	val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.0.13"
+	val jodaTime = "joda-time" % "joda-time" % "2.3"
+	val jodaConvert = "org.joda" % "joda-convert" % "1.5"
+	val play = "com.typesafe.play" %% "play" % "2.2.0"
 	val blueprintsCore = "com.tinkerpop.blueprints" % "blueprints-core" % "2.2.0"
 	val blueprintsNeo4j = "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.2.0"
 	val gremlin = "com.tinkerpop.gremlin" % "gremlin-java" % "2.2.0"
-	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.3" exclude("xpp3", "xpp3_min")
-	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.2"
-	val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
+	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.4" exclude("xpp3", "xpp3_min")
+	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.4"
+	// val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
-	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.2"
+	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.3"
 
 	/* Prevayler */
 	val prevaylerCore = "org.prevayler" % "prevayler-core" % "2.6"
@@ -33,25 +32,25 @@ object ActivateBuild extends Build {
 	val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.6"
 	
 	/* Tests */
-	val junit = "junit" % "junit" % "4.4" % "test"
-	val specs2 = "org.specs2" %% "specs2" % "1.13" % "test"
+	val junit = "junit" % "junit" % "4.11" % "test"
+	val specs2 = "org.specs2" %% "specs2" % "2.2.2" % "test"
 	/* 
 		Install oracle in your local repo
 	*/
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
-	val mysql = "mysql" % "mysql-connector-java" % "5.1.16"
+	val mysql = "mysql" % "mysql-connector-java" % "5.1.26"
 	val postgresql = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
 	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
-	val h2 = "com.h2database" % "h2" % "1.3.168"
-	val derby = "org.apache.derby" % "derby" % "10.9.1.0"
-	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.2.8"
+	val h2 = "com.h2database" % "h2" % "1.3.173"
+	val derby = "org.apache.derby" % "derby" % "10.10.1.1"
+	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.0"
 	val db2jcc = "com.ibm.db2" % "db2jcc4" % "10.0.1"
 	val jtds = "net.sourceforge.jtds" % "jtds" % "1.3.1"
 
 	val gfork = "org.gfork" % "gfork" % "0.11"
   	
 	/* Mongo */
-	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.10.0"
+	val mongoDriver = "org.mongodb" % "mongo-java-driver" % "2.11.3"
 
     lazy val activate = 
     	Project(
@@ -71,9 +70,9 @@ object ActivateBuild extends Build {
 			base = file("activate-core"),
     		settings = commonSettings ++ Seq(
 		      libraryDependencies ++= 
-		    	  Seq(javassist, radonStm, commonsCollections, objenesis, jug,
+		    	  Seq(javassist, radonStm, objenesis, jug,
 		    	      reflections, grizzled, logbackClassic, jodaTime, jodaConvert,
-		    	      smirror, xstream, scalaActors, jettison, findBugs, kryo)
+		    	      smirror, xstream, jettison, findBugs, kryo, guava)
 		    )
 		)
 
@@ -233,8 +232,6 @@ object ActivateBuild extends Build {
           Seq(postgresql, scalaCompiler) ++ jackson
       )
     )
-
-    val json4sNative = "org.json4s" %% "json4s-native" % "3.2.3"
 
     lazy val activateTests = 
 		Project(id = "activate-tests",

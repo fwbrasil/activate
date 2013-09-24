@@ -45,6 +45,7 @@ class NamedSingletonSerializableSpecs extends Specification {
                         }
                     for (serialized <- serializedList)
                         javaSerializer.fromSerialized[NamedSingletonSerializableTest](serialized) must beEqualTo(singleton)
+                    ok
                 }
 
                 "serialization and deserialization" in lock.synchronized {

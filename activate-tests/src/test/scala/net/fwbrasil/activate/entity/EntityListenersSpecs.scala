@@ -72,6 +72,10 @@ class EntityListenersSpecs extends ActivateTest {
                         all[ActivateTestEntity].onlyOne.floatValue = fullFloatValue
                         called must beTrue
                     }
+                    step {
+                        ActivateTestEntity.onModifyFloatCallback =
+                            (oldValue: Float, newValue: Float) => {}
+                    }
 
                 })
         }

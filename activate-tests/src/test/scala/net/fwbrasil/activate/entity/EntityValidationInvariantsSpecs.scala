@@ -268,17 +268,17 @@ class EntityValidationInvariantsSpecs extends ActivateTest {
                 }))
         }
 
-        def mustThrowACause[E: Manifest](f: => Unit) = {
-            Try(f) match {
-                case Success(unit) =>
-                    throw new IllegalStateException("exception wasn't thrown")
-                case Failure(e) if (e.getCause != null && erasureOf[E].isAssignableFrom(e.getCause.getClass)) =>
-                    ok
-                case Failure(e) =>
-                    throw new IllegalStateException("Not the expected cause", e)
-            }
-        }
+    }
 
+    def mustThrowACause[E: Manifest](f: => Unit) = {
+        Try(f) match {
+            case Success(unit) =>
+                throw new IllegalStateException("exception wasn't thrown")
+            case Failure(e) if (e.getCause != null && erasureOf[E].isAssignableFrom(e.getCause.getClass)) =>
+                ok
+            case Failure(e) =>
+                throw new IllegalStateException("Not the expected cause", e)
+        }
     }
 
 }

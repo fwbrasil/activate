@@ -51,6 +51,7 @@ class PaginatedQuerySpecs extends ActivateTest {
                         }
                     })
             }
+            ok
         }
     }
 

@@ -54,6 +54,7 @@ class AsyncPaginatedQuerySpecs extends ActivateTest {
                         }
                     })
             }
+            ok
         }
     }
 

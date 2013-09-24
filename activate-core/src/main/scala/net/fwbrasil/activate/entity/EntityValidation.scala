@@ -3,7 +3,6 @@ package net.fwbrasil.activate.entity
 import net.fwbrasil.radon.ref.RefListener
 import scala.collection.SeqLike
 import net.fwbrasil.radon.ref.Ref
-import net.fwbrasil.activate.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.collection.mutable.{ Map => MutableMap }

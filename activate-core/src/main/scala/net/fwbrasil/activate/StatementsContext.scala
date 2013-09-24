@@ -1,7 +1,6 @@
 package net.fwbrasil.activate
 
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import net.fwbrasil.activate.util.ReferenceWeakKeyMap
 import net.fwbrasil.activate.statement.mass.MassModificationStatementNormalizer
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
