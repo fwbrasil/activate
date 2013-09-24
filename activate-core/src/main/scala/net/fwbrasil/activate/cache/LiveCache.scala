@@ -70,6 +70,7 @@ import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
 import CacheType._
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.util.ConcurrentCache
 
 class LiveCache(
         val context: ActivateContext,
@@ -356,15 +357,15 @@ class LiveCache(
             }
         }
     }
-    
+
     def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
         criteriaOption match {
-        case Some(criteria: Criteria) =>
-            executeCriteria(criteria)
-        case None =>
-            true
-    }
-        
+            case Some(criteria: Criteria) =>
+                executeCriteria(criteria)
+            case None =>
+                true
+        }
+
     def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
         criteria match {
             case criteria: BooleanOperatorCriteria =>
@@ -540,12 +541,28 @@ class LiveCache(
         for (entitySource <- entitySources)
             yield fromCache(entitySource.entityClass)
 
+    private val loadRowQueryParseCache = (new MapMaker).makeMap[Class[_], ConcurrentCache[Query[Product]]]
+
+    private def loadRowQueryCacheFor(clazz: Class[_]) = {
+        var cache = loadRowQueryParseCache.get(clazz)
+        if (cache == null) {
+            cache = new ConcurrentCache[Query[Product]]("LiveCache.loadRowQueryParseCachePerClass", 10)
+            loadRowQueryParseCache.put(clazz, cache)
+        }
+        cache
+    }
+
     private def loadRowFromDatabase(entity: Entity) = {
-        val query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>
-            where(e :== entity.id)
-                .selectList(e.vars.filter(p => !p.isTransient).map(toStatementValueRef).toList)
-        })(manifestClass(entity.getClass))
-        entitiesFromStorage(query, List()).headOption
+        val cache = loadRowQueryCacheFor(entity.getClass)
+        var query = cache.poll
+        if (query == null) {
+            query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>
+                where(e :== entity.id)
+                    .selectList(e.vars.filter(p => !p.isTransient).map(toStatementValueRef).toList)
+            })(manifestClass(entity.getClass))
+        }
+        try entitiesFromStorage(query, List()).headOption
+        finally cache.offer(query)
     }
 
     private def materializeLines(lines: List[List[net.fwbrasil.activate.entity.EntityValue[_]]]): List[List[Any]] =
