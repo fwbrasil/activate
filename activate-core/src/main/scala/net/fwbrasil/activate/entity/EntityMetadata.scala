@@ -8,6 +8,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 import net.fwbrasil.smirror._
+import net.fwbrasil.radon.ref.RefListener
 
 class EntityPropertyMetadata(
         val entityMetadata: EntityMetadata,
@@ -104,6 +105,10 @@ class EntityMetadata(
         allMethods.filter((method: Method) =>
             method.getReturnType == classOf[Invariant[_]]
                 && method.getName != "invariant"
+                && method.getParameterTypes.isEmpty)
+    val listenerMethods =
+        allMethods.filter((method: Method) =>
+            method.getReturnType == classOf[RefListener[_]]
                 && method.getParameterTypes.isEmpty)
     val varFields =
         allFields.filter(

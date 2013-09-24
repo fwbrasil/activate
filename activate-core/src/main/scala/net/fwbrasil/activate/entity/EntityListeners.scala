@@ -10,22 +10,26 @@ trait EntityListeners {
     this: Entity =>
 
     @transient
-    private var listeners = List[RefListener[_]]()
+    private lazy val listeners = entityMetadata.listenerMethods.map(_.invoke(this))
 
-    protected class On(functions: (EntityListeners.this.type => Any)*) {
-        val vars = functions.map(StatementMocks.funcToVarName(_)).map(varNamed)
+    protected class On(val vars: List[Var[Any]]) {
         def change(f: => Unit): RefListener[_] = {
             val listener = new RefListener[Any] {
                 override def notifyPut(ref: Ref[Any], obj: Option[Any]) =
                     f
             }
             vars.foreach(_.addWeakListener(listener))
-            listeners ++= List(listener)
             listener
         }
     }
+    
+    private[activate] def initializeListeners =
+        listeners
 
-    protected def on(functions: (EntityListeners.this.type => Any)*) = 
-        new On(functions: _*)
+    protected def onAny =
+        new On(vars)
+
+    protected def on(functions: (EntityListeners.this.type => Any)*) =
+        new On(functions.map(StatementMocks.funcToVarName(_)).map(varNamed).toList)
 
 }

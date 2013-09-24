@@ -237,6 +237,7 @@ class LiveCache(
             entity.setNotInitialized
             entity.buildVarsMap
             entity.invariants
+            entity.initializeListeners
         }
 
     def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {

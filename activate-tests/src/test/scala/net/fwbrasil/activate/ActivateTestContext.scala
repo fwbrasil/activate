@@ -433,7 +433,7 @@ trait ActivateTestContext
                 cacheType = CacheType.weakReferences,
                 transactionalCondition = true,
                 condition = _.dummy == true))
-                
+
     val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity]("indexActivateTestEntityByIntValue").on(_.intValue)
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
@@ -686,6 +686,10 @@ trait ActivateTestContext
         val container: Box,
         var num: Int) extends Entity
 
+        object ActivateTestEntity {
+        var onModifyFloatCallback = (oldValue: Float, newValue: Float) => {}
+    }
+        
     class ActivateTestEntity(
             var intValue: Int,
             var longValue: Long,
@@ -739,6 +743,12 @@ trait ActivateTestContext
             emptyListEntityValue,
             emptyTupleOptionValue,
             emptyStringValue)
+
+
+        def onModifyFloat =
+            on(_.floatValue).change {
+                ActivateTestEntity.onModifyFloatCallback(originalValue(_.floatValue), floatValue)
+            }
 
         lazy val lazyValue = lazyValueValue
         var varInitializedInConstructor = fullStringValue

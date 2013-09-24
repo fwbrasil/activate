@@ -62,6 +62,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         buildVarsMap
         validateOnCreate
         addToLiveCache
+        initializeListeners
     }
 
     def isDeleted =
@@ -213,8 +214,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         
     def originalValue[T](f: this.type => T) = {
         val name = StatementMocks.funcToVarName(f)
-        val ref = varNamed(name)
-        ref.getOriginalValue.getOrElse(null)
+        varNamed(name).getOriginalValue.getOrElse(null).asInstanceOf[T]
     }
     
     private[activate] def addToLiveCache =
@@ -305,6 +305,7 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
         for (entity <- entities) {
             initializeBitmaps(entity)
             entity.invariants
+            entity.initializeListeners
             context.transactional(context.transient) {
                 initializeLazyFlags(entity)
             }

@@ -126,7 +126,7 @@ trait EntityValidation {
         }
         _listener
     }
-    private[this] def initializeListener: Unit =
+    private[this] def initializeListener: Unit = 
         for (ref <- vars if ref.name != OptimisticOfflineLocking.versionVarName)
             ref.addWeakListener(listener)
 

@@ -75,6 +75,8 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
             entity.setNotPersisted
             updateEntity(entity)
             context.liveCache.toCache(entityClass, entity)
+            entity.invariants
+            entity.initializeListeners
             entity
         }
 
