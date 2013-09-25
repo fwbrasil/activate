@@ -10,6 +10,8 @@ import net.fwbrasil.activate.util.ThreadUtil._
 @RunWith(classOf[JUnitRunner])
 class NamedSingletonSerializableSpecs extends Specification {
 
+    args.execute(threadsNb = 1)
+    
     object lock
 
     class NamedSingletonSerializableTest(val pName: String) extends NamedSingletonSerializable {
