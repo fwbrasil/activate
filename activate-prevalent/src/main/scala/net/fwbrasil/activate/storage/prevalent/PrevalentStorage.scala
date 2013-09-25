@@ -21,6 +21,8 @@ import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.serialization.kryoSerializer
 import java.io.FileOutputStream
 import net.fwbrasil.activate.storage.SnapshotableStorage
+import net.fwbrasil.activate.storage.Storage
+import net.fwbrasil.activate.storage.StorageFactory
 
 class PrevalentStorageSystem extends HashMap[String, Entity]
 
@@ -106,4 +108,9 @@ class PrevalentStorage(
 
     }
 
+}
+
+object PrevalentStorageFactory extends StorageFactory {
+    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+        new PrevalentStorage(properties("directory"))
 }
