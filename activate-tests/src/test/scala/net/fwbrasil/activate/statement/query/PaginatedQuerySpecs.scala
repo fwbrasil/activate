@@ -40,8 +40,8 @@ class PaginatedQuerySpecs extends ActivateTest {
                                 pagination.numberOfPages must beEqualTo(expectedNumberOfPages)
                                 pagination.page(-1) must throwA[IndexOutOfBoundsException]
                                 if (pagination.numberOfPages > 0) {
-                                    pagination.page(0)
-                                    pagination.page(expectedNumberOfPages - 1)
+                                    pagination.page(0) === pagination.firstPage
+                                    pagination.page(expectedNumberOfPages - 1) === pagination.lastPage
                                 } else
                                     pagination.page(0) must throwA[IndexOutOfBoundsException]
                                 pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]

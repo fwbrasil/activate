@@ -23,8 +23,8 @@ class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
         page(_currentPage + 1)
 
     def page(number: Int) = {
-    	if (number < 0 || number >= numberOfPages)
-    		throw new IndexOutOfBoundsException
+        if (number < 0 || number >= numberOfPages)
+            throw new IndexOutOfBoundsException
         _currentPage = number
         val offset = _currentPage * pageSize
         val pageQuery =
@@ -44,5 +44,5 @@ class PaginationNavigator[S](query: OrderedQuery[S], pageSize: Int) {
     def firstPage =
         page(0)
     def lastPage =
-        page(numberOfPages)
+        page(numberOfPages - 1)
 }
