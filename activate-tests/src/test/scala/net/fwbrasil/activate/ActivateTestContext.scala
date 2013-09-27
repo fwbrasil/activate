@@ -434,7 +434,7 @@ trait ActivateTestContext
                 transactionalCondition = true,
                 condition = _.dummy == true))
 
-    val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity]("indexActivateTestEntityByIntValue").on(_.intValue)
+    val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity].on(_.intValue)
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 

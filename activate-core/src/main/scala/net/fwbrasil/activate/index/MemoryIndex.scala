@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 import net.fwbrasil.radon.util.Lockable
 
 case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
-    name: String, keyProducer: E => T, context: ActivateContext)
+    keyProducer: E => T, context: ActivateContext)
         extends Logging
         with Lockable {
 
@@ -98,6 +98,8 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
         info(s"Index $name loaded")
     }
 
+    private def name = context.memoryIndexName(this)
+
 }
 
 trait MemoryIndexContext {
@@ -105,15 +107,24 @@ trait MemoryIndexContext {
 
     private val memoryIndexes = new ListBuffer[MemoryIndex[_, _]]()
 
-    protected class MemoryIndexProducer[E <: Entity: Manifest](name: String) {
+    private def memoryIndexFields =
+        this.getClass.getDeclaredFields.filter(e => classOf[MemoryIndex[_, _]].isAssignableFrom(e.getType))
+
+    private def memoryIndexesNames =
+        memoryIndexFields.map(e => { e.setAccessible(true); e }).map(field => (field.get(this), field.getName.split("$").last)).toMap
+
+    private[activate] def memoryIndexName(index: MemoryIndex[_, _]) =
+        memoryIndexesNames.getOrElse(index, "Unnamed")
+
+    protected class MemoryIndexProducer[E <: Entity: Manifest] {
         def on[T](keyProducer: E => T) = {
-            val index = new MemoryIndex[E, T](name, keyProducer, MemoryIndexContext.this)
+            val index = new MemoryIndex[E, T](keyProducer, MemoryIndexContext.this)
             memoryIndexes += index
             index
         }
     }
 
-    protected def memoryIndex[E <: Entity: Manifest](name: String) = new MemoryIndexProducer[E](name)
+    protected def memoryIndex[E <: Entity: Manifest] = new MemoryIndexProducer[E]
 
     private[activate] def updateMemoryIndexes(
         transaction: Transaction,
