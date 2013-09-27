@@ -16,9 +16,6 @@ import net.fwbrasil.activate.ActivateTestContext
 @RunWith(classOf[JUnitRunner])
 class PaginatedQuerySpecs extends ActivateTest {
 
-    override def executors(ctx: ActivateTestContext) =
-        super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
-
     "Query framework" should {
         "support paginated queries" in {
             for (numberOfEntities <- List(0, 2, 60)) {
