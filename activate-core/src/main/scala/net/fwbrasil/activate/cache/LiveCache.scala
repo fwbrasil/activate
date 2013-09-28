@@ -246,8 +246,8 @@ class LiveCache(
         entity
     }
 
-    def uninitialize(ids: Set[String]) =
-        ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id)))).flatten.foreach(_.uninitialize)
+    def reloadEntities(ids: Set[String]) =
+        ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id)))).flatten.map(_.reload)
 
     def executePendingMassStatements(entity: Entity) =
         for (statement <- context.currentTransactionStatements)

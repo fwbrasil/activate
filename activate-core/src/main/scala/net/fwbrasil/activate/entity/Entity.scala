@@ -153,7 +153,6 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
     private[activate] def isInitialized =
         initialized
 
-    // Cyclic initializing
     private[activate] def initialize(forWrite: Boolean) =
         if (!initializing) {
             this.synchronized {
@@ -172,9 +171,10 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
             }
         }
 
-    private[activate] def uninitialize =
+    private[activate] def reload =
         this.synchronized {
             context.liveCache.loadFromDatabase(this, withinTransaction = true)
+            this
         }
 
     private[activate] def initializeGraph: Unit =

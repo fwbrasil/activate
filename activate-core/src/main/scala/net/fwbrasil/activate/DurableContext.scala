@@ -50,8 +50,15 @@ trait DurableContext {
             }
         }
 
-    def reloadEntities(ids: Set[String]) =
-        liveCache.uninitialize(ids)
+    def reloadEntities(ids: Set[String]) = {
+        val entities =
+            liveCache.reloadEntities(ids)
+                .toList.asInstanceOf[List[DurableContext.this.Entity]]
+        if (entities.nonEmpty) {
+            val transaction = new Transaction
+            updateMemoryIndexes(transaction, inserts = List(), entities, deletes = List())
+        }
+    }
 
     override def makeDurable(transaction: Transaction): Unit = {
         val statements = statementsForTransaction(transaction)
@@ -62,7 +69,7 @@ trait DurableContext {
             val insertsEntities = inserts.keys.toList
             val updatesEntities = updates.keys.toList
             val deletesEntities = deletes.keys.toList
-            val entities = insertsEntities ++ updatesEntities ++ deletesEntities 
+            val entities = insertsEntities ++ updatesEntities ++ deletesEntities
             validateTransactionEnd(transaction, entities)
             store(statements.toList, inserts, updates, deletes)
             setPersisted(inserts.keys)
