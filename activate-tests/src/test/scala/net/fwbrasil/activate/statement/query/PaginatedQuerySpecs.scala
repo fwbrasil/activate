@@ -12,13 +12,14 @@ import scala.util.Random.nextFloat
 import scala.util.Random.nextInt
 import scala.util.Random.nextLong
 import net.fwbrasil.activate.ActivateTestContext
+import org.specs2.execute.PendingUntilFixed
 
 @RunWith(classOf[JUnitRunner])
 class PaginatedQuerySpecs extends ActivateTest {
 
     "Query framework" should {
         "support paginated queries" in {
-            for (numberOfEntities <- List(0, 2, 60)) {
+            for (numberOfEntities <- List(0, 2, 7, 60)) {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._
@@ -30,7 +31,7 @@ class PaginatedQuerySpecs extends ActivateTest {
                             def test(pageSize: Int) = {
                                 val pagination =
                                     paginatedQuery {
-                                        (e: ActivateTestEntity) => where(e isNotNull) select (e) orderBy (e.intValue)
+                                        (e: ActivateTestEntity) => where() select (e) orderBy (e.intValue)
                                     }.navigator(pageSize)
                                 val expectedNumberOfPages =
                                     (numberOfEntities / pageSize) + (if (numberOfEntities % pageSize > 0) 1 else 0)
@@ -42,6 +43,14 @@ class PaginatedQuerySpecs extends ActivateTest {
                                 } else
                                     pagination.page(0) must throwA[IndexOutOfBoundsException]
                                 pagination.page(expectedNumberOfPages) must throwA[IndexOutOfBoundsException]
+
+                                val expectedPages =
+                                    numbers.grouped(pageSize).toList
+                                val actualPages =
+                                    for (i <- 0 until expectedNumberOfPages) yield {
+                                        pagination.page(i).map(_.intValue)
+                                    }
+                                expectedPages === actualPages.toList
                             }
                             for (i <- 1 until 6)
                                 test(pageSize = i)
@@ -49,7 +58,7 @@ class PaginatedQuerySpecs extends ActivateTest {
                     })
             }
             ok
-        }
+        }.pendingUntilFixed("#62")
     }
 
 }
