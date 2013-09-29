@@ -6,7 +6,6 @@ import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
-
 trait JacksonJsonContext extends JsonContext {
 
   def mapper = new ObjectMapper {
@@ -53,8 +52,4 @@ trait JacksonJsonContext extends JsonContext {
     }
 
   }
-}
-trait JacksonJsonActivateContext extends JacksonJsonContext {
-  this:ActivateContext =>
-  override val context:ActivateContext = this
 }
