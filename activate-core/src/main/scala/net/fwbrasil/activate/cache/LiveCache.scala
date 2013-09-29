@@ -70,6 +70,7 @@ import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
 import CacheType._
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 
 class LiveCache(
         val context: ActivateContext,
@@ -183,12 +184,40 @@ class LiveCache(
         }
 
     def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[List[Any]] = {
-        val (rowsFromCache, entitiesReadFromCache) = entitiesFromCache(query)
-        if (onlyInMemory)
-            rowsFromCache
-        else
-            entitiesFromStorage(query, entitiesReadFromCache) ++ rowsFromCache
+        val (fromCache, entitiesReadFromCache) = entitiesFromCache(query)
+        val fromDatabase =
+            if (onlyInMemory)
+                List()
+            else
+                entitiesFromStorage(query, entitiesReadFromCache)
+        mergeResults(query, fromCache, fromDatabase)
     }
+
+    def mergeResults(
+        query: Query[_],
+        fromCache: List[List[Any]],
+        fromDatabase: List[List[Any]]) =
+        query match {
+            case query: LimitedOrderedQuery[_] =>
+                val ordering = query._orderBy.ordering
+                val fromCacheOrdered = fromCache.sorted(ordering)
+                val withOffset =
+                    fromDatabase match {
+                        case Nil =>
+                            query.offsetOption.map(fromCacheOrdered.drop)
+                                .getOrElse(fromCacheOrdered)
+                        case head :: tail =>
+                            val ordering = query._orderBy.ordering
+                            val fromCacheFiltered =
+                                fromCacheOrdered
+                                    .dropWhile(e => ordering.compare(e, head) < 0)
+                            val result = fromDatabase ++ fromCacheFiltered
+                            result.sorted(ordering)
+                    }
+                withOffset.take(query.limit)
+            case other =>
+                fromDatabase ++ fromCache
+        }
 
     def executeQueryAsync[S](query: Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[List[Any]]] = {
         Future(entitiesFromCache(query))(texctx).flatMap {
@@ -356,15 +385,15 @@ class LiveCache(
             }
         }
     }
-    
+
     def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
         criteriaOption match {
-        case Some(criteria: Criteria) =>
-            executeCriteria(criteria)
-        case None =>
-            true
-    }
-        
+            case Some(criteria: Criteria) =>
+                executeCriteria(criteria)
+            case None =>
+                true
+        }
+
     def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
         criteria match {
             case criteria: BooleanOperatorCriteria =>

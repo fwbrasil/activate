@@ -348,12 +348,7 @@ trait QueryContext extends StatementContext
                 .map(CollectionUtil.toTuple[S])
         query match {
             case query: LimitedOrderedQuery[_] =>
-                val withOffset =
-                    if (storage.isMemoryStorage && query.offsetOption.isDefined)
-                        tuples.drop(query.offsetOption.get)
-                    else
-                        tuples
-                withOffset.take(query.limit)
+                tuples.take(query.limit)
             case other =>
                 tuples
         }

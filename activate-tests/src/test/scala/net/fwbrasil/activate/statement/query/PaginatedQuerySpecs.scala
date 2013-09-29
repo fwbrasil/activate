@@ -58,7 +58,7 @@ class PaginatedQuerySpecs extends ActivateTest {
                     })
             }
             ok
-        }.pendingUntilFixed("#62")
+        }
     }
 
 }
