@@ -43,6 +43,7 @@ trait DurableContext {
             override protected def waitToRetry(e: ConcurrentTransactionException) = {
                 e match {
                     case e: ActivateConcurrentTransactionException =>
+                        super.waitToRetry(e)
                         reloadEntities(e.entitiesIds)
                     case other =>
                         super.waitToRetry(e)

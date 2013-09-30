@@ -153,23 +153,25 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
     private[activate] def isInitialized =
         initialized
 
-    private[activate] def initialize(forWrite: Boolean) =
-        if (!initializing) {
-            this.synchronized {
-                if (!initialized) {
-                    beforeInitialize
-                    context.liveCache.loadFromDatabase(this, withinTransaction = false)
-                    initialized = true
-                    afterInitialize
-                }
-            }
-            if ((forWrite || OptimisticOfflineLocking.validateReads) &&
-                OptimisticOfflineLocking.isEnabled && isPersisted) {
-                val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
-                if (!versionVar.isDirty)
-                    versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
+    private[activate] def initialize(forWrite: Boolean) = {
+        this.synchronized {
+            if (!initializing && !initialized) {
+                beforeInitialize
+                initializing = true
+                context.liveCache.loadFromDatabase(this, withinTransaction = true)
+                initializing = false
+                initialized = true
+                afterInitialize
             }
         }
+        if (!initializing &&
+            (forWrite || OptimisticOfflineLocking.validateReads) &&
+            OptimisticOfflineLocking.isEnabled && isPersisted) {
+            val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
+            if (!versionVar.isDirty)
+                versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
+        }
+    }
 
     private[activate] def reload =
         this.synchronized {

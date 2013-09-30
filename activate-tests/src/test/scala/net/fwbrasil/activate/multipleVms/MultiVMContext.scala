@@ -7,13 +7,14 @@ import net.fwbrasil.activate.migration.ManualMigration
 
 trait MultiVMContext extends StoppableActivateContext {
 
-    override val milisToWaitBeforeRetry = 5
+    override val milisToWaitBeforeRetry = 0
+    override val retryLimit = Int.MaxValue
 
     class IntEntity extends Entity {
         var intValue = 0
     }
     
-    val indexIntEntityByIntValue = memoryIndex[IntEntity].on(_.intValue)
+//    val indexIntEntityByIntValue = memoryIndex[IntEntity].on(_.intValue)
 
     object versionMigration extends ManualMigration {
         def up =
