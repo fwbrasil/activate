@@ -5,6 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.memoryContext
+import net.fwbrasil.activate.util.RichList._
 import spray.json._
 import DefaultJsonProtocol._
 import net.fwbrasil.activate.entity.Entity
@@ -47,17 +48,45 @@ class SprayJsonSpecs extends ActivateTest {
                             (emptyEntity.toJson, fullEntity.toJson)
                         }
                     step {
-                        emptyEntity.updateFromJsonString(fullEntityJson.compactPrint)
-                        fullEntity.updateFromJsonString(emptyEntityJson.compactPrint)
+                        emptyEntity.toJsonString === emptyEntityJson.compactPrint
+                        fullEntity.toJsonString === fullEntityJson.compactPrint
+                    }
+                    step {
+                        emptyEntity.updateFromJson(fullEntityJson.compactPrint)
+                        fullEntity.updateFromJson(emptyEntityJson)
                     }
                     step {
                         validateFullTestEntity(emptyEntity)
                         validateEmptyTestEntity(fullEntity)
                     }
+                    step {
+                        updateEntityFromJson(fullEntityJson.compactPrint, fullEntity)
+                        updateEntityFromJson(emptyEntityJson, emptyEntity)
+                    }
+                    step {
+                        validateFullTestEntity(fullEntity)
+                        validateEmptyTestEntity(emptyEntity)
+                    }
+                    step {
+                        updateEntityFromJson(fullEntityJson.compactPrint, emptyEntity.id)
+                        updateEntityFromJson[ActivateTestEntity](emptyEntityJson, fullEntity.id)
+                    }
+                    step {
+                        validateFullTestEntity(emptyEntity)
+                        validateEmptyTestEntity(fullEntity)
+                    }
+                    step {
+                        updateEntityFromJson[ActivateTestEntity](fullEntityJson.compactPrint)
+                        updateEntityFromJson[ActivateTestEntity](emptyEntityJson)
+                    }
+                    step {
+                        validateFullTestEntity(fullEntity)
+                        validateEmptyTestEntity(emptyEntity)
+                    }
                     val (newFullEntityId1, newEmptyEntityId1) =
                         step {
                             createOrUpdateEntityFromJson[ActivateTestEntity](fullEntityJson)
-                            createOrUpdateEntityFromJson[ActivateTestEntity](emptyEntityJson)
+                            createOrUpdateEntityFromJson[ActivateTestEntity](emptyEntityJson.compactPrint)
                             def removeId(json: JsValue) =
                                 JsObject(json.asJsObject.fields - "id")
                             (createOrUpdateEntityFromJson[ActivateTestEntity](removeId(fullEntityJson)).id,
@@ -71,7 +100,7 @@ class SprayJsonSpecs extends ActivateTest {
                     }
                     val (newFullEntityId2, newEmptyEntityId2) =
                         step {
-                            (createEntityFromJson[ActivateTestEntity](fullEntityJson).id,
+                            (createEntityFromJson[ActivateTestEntity](fullEntityJson.compactPrint).id,
                                 createEntityFromJson[ActivateTestEntity](emptyEntityJson).id)
                         }
                     step {
@@ -116,7 +145,14 @@ class SprayJsonSpecs extends ActivateTest {
 								}
                                 """)
 
-                        println(entity)
+                        entity.name === "Foo"
+                        entity.singleTerms === List("Foo", "Bar")
+                        entity.compoundTerms === List("foo bar")
+                        val box = entity.boundingBoxes.onlyOne
+                        box.swCorner.latitude === 30.2f
+                        box.swCorner.longitude === -81.75f
+                        box.neCorner.latitude === 30.37f
+                        box.neCorner.longitude === -81.45f
                     }
                 })
         }

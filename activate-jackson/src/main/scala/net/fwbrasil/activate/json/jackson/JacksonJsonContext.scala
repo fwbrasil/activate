@@ -6,7 +6,7 @@ import java.io.StringWriter
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.json.JsonContext
 
-trait JacksonJsonContext extends JsonContext {
+trait JacksonJsonContext extends JsonContext[String] {
 
   def mapper = new ObjectMapper {
     registerModule(ActivateScalaModule)

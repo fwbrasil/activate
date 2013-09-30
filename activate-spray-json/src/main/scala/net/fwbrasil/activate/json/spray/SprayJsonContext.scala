@@ -36,211 +36,205 @@ import java.nio.charset.Charset
 import net.fwbrasil.activate.json.JsonContext
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 
-trait SprayJsonContext extends JsonContext {
-  val jsonCharset = Charset.defaultCharset
+trait SprayJsonContext extends JsonContext[JsObject] {
+    val jsonCharset = Charset.defaultCharset
 
-  private def jsValue[A](entityValue: EntityValue[A], f: A => JsValue): JsValue =
-    entityValue.value.map(f(_)).getOrElse(JsNull)
+    private def jsValue[A](entityValue: EntityValue[A], f: A => JsValue): JsValue =
+        entityValue.value.map(f(_)).getOrElse(JsNull)
 
-  protected def jsonDateFormat =
-    new SimpleDateFormat("EEE MMM dd HH:mm:ss:SSS zzz yyyy")
+    protected def jsonDateFormat =
+        new SimpleDateFormat("EEE MMM dd HH:mm:ss:SSS zzz yyyy")
 
-  private def fromJsValue(value: JsValue, entityValue: EntityValue[_]): Any =
-    (value, entityValue) match {
-      case (JsNull, entityValue) =>
-        null
-      case (JsNumber(value), entityValue: IntEntityValue) =>
-        value.intValue
-      case (JsNumber(value), entityValue: LongEntityValue) =>
-        value.longValue
-      case (JsBoolean(value), entityValue: BooleanEntityValue) =>
-        value
-      case (JsString(value), entityValue: CharEntityValue) =>
-        value.charAt(0)
-      case (JsString(value), entityValue: StringEntityValue) =>
-        value
-      case (JsNumber(value), entityValue: FloatEntityValue) =>
-        value.floatValue
-      case (JsNumber(value), entityValue: DoubleEntityValue) =>
-        value.doubleValue
-      case (JsNumber(value), entityValue: BigDecimalEntityValue) =>
-        value
-      case (JsString(value), entityValue: DateEntityValue) =>
-        jsonDateFormat.parse(value)
-      case (JsString(value), entityValue: JodaInstantEntityValue[_]) =>
-        materializeJodaInstant(entityValue.instantClass, jsonDateFormat.parse(value))
-      case (JsString(value), entityValue: CalendarEntityValue) =>
-        val calendar = Calendar.getInstance
-        calendar.setTime(jsonDateFormat.parse(value))
-        calendar
-      case (JsString(value), entityValue: ByteArrayEntityValue) =>
-        value.getBytes(jsonCharset)
-      case (JsString(value), entityValue: EntityInstanceEntityValue[_]) =>
-        context.byId(value).getOrElse(throw new IllegalStateException("Invalid id " + value))
-      case (JsString(value), entityValue: EntityInstanceReferenceValue[_]) =>
-        context.byId(value).getOrElse(throw new IllegalStateException("Invalid id " + value))
-      case (JsString(value), entityValue: EnumerationEntityValue[_]) =>
-        val enumerationValueClass = entityValue.enumerationClass
-        val enumerationClass = enumerationValueClass.getEnclosingClass
-        val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
-        val obj = getObject[Enumeration](enumerationObjectClass)
-        obj.withName(value)
-      case (JsArray(value), entityValue: ListEntityValue[_]) =>
-        value.toList.map(fromJsValue(_, entityValue.emptyValueEntityValue))
-      case (JsArray(value), entityValue: LazyListEntityValue[_]) =>
-        new LazyList[Entity](value.toList.collect {
-          case JsString(id) => id
-        })(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
-      case (JsString(value), entityValue: SerializableEntityValue[_]) =>
-        entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
-      case (obj: JsObject, entityValue: EntityInstanceEntityValue[_]) =>
-          createEntityFromJson(obj)(entityValue.entityManifest)
-      case (jsValue, entityValue) =>
-          throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
+    private def fromJsValue(value: JsValue, entityValue: EntityValue[_]): Any =
+        (value, entityValue) match {
+            case (JsNull, entityValue) =>
+                null
+            case (JsNumber(value), entityValue: IntEntityValue) =>
+                value.intValue
+            case (JsNumber(value), entityValue: LongEntityValue) =>
+                value.longValue
+            case (JsBoolean(value), entityValue: BooleanEntityValue) =>
+                value
+            case (JsString(value), entityValue: CharEntityValue) =>
+                value.charAt(0)
+            case (JsString(value), entityValue: StringEntityValue) =>
+                value
+            case (JsNumber(value), entityValue: FloatEntityValue) =>
+                value.floatValue
+            case (JsNumber(value), entityValue: DoubleEntityValue) =>
+                value.doubleValue
+            case (JsNumber(value), entityValue: BigDecimalEntityValue) =>
+                value
+            case (JsString(value), entityValue: DateEntityValue) =>
+                jsonDateFormat.parse(value)
+            case (JsString(value), entityValue: JodaInstantEntityValue[_]) =>
+                materializeJodaInstant(entityValue.instantClass, jsonDateFormat.parse(value))
+            case (JsString(value), entityValue: CalendarEntityValue) =>
+                val calendar = Calendar.getInstance
+                calendar.setTime(jsonDateFormat.parse(value))
+                calendar
+            case (JsString(value), entityValue: ByteArrayEntityValue) =>
+                value.getBytes(jsonCharset)
+            case (JsString(value), entityValue: EntityInstanceEntityValue[_]) =>
+                context.byId(value).getOrElse(throw new IllegalStateException("Invalid id " + value))
+            case (JsString(value), entityValue: EntityInstanceReferenceValue[_]) =>
+                context.byId(value).getOrElse(throw new IllegalStateException("Invalid id " + value))
+            case (JsString(value), entityValue: EnumerationEntityValue[_]) =>
+                val enumerationValueClass = entityValue.enumerationClass
+                val enumerationClass = enumerationValueClass.getEnclosingClass
+                val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+                val obj = getObject[Enumeration](enumerationObjectClass)
+                obj.withName(value)
+            case (JsArray(value), entityValue: ListEntityValue[_]) =>
+                value.toList.map(fromJsValue(_, entityValue.emptyValueEntityValue))
+            case (JsArray(value), entityValue: LazyListEntityValue[_]) =>
+                new LazyList[Entity](value.toList.collect {
+                    case JsString(id) => id
+                })(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
+            case (JsString(value), entityValue: SerializableEntityValue[_]) =>
+                entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
+            case (obj: JsObject, entityValue: EntityInstanceEntityValue[_]) =>
+                createEntityFromJson(obj)(entityValue.entityManifest)
+            case (jsValue, entityValue) =>
+                throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
+        }
+
+    private def toJsValue[T](entityValue: EntityValue[T]): JsValue =
+        entityValue match {
+            case value: IntEntityValue =>
+                jsValue[Int](value, JsNumber(_))
+            case value: LongEntityValue =>
+                jsValue[Long](value, JsNumber(_))
+            case value: BooleanEntityValue =>
+                jsValue[Boolean](value, JsBoolean(_))
+            case value: CharEntityValue =>
+                jsValue[Char](value, c => JsString(c.toString))
+            case value: StringEntityValue =>
+                jsValue[String](value, JsString(_))
+            case value: FloatEntityValue =>
+                jsValue[Float](value, JsNumber(_))
+            case value: DoubleEntityValue =>
+                jsValue[Double](value, JsNumber(_))
+            case value: BigDecimalEntityValue =>
+                jsValue[BigDecimal](value, JsNumber(_))
+            case value: DateEntityValue =>
+                jsValue[Date](value, d => JsString(jsonDateFormat.format(d)))
+            case value: JodaInstantEntityValue[_] =>
+                jsValue[AbstractInstant](value.asInstanceOf[JodaInstantEntityValue[AbstractInstant]], d => JsString(jsonDateFormat.format(d.toDate)))
+            case value: CalendarEntityValue =>
+                jsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
+            case value: ByteArrayEntityValue =>
+                jsValue[Array[Byte]](value, b => JsString(new String(b)))
+            case value: EntityInstanceEntityValue[_] =>
+                jsValue[Entity](value.asInstanceOf[EntityInstanceEntityValue[Entity]], e => JsString(e.id))
+            case value: EntityInstanceReferenceValue[_] =>
+                jsValue[String](value, JsString(_))
+            case value: EnumerationEntityValue[_] =>
+                jsValue[Enumeration#Value](value.asInstanceOf[EnumerationEntityValue[Enumeration#Value]], e => JsString(e.toString))
+            case value: ListEntityValue[_] =>
+                value.value.map(list =>
+                    JsArray(list.map(e => toJsValue(value.valueEntityValue(e)))))
+                    .getOrElse(JsNull)
+            case value: LazyListEntityValue[_] =>
+                value.value.map(list =>
+                    JsArray(list.ids.map(JsString(_))))
+                    .getOrElse(JsNull)
+            case value: SerializableEntityValue[_] =>
+                value.value.map(v =>
+                    JsString(new String(value.serializator.toSerialized(v)(value.typeManifest))))
+                    .getOrElse(JsNull)
+        }
+
+    def updateEntityFromJson[E <: Entity: Manifest](jsObject: JsObject, id: String): E = {
+        val entity = context.byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
+        updateEntityFromJson(jsObject, entity)
+        entity
     }
 
-  private def toJsValue[T](entityValue: EntityValue[T]): JsValue =
-    entityValue match {
-      case value: IntEntityValue =>
-        jsValue[Int](value, JsNumber(_))
-      case value: LongEntityValue =>
-        jsValue[Long](value, JsNumber(_))
-      case value: BooleanEntityValue =>
-        jsValue[Boolean](value, JsBoolean(_))
-      case value: CharEntityValue =>
-        jsValue[Char](value, c => JsString(c.toString))
-      case value: StringEntityValue =>
-        jsValue[String](value, JsString(_))
-      case value: FloatEntityValue =>
-        jsValue[Float](value, JsNumber(_))
-      case value: DoubleEntityValue =>
-        jsValue[Double](value, JsNumber(_))
-      case value: BigDecimalEntityValue =>
-        jsValue[BigDecimal](value, JsNumber(_))
-      case value: DateEntityValue =>
-        jsValue[Date](value, d => JsString(jsonDateFormat.format(d)))
-      case value: JodaInstantEntityValue[_] =>
-        jsValue[AbstractInstant](value.asInstanceOf[JodaInstantEntityValue[AbstractInstant]], d => JsString(jsonDateFormat.format(d.toDate)))
-      case value: CalendarEntityValue =>
-        jsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
-      case value: ByteArrayEntityValue =>
-        jsValue[Array[Byte]](value, b => JsString(new String(b)))
-      case value: EntityInstanceEntityValue[_] =>
-        jsValue[Entity](value.asInstanceOf[EntityInstanceEntityValue[Entity]], e => JsString(e.id))
-      case value: EntityInstanceReferenceValue[_] =>
-        jsValue[String](value, JsString(_))
-      case value: EnumerationEntityValue[_] =>
-        jsValue[Enumeration#Value](value.asInstanceOf[EnumerationEntityValue[Enumeration#Value]], e => JsString(e.toString))
-      case value: ListEntityValue[_] =>
-        value.value.map(list =>
-          JsArray(list.map(e => toJsValue(value.valueEntityValue(e)))))
-          .getOrElse(JsNull)
-      case value: LazyListEntityValue[_] =>
-        value.value.map(list =>
-          JsArray(list.ids.map(JsString(_))))
-          .getOrElse(JsNull)
-      case value: SerializableEntityValue[_] =>
-        value.value.map(v =>
-          JsString(new String(value.serializator.toSerialized(v)(value.typeManifest))))
-          .getOrElse(JsNull)
+    def updateEntityFromJson[E <: Entity: Manifest](json: String, entity: E) = {
+        updateEntityFromJson(json.asJson.asJsObject, entity)
+        entity
     }
 
-  private def updateFromJsonObject[E <: Entity](id: String, jsObject: JsObject): E = {
-    val entity = context.byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
-    updateFromJsonObject(entity, jsObject)
-    entity
-  }
-
-  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E) = {
-    updateFromJsonObject(entity, json.asJson.asJsObject)
-    entity
-  }
-
-  private def updateFromJsonObject(entity: Entity, jsObject: JsObject): Entity = {
-    val fields = jsObject.fields
-    val entityClass = entity.getClass
-    val entityMetadata =
-      EntityHelper.metadatas.find(_.entityClass == entityClass).get
-    val propMetadataMap =
-      entityMetadata.propertiesMetadata.mapBy(_.name)
-    for ((name, jdValue) <- fields if (name != "id")) {
-      val property = propMetadataMap(name)
-      val ref = entity.varNamed(name)
-      val entityValue = ref.toEntityPropertyValue(None)
-      val value = fromJsValue(jdValue, entityValue)
-      val propertyMetadata = propMetadataMap(name)
-      if (propertyMetadata.isOption)
-        ref.put(Option(value))
-      else
-        ref.putValue(value)
-    }
-    entity
-  }
-
-  def createEntityFromJson[E <: Entity : Manifest](json: String): E =
-    createEntityFromJson[E](json.asJson.asJsObject)
-
-  def createEntityFromJson[E <: Entity : Manifest](jsValue: JsValue): E = {
-    val entityClass = erasureOf[E]
-    val id = IdVar.generateId(entityClass)
-    val entity = context.liveCache.createLazyEntity(entityClass, id)
-    entity.setInitialized
-    entity.setNotPersisted
-    updateFromJsonObject(entity, jsValue.asJsObject)
-    context.context.liveCache.toCache(entityClass, entity)
-    entity.invariants
-    entity.initializeListeners
-    entity
-  }
-
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E =
-    createOrUpdateEntityFromJson[E](json.asJson.asJsObject)
-
-  def createOrUpdateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue) = {
-    jsValue.asJsObject.fields.collect {
-      case ("id", JsString(id)) =>
-        updateFromJsonObject[E](id, jsValue.asJsObject)
-    }.headOption.getOrElse {
-      createEntityFromJson[E](jsValue.asJsObject)
-    }
-  }
-
-
-  def updateEntityFromJson[E <: Entity : Manifest](id: String, json: String): E =
-    updateEntityFromJson[E](id, json.asJson.asJsObject)
-
-  def updateEntityFromJson[E <: Entity : Manifest](id: String, jsValue: JsValue) =
-    updateFromJsonObject[E](id, jsValue.asJsObject)
-
-  def updateEntityFromJson[E <: Entity : Manifest](json: String): E =
-    updateEntityFromJson[E](json.asJson.asJsObject)
-
-  def updateEntityFromJson[E <: Entity : Manifest](jsValue: JsValue)= {
-    jsValue.asJsObject.fields.collect {
-      case ("id", JsString(id)) =>
-        updateFromJsonObject[E](id, jsValue.asJsObject)
-    }.headOption.getOrElse {
-      throw new IllegalStateException("Can't update. The json hasn't the entity id.")
-    }
-  }
-
-  def createJsonFromEntity[E <: Entity : Manifest](entity: E) = toJsonObject(entity).compactPrint
-
-  private def toJsonObject[E <: Entity : Manifest](entity: E) = {
-    val fields =
-      entity.vars.filter(!_.isTransient).map(ref =>
-        (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value))).getOrElse(JsNull))).toMap
-    JsObject(fields)
-  }
-
-  implicit def entityJsonFormat[E <: Entity : Manifest] =
-    new RootJsonFormat[E] {
-      def write(entity: E) =
-        toJsonObject[E](entity)
-
-      def read(value: JsValue) =
-        createOrUpdateEntityFromJson[E](value)
+    def updateEntityFromJson[E <: Entity: Manifest](jsObject: JsObject, entity: E) = {
+        val fields = jsObject.fields
+        val entityClass = entity.getClass
+        val entityMetadata =
+            EntityHelper.metadatas.find(_.entityClass == entityClass).get
+        val propMetadataMap =
+            entityMetadata.propertiesMetadata.mapBy(_.name)
+        for ((name, jdValue) <- fields if (name != "id")) {
+            val property = propMetadataMap(name)
+            val ref = entity.varNamed(name)
+            val entityValue = ref.toEntityPropertyValue(None)
+            val value = fromJsValue(jdValue, entityValue)
+            val propertyMetadata = propMetadataMap(name)
+            if (propertyMetadata.isOption)
+                ref.put(Option(value))
+            else
+                ref.putValue(value)
+        }
+        entity
     }
 
+    def createEntityFromJson[E <: Entity: Manifest](json: String): E =
+        createEntityFromJson[E](json.asJson.asJsObject)
+
+    def createEntityFromJson[E <: Entity: Manifest](json: JsObject): E = {
+        val entityClass = erasureOf[E]
+        val id = IdVar.generateId(entityClass)
+        val entity = context.liveCache.createLazyEntity(entityClass, id)
+        entity.setInitialized
+        entity.setNotPersisted
+        updateEntityFromJson(json, entity)
+        context.context.liveCache.toCache(entityClass, entity)
+        entity.invariants
+        entity.initializeListeners
+        entity
+    }
+
+    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: String): E =
+        createOrUpdateEntityFromJson[E](json.asJson.asJsObject)
+
+    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: JsObject) = {
+        json.fields.collect {
+            case ("id", JsString(id)) =>
+                updateEntityFromJson[E](json, id)
+        }.headOption.getOrElse {
+            createEntityFromJson[E](json)
+        }
+    }
+
+    def updateEntityFromJson[E <: Entity: Manifest](json: String, id: String): E =
+        updateEntityFromJson[E](json.asJson.asJsObject, id)
+
+    def updateEntityFromJson[E <: Entity: Manifest](json: String): E =
+        updateEntityFromJson[E](json.asJson.asJsObject)
+
+    def updateEntityFromJson[E <: Entity: Manifest](jsValue: JsObject) = {
+        jsValue.fields.collect {
+            case ("id", JsString(id)) =>
+                updateEntityFromJson[E](jsValue, id)
+        }.headOption.getOrElse {
+            throw new IllegalStateException("Can't update. The json hasn't the entity id.")
+        }
+    }
+
+    def createJsonFromEntity[E <: Entity: Manifest](entity: E) = {
+        val fields =
+            entity.vars.filter(!_.isTransient).map(ref =>
+                (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value))).getOrElse(JsNull))).toMap
+        JsObject(fields)
+    }
+    def createJsonStringFromEntity[E <: Entity: Manifest](entity: E) = createJsonFromEntity(entity).compactPrint
+
+    implicit def entityJsonFormat[E <: Entity: Manifest] =
+        new RootJsonFormat[E] {
+            def write(entity: E) =
+                createJsonFromEntity[E](entity)
+
+            def read(value: JsValue) =
+                createOrUpdateEntityFromJson[E](value.asJsObject)
+        }
 
 }
