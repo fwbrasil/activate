@@ -687,6 +687,7 @@ trait ActivateTestContext
         var num: Int) extends Entity
 
     object ActivateTestEntity {
+        def all = ActivateTestContext.this.all[ActivateTestEntity]
         var onModifyFloatCallback = (oldValue: Float, newValue: Float) => {}
         var lifecycleCallback = (event: String) => {}
     }

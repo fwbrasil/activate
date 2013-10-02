@@ -8,6 +8,7 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
 import java.util.NoSuchElementException
+import net.fwbrasil.activate.statement.StatementMocks
 
 @RunWith(classOf[JUnitRunner])
 class EntityMapSpecs extends ActivateTest {
@@ -180,6 +181,19 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        
+         "support initialize using a query" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            newEmptyActivateTestEntity
+                            val map = new EntityMap[ActivateTestEntity](_.entityValue -> ActivateTestEntity.all.head)
+                            map.get(_.entityValue).get === ActivateTestEntity.all.head // throws a ClassCast before the fix
+                        }
+                    })
+            }
+        
         "create entity using the constructor" in {
 
             "with all parameters" in {
@@ -244,6 +258,7 @@ class EntityMapSpecs extends ActivateTest {
                         }
                     })
             }
+            
         }
 
     }

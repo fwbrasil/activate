@@ -33,11 +33,14 @@ object From {
 
     def runAndClearFrom[S <: Statement](f: => S) = {
         val old = entitySourceMap.clone.asInstanceOf[IdentityHashMap[Entity, EntitySource]]
+        val oldRefStack = StatementMocks._lastFakeVarCalled.get
+        StatementMocks.clearFakeVarCalled
         clear
         try {
             f
         } finally {
             entitySourceMapThreadLocal.set(old)
+            StatementMocks._lastFakeVarCalled.set(oldRefStack)
         }
     }
 }
