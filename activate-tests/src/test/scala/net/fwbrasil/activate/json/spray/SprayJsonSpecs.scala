@@ -121,29 +121,29 @@ class SprayJsonSpecs extends ActivateTest {
                     step {
                         val entity =
                             createEntityFromJson[Event]("""
-                                {
-								    "name": "Foo",
-								    "singleTerms": [
-								        "Foo",
-								        "Bar"
-								    ],
-								    "compoundTerms": [
-								        "foo bar"
-								    ],
-								    "boundingBoxes": [
-								        {
-								            "swCorner": {
-								                "latitude": 30.2,
-								                "longitude": -81.75
-								            },
-								            "neCorner": {
-								                "latitude": 30.37,
-								                "longitude": -81.45
-								            }
-								        }
-								    ]
-								}
-                                """)
+                                        {
+        								    "name": "Foo",
+        								    "singleTerms": [
+        								        "Foo",
+        								        "Bar"
+        								    ],
+        								    "compoundTerms": [
+        								        "foo bar"
+        								    ],
+        								    "boundingBoxes": [
+        								        {
+        								            "swCorner": {
+        								                "latitude": 30.2,
+        								                "longitude": -81.75
+        								            },
+        								            "neCorner": {
+        								                "latitude": 30.37,
+        								                "longitude": -81.45
+        								            }
+        								        }
+        								    ]
+        								}
+                                        """)
 
                         entity.name === "Foo"
                         entity.singleTerms === List("Foo", "Bar")
@@ -153,6 +153,86 @@ class SprayJsonSpecs extends ActivateTest {
                         box.swCorner.longitude === -81.75f
                         box.neCorner.latitude === 30.37f
                         box.neCorner.longitude === -81.45f
+                    }
+                })
+        }
+
+        "support depth print" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    object SprayJsonContext extends SprayJsonContext {
+                        val context = step.ctx
+                    }
+                    import SprayJsonContext._
+                    val entityId =
+                        step {
+                            createEntityFromJson[Event]("""
+                                        {
+        								    "name": "Foo",
+        								    "singleTerms": [
+        								        "Foo",
+        								        "Bar"
+        								    ],
+        								    "compoundTerms": [
+        								        "foo bar"
+        								    ],
+        								    "boundingBoxes": [
+        								        {
+        								            "swCorner": {
+        								                "latitude": 30.2,
+        								                "longitude": -81.75
+        								            },
+        								            "neCorner": {
+        								                "latitude": 30.37,
+        								                "longitude": -81.45
+        								            }
+        								        }
+        								    ]
+        								}
+                                        """).id
+                        }
+                    def entity = byId[Event](entityId).get
+                    step {
+                        val depth0 =
+                            s"""{"name":"Foo","singleTerms":["Foo","Bar"],"description":null,"subdomain":null,"id":"${entity.id}","boundingBoxes":["${entity.boundingBoxes.onlyOne.id}"],"compoundTerms":["foo bar"],"internalId":null}"""
+                        val depth1 =
+                            s"""{"name":"Foo","singleTerms":["Foo","Bar"],"description":null,"subdomain":null,"id":"${entity.id}","boundingBoxes":[{"id":"${entity.boundingBoxes.onlyOne.id}","neCorner":"${entity.boundingBoxes.onlyOne.neCorner.id}","swCorner":"${entity.boundingBoxes.onlyOne.swCorner.id}"}],"compoundTerms":["foo bar"],"internalId":null}"""
+                        val depth2 =
+                            s"""{"name":"Foo","singleTerms":["Foo","Bar"],"description":null,"subdomain":null,"id":"${entity.id}","boundingBoxes":[{"id":"${entity.boundingBoxes.onlyOne.id}","neCorner":{"id":"${entity.boundingBoxes.onlyOne.neCorner.id}","longitude":-81.44999694824219,"latitude":30.3700008392334},"swCorner":{"id":"${entity.boundingBoxes.onlyOne.swCorner.id}","longitude":-81.75,"latitude":30.200000762939453}}],"compoundTerms":["foo bar"],"internalId":null}"""
+                        entity.toJsonString == depth0
+                        entity.toJsonString(depth = 0) === depth0
+                        entity.toJsonString(depth = 1) === depth1
+                        entity.toJsonString(depth = 2) === depth2
+                        entity.toJsonString(fullDepth) === depth2
+                    }
+                })
+        }
+
+        "handle cycle in depth print" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    object SprayJsonContext extends SprayJsonContext {
+                        val context = step.ctx
+                    }
+                    import SprayJsonContext._
+                    val (id1, id2) =
+                        step {
+                            val employee1 = new Employee("test1", None)
+                            val employee2 = new Employee("test2", None)
+                            employee1.supervisor = Some(employee2)
+                            employee2.supervisor = Some(employee1)
+                            (employee1.id, employee2.id)
+                        }
+                    def employee1 = byId[Employee](id1).get
+                    step {
+                        val depth0 = s"""{"id":"$id1","supervisor":"$id2","name":"test1"}"""
+                        val depth1 = s"""{"id":"$id1","supervisor":{"id":"$id2","supervisor":"$id1","name":"test2"},"name":"test1"}"""
+                        employee1.toJsonString === depth0
+                        employee1.toJsonString(depth = 0) === depth0
+                        employee1.toJsonString(depth = 1) === depth1
+                        employee1.toJsonString(depth = 2) === depth1
                     }
                 })
         }

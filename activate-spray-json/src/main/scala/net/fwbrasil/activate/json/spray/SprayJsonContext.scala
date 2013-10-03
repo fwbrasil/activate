@@ -99,7 +99,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
         }
 
-    private def toJsValue[T](entityValue: EntityValue[T]): JsValue =
+    private def toJsValue[T](entityValue: EntityValue[T], depth: Int, seenEntities: Set[Entity] = Set()): JsValue =
         entityValue match {
             case value: IntEntityValue =>
                 jsValue[Int](value, JsNumber(_))
@@ -125,15 +125,20 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 jsValue[Calendar](value, d => JsString(jsonDateFormat.format(d.getTime)))
             case value: ByteArrayEntityValue =>
                 jsValue[Array[Byte]](value, b => JsString(new String(b)))
-            case value: EntityInstanceEntityValue[_] =>
+            case value: EntityInstanceEntityValue[_] if (depth <= 0) =>
                 jsValue[Entity](value.asInstanceOf[EntityInstanceEntityValue[Entity]], e => JsString(e.id))
+            case value: EntityInstanceEntityValue[_] =>
+                value.asInstanceOf[EntityInstanceEntityValue[Entity]].value.map {
+                    entity =>
+                        _createJsonFromEntity(entity, depth - 1, seenEntities)
+                }.getOrElse(JsNull)
             case value: EntityInstanceReferenceValue[_] =>
                 jsValue[String](value, JsString(_))
             case value: EnumerationEntityValue[_] =>
                 jsValue[Enumeration#Value](value.asInstanceOf[EnumerationEntityValue[Enumeration#Value]], e => JsString(e.toString))
             case value: ListEntityValue[_] =>
                 value.value.map(list =>
-                    JsArray(list.map(e => toJsValue(value.valueEntityValue(e)))))
+                    JsArray(list.map(e => toJsValue(value.valueEntityValue(e), depth))))
                     .getOrElse(JsNull)
             case value: LazyListEntityValue[_] =>
                 value.value.map(list =>
@@ -220,13 +225,23 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         }
     }
 
-    def createJsonFromEntity[E <: Entity: Manifest](entity: E) = {
-        val fields =
-            entity.vars.filter(!_.isTransient).map(ref =>
-                (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value))).getOrElse(JsNull))).toMap
-        JsObject(fields)
+    def createJsonFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0): JsObject =
+        _createJsonFromEntity(entity, depth, Set()).asJsObject
+
+    private def _createJsonFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0, pSeenEntities: Set[Entity]) = {
+        if (pSeenEntities.contains(entity)) 
+            JsString(entity.id)
+        else {
+            val seenEntities = pSeenEntities ++ Set(entity)
+            val fields =
+                entity.vars.filter(!_.isTransient).map(ref =>
+                    (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value), depth, seenEntities)).getOrElse(JsNull))).toMap
+            JsObject(fields)
+        }
     }
-    def createJsonStringFromEntity[E <: Entity: Manifest](entity: E) = createJsonFromEntity(entity).compactPrint
+
+    def createJsonStringFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0) =
+        createJsonFromEntity(entity, depth).compactPrint
 
     implicit def entityJsonFormat[E <: Entity: Manifest] =
         new RootJsonFormat[E] {
