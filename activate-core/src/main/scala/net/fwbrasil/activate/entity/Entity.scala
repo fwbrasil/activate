@@ -158,7 +158,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
             if (!initializing && !initialized) {
                 beforeInitialize
                 initializing = true
-                context.liveCache.loadFromDatabase(this, withinTransaction = true)
+                context.liveCache.loadFromDatabase(this)
                 initializing = false
                 initialized = true
                 afterInitialize
@@ -173,9 +173,9 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         }
     }
 
-    private[activate] def reload =
+    def reloadFromDatabase =
         this.synchronized {
-            context.liveCache.loadFromDatabase(this, withinTransaction = true)
+            context.liveCache.loadFromDatabase(this)
             this
         }
 

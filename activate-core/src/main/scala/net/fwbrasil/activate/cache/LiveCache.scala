@@ -276,7 +276,7 @@ class LiveCache(
     }
 
     def reloadEntities(ids: Set[String]) =
-        ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id)))).flatten.map(_.reload)
+        ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id)))).flatten.map(_.reloadFromDatabase)
 
     def executePendingMassStatements(entity: Entity) =
         for (statement <- context.currentTransactionStatements)
@@ -291,18 +291,18 @@ class LiveCache(
         entity.synchronized {
             if (!entity.isInitialized) {
                 val map = values.map(tuple => (entity.varNamed(tuple._1), tuple._2)).toMap
-                setEntityValues(entity, true, map)
+                setEntityValues(entity, map)
                 entity.setInitialized
             }
         }
         entity
     }
 
-    def loadFromDatabase(entity: Entity, withinTransaction: Boolean): Unit = {
+    def loadFromDatabase(entity: Entity): Unit = {
         val vars = entity.vars.toList.filter(p => !p.isTransient)
         if (vars.size != 1) {
             loadRowFromDatabase(entity).map {
-                row => setEntityValues(entity, withinTransaction, vars.zip(row).toMap)
+                row => setEntityValues(entity, vars.zip(row).toMap)
             }.getOrElse {
                 transactional(transient) {
                     entity.deleteWithoutInitilize
@@ -312,15 +312,11 @@ class LiveCache(
 
     }
 
-    def setEntityValues(entity: Entity, withinTransaction: Boolean, values: Map[Var[Any], Any]): Unit = {
-        if (withinTransaction)
-            transactional(transient) {
-                for ((ref, value) <- values)
-                    ref.putValueWithoutInitialize(value)
-            }
-        else
+    def setEntityValues(entity: Entity, values: Map[Var[Any], Any]): Unit = {
+        transactional(transient) {
             for ((ref, value) <- values)
-                ref.setRefContent(Option(value))
+                ref.putValueWithoutInitialize(value)
+        }
         executePendingMassStatements(entity)
     }
 
