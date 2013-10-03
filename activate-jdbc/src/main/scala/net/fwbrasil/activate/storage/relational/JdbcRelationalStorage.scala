@@ -303,6 +303,10 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
     val url: String
     val user: String
     val password: String
+    
+    val poolSize = 20
+    
+    val logStatements = false
 
     private var _connectionPool: BoneCP = _
 
@@ -326,6 +330,10 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         config.setLazyInit(true)
         config.setDisableConnectionTracking(true)
         config.setReleaseHelperThreads(0)
+        val partitions = Runtime.getRuntime.availableProcessors
+        config.setPartitionCount(partitions)
+        config.setMaxConnectionsPerPartition(poolSize / partitions)
+        config.setLogStatementsEnabled(logStatements)
         _connectionPool = new BoneCP(config)
     }
 
