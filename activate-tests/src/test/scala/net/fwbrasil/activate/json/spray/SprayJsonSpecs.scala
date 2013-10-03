@@ -10,6 +10,13 @@ import spray.json._
 import DefaultJsonProtocol._
 import net.fwbrasil.activate.entity.Entity
 import org.joda.time.DateTime
+import net.fwbrasil.activate.asyncPostgresqlContext
+import net.fwbrasil.activate.postgresqlContext
+import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.mysqlContext
+import net.fwbrasil.activate.h2Context
+import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
+import net.fwbrasil.activate.storage.relational.async.AsyncPostgreSQLStorage
 
 class Event(
     val name: String,
@@ -213,28 +220,36 @@ class SprayJsonSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    object SprayJsonContext extends SprayJsonContext {
-                        val context = step.ctx
-                    }
-                    import SprayJsonContext._
-                    val (id1, id2) =
+                    if (!step.ctx.storage.isInstanceOf[JdbcRelationalStorage] &&
+                        !step.ctx.storage.isInstanceOf[AsyncPostgreSQLStorage]) {
+                        object SprayJsonContext extends SprayJsonContext {
+                            val context = step.ctx
+                        }
+                        import SprayJsonContext._
+                        val (id1, id2) =
+                            step {
+                                val employee1 = new Employee("test1", None)
+                                val employee2 = new Employee("test2", None)
+                                (employee1.id, employee2.id)
+                            }
+                        def employee1 = byId[Employee](id1).get
+                        def employee2 = byId[Employee](id2).get
                         step {
-                            val employee1 = new Employee("test1", None)
-                            val employee2 = new Employee("test2", None)
                             employee1.supervisor = Some(employee2)
                             employee2.supervisor = Some(employee1)
-                            (employee1.id, employee2.id)
                         }
-                    def employee1 = byId[Employee](id1).get
-                    step {
-                        val depth0 = s"""{"id":"$id1","supervisor":"$id2","name":"test1"}"""
-                        val depth1 = s"""{"id":"$id1","supervisor":{"id":"$id2","supervisor":"$id1","name":"test2"},"name":"test1"}"""
-                        employee1.toJsonString === depth0
-                        employee1.toJsonString(depth = 0) === depth0
-                        employee1.toJsonString(depth = 1) === depth1
-                        employee1.toJsonString(depth = 2) === depth1
+                        step {
+                            val depth0 = s"""{"id":"$id1","supervisor":"$id2","name":"test1"}"""
+                            val depth1 = s"""{"id":"$id1","supervisor":{"id":"$id2","supervisor":"$id1","name":"test2"},"name":"test1"}"""
+                            employee1.toJsonString === depth0
+                            employee1.toJsonString(depth = 0) === depth0
+                            employee1.toJsonString(depth = 1) === depth1
+                            employee1.toJsonString(depth = 2) === depth1
+                            employee1.toJsonString(fullDepth) === depth1
+                        }
                     }
                 })
+
         }
     }
 
