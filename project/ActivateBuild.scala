@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.18.0-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.4-RC2"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.4"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.6"
 	val guava = "com.google.guava" % "guava" % "15.0"
 	val objenesis = "org.objenesis" % "objenesis" % "2.0"
@@ -21,7 +21,6 @@ object ActivateBuild extends Build {
 	val gremlin = "com.tinkerpop.gremlin" % "gremlin-java" % "2.2.0"
 	val xstream = "com.thoughtworks.xstream" % "xstream" % "1.4.4" exclude("xpp3", "xpp3_min")
 	val jettison = "org.codehaus.jettison" % "jettison" % "1.3.4"
-	// val scalaActors = "org.scala-lang" % "scala-actors" % "2.10.0"
 	val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.1"
 	val kryo = "com.esotericsoftware.kryo" % "kryo" % "2.21"
 	val cassandraDriver = "com.datastax.cassandra" % "cassandra-driver-core" % "1.0.3"
@@ -262,7 +261,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.4-SNAPSHOT",
+    		version := "1.4",
     		scalaVersion := "2.10.1",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
