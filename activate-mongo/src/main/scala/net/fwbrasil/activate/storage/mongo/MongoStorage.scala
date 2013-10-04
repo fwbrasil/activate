@@ -64,6 +64,8 @@ import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.statement.ToLowerCase
 import scala.collection.mutable.{ Map => MutableMap }
 import language.implicitConversions
+import com.mongodb.MongoClientOptions
+import com.mongodb.ServerAddress
 
 trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
@@ -71,6 +73,8 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     val port: Int = 27017
     val db: String
     val authentication: Option[(String, String)] = None
+    
+    val poolSize = 20
 
     def directAccess =
         mongoDB
@@ -79,7 +83,9 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
     override def delayedInit(body: => Unit) = {
         body
-        val conn = new MongoClient(host, port)
+        val options = MongoClientOptions.builder.connectionsPerHost(poolSize).build
+        val address = new ServerAddress(host, port)
+        val conn = new MongoClient(address, options)
         mongoDB = conn.getDB(db)
         if (authentication.isDefined) {
             val (user, password) = authentication.get
