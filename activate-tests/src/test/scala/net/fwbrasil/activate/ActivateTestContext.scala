@@ -595,8 +595,6 @@ trait ActivateTestContext
 
     trait TraitAttribute extends Entity {
         var attribute: String
-        private lazy val _test = 1
-        def test = _test
     }
 
     class TraitAttribute1 private (var attribute: String, val dummy: String) extends TraitAttribute {

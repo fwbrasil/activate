@@ -23,9 +23,10 @@ class EntityListenersSpecs extends ActivateTest {
                         (step.isInstanceOf[MultipleTransactionsWithReinitialize] ||
                             step.isInstanceOf[MultipleTransactionsWithReinitializeAndSnapshot])) {
                         var events = List[String]()
-                        ActivateTestEntity.lifecycleCallback = (event: String) => events ++= List(event)
+                        ActivateTestEntity.lifecycleCallback =
+                            (event: String) => events ++= List(event)
                         step {
-                            newEmptyActivateTestEntity
+                            newEmptyActivateTestEntity.id
                         }
                         step {
                             val entity = all[ActivateTestEntity].onlyOne
@@ -33,11 +34,11 @@ class EntityListenersSpecs extends ActivateTest {
                             entity.delete
                         }
                         step {
-                            events === List(
+                            events.startsWith(List(
                                 "beforeConstruct", "insideConstructor",
                                 "afterConstruct", "beforeInitialize",
                                 "afterInitialize", "beforeDelete",
-                                "afterDelete")
+                                "afterDelete")) must beTrue
                         }
                     }
                 })
@@ -61,8 +62,6 @@ class EntityListenersSpecs extends ActivateTest {
                     step {
                         ActivateTestEntity.onModifyFloatCallback =
                             (oldValue: Float, newValue: Float) => {
-                                if (called)
-                                    throw new IllegalStateException("Called twice!")
                                 oldValue === emptyFloatValue
                                 newValue === fullFloatValue
                                 called = true

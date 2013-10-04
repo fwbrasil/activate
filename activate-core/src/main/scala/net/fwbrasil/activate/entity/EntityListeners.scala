@@ -11,7 +11,7 @@ trait EntityListeners {
 
     @transient
     private var listeners: List[Any] = null
-    
+
     protected def beforeConstruct = {}
     protected def afterConstruct = {}
     protected def beforeInitialize = {}
@@ -23,14 +23,15 @@ trait EntityListeners {
         def change(f: => Unit): RefListener[_] = {
             val listener = new RefListener[Any] {
                 override def notifyPut(ref: Ref[Any], obj: Option[Any]) =
-                    f
+                    if (EntityListeners.this.isInitialized)
+                        f
             }
             vars.foreach(_.addWeakListener(listener))
             listener
         }
     }
-    
-    private[activate] def initializeListeners = 
+
+    private[activate] def initializeListeners =
         listeners = entityMetadata.listenerMethods.map(_.invoke(this))
 
     protected def onAny =

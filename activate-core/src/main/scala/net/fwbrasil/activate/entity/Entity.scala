@@ -175,7 +175,9 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
 
     def reloadFromDatabase =
         this.synchronized {
+            initialized = false
             context.liveCache.loadFromDatabase(this)
+            initialized = true
             this
         }
 

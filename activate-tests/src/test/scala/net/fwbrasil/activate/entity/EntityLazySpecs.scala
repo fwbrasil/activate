@@ -5,6 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class EntityLazySpecs extends ActivateTest {
@@ -13,7 +14,7 @@ class EntityLazySpecs extends ActivateTest {
         List(MultipleTransactionsWithReinitialize(ctx))
 
     override def contexts =
-        super.contexts.filter(!_.storage.isMemoryStorage)
+        super.contexts.filter(ctx => !ctx.storage.isMemoryStorage && ctx != polyglotContext)
 
     "Lazy entities" should {
         "lazy load" in {

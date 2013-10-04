@@ -78,7 +78,7 @@ trait EntityValidation {
     protected implicit class onInvariants(on: On) {
 
         private def properties = on.vars.map(_.name).toList
-        
+
         def invariant(f: => Boolean) =
             Invariant[EntityValidation.this.type](() => f, () => List(), () => properties)
 
@@ -112,21 +112,23 @@ trait EntityValidation {
         if (_listener == null) {
             _listener = new RefListener[Any] with Serializable {
                 private val isValidating = new AtomicBoolean(false)
-                override def notifyPut(ref: Ref[Any], obj: Option[Any]) = {
-                    EntityValidation.validateOnWrite(EntityValidation.this)
-                }
+                override def notifyPut(ref: Ref[Any], obj: Option[Any]) =
+                    if (EntityValidation.this.isInitialized) {
+                        EntityValidation.validateOnWrite(EntityValidation.this)
+                    }
                 override def notifyGet(ref: Ref[Any]) =
-                    if (isValidating.compareAndSet(false, true))
-                        try {
-                            EntityValidation.validateOnRead(EntityValidation.this)
-                        } finally {
-                            isValidating.set(false)
-                        }
+                    if (EntityValidation.this.isInitialized)
+                        if (isValidating.compareAndSet(false, true))
+                            try {
+                                EntityValidation.validateOnRead(EntityValidation.this)
+                            } finally {
+                                isValidating.set(false)
+                            }
             }
         }
         _listener
     }
-    private[this] def initializeListener: Unit = 
+    private[this] def initializeListener: Unit =
         for (ref <- vars if ref.name != OptimisticOfflineLocking.versionVarName)
             ref.addWeakListener(listener)
 
