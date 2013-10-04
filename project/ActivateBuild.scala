@@ -40,7 +40,7 @@ object ActivateBuild extends Build {
 	val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
 	val mysql = "mysql" % "mysql-connector-java" % "5.1.26"
 	val postgresql = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
-	val boneCP = "com.jolbox" % "bonecp" % "0.7.1.RELEASE"
+	val boneCP = "com.jolbox" % "bonecp" % "0.8.0-rc3"
 	val h2 = "com.h2database" % "h2" % "1.3.173"
 	val derby = "org.apache.derby" % "derby" % "10.10.1.1"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.0"
