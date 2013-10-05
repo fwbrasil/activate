@@ -156,11 +156,11 @@ object EntityEnhancer extends Logging {
     def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
         val classPool = new ClassPool(false)
         classPool.appendClassPath(new ClassClassPath(this.getClass))
-        val names = entityClassesNames(referenceClass).filter(!isLoaded(_))
+        val (notLoaded, alreadyLoaded) = entityClassesNames(referenceClass).partition(!isLoaded(_))
         val enhancedEntityClasses =
-            names.map(enhance(_, classPool)).flatten
+            notLoaded.map(enhance(_, classPool)).flatten
         val resolved = resolveDependencies(enhancedEntityClasses)
-        materializeClasses(resolved)
+        materializeClasses(resolved) ++ getClasses(alreadyLoaded)
     }
 
     private val findLoadedClassMethod = classOf[ClassLoader].getDeclaredMethod("findLoadedClass", classOf[String])
@@ -176,9 +176,13 @@ object EntityEnhancer extends Logging {
 
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
-        for (enhancedEntityClass <- resolved) yield
-            enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
+        for (enhancedEntityClass <- resolved) yield enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
     }
+
+    private def getClasses(names: Set[String]) =
+        for (name <- names) yield {
+            ActivateContext.classLoaderFor(name).loadClass(name).asInstanceOf[Class[Entity]]
+        }
 
     private def entityClassesNames(referenceClass: Class[_]) =
         Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
