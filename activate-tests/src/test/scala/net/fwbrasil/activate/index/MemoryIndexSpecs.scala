@@ -7,6 +7,8 @@ import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.derbyContext
 import net.fwbrasil.activate.h2Context
 import net.fwbrasil.activate.hsqldbContext
+import net.fwbrasil.activate.util.ThreadUtil
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class MemoryIndexSpecs extends ActivateTest {
@@ -76,6 +78,26 @@ class MemoryIndexSpecs extends ActivateTest {
                     }
                     step {
                         runIndexedAndVerify
+                    }
+                })
+        }
+
+        "be consistent with concurrent reads/writes" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            newFullActivateTestEntity.id
+                        }
+                    step {
+                        ThreadUtil.runWithThreads(100) {
+                            transactional {
+                                val entity = indexActivateTestEntityByIntValue.get(fullIntValue).head
+                                entity.id === entityId
+                                entity.longValue := Random.nextLong
+                            }
+                        }
                     }
                 })
         }
