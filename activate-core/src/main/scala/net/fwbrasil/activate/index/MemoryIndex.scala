@@ -52,25 +52,13 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     }
 
     private[index] def deleteEntities(entities: List[Entity]): Unit =
-        deleteEntities(entities.map(_.id).toSet)
-
-    private[index] def deleteEntities(ids: Set[String]) =
         doWithWriteLock {
-            for (id <- ids) {
-                invertedIndex.get(id).map {
-                    key =>
-                        index.get(key).map {
-                            values =>
-                                index.put(key, values -- Set(id))
-                        }
-                        invertedIndex.remove(id)
-                }
-            }
+            deleteEntities(entities.map(_.id).toSet)
         }
 
-    private[index] def updateEntities(entities: List[Entity]) = {
-        deleteEntities(entities)
+    private[index] def updateEntities(entities: List[Entity]) =
         doWithWriteLock {
+            deleteEntities(entities.map(_.id).toSet)
             for (entity <- entities) {
                 val key = keyProducer(entity.asInstanceOf[E])
                 val value = index.getOrElseUpdate(key, Set())
@@ -78,13 +66,23 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
                 invertedIndex.put(entity.id, key)
             }
         }
-    }
 
-    private[index] def unload = {
-        index.clear
-        invertedIndex.clear
-        lazyInit = unsafeLazy(reload)
-    }
+    private def deleteEntities(ids: Set[String]) =
+        for (id <- ids) {
+            invertedIndex.get(id).map {
+                key =>
+                    val values = index(key)
+                    index.put(key, values -- Set(id))
+                    invertedIndex.remove(id)
+            }
+        }
+
+    private[index] def unload =
+        doWithWriteLock {
+            index.clear
+            invertedIndex.clear
+            lazyInit = unsafeLazy(reload)
+        }
 
     private[index] def reload: Unit = {
         info(s"Reloading index $name")
@@ -138,14 +136,14 @@ trait MemoryIndexContext {
 
                 val filteredDeletes =
                     deletes.filter(insert => entityClass.isAssignableFrom(insert.getClass))
-                if (filteredDeletes.nonEmpty)
-                    index.deleteEntities(filteredDeletes)
 
                 val filteredUpdates =
                     (updates ++ inserts).filter(insert => entityClass.isAssignableFrom(insert.getClass))
 
                 val nested = new NestedTransaction(transaction)
                 transactional(nested) {
+                    if (filteredDeletes.nonEmpty)
+                        index.deleteEntities(filteredDeletes)
                     if (filteredUpdates.nonEmpty)
                         index.updateEntities(filteredUpdates)
                 }
