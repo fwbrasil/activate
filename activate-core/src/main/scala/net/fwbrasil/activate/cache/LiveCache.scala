@@ -146,8 +146,10 @@ class LiveCache(
         val filteredWithDeletedEntities =
             if (storageFor(query).isMemoryStorage)
                 entities
-            else
-                entities.filter(_.find(_.isDirty).isDefined)
+            else {
+                val dirtyEntities = dirtyEntitiesFromTransaction(classOf[Entity])
+                entities.filter(dirtyEntities.contains(_))
+            }
         val filteredWithoutDeletedEntities =
             filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
         val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
