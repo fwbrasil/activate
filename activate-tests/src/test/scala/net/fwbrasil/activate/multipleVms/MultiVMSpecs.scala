@@ -21,7 +21,7 @@ class MultiVMSpecs extends ActivateTest {
     "Multiple VMs" should {
         "work with offline locking with read validation" in synchronized {
             test(mainVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
-                forkVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
+                forkVmOptions = List(optimisticOfflineLockingOption),
                 expectSucess = true)
         }
         "not work without offline locking" in synchronized {
@@ -91,16 +91,12 @@ case class ForkVM(entityId: String, numOfThreads: Int, numOfTransactions: Int) {
                 yield new Thread {
                 override def run =
                     for (i <- 0 until numOfTransactions) {
-                        val (entity, newValue) =
-                            transactional {
-                                val entity = byId[IntEntity](entityId).get
-                                val oldValue = entity.intValue
-                                val newValue = oldValue + 1
-                                entity.intValue = newValue
-                                (entity, newValue)
-                            }
                         transactional {
-//                            require(indexIntEntityByIntValue.get(newValue) == List(entity))
+                            val entity = byId[IntEntity](entityId).get
+                            val oldValue = entity.intValue
+                            val newValue = oldValue + 1
+                            entity.intValue = newValue
+                            (entity, newValue)
                         }
                     }
             }
