@@ -87,16 +87,16 @@ class MemoryIndexSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     val entityId =
-                        step {
+                        transactional {
                             newFullActivateTestEntity.id
                         }
-                    step {
-                        ThreadUtil.runWithThreads(100) {
-                            transactional {
-                                val entity = indexActivateTestEntityByIntValue.get(fullIntValue).head
-                                entity.id === entityId
-                                entity.longValue := Random.nextLong
-                            }
+                    ThreadUtil.runWithThreads(100) {
+                        transactional {
+                            val lazyList = indexActivateTestEntityByIntValue.get(fullIntValue)
+                            lazyList.ids === List(entityId)
+                            val entity = lazyList.head
+                            entity.id === entityId
+                            entity.longValue = Random.nextLong
                         }
                     }
                 })
