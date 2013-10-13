@@ -107,6 +107,7 @@ class PrevaylerStorage(
         initialize
 
     override protected[activate] def store(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],

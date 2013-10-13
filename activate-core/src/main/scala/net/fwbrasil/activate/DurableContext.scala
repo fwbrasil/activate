@@ -71,8 +71,9 @@ trait DurableContext {
             val updatesEntities = updates.keys.toList
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
+            val entitiesRead = entitiesReadVersions(transaction, entitiesToIgnore = entities)
             validateTransactionEnd(transaction, entities)
-            store(statements.toList, inserts, updates, deletes)
+            store(statements.toList, inserts, updates, deletes, entitiesRead)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -91,8 +92,9 @@ trait DurableContext {
             val updatesEntities = updates.keys.toList
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
+            val entitiesRead = this.entitiesReadVersions(transaction, entitiesToIgnore = entities)
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
-                storeAsync(statements.toList, inserts, updates, deletes).map { _ =>
+                storeAsync(statements.toList, inserts, updates, deletes, entitiesRead).map { _ =>
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -111,41 +113,51 @@ trait DurableContext {
 
     private def store(
         statements: List[MassModificationStatement],
-        insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
-        updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
-        deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]) = {
+        inserts: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        updates: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        deletes: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        reads: IdentityHashMap[Entity, Long]) = {
 
         val statementsByStorage = groupByStorage(statements)(_.from.entitySources.onlyOne.entityClass)
-        val insertsByStorage = groupByStorage(insertList)(_._1.niceClass)
-        val updatesByStorage = groupByStorage(updateList)(_._1.niceClass)
-        val deletesByStorage = groupByStorage(deleteList)(_._1.niceClass)
+        val insertsByStorage = groupByStorage(inserts)(_._1.niceClass)
+        val updatesByStorage = groupByStorage(updates)(_._1.niceClass)
+        val deletesByStorage = groupByStorage(deletes)(_._1.niceClass)
+        val readsByStorage = groupByStorage(reads)(_._1.niceClass)
 
         val storages = sortStorages((statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
             updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList)
 
         verifyMassSatatements(storages, statementsByStorage)
-        twoPhaseCommit(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
+        twoPhaseCommit(
+            readsByStorage,
+            statementsByStorage,
+            insertsByStorage,
+            updatesByStorage,
+            deletesByStorage,
+            storages)
 
     }
 
     private def storeAsync(
         statements: List[MassModificationStatement],
-        insertList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
-        updateList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
-        deleteList: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]]): Future[Unit] = {
+        inserts: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        updates: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        deletes: IdentityHashMap[Entity, IdentityHashMap[Var[Any], EntityValue[Any]]],
+        reads: IdentityHashMap[Entity, Long]): Future[Unit] = {
 
         // TODO Refactoring (see store)
 
         val statementsByStorage = groupByStorage(statements)(_.from.entitySources.onlyOne.entityClass)
-        val insertsByStorage = groupByStorage(insertList)(_._1.niceClass)
-        val updatesByStorage = groupByStorage(updateList)(_._1.niceClass)
-        val deletesByStorage = groupByStorage(deleteList)(_._1.niceClass)
+        val insertsByStorage = groupByStorage(inserts)(_._1.niceClass)
+        val updatesByStorage = groupByStorage(updates)(_._1.niceClass)
+        val deletesByStorage = groupByStorage(deletes)(_._1.niceClass)
+        val readsByStorage = groupByStorage(reads)(_._1.niceClass)
 
         val storages = sortStorages((statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
             updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList)
 
         verifyMassSatatements(storages, statementsByStorage)
-        extendedCommit(statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
+        extendedCommit(readsByStorage, statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
     }
 
     private def setPersisted(entities: Iterable[Entity]) =
@@ -170,6 +182,29 @@ trait DurableContext {
         val (insertStatementsNormalized, updateStatementsNormalized) = normalize(modifyAssignments).partition(tuple => !tuple._1.isPersisted)
         (insertStatementsNormalized, updateStatementsNormalized, deleteAssignmentsNormalized)
     }
+
+    private def entitiesReadVersions(transaction: Transaction, entitiesToIgnore: List[Entity]) =
+        if (OptimisticOfflineLocking.validateReads) {
+            val entitiesRead = MutableMap[String, Entity]()
+            transaction.reads.asInstanceOf[ListBuffer[Var[Any]]].foreach {
+                ref =>
+                    val entity = ref.outerEntity
+                    if (!entitiesToIgnore.contains(entity))
+                        entitiesRead += entity.id -> entity
+            }
+            val result = new IdentityHashMap[Entity, Long]
+            val nestedTransaction = new NestedTransaction(transaction)
+            transactional(nestedTransaction) {
+                for ((id, entity) <- entitiesRead) {
+                    entity.varNamed(OptimisticOfflineLocking.versionVarName).get.map { version =>
+                        result.put(entity, version.asInstanceOf[Long])
+                    }
+                }
+            }
+            nestedTransaction.rollback
+            result
+        } else
+            new IdentityHashMap[Entity, Long]
 
     private def validateTransactionEnd(transaction: Transaction, entities: List[Entity]) = {
         val toValidate = entities.filter(EntityValidation.validatesOnTransactionEnd(_, transaction))
@@ -231,6 +266,7 @@ trait DurableContext {
     }
 
     private def twoPhaseCommit(
+        readsByStorage: Map[Storage[Any], List[(Entity, Long)]],
         statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
         insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
         updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
@@ -241,6 +277,7 @@ trait DurableContext {
 
         try {
             prepareCommit(
+                readsByStorage,
                 statementsByStorage,
                 insertsByStorage,
                 updatesByStorage,
@@ -260,6 +297,7 @@ trait DurableContext {
     }
 
     private def extendedCommit(
+        readsByStorage: Map[Storage[Any], List[(Entity, Long)]],
         statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
         insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
         updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
@@ -269,11 +307,13 @@ trait DurableContext {
         storages match {
             case storage :: tail =>
                 storage.toStorageAsync(
+                    readsByStorage(storage),
                     statementsByStorage(storage),
                     mapVarsToName(insertsByStorage(storage)),
                     mapVarsToName(updatesByStorage(storage)),
                     mapVarsToName(deletesByStorage(storage))).flatMap { _ =>
                         extendedCommit(
+                            readsByStorage,
                             statementsByStorage,
                             insertsByStorage,
                             updatesByStorage,
@@ -334,6 +374,7 @@ trait DurableContext {
         try
             storage.toStorage(
                 List(),
+                List(),
                 inserts,
                 updates,
                 deletes).map(_.commit)
@@ -367,6 +408,7 @@ trait DurableContext {
         }
 
     private def prepareCommit(
+        readsByStorage: Map[Storage[Any], List[(Entity, Long)]],
         statementsByStorage: Map[Storage[Any], List[MassModificationStatement]],
         insertsByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
         updatesByStorage: Map[Storage[Any], List[(Entity, IdentityHashMap[Var[Any], EntityValue[Any]])]],
@@ -376,6 +418,7 @@ trait DurableContext {
         for (storage <- storages) {
             storagesTransactionHandles +=
                 storage -> storage.toStorage(
+                    readsByStorage(storage),
                     statementsByStorage(storage),
                     mapVarsToName(insertsByStorage(storage)),
                     mapVarsToName(updatesByStorage(storage)),

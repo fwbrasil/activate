@@ -23,7 +23,7 @@ class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
     def isSchemaless = true
     def isTransactional = false
     def supportsQueryJoin = true
-    
+
     override def supportsAsync = true
 
     def directAccess =
@@ -34,6 +34,7 @@ class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
             entity.addToLiveCache
 
     override def toStorage(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],

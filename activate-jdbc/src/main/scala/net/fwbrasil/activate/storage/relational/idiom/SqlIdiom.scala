@@ -285,6 +285,13 @@ trait SqlIdiom extends QlIdiom {
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
     
+    def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]]) = 
+        for((clazz, versions) <- reads) yield {
+            val ids = versions.map(_._1).map(id => "'" + id + "'").mkString(",")
+        	val query = "SELECT " + escape("id") + ", " + escape("version") + " FROM " + toTableName(clazz) + " WHERE " + escape("id") + " IN(" + ids +")"
+        	(new NormalQlStatement(query, Map()), versions)
+        }
+    
     def ifExistsRestriction(statement: String, boolean: Boolean) =
         if (boolean)
             Option(statement, 1)

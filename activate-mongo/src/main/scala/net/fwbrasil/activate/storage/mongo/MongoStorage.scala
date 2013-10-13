@@ -73,7 +73,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     val port: Int = 27017
     val db: String
     val authentication: Option[(String, String)] = None
-    
+
     val poolSize = 20
 
     def directAccess =
@@ -100,6 +100,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     def supportsQueryJoin = false
 
     override def store(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
@@ -185,7 +186,6 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             }
         }
 
-
     private[this] def coll(from: From): DBCollection =
         coll(mongoIdiom.collectionClass(from))
 
@@ -208,17 +208,17 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             ret.sort(dbObject(order))
 
         limitQueryIfNecessary(query, ret)
-        
-        val result = 
+
+        val result =
             ret.toArray.toList
-        
+
         mongoIdiom.transformResultToTheExpectedTypes[DBObject](
-                expectedTypes,
-                query.select.values,
-                result,
-                rowToColumn = (doc, name) => doc.get(name),
-                fromDBList = obj => obj.asInstanceOf[BasicDBList].toList)
-        
+            expectedTypes,
+            query.select.values,
+            result,
+            rowToColumn = (doc, name) => doc.get(name),
+            fromDBList = obj => obj.asInstanceOf[BasicDBList].toList)
+
     }
 
     override def migrateStorage(action: ModifyStorageAction): Unit =

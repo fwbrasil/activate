@@ -21,7 +21,7 @@ class MultiVMSpecs extends ActivateTest {
     "Multiple VMs" should {
         "work with offline locking with read validation" in synchronized {
             test(mainVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
-                forkVmOptions = List(optimisticOfflineLockingOption),
+                forkVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
                 expectSucess = true)
         }
         "not work without offline locking" in synchronized {

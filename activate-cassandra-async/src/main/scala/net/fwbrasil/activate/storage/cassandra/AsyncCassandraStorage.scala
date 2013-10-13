@@ -107,6 +107,7 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
     }
 
     override protected[activate] def executeStatements(
+        reads: Map[Class[Entity], List[(String, Long)]], 
         storageStatements: List[StorageStatement]) = {
         val statements = storageStatements.map(s => dialect.toSqlStatement(s).map((_, s))).flatten
         for ((statement, storageStatement) <- statements) {
@@ -117,6 +118,7 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
     }
 
     override protected[activate] def executeStatementsAsync(
+        reads: Map[Class[Entity], List[(String, Long)]], 
         storageStatements: List[StorageStatement])(implicit context: ExecutionContext) = {
         val statements = storageStatements.map(s => dialect.toSqlStatement(s).map((_, s))).flatten
         statements.foldLeft(Future[Unit]())((future, tuple) => {
@@ -269,8 +271,8 @@ trait AsyncCassandraStorage extends RelationalStorage[Session] {
             case other =>
                 other.value.getOrElse(null)
         }
-    
-    private def toArray(buffer: ByteBuffer) ={
+
+    private def toArray(buffer: ByteBuffer) = {
         val array = new Array[Byte](buffer.remaining)
         buffer.get(array)
         array

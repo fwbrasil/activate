@@ -16,22 +16,26 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 trait MarshalStorage[T] extends Storage[T] {
 
     override protected[activate] def toStorage(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]) =
         store(
+            readList,
             statements,
             marshalling(insertList),
             marshalling(updateList),
             marshalling(deleteList))
 
     override protected[activate] def toStorageAsync(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
         storeAsync(
+            readList,
             statements,
             marshalling(insertList),
             marshalling(updateList),
@@ -41,17 +45,19 @@ trait MarshalStorage[T] extends Storage[T] {
         list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> ReferenceStorageValue(Some(tuple._1.id)))))
 
     protected[activate] def store(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle]
 
     protected[activate] def storeAsync(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
-        blockingFuture(store(statements, insertList, updateList, deleteList).map(_.commit))
+        blockingFuture(store(readList, statements, insertList, updateList, deleteList).map(_.commit))
 
     override def fromStorage(
         queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] = {

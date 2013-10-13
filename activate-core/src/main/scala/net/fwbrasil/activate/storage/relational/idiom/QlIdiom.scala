@@ -120,7 +120,7 @@ trait QlIdiom {
                 ""
         }
     }
-
+    
     def toSqlStatement(statement: StorageStatement): List[NormalQlStatement] =
         statement match {
             case insert: InsertStorageStatement =>

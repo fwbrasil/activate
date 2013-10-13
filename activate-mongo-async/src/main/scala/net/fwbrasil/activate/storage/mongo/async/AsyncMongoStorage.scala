@@ -85,6 +85,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     override def supportsAsync = true
 
     override def store(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
@@ -92,6 +93,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
         await(
             storeAsync(
+                readList,
                 statements,
                 insertList,
                 updateList,
@@ -100,6 +102,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     }
 
     override def storeAsync(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],

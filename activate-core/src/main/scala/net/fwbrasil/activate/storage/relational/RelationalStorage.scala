@@ -17,18 +17,24 @@ import net.fwbrasil.activate.util.Reflection.NiceObject
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
     def store(
+        readList: List[(Entity, Long)],
         statementList: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] =
-        executeStatements(statementsFor(statementList, insertList, updateList, deleteList))
+        executeStatements(verionsFor(readList), statementsFor(statementList, insertList, updateList, deleteList))
 
     override def storeAsync(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, StorageValue])],
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
-        executeStatementsAsync(statementsFor(statements, insertList, updateList, deleteList))
+        executeStatementsAsync(verionsFor(readList), statementsFor(statements, insertList, updateList, deleteList))
+        
+    private def verionsFor(readList: List[(Entity, Long)]) = {
+        readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (tuple._1.id, tuple._2)))
+    }
 
     private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
         list.sortBy(_._1.id)
@@ -56,18 +62,18 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
             }
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
-        executeStatements(List(DdlStorageStatement(action))).map(_.commit)
+        executeStatements(Map(), List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(statements: List[StorageStatement]): Option[TransactionHandle]
+    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(String, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
-        blockingFuture(executeStatements(statements).map(_.commit))
+    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(String, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
+        blockingFuture(executeStatements(reads, statements).map(_.commit))
 
     private def statementsFor(
-            statementList: List[MassModificationStatement], 
-            insertList: List[(Entity, Map[String, StorageValue])], 
-            updateList: List[(Entity, Map[String, StorageValue])], 
-            deleteList: List[(Entity, Map[String, StorageValue])]) = {
+        statementList: List[MassModificationStatement],
+        insertList: List[(Entity, Map[String, StorageValue])],
+        updateList: List[(Entity, Map[String, StorageValue])],
+        deleteList: List[(Entity, Map[String, StorageValue])]) = {
 
         val statements =
             statementList.map(ModifyStorageStatement(_))

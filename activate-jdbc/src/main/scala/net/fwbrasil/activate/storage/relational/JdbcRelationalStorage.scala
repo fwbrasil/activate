@@ -17,7 +17,7 @@ import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
 import com.jolbox.bonecp.BoneCP
 import com.jolbox.bonecp.BoneCPConfig
-import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Entity
@@ -45,10 +45,10 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     private val preparedStatementCache = new PreparedStatementCache
 
     protected def getConnection: Connection
-    
-    override def supportsRegex = 
+
+    override def supportsRegex =
         dialect.supportsRegex
-    
+
     override def supportsLimitedQueries =
         dialect.supportsLimitedQueries
 
@@ -81,6 +81,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def supportsQueryJoin = true
 
     override protected[activate] def executeStatements(
+        reads: Map[Class[Entity], List[(String, Long)]],
         storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         val sqlStatements =
             storageStatements.map(dialect.toSqlStatement).flatten
@@ -90,9 +91,27 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 .filter(satisfyRestriction)
         Some(executeWithTransactionAndReturnHandle {
             connection =>
+                verifyReads(reads)
                 for (statement <- statements)
                     execute(statement, connection)
         })
+    }
+
+    private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
+        for ((stmt, expectedVersions) <- dialect.versionVerifyQueries(reads)) {
+            val versionsFromDatabase =
+                executeQuery(stmt, List(new StringStorageValue(None), new LongStorageValue(None))).map {
+                    _ match {
+                        case StringStorageValue(Some(id)) :: LongStorageValue(Some(version)) :: Nil =>
+                            (id, version)
+                        case StringStorageValue(Some(id)) :: LongStorageValue(None) :: Nil =>
+                            (id, 1)
+                    }
+                }
+            val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
+            if (inconsistentVersions.nonEmpty)
+                new ActivateConcurrentTransactionException(inconsistentVersions.map(_._1), List())
+        }
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement) =
@@ -203,7 +222,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     protected[activate] def acquirePreparedStatement(jdbcStatement: QlStatement, connection: Connection, readOnly: Boolean) = {
         val (ps, columns) = preparedStatementCache.acquireFor(connection, jdbcStatement, readOnly)
-		val valuesList = jdbcStatement.valuesList(columns)
+        val valuesList = jdbcStatement.valuesList(columns)
         try {
             for (binds <- valuesList) {
                 var i = 1
@@ -303,9 +322,9 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
     val url: String
     val user: String
     val password: String
-    
+
     val poolSize = 20
-    
+
     val logStatements = false
 
     private var _connectionPool: BoneCP = _

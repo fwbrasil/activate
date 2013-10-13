@@ -129,6 +129,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     override protected[activate] def executeStatementsAsync(
+        reads: Map[Class[Entity], List[(String, Long)]], 
         sqls: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] = {
         val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
         val sqlStatements =
@@ -141,11 +142,12 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     override protected[activate] def executeStatements(
-        sqls: List[StorageStatement]) = {
+        reads: Map[Class[Entity], List[(String, Long)]], 
+        statements: List[StorageStatement]) = {
         implicit val ectx = executionContext
-        val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
+        val isDdl = statements.find(_.isInstanceOf[DdlStorageStatement]).isDefined
         val sqlStatements =
-            sqls.map(dialect.toSqlStatement).flatten
+            statements.map(dialect.toSqlStatement).flatten
         val res =
             executeWithTransactionAndReturnHandle {
                 connection =>

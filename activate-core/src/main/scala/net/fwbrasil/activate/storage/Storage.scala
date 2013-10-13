@@ -34,17 +34,19 @@ class TransactionHandle(
 trait Storage[T] extends Logging {
 
     protected[activate] def toStorage(
+        readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
     protected[activate] def toStorageAsync(
+        readList: List[(Entity, Long)],    
         statements: List[MassModificationStatement],
         insertList: List[(Entity, Map[String, EntityValue[Any]])],
         updateList: List[(Entity, Map[String, EntityValue[Any]])],
         deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
-        blockingFuture(toStorage(statements, insertList, updateList, deleteList).map(_.commit))
+        blockingFuture(toStorage(readList, statements, insertList, updateList, deleteList).map(_.commit))
 
     protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
 
