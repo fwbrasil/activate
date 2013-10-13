@@ -14,8 +14,6 @@ trait MultiVMContext extends StoppableActivateContext {
         var intValue = 0
     }
     
-//    val indexIntEntityByIntValue = memoryIndex[IntEntity].on(_.intValue)
-
     object versionMigration extends ManualMigration {
         def up =
             table[IntEntity]

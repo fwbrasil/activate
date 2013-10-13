@@ -110,7 +110,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 }
             val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
             if (inconsistentVersions.nonEmpty)
-                new ActivateConcurrentTransactionException(inconsistentVersions.map(_._1), List())
+                throw new ActivateConcurrentTransactionException(inconsistentVersions.map(_._1), List())
         }
     }
 
