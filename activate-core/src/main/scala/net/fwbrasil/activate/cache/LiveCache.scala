@@ -148,7 +148,7 @@ class LiveCache(
                 entities
             else {
                 val dirtyEntities = dirtyEntitiesFromTransaction(classOf[Entity])
-                entities.filter(dirtyEntities.contains(_))
+                entities.filter(_.find(dirtyEntities.contains(_)).isDefined)
             }
         val filteredWithoutDeletedEntities =
             filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
