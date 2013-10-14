@@ -106,7 +106,10 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
-        preVerifyStaleData(updateList ++ deleteList)
+        preVerifyStaleData(
+            readList ++
+                mongoIdiom.expectedVersions(updateList) ++
+                mongoIdiom.expectedVersions(deleteList))
         storeStatements(statements)
         storeInserts(insertList)
         storeUpdates(updateList)
@@ -117,8 +120,8 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
 
     private def dbValue(obj: Any): Any =
         obj match {
-            case map: Map[String, Any] =>
-                dbObject(map)
+            case map: Map[_, _] =>
+                dbObject(map.asInstanceOf[Map[String, Any]])
             case list: List[Any] =>
                 dbList(list)
             case other =>
@@ -140,7 +143,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     }
 
     private def preVerifyStaleData(
-        data: List[(Entity, Map[String, StorageValue])]) = {
+        data: List[(Entity, Long)]) = {
         val queries = mongoIdiom.findStaleDataQueries(data)
         val stale =
             (for ((entity, query, select) <- queries) yield {

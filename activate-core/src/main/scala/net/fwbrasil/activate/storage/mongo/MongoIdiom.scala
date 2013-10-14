@@ -57,9 +57,9 @@ import java.util.Date
 object mongoIdiom {
 
     def findStaleDataQueries(
-        data: List[(Entity, Map[String, StorageValue])]) = {
-        for ((entity, properties) <- data.filter(_._2.contains(versionVarName))) yield {
-            val query = versionConditionStale(entity.id, properties)
+        data: List[(Entity, Long)]) = {
+        for ((entity, version) <- data) yield {
+            val query = versionConditionStale(entity.id, version)
             val select = newObject("_id" -> 1)
             (entity, query, select)
         }
@@ -67,24 +67,28 @@ object mongoIdiom {
 
     def versionConditionOrEmpty(
         properties: Map[String, StorageValue]) =
-        if (properties.contains(versionVarName))
-            versionCondition(properties)
-        else
-            Map()
+        properties.get(versionVarName)
+            .flatMap(_.asInstanceOf[LongStorageValue].value.map(version => versionCondition(version - 1l)))
+            .getOrElse(Map())
 
-    def versionCondition(
-        properties: Map[String, StorageValue]) = {
+    def expectedVersions(values: List[(Entity, Map[String, StorageValue])]) =
+        values.collect {
+            case (entity, map) if (map.contains(versionVarName)) =>
+                map(versionVarName).asInstanceOf[LongStorageValue].value.map(v => (entity, v - 1l))
+        }.flatten
+
+    def versionCondition(version: Long) = {
         val versionIsNull = newObject(versionVarName -> null)
-        val isTheExcpectedVersion = newObject(versionVarName -> expectedVersion(properties))
+        val isTheExcpectedVersion = newObject(versionVarName -> version)
         newObject("$or" -> newList(versionIsNull, isTheExcpectedVersion))
     }
 
     def versionConditionStale(
         id: String,
-        properties: Map[String, StorageValue]) = {
+        version: Long) = {
         val entityId = newObject("_id" -> id)
         val versionIsNotNull = newObject(versionVarName -> newObject("$ne" -> null))
-        val isntTheExcpectedVersion = newObject(versionVarName -> newObject("$ne" -> expectedVersion(properties)))
+        val isntTheExcpectedVersion = newObject(versionVarName -> newObject("$ne" -> version))
         newObject("$and" -> newList(entityId, versionIsNotNull, isntTheExcpectedVersion))
     }
 
@@ -326,15 +330,6 @@ object mongoIdiom {
                 toQueryCriteria(value)
             case value: SimpleStatementBooleanValue =>
                 newList(value.value.toString)
-        }
-
-    private def expectedVersion(
-        properties: Map[String, StorageValue]) =
-        getMongoValue(properties(versionVarName)) match {
-            case null =>
-                null
-            case value: Long =>
-                value - 1l
         }
 
     private def getMongoValue(value: StorageValue): Any =

@@ -106,11 +106,13 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                             (id, version)
                         case StringStorageValue(Some(id)) :: LongStorageValue(None) :: Nil =>
                             (id, 1)
+                        case other =>
+                            throw new IllegalStateException("Invalid version information")
                     }
                 }
             val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
             if (inconsistentVersions.nonEmpty)
-                throw new ActivateConcurrentTransactionException(inconsistentVersions.map(_._1), List())
+                staleDataException(inconsistentVersions.map(_._1))
         }
     }
 

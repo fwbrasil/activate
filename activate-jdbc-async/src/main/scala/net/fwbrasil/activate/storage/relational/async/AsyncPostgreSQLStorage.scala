@@ -26,7 +26,7 @@ import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.relational.BatchQlStatement
 import net.fwbrasil.activate.storage.relational.DdlStorageStatement
 import net.fwbrasil.activate.storage.relational.QlStatement
@@ -39,6 +39,7 @@ import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import io.netty.util.CharsetUtil
 import scala.concurrent.duration.Duration
+import net.fwbrasil.activate.ActivateConcurrentTransactionException
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
@@ -129,20 +130,22 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     override protected[activate] def executeStatementsAsync(
-        reads: Map[Class[Entity], List[(String, Long)]], 
+        reads: Map[Class[Entity], List[(String, Long)]],
         sqls: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] = {
         val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
         val sqlStatements =
             sqls.map(dialect.toSqlStatement).flatten
         executeWithTransaction {
             connection =>
-                sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
-                    future.flatMap(_ => execute(statement, connection, isDdl))(executionContext))
+                verifyReads(reads).flatMap { _ =>
+                    sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
+                        future.flatMap(_ => execute(statement, connection, isDdl))(executionContext))
+                }
         }
     }
 
     override protected[activate] def executeStatements(
-        reads: Map[Class[Entity], List[(String, Long)]], 
+        reads: Map[Class[Entity], List[(String, Long)]],
         statements: List[StorageStatement]) = {
         implicit val ectx = executionContext
         val isDdl = statements.find(_.isInstanceOf[DdlStorageStatement]).isDefined
@@ -151,10 +154,36 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         val res =
             executeWithTransactionAndReturnHandle {
                 connection =>
-                    sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
-                        future.flatMap(_ => execute(statement, connection, isDdl)))
+                    verifyReads(reads).flatMap { _ =>
+                        sqlStatements.foldLeft(Future[Unit]())((future, statement) =>
+                            future.flatMap(_ => execute(statement, connection, isDdl)))
+                    }
             }
         Some(Await.result(res, defaultTimeout))
+    }
+
+    private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]])(implicit context: ExecutionContext) = {
+        dialect.versionVerifyQueries(reads).foldLeft(Future[Unit]())((future, tuple) => {
+            val (stmt, expectedVersions) = tuple
+            future.flatMap(_ =>
+                queryAsync(stmt, List(new StringStorageValue(None), new LongStorageValue(None))).map {
+                    _.map {
+                        _ match {
+                            case StringStorageValue(Some(id)) :: LongStorageValue(Some(version)) :: Nil =>
+                                (id, version)
+                            case StringStorageValue(Some(id)) :: LongStorageValue(None) :: Nil =>
+                                (id, 1)
+                            case other =>
+                                throw new IllegalStateException("Invalid version information")
+                        }
+                    }
+                }.map {
+                    versionsFromDatabase =>
+                        val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
+                        if (inconsistentVersions.nonEmpty)
+                            staleDataException(inconsistentVersions.map(_._1))
+                })
+        })
     }
 
     def execute(jdbcStatement: QlStatement, connection: Connection, isDdl: Boolean) = {

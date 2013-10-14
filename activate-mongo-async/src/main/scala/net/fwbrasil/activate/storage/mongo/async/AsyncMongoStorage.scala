@@ -108,15 +108,16 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] = {
 
-        preVerifyStaleData(updateList ++ deleteList).flatMap { _ =>
-            storeStatements(statements).flatMap { _ =>
-                storeInserts(insertList).flatMap { _ =>
-                    storeUpdates(updateList).flatMap { _ =>
-                        storeDeletes(deleteList)(executionContext)
+        preVerifyStaleData(readList ++ mongoIdiom.expectedVersions(updateList) ++ mongoIdiom.expectedVersions(deleteList))
+            .flatMap { _ =>
+                storeStatements(statements).flatMap { _ =>
+                    storeInserts(insertList).flatMap { _ =>
+                        storeUpdates(updateList).flatMap { _ =>
+                            storeDeletes(deleteList)(executionContext)
+                        }(executionContext)
                     }(executionContext)
                 }(executionContext)
             }(executionContext)
-        }(executionContext)
     }
 
     override def query(
@@ -347,7 +348,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         BSONDocument(map.map(tuple => tuple._1 -> dbValue(tuple._2)))
 
     private def preVerifyStaleData(
-        data: List[(Entity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) =
+        data: List[(Entity, Long)])(implicit ctx: ExecutionContext) =
         Future {
             mongoIdiom.findStaleDataQueries(data)
         }.flatMap { queries =>
