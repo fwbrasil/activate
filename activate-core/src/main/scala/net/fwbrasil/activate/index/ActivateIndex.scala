@@ -56,9 +56,15 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
             val dirtyEntities =
                 context.liveCache
                     .dirtyEntitiesFromTransaction(entityClass)
-                    .filter(e => keyProducer(e) == key)
+
+            val fromIndex =
+                indexGet(key) -- dirtyEntities.map(_.id)
+
+            val dirtyEntitiesFiltered =
+                dirtyEntities.filter(e => keyProducer(e) == key)
                     .map(_.id)
-            new LazyList((indexGet(key) ++ dirtyEntities).toList)
+
+            new LazyList((Set() ++ dirtyEntitiesFiltered ++ fromIndex).toList)
         }
     }
 
@@ -72,7 +78,7 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
 
 }
 
-trait ActivateIndexContext extends MemoryIndexContext {
+trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext {
     this: ActivateContext =>
 
     private[index] val indexes = new ListBuffer[ActivateIndex[_, _]]()

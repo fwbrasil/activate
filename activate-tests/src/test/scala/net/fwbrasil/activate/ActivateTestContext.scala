@@ -51,6 +51,7 @@ import scala.util.Random
 import net.fwbrasil.activate.cache.CacheType
 import net.liftweb.http.js.JE.Num
 import net.fwbrasil.activate.cache.CustomCache
+import scala.collection.immutable.HashSet
 
 case class DummySeriablizable(val string: String)
 
@@ -435,6 +436,23 @@ trait ActivateTestContext
                 condition = _.dummy == true))
 
     val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity].on(_.intValue)
+
+    class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int] {
+        var ids =
+            new HashSet[String] ++ query {
+                (e: ActivateTestEntity) => where(e.intValue :== key) select (e.id)
+            }
+    }
+
+    val persistedIndexActivateTestEntityByIntValue =
+        persistedIndex[ActivateTestEntity].on(_.intValue).using[EntityByIntValue] {
+            key =>
+                query {
+                    (entry: EntityByIntValue) => where(entry.key :== key) select (entry)
+                }.headOption.getOrElse {
+                    new EntityByIntValue(key)
+                }
+        }
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
