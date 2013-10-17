@@ -57,7 +57,7 @@ trait DurableContext {
                 .toList.asInstanceOf[List[DurableContext.this.Entity]]
         if (entities.nonEmpty) {
             val transaction = new Transaction
-            updateMemoryIndexes(transaction, inserts = List(), entities, deletes = List())
+            updateIndexes(transaction, inserts = List(), entities, deletes = List())
         }
     }
 
@@ -77,7 +77,7 @@ trait DurableContext {
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-            updateMemoryIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
+            updateIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
         }
     }
 
@@ -98,7 +98,7 @@ trait DurableContext {
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-                    updateMemoryIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
+                    updateIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
                 }
             }
         } else

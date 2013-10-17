@@ -23,52 +23,43 @@ import net.fwbrasil.radon.util.Lockable
 
 case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     keyProducer: E => T, context: ActivateContext)
-        extends Logging
+        extends ActivateIndex[E, T](keyProducer, context)
+        with Logging
         with Lockable {
 
     import context._
 
     private val index = new HashMap[T, Set[String]]()
     private val invertedIndex = new HashMap[String, T]()
-    val entityClass = erasureOf[E]
 
-    private var lazyInit = unsafeLazy(reload)
+    override protected def indexGet(key: T) =
+        index.get(key).getOrElse(Set())
 
-    def get(key: T) = {
-        lazyInit.get
-        doWithReadLock {
-            val dirtyEntities =
-                context.liveCache
-                    .dirtyEntitiesFromTransaction(entityClass)
-                    .filter(e => keyProducer(e) == key)
-                    .map(_.id)
-            val ids =
-                index.get(key)
-                    .map(_ ++ dirtyEntities)
-                    .getOrElse(dirtyEntities)
-                    .toList
-            new LazyList(ids)
-        }
+    override protected def updateIndex(
+        inserts: List[Entity],
+        updates: List[Entity],
+        deletes: List[Entity]) = {
+        insertEntities(inserts)
+        updateEntities(updates)
+        deleteEntities(deletes)
     }
 
-    private[index] def deleteEntities(entities: List[Entity]): Unit =
-        doWithWriteLock {
-            deleteEntities(entities.map(_.id).toSet)
+    private def updateEntities(entities: List[Entity]) = {
+        deleteEntities(entities)
+        insertEntities(entities)
+    }
+
+    private def insertEntities(entities: List[Entity]) =
+        for (entity <- entities) {
+            val key = keyProducer(entity.asInstanceOf[E])
+            val value = index.getOrElseUpdate(key, Set())
+            index.put(key, value ++ Set(entity.id))
+            invertedIndex.put(entity.id, key)
         }
 
-    private[index] def updateEntities(entities: List[Entity]) =
-        doWithWriteLock {
-            deleteEntities(entities.map(_.id).toSet)
-            for (entity <- entities) {
-                val key = keyProducer(entity.asInstanceOf[E])
-                val value = index.getOrElseUpdate(key, Set())
-                index.put(key, value ++ Set(entity.id))
-                invertedIndex.put(entity.id, key)
-            }
-        }
-
-    private def deleteEntities(ids: Set[String]) =
-        for (id <- ids) {
+    private def deleteEntities(entities: List[Entity]) =
+        for (entity <- entities) {
+            val id = entity.id
             invertedIndex.get(id).map {
                 key =>
                     val values = index(key)
@@ -77,15 +68,12 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             }
         }
 
-    private[index] def unload =
-        doWithWriteLock {
-            index.clear
-            invertedIndex.clear
-            lazyInit = unsafeLazy(reload)
-        }
+    override protected def clearIndex = {
+        index.clear
+        invertedIndex.clear
+    }
 
-    private[index] def reload: Unit = {
-        info(s"Reloading index $name")
+    override protected def reload: Unit =
         transactional {
             val entities =
                 query {
@@ -93,66 +81,17 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
                 }.toSet
             updateEntities(entities.filter(_.isPersisted).toList)
         }
-        info(s"Index $name loaded")
-    }
-
-    private def name = context.memoryIndexName(this)
 
 }
 
 trait MemoryIndexContext {
     this: ActivateContext =>
 
-    private val memoryIndexes = new ListBuffer[MemoryIndex[_, _]]()
-
-    private def memoryIndexFields =
-        this.getClass.getDeclaredFields.filter(e => classOf[MemoryIndex[_, _]].isAssignableFrom(e.getType))
-
-    private def memoryIndexesNames =
-        memoryIndexFields.map(e => { e.setAccessible(true); e }).map(field => (field.get(this), field.getName.split("$").last)).toMap
-
-    private[activate] def memoryIndexName(index: MemoryIndex[_, _]) =
-        memoryIndexesNames.getOrElse(index, "Unnamed")
-
     protected class MemoryIndexProducer[E <: Entity: Manifest] {
-        def on[T](keyProducer: E => T) = {
-            val index = new MemoryIndex[E, T](keyProducer, MemoryIndexContext.this)
-            memoryIndexes += index
-            index
-        }
+        def on[T](keyProducer: E => T) =
+            new MemoryIndex[E, T](keyProducer, MemoryIndexContext.this)
     }
 
     protected def memoryIndex[E <: Entity: Manifest] = new MemoryIndexProducer[E]
-
-    private[activate] def updateMemoryIndexes(
-        transaction: Transaction,
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) = {
-        if (!memoryIndexes.isEmpty) {
-            for (index <- memoryIndexes) {
-
-                val entityClass = index.entityClass
-
-                val filteredDeletes =
-                    deletes.filter(insert => entityClass.isAssignableFrom(insert.getClass))
-
-                val filteredUpdates =
-                    (updates ++ inserts).filter(insert => entityClass.isAssignableFrom(insert.getClass))
-
-                val nested = new NestedTransaction(transaction)
-                transactional(nested) {
-                    if (filteredDeletes.nonEmpty)
-                        index.deleteEntities(filteredDeletes)
-                    if (filteredUpdates.nonEmpty)
-                        index.updateEntities(filteredUpdates)
-                }
-                nested.rollback
-            }
-        }
-    }
-
-    private[activate] def unloadMemoryIndexes =
-        memoryIndexes.foreach(_.unload)
 
 } 
