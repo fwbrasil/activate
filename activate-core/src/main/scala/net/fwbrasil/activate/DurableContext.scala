@@ -55,10 +55,8 @@ trait DurableContext {
         val entities =
             liveCache.reloadEntities(ids)
                 .toList.asInstanceOf[List[DurableContext.this.Entity]]
-        if (entities.nonEmpty) {
-            val transaction = new Transaction
-            updateIndexes(transaction, inserts = List(), entities, deletes = List())
-        }
+        if (entities.nonEmpty) 
+            updateIndexes(inserts = List(), entities, deletes = List())
     }
 
     override def makeDurable(transaction: Transaction): Unit = {
@@ -77,7 +75,14 @@ trait DurableContext {
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-            updateIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
+            transaction.attachments += (() => updateIndexes(insertsEntities, updatesEntities, deletesEntities))
+        }
+    }
+    
+    override def afterCommit(transaction: Transaction): Unit = {
+        transaction.attachments.collect {
+            case f: Function0[_] =>
+                f()
         }
     }
 
@@ -98,7 +103,7 @@ trait DurableContext {
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-                    updateIndexes(transaction, insertsEntities, updatesEntities, deletesEntities)
+                    transaction.attachments += (() => updateIndexes(insertsEntities, updatesEntities, deletesEntities)) 
                 }
             }
         } else

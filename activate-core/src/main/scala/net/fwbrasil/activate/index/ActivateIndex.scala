@@ -26,8 +26,8 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     private var lazyInit: UnsafeLazyItem[Unit] = _
 
     clearLazyInit
-    
-    private def clearLazyInit = 
+
+    private def clearLazyInit =
         lazyInit =
             unsafeLazy {
                 doWithWriteLock {
@@ -87,7 +87,6 @@ trait ActivateIndexContext extends MemoryIndexContext {
         indexesNames.getOrElse(index, throw new IllegalStateException)
 
     private[activate] def updateIndexes(
-        transaction: Transaction,
         inserts: List[Entity],
         updates: List[Entity],
         deletes: List[Entity]) =
@@ -98,15 +97,12 @@ trait ActivateIndexContext extends MemoryIndexContext {
             def filter(entities: List[Entity]) =
                 entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
 
-            val nested = new NestedTransaction(transaction)
-            transactional(nested) {
+            transactional {
                 index.update(
                     filter(inserts),
                     filter(updates),
                     filter(deletes))
             }
-            nested.rollback
-
         }
 
     private def filterEntities(index: ActivateIndex[_, _], entities: List[Entity]) = {
