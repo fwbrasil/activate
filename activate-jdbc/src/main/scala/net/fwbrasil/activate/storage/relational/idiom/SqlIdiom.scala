@@ -107,7 +107,7 @@ object SqlIdiom {
                 .getAllImplementorsNames(
                     List(classOf[SqlIdiom]),
                     classOf[SqlIdiom])
-                .map(Class.forName)
+                .map(classOf[SqlIdiom].getClassLoader.loadClass)
         for (dialect <- dialects)
             yield (dialect.getSimpleName.split('$').last ->
             Reflection.getObject[SqlIdiom](dialect))

@@ -6,6 +6,7 @@ import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import org.joda.time.base.AbstractInstant
 import net.fwbrasil.activate.util.Reflection.getObject
 import net.fwbrasil.activate.serialization.SerializationContext
+import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.serialization.Serializer
 import net.fwbrasil.activate.serialization.javaSerializer
 import scala.collection.mutable.{ Map => MutableMap }
@@ -44,7 +45,7 @@ case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val
         extends EntityValue[E](value) {
     def enumerationManifest = manifest[E]
     def enumerationClass = erasureOf[E]
-    def enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+    def enumerationObjectClass = ActivateContext.loadClass(enumerationClass.getName + "$")
     def enumerationObject =
         getObject[Enumeration](enumerationObjectClass)
     def emptyValue = enumerationObject.values.head.asInstanceOf[E]
@@ -145,8 +146,9 @@ object EntityValue extends ValueContext {
     def registerEncodersFor(referenceClass: Class[_]) = {
         val encoders =
             Reflection.getAllImplementorsNames(List(referenceClass), classOf[Encoder[_, _]])
-                .map(Class.forName).map(_.newInstance.asInstanceOf[Encoder[Any, Any]])
-        for(encoder <- encoders) 
+                .map(name => ActivateContext.loadClass(name))
+                .map(_.newInstance.asInstanceOf[Encoder[Any, Any]])
+        for (encoder <- encoders)
             this.encoders(encoder.clazz) = encoder
     }
 

@@ -93,7 +93,7 @@ object StorageFactory {
         val factoryClassName =
             properties.getProperty(name, "factory")
         val storageFactory =
-            Reflection.getCompanionObject[StorageFactory](Class.forName(factoryClassName)).get
+            Reflection.getCompanionObject[StorageFactory](ActivateContext.loadClass(factoryClassName)).get
         storageFactory.buildStorage(properties.childProperties(name))
     }
 }

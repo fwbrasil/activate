@@ -173,7 +173,7 @@ object Reflection {
     def getCompanionObject[T](clazz: Class[_]) = {
         val companionClassOption =
             try {
-                Option(Class.forName(clazz.getName + "$"))
+                Option(clazz.getClassLoader.loadClass(clazz.getName + "$"))
             } catch {
                 case e: ClassNotFoundException =>
                     None

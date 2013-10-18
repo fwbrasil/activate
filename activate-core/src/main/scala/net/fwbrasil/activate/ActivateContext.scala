@@ -112,7 +112,7 @@ object ActivateContext {
             classOf[Entity].getClassLoader()
         else
             currentClassLoader
-
+            
     private[activate] val contextCache =
         new ConcurrentHashMap[Class[_], ActivateContext]()
 
