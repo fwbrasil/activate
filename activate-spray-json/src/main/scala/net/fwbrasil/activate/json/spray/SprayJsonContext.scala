@@ -82,7 +82,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
             case (JsString(value), entityValue: EnumerationEntityValue[_]) =>
                 val enumerationValueClass = entityValue.enumerationClass
                 val enumerationClass = enumerationValueClass.getEnclosingClass
-                val enumerationObjectClass = Class.forName(enumerationClass.getName + "$")
+                val enumerationObjectClass = ActivateContext.loadClass(enumerationClass.getName + "$")
                 val obj = getObject[Enumeration](enumerationObjectClass)
                 obj.withName(value)
             case (JsArray(value), entityValue: ListEntityValue[_]) =>
