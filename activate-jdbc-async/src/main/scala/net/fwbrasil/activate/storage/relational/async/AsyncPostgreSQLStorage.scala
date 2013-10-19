@@ -166,22 +166,19 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         dialect.versionVerifyQueries(reads).foldLeft(Future[Unit]())((future, tuple) => {
             val (stmt, expectedVersions) = tuple
             future.flatMap(_ =>
-                queryAsync(stmt, List(new StringStorageValue(None), new LongStorageValue(None))).map {
+                queryAsync(stmt, List(new StringStorageValue(None))).map {
                     _.map {
                         _ match {
-                            case StringStorageValue(Some(id)) :: LongStorageValue(Some(version)) :: Nil =>
-                                (id, version)
-                            case StringStorageValue(Some(id)) :: LongStorageValue(None) :: Nil =>
-                                (id, 1)
+                            case StringStorageValue(Some(id)) :: Nil =>
+                                id
                             case other =>
                                 throw new IllegalStateException("Invalid version information")
                         }
                     }
                 }.map {
-                    versionsFromDatabase =>
-                        val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
+                    inconsistentVersions =>
                         if (inconsistentVersions.nonEmpty)
-                            staleDataException(inconsistentVersions.map(_._1))
+                            staleDataException(inconsistentVersions.toSet)
                 })
         })
     }

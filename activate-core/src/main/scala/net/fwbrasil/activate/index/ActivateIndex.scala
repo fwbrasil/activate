@@ -103,7 +103,8 @@ trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext
             def filter(entities: List[Entity]) =
                 entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
 
-            transactional {
+            val transaction = new Transaction
+            transactional(transaction) {
                 index.update(
                     filter(inserts),
                     filter(updates),

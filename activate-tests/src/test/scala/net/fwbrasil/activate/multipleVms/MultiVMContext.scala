@@ -23,7 +23,7 @@ trait MultiVMContext extends StoppableActivateContext {
                 .ifNotExists
     }
 
-    lazy val storage = asyncMongoContext.storage
+    lazy val storage = postgresqlContext.storage
     
     versionMigration.execute
     

@@ -30,8 +30,9 @@ trait QueryContext extends StatementContext
 
     def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[S] = {
         transactionManager.getRequiredActiveTransaction.startIfNotStarted
+        val normalizedQueries = QueryNormalizer.normalize[Query[S]](query)
         val results =
-            (for (normalized <- QueryNormalizer.normalize[Query[S]](query)) yield {
+            (for (normalized <- normalizedQueries) yield {
                 liveCache.executeQuery(normalized, onlyInMemory)
             }).flatten
         treatResults(query, results)

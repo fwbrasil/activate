@@ -148,13 +148,13 @@ case class JdbcActivateResultSet(rs: ResultSet)
 }
 
 trait SqlIdiom extends QlIdiom {
-    
+
     def supportsLimitedQueries = true
-    
+
     def supportsRegex = true
 
     def prepareDatabase(storage: JdbcRelationalStorage) = {}
-    
+
     def findTableStatement(tableName: String): String
 
     def findTableColumnStatement(tableName: String, columnName: String): String
@@ -162,7 +162,6 @@ trait SqlIdiom extends QlIdiom {
     def findIndexStatement(tableName: String, indexName: String): String
 
     def findConstraintStatement(tableName: String, constraintName: String): String
-
 
     protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
         if (optionValue.isEmpty || optionValue == null)
@@ -227,7 +226,7 @@ trait SqlIdiom extends QlIdiom {
                 ReferenceStorageValue(resultSet.getString(i))
         }
     }
-    
+
     def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {
             case action: StorageCreateListTable =>
@@ -284,14 +283,18 @@ trait SqlIdiom extends QlIdiom {
                     statement = toSqlDdl(action),
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
-    
-    def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]]) = 
-        for((clazz, versions) <- reads) yield {
-            val ids = versions.map(_._1).map(id => "'" + id + "'").mkString(",")
-        	val query = "SELECT " + escape("id") + ", " + escape("version") + " FROM " + toTableName(clazz) + " WHERE " + escape("id") + " IN(" + ids +")"
-        	(new NormalQlStatement(query, Map()), versions)
+
+    def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]]) =
+        for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
+            val ids = versions.map(_._1) //.map(id => "'" + id + "'").mkString(",")
+            val conditions =
+                for ((id, version) <- versions) yield {
+                    "(" + escape("id") + " = '" + id + "' and " + escape("version") + " is not null and " + escape("version") + " != " + version + ")"
+                }
+            val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + conditions.mkString(" or ")
+            (new NormalQlStatement(query, Map()), versions)
         }
-    
+
     def ifExistsRestriction(statement: String, boolean: Boolean) =
         if (boolean)
             Option(statement, 1)
@@ -303,7 +306,6 @@ trait SqlIdiom extends QlIdiom {
             Option(statement, 0)
         else
             None
-
 
 }
 

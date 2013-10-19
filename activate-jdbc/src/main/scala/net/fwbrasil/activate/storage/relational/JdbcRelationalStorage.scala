@@ -99,20 +99,17 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
         for ((stmt, expectedVersions) <- dialect.versionVerifyQueries(reads)) {
-            val versionsFromDatabase =
-                executeQuery(stmt, List(new StringStorageValue(None), new LongStorageValue(None))).map {
+            val inconsistentVersions =
+                executeQuery(stmt, List(new StringStorageValue(None))).map {
                     _ match {
-                        case StringStorageValue(Some(id)) :: LongStorageValue(Some(version)) :: Nil =>
-                            (id, version)
-                        case StringStorageValue(Some(id)) :: LongStorageValue(None) :: Nil =>
-                            (id, 1)
+                        case List(StringStorageValue(Some(id))) =>
+                            id
                         case other =>
                             throw new IllegalStateException("Invalid version information")
                     }
                 }
-            val inconsistentVersions = expectedVersions.toSet -- versionsFromDatabase
             if (inconsistentVersions.nonEmpty)
-                staleDataException(inconsistentVersions.map(_._1))
+                staleDataException(inconsistentVersions.toSet)
         }
     }
 
