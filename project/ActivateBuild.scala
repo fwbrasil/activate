@@ -5,7 +5,7 @@ object ActivateBuild extends Build {
   	
 	/* Core dependencies */
   	val javassist = "org.javassist" % "javassist" % "3.18.0-GA"
-	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.5-SNAPSHOT"
+	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.4.1"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.6"
 	val guava = "com.google.guava" % "guava" % "15.0"
 	val objenesis = "org.objenesis" % "objenesis" % "2.0"
@@ -116,7 +116,7 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val slick = "com.typesafe.slick" % "slick_2.10" % "2.0.0-M2" withSources
+    val slick = "com.typesafe.slick" % "slick_2.10" % "2.0.0-M2"
     val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.10.1"
 
     lazy val activateSlick = 
@@ -261,7 +261,7 @@ object ActivateBuild extends Build {
     def commonSettings = 
     	Defaults.defaultSettings ++ Seq(
     		organization := "net.fwbrasil",
-    		version := "1.5-SNAPSHOT",
+    		version := "1.4.3",
     		scalaVersion := "2.10.1",
     		javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
     	    publishMavenStyle := true,
