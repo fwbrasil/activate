@@ -165,7 +165,7 @@ class LiveCache(
         }.toSeq.distinct
     }
 
-    private def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
+    def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
         materializeLines(
             storageFor(query)
                 .fromStorage(query, entitiesReadFromCache))
@@ -229,9 +229,8 @@ class LiveCache(
                 future.map(_ ++ rowsFromCache)(context.ectx)
         }(context.ectx)
     }
-
-    def materializeEntity(entityId: String): Entity = {
-        val entityClass = EntityHelper.getEntityClassFromId(entityId)
+    
+    def materializeEntity(entityId: String, entityClass: Class[Entity]): Entity = {
         val map = entityInstacesMap(entityClass)
         entityId.intern.synchronized {
             val entity = map.get(entityId)
@@ -242,6 +241,11 @@ class LiveCache(
             } else
                 entity
         }
+    }
+
+    def materializeEntity(entityId: String): Entity = {
+        val entityClass = EntityHelper.getEntityClassFromId(entityId)
+        materializeEntity(entityId, entityClass)
     }
 
     private def initializeLazyEntityProperties[E <: Entity](entity: E, entityMetadata: EntityMetadata) =

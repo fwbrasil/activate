@@ -270,13 +270,8 @@ trait QueryContext extends StatementContext
     def select[E <: Entity: Manifest] = new SelectEntity[E]
 
     def byId[T <: Entity](id: => String): Option[T] =
-        EntityHelper.getEntityClassFromIdOption(id).flatMap {
-            entityClass =>
-                implicit val manifestT = manifestClass[T](entityClass)
-                val fromLiveCache = liveCache.byId[T](id)
-                if (fromLiveCache.isDefined)
-                    fromLiveCache
-                else _allWhere[T](_ :== id).headOption
+        EntityHelper.getEntityClassFromIdOption(id).map {
+            entityClass => liveCache.materializeEntity(id, entityClass).asInstanceOf[T]
         }
 
     //ASYNC
