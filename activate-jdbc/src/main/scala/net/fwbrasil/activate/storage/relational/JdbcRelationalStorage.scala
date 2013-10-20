@@ -60,7 +60,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def prepareDatabase =
         dialect.prepareDatabase(this)
 
-    private def getConnectionWithAutoCommit = {
+    protected def getConnectionWithAutoCommit = {
         val con = getConnection
         con.setAutoCommit(true)
         con
@@ -353,13 +353,16 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         config.setPassword(password)
         config.setLazyInit(true)
         config.setDisableConnectionTracking(true)
-        config.setReleaseHelperThreads(0)
         val partitions = Runtime.getRuntime.availableProcessors
         config.setPartitionCount(partitions)
         config.setMaxConnectionsPerPartition(poolSize / partitions)
         config.setLogStatementsEnabled(logStatements)
+        config.setDefaultAutoCommit(true)
         _connectionPool = new BoneCP(config)
     }
+
+    override protected def getConnectionWithAutoCommit =
+        getConnection
 
 }
 
