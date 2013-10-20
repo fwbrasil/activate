@@ -73,15 +73,15 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
         invertedIndex.clear
     }
 
-    override protected def reload: Unit =
-        transactional {
+    override protected def reload: Unit = {
+        transactional(transient) {
             val entities =
                 query {
                     (e: E) => where() select (e)
                 }.toSet
             updateEntities(entities.filter(_.isPersisted).toList)
         }
-
+    }
 }
 
 trait MemoryIndexContext {

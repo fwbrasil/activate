@@ -286,13 +286,18 @@ trait SqlIdiom extends QlIdiom {
 
     def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]]) =
         for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
-            val ids = versions.map(_._1) //.map(id => "'" + id + "'").mkString(",")
+            val ids = versions.map(_._1)
+            var binds = Map[String, StorageValue]()
             val conditions =
-                for ((id, version) <- versions) yield {
-                    "(" + escape("id") + " = '" + id + "' and " + escape("version") + " is not null and " + escape("version") + " != " + version + ")"
+                for (i <- 0 until versions.size) yield {
+                    val (id, version) = versions(i)
+                    val condition = "(" + escape("id") + " = :id" + i + " and " + escape("version") + " is not null and " + escape("version") + " != :version" + i + ")"
+                    binds += ("id" + i) -> new StringStorageValue(Some(id))
+                    binds += ("version" + i) -> new LongStorageValue(Some(version))
+                    condition
                 }
-            val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + conditions.mkString(" or ")
-            (new NormalQlStatement(query, Map()), versions)
+            val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + conditions.mkString(" OR ")
+            (new NormalQlStatement(query, binds), versions)
         }
 
     def ifExistsRestriction(statement: String, boolean: Boolean) =

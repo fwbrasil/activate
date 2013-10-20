@@ -83,18 +83,24 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def executeStatements(
         reads: Map[Class[Entity], List[(String, Long)]],
         storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
-        val sqlStatements =
-            storageStatements.map(dialect.toSqlStatement).flatten
-        val statements =
-            BatchQlStatement
-                .group(sqlStatements, batchLimit)
-                .filter(satisfyRestriction)
-        Some(executeWithTransactionAndReturnHandle {
-            connection =>
-                verifyReads(reads)
-                for (statement <- statements)
-                    execute(statement, connection)
-        })
+        verifyReads(reads)
+        if (storageStatements.isEmpty)
+            None
+        else {
+            val sqlStatements =
+                storageStatements.map(dialect.toSqlStatement).flatten
+            val statements =
+                BatchQlStatement
+                    .group(sqlStatements, batchLimit)
+                    .filter(satisfyRestriction)
+            verifyReads(reads)
+
+            Some(executeWithTransactionAndReturnHandle {
+                connection =>
+                    for (statement <- statements)
+                        execute(statement, connection)
+            })
+        }
     }
 
     private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
