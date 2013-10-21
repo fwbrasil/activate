@@ -35,7 +35,7 @@ trait QueryContext extends StatementContext
             (for (normalized <- normalizedQueries) yield {
                 liveCache.executeQuery(normalized, onlyInMemory)
             }).flatten
-        treatResults(query, results)
+        treatResults(query, normalizedQueries, results)
     }
 
     private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
@@ -309,7 +309,7 @@ trait QueryContext extends StatementContext
         val future =
             normalizedQueries.foldLeft(Future(List[List[Any]]()))(
                 (future, query) => future.flatMap(list => liveCache.executeQueryAsync(query)(texctx).map(list ++ _)))
-        future.map(treatResults(query, _))
+        future.map(treatResults(query, normalizedQueries, _))
     }
 
     def asyncQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
@@ -333,7 +333,7 @@ trait QueryContext extends StatementContext
     def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).executeAsync
 
-    private def treatResults[S](query: Query[S], results: List[List[Any]]): List[S] = {
+    private def treatResults[S](query: Query[S], normalized: List[Query[S]], results: List[List[Any]]): List[S] = {
         val orderedResuts =
             query.orderByClause
                 .map(order => results.sorted(order.ordering))
@@ -343,6 +343,8 @@ trait QueryContext extends StatementContext
                 .denormalizeSelectResults(query, orderedResuts)
                 .map(CollectionUtil.toTuple[S])
         query match {
+            case query: LimitedOrderedQuery[_] if (query.offsetOption.isDefined && normalized.size > 1) =>
+                tuples.drop(query.offsetOption.get).take(query.limit)
             case query: LimitedOrderedQuery[_] =>
                 tuples.take(query.limit)
             case other =>

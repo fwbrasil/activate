@@ -28,8 +28,20 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
         val normalizedPropertyPath = normalizePropertyPath(normalizedEagerEntities)
         val normalizedFrom = normalizeFrom(normalizedPropertyPath)
         val normalizedSelectWithOrderBy = normalizeSelectWithOrderBy(normalizedFrom)
-        normalizedSelectWithOrderBy
+        val normalizedOffset = normalizeOffset(query, normalizedSelectWithOrderBy)
+        normalizedOffset
     }
+
+    def normalizeOffset(originalQuery: Query[_], queryList: List[Query[_]]): List[Query[_]] =
+        originalQuery match {
+            case query: LimitedOrderedQuery[_] if (query.offsetOption.isDefined && queryList.size > 1) =>
+                queryList.collect {
+                    case query: LimitedOrderedQuery[_] =>
+                        query.limit(query.limit + query.offsetOption.get).offset(0)
+                }
+            case other =>
+                queryList
+        }
 
     def normalizeEagerEntities(queryList: List[Query[_]]): List[Query[_]] =
         queryList.map(normalizeEagerEntities(_))
