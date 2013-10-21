@@ -8,8 +8,9 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.storage.marshalling.MarshalStorage
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
-import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import net.fwbrasil.activate.util.Reflection.NiceObject
@@ -31,7 +32,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
         executeStatementsAsync(verionsFor(readList), statementsFor(statements, insertList, updateList, deleteList))
-        
+
     private def verionsFor(readList: List[(Entity, Long)]) = {
         readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (tuple._1.id, tuple._2)))
     }
@@ -47,12 +48,26 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                 val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
                 val tree = new DependencyTree[DmlStorageStatement](statements)
                 for (insertA <- statements) {
-                    for ((propertyName, propertyValue) <- insertA.propertyMap)
-                        if (propertyName != "id" && propertyValue.value.isDefined && propertyValue.isInstanceOf[ReferenceStorageValue]) {
-                            val entityIdB = propertyValue.value.get.asInstanceOf[String]
-                            if (entityInsertMap.contains(entityIdB))
-                                tree.addDependency(entityInsertMap(entityIdB), insertA)
+                    for ((propertyName, propertyValue) <- insertA.propertyMap if (propertyValue.value.isDefined)) {
+                        propertyValue match {
+                            case propertyValue: ReferenceStorageValue if (propertyName != "id") =>
+                                val entityIdB = propertyValue.value.get
+                                if (entityInsertMap.contains(entityIdB))
+                                    tree.addDependency(entityInsertMap(entityIdB), insertA)
+                            case ListStorageValue(Some(values: List[StorageValue]), _: ReferenceStorageValue) =>
+                                val ids =
+                                    (values.collect {
+                                        case value: ReferenceStorageValue =>
+                                            value.value
+                                        case value: StringStorageValue =>
+                                            value.value
+                                    }).flatten
+                                for (entityIdB <- ids)
+                                    if (entityInsertMap.contains(entityIdB))
+                                        tree.addDependency(entityInsertMap(entityIdB), insertA)
+                            case other =>
                         }
+                    }
                 }
                 tree.resolve
             } catch {

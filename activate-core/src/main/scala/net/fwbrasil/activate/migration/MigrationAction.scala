@@ -57,12 +57,12 @@ case class CreateListTable(
     storage: Storage[_],
     number: Int,
     ownerTableName: String,
-    listName: String,
+    listTableName: String,
     valueColumn: Column[_])
         extends StorageAction
         with IfNotExists[CreateListTable] {
     private[activate] def revertAction =
-        RemoveListTable(migration, storage, number, ownerTableName, listName)
+        RemoveListTable(migration, storage, number, ownerTableName, listTableName)
 }
 
 case class RemoveListTable(
@@ -70,7 +70,7 @@ case class RemoveListTable(
     storage: Storage[_],
     number: Int,
     ownerTableName: String,
-    listName: String)
+    listTableName: String)
         extends StorageAction
         with IfExists[RemoveListTable]
         with Cascade {

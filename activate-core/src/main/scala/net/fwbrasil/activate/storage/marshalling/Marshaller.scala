@@ -178,9 +178,9 @@ object Marshaller {
             case action: CreateTable =>
                 StorageCreateTable(action.tableName, marshalling(action.columns), action.onlyIfNotExists)
             case action: CreateListTable =>
-                StorageCreateListTable(action.ownerTableName, action.listName, marshalling(action.valueColumn), StorageColumn("POS", new IntStorageValue(None), None), action.onlyIfNotExists)
+                StorageCreateListTable(action.ownerTableName, action.listTableName, marshalling(action.valueColumn), StorageColumn("POS", new IntStorageValue(None), None), action.onlyIfNotExists)
             case action: RemoveListTable =>
-                StorageRemoveListTable(action.ownerTableName, action.listName, action.onlyIfExists)
+                StorageRemoveListTable(action.listTableName, action.onlyIfExists)
             case action: RenameTable =>
                 StorageRenameTable(action.oldName, action.newName, action.onlyIfExists)
             case action: RemoveTable =>
@@ -213,13 +213,10 @@ object Marshaller {
 case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])
 sealed trait ModifyStorageAction
 case class StorageCreateTable(tableName: String, columns: List[StorageColumn], ifNotExists: Boolean) extends ModifyStorageAction
-case class StorageCreateListTable(ownerTableName: String, listName: String, valueColumn: StorageColumn, orderColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction {
-    val listTableName = ownerTableName + listName.capitalize
+case class StorageCreateListTable(ownerTableName: String, listTableName: String, valueColumn: StorageColumn, orderColumn: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction {
     val addOwnerIndexAction = StorageAddIndex(listTableName, "owner", "own_idx_" + listTableName, ifNotExists, false)
 }
-case class StorageRemoveListTable(ownerTableName: String, listName: String, ifExists: Boolean) extends ModifyStorageAction {
-    val listTableName = ownerTableName + listName.capitalize
-}
+case class StorageRemoveListTable(listTableName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRenameTable(oldName: String, newName: String, ifExists: Boolean) extends ModifyStorageAction
 case class StorageRemoveTable(name: String, ifExists: Boolean, cascade: Boolean) extends ModifyStorageAction
 case class StorageAddColumn(tableName: String, column: StorageColumn, ifNotExists: Boolean) extends ModifyStorageAction

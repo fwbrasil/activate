@@ -225,7 +225,7 @@ class PolyglotPersistenceSpecs extends ActivateTest {
 
     private def createEntitiesForAllStorages = {
         new Order("a") //default storage postgre
-        new Num(null, 1) //derby
+        new Num(1) //derby
         new EntityWithUninitializedValue //h2
         new SimpleEntity(1) //memory
         new Box //mongo

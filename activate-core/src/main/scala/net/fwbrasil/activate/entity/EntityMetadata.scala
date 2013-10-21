@@ -126,6 +126,8 @@ class EntityMetadata(
             yield new EntityPropertyMetadata(this, varField, allMethods, entityClass)).sortBy(_.name)
     val persistentPropertiesMetadata =
         propertiesMetadata.filter(p => !p.isTransient && !p.isLazyFlag)
+    val persistentListPropertiesMetadata =
+        persistentPropertiesMetadata.filter(p => p.propertyType == classOf[List[_]] || p.propertyType == classOf[LazyList[_]])
     val idPropertyMetadata =
         propertiesMetadata.find(_.name == "id").getOrElse(
             throw new IllegalStateException(

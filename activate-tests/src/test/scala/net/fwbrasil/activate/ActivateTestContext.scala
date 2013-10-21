@@ -692,14 +692,13 @@ trait ActivateTestContext
     class Box(var contains: List[Num] = Nil) extends TreeNode[Box] {
         protected def m = manifest[Box]
         def add(n: Int) = {
-            val num = new Num(this, n)
+            val num = new Num(n)
             contains = num :: contains
             num
         }
     }
 
     class Num(
-        val container: Box,
         var num: Int) extends Entity
 
     object ActivateTestEntity {

@@ -67,10 +67,10 @@ object postgresqlDialect extends SqlIdiom {
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {
-            case StorageRemoveListTable(ownerTableName, listName, ifNotExists) =>
-                "DROP TABLE " + escape(ownerTableName + listName.capitalize)
-            case StorageCreateListTable(ownerTableName, listName, valueColumn, orderColumn, ifNotExists) =>
-                "CREATE TABLE " + escape(ownerTableName + listName.capitalize) + "(\n" +
+            case StorageRemoveListTable(listTableName, ifNotExists) =>
+                "DROP TABLE " + escape(listTableName)
+            case StorageCreateListTable(ownerTableName, listTableName, valueColumn, orderColumn, ifNotExists) =>
+                "CREATE TABLE " + escape(listTableName) + "(\n" +
                     "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
                     ")"
