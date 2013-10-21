@@ -21,8 +21,10 @@ class EntityPropertyMetadata(
         Option(varField.getAnnotation(classOf[InternalAlias]))
             .map(_.value)
             .getOrElse(originalName)
-    val getter = entityMethods.find(m => m.getName == javaName || m.getName == originalName).getOrElse(null)
-    val setter = entityMethods.find(m => m.getName == javaName + "_$eq" || m.getName == originalName + "_$eq").getOrElse(null)
+    def findMethod(names: String*) =
+        entityMethods.find(m => names.contains(m.getName) && m.getDeclaringClass == varField.getDeclaringClass).getOrElse(null)
+    val getter = findMethod(javaName, originalName)
+    val setter = findMethod(javaName + "_$eq", originalName + "_$eq")
     val genericParameter = {
         if (getter == null)
             classOf[Object]
