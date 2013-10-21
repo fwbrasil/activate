@@ -162,7 +162,7 @@ class LiveCache(
         transaction.refsSnapshot.collect {
             case (ref: Var[_], snapshot) if (snapshot.isWrite && entityClass.isAssignableFrom(ref.outerEntityClass)) =>
                 ref.outerEntity.asInstanceOf[E]
-        }.toSeq.distinct
+        }.toSeq
     }
 
     def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
