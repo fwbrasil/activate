@@ -85,7 +85,7 @@ object EntityEnhancer extends Logging {
         }
 
     def enhance(clazz: CtClass, classPool: ClassPool): Set[CtClass] = {
-        if (!clazz.isInterface() && !clazz.isFrozen() && isEntityClass(clazz, classPool)) {
+        if (!isLoaded(clazz.getName) && !clazz.isInterface() && !clazz.isFrozen() && isEntityClass(clazz, classPool)) {
             try {
                 val allFields = clazz.getDeclaredFields
                 val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
@@ -159,7 +159,8 @@ object EntityEnhancer extends Logging {
         val (notLoaded, alreadyLoaded) = entityClassesNames(referenceClass).partition(!isLoaded(_))
         val enhancedEntityClasses =
             notLoaded.map(enhance(_, classPool)).flatten
-        val resolved = resolveDependencies(enhancedEntityClasses)
+        val resolved =
+            resolveDependencies(enhancedEntityClasses)
         materializeClasses(resolved) ++ getClasses(alreadyLoaded)
     }
 
@@ -176,12 +177,13 @@ object EntityEnhancer extends Logging {
 
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
-        for (enhancedEntityClass <- resolved) yield enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
+        for (enhancedEntityClass <- resolved) yield 
+        enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
     }
 
     private def getClasses(names: Set[String]) =
         for (name <- names) yield {
-            ActivateContext.classLoaderFor(name).loadClass(name).asInstanceOf[Class[Entity]]
+            ActivateContext.loadClass(name).asInstanceOf[Class[Entity]]
         }
 
     private def entityClassesNames(referenceClass: Class[_]) =
