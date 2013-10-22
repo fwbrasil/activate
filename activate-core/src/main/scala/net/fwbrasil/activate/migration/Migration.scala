@@ -18,6 +18,7 @@ import net.fwbrasil.activate.util.GraphUtil.DependencyTree
 import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.entity.LazyList
+import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
 class StorageVersion(val contextName: String, var lastScript: Long, var lastAction: Int) extends Entity
 
@@ -274,25 +275,37 @@ abstract class Migration(implicit val context: ActivateContext) {
         val actionList = resolved.map(metadata => {
             val mainTable = table(manifestClass(metadata.entityClass))
             val lists = metadata.persistentListPropertiesMetadata
-            val removeLists = lists.map(list => mainTable.removeNestedListTable(list.name))
+            val removeLists = lists.map(list => {
+                val (columnName, listTableName) = nestedListNamesFor(mainTable, list)
+                mainTable.removeNestedListTable(columnName, listTableName)
+            })
             removeLists ++ List(mainTable.removeTable)
         }).flatten
         IfExistsWithCascadeBag(actionList)
     }
+
+    private def nestedListNamesFor(ownerTable: Table, property: EntityPropertyMetadata) =
+        if (property.originalName != property.name)
+            (property.name, property.name)
+        else
+            (property.name, this.listTableName(ownerTable.name, property.name))
 
     private def createTableForEntityMetadata(metadata: EntityMetadata) = {
         val (normalColumns, listColumns) =
             metadata.persistentPropertiesMetadata.filter(!_.isTransient).
                 partition(p => p.propertyType != classOf[List[_]] && p.propertyType != classOf[LazyList[_]])
         val ownerTable = table(manifestClass(metadata.entityClass))
-        val mainAction = ownerTable.createTable(columns =>
-            for (property <- normalColumns if (property.name != "id")) {
-                columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
-            })
-        val nestedListsActions = listColumns.map { listColumn =>
-            val tval = EntityValue.tvalFunction(listColumn.genericParameter, classOf[Object])
-            ownerTable.createNestedListTableOf(listColumn.name)(manifestClass(listColumn.genericParameter), tval)
-        }
+        val mainAction =
+            ownerTable.createTable(columns =>
+                for (property <- normalColumns if (property.name != "id")) {
+                    columns.column[Any](property.name)(manifestClass(property.propertyType), property.tval)
+                })
+        val nestedListsActions =
+            listColumns.map { listColumn =>
+                val tval = EntityValue.tvalFunction(listColumn.genericParameter, classOf[Object])
+                val (columnName, listTableName) = nestedListNamesFor(ownerTable, listColumn)
+                ownerTable.createNestedListTableOf(columnName, listTableName)(manifestClass(listColumn.genericParameter), tval)
+            }
         IfNotExistsBag(List(mainAction) ++ nestedListsActions)
     }
 
@@ -334,7 +347,7 @@ abstract class Migration(implicit val context: ActivateContext) {
                 !Modifier.isAbstract(property.genericParameter.getModifiers) &&
                 context.storageFor(metadata.entityClass) == context.storageFor(property.genericParameter.asInstanceOf[Class[Entity]]))
         ) yield (
-            listTableName(EntityHelper.getEntityName(metadata.entityClass), property.name),
+            nestedListNamesFor(table(metadata.name), property)._2,
             EntityHelper.getEntityName(property.genericParameter),
             shortConstraintName(metadata.name, property.name))
 
@@ -399,14 +412,14 @@ abstract class Migration(implicit val context: ActivateContext) {
         private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
             addAction(RemoveReference(Migration.this, storage, nextNumber, name, columnName, referencedTable, constraintName))
 
-        def createNestedListTableOf[T](listName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
-            val addColumnAction = addColumn(_.column[List[T]](listName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
-            val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, listTableName(name, listName), Column("value", None)))
+        def createNestedListTableOf[T](columnName: String, listTableName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
+            val addColumnAction = addColumn(_.column[List[T]](columnName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
+            val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, listTableName, Column("value", None)))
             IfNotExistsBag(List(addColumnAction, addTableAction))
         }
-        def removeNestedListTable(listName: String) = {
-            val removeColumnAction = removeColumn(listName)
-            val removeTableAction = addAction(RemoveListTable(Migration.this, storage, nextNumber, name, listTableName(name, listName)))
+        def removeNestedListTable(columnName: String, listTableName: String) = {
+            val removeColumnAction = removeColumn(columnName)
+            val removeTableAction = addAction(RemoveListTable(Migration.this, storage, nextNumber, name, listTableName))
             IfExistsBag(List(removeColumnAction, removeTableAction))
         }
     }

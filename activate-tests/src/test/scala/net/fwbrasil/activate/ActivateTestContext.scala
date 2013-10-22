@@ -730,7 +730,7 @@ trait ActivateTestContext
             var entityWithoutAttributeValue: EntityWithoutAttribute,
             var caseClassEntityValue: CaseClassEntity,
             var serializableEntityValue: DummySeriablizable,
-            var listEntityValue: LazyList[ActivateTestEntity],
+            @Alias("ATEListEntityValue") var listEntityValue: LazyList[ActivateTestEntity],
             var tupleOptionValue: Option[(Int, Int)],
             @Alias("customNameConst") var customNamedConstructorProperty: String) extends ActivateTestDummyEntity(false) {
 
