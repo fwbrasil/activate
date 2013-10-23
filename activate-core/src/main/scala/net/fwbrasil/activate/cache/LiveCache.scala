@@ -141,19 +141,22 @@ class LiveCache(
     }
 
     def entitiesFromCache[S](query: Query[S]) = {
-        val entities =
-            entitySourceInstancesCombined(query.from)
-        val filteredWithDeletedEntities =
-            if (storageFor(query).isMemoryStorage)
-                entities
-            else {
-                val dirtyEntities = dirtyEntitiesFromTransaction(classOf[Entity])
-                entities.filter(_.find(dirtyEntities.contains(_)).isDefined)
-            }
-        val filteredWithoutDeletedEntities =
-            filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
-        val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
-        (rows, filteredWithDeletedEntities)
+        val isMemoryStorage = storageFor(query).isMemoryStorage
+        val dirtyEntities = dirtyEntitiesFromTransaction(classOf[Entity])
+        if (isMemoryStorage || dirtyEntities.nonEmpty) {
+            val entities =
+                entitySourceInstancesCombined(query.from)
+            val filteredWithDeletedEntities =
+                if (isMemoryStorage)
+                    entities
+                else
+                    entities.filter(_.find(dirtyEntities.contains(_)).isDefined)
+            val filteredWithoutDeletedEntities =
+                filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
+            val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
+            (rows, filteredWithDeletedEntities)
+        } else
+            (List(), List())
     }
 
     def dirtyEntitiesFromTransaction[E <: Entity](entityClass: Class[E]) = {
@@ -229,7 +232,7 @@ class LiveCache(
                 future.map(_ ++ rowsFromCache)(context.ectx)
         }(context.ectx)
     }
-    
+
     def materializeEntity(entityId: String, entityClass: Class[Entity]): Entity = {
         val map = entityInstacesMap(entityClass)
         entityId.intern.synchronized {
