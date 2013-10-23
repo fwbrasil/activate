@@ -78,6 +78,7 @@ import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.statement.EntitySource
+import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
 trait QlIdiom {
 
@@ -90,17 +91,17 @@ trait QlIdiom {
         val listUpdates =
             listPropertyMap.map { tuple =>
                 val (name, value) = tuple.asInstanceOf[(String, ListStorageValue)]
-                val listTable = toTableName(statement.entityClass, name.capitalize)
+                val (listColumn, listTable) = EntityPropertyMetadata.nestedListNamesFor(statement.entityClass, name)
                 val delete =
                     new NormalQlStatement(
-                        statement = "DELETE FROM " + listTable + " WHERE OWNER = :id",
+                        statement = "DELETE FROM " + escape(listTable) + " WHERE OWNER = :id",
                         binds = Map("id" -> id))
                 val inserts =
                     if (!isDelete && value.value.isDefined) {
                         val list = value.value.get
                         (0 until list.size).map { i =>
                             new NormalQlStatement(
-                                statement = "INSERT INTO " + listTable + " (" + escape("owner") + ", " + escape("value") + ", " + escape("POS") + ") VALUES (:owner, :value, :pos)",
+                                statement = "INSERT INTO " + escape(listTable) + " (" + escape("owner") + ", " + escape("value") + ", " + escape("POS") + ") VALUES (:owner, :value, :pos)",
                                 binds = Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
                         }
                     } else List()
@@ -365,8 +366,8 @@ trait QlIdiom {
             ":" + name
         }
 
-    def toTableName(entityClass: Class[_], suffix: String = ""): String =
-        escape(EntityHelper.getEntityName(entityClass) + suffix)
+    def toTableName(entityClass: Class[_]): String =
+        escape(EntityHelper.getEntityName(entityClass))
 
     def toSqlModify(statement: ModifyStorageStatement) = {
         implicit val binds = MutableMap[StorageValue, String]()
@@ -445,8 +446,8 @@ trait QlIdiom {
     }
 
     def listColumnSelect(value: StatementEntitySourcePropertyValue, propertyName: String) = {
-        val listTableName = toTableName(value.entitySource.entityClass, propertyName.capitalize)
-        val res = concat(value.entitySource.name + "." + escape(propertyName), "'|'", "'SELECT VALUE FROM " + listTableName + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
+        val (listColumn, listTable) = EntityPropertyMetadata.nestedListNamesFor(value.entitySource.entityClass, propertyName)
+        val res = concat(value.entitySource.name + "." + escape(listColumn), "'|'", "'SELECT VALUE FROM " + escape(listTable) + " WHERE OWNER = '''", value.entitySource.name + ".id", "''' ORDER BY " + escape("POS") + "'")
         res
     }
 

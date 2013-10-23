@@ -276,19 +276,13 @@ abstract class Migration(implicit val context: ActivateContext) {
             val mainTable = table(manifestClass(metadata.entityClass))
             val lists = metadata.persistentListPropertiesMetadata
             val removeLists = lists.map(list => {
-                val (columnName, listTableName) = nestedListNamesFor(mainTable, list)
+                val (columnName, listTableName) = EntityPropertyMetadata.nestedListNamesFor(metadata, list)
                 mainTable.removeNestedListTable(columnName, listTableName)
             })
             removeLists ++ List(mainTable.removeTable)
         }).flatten
         IfExistsWithCascadeBag(actionList)
     }
-
-    private def nestedListNamesFor(ownerTable: Table, property: EntityPropertyMetadata) =
-        if (property.originalName != property.name)
-            (property.name, property.name)
-        else
-            (property.name, this.listTableName(ownerTable.name, property.name))
 
     private def createTableForEntityMetadata(metadata: EntityMetadata) = {
         val (normalColumns, listColumns) =
@@ -303,7 +297,7 @@ abstract class Migration(implicit val context: ActivateContext) {
         val nestedListsActions =
             listColumns.map { listColumn =>
                 val tval = EntityValue.tvalFunction(listColumn.genericParameter, classOf[Object])
-                val (columnName, listTableName) = nestedListNamesFor(ownerTable, listColumn)
+                val (columnName, listTableName) = EntityPropertyMetadata.nestedListNamesFor(metadata, listColumn)
                 ownerTable.createNestedListTableOf(columnName, listTableName)(manifestClass(listColumn.genericParameter), tval)
             }
         IfNotExistsBag(List(mainAction) ++ nestedListsActions)
@@ -347,7 +341,7 @@ abstract class Migration(implicit val context: ActivateContext) {
                 !Modifier.isAbstract(property.genericParameter.getModifiers) &&
                 context.storageFor(metadata.entityClass) == context.storageFor(property.genericParameter.asInstanceOf[Class[Entity]]))
         ) yield (
-            nestedListNamesFor(table(metadata.name), property)._2,
+            EntityPropertyMetadata.nestedListNamesFor(metadata, property)._2,
             EntityHelper.getEntityName(property.genericParameter),
             shortConstraintName(metadata.name, property.name))
 
@@ -358,8 +352,6 @@ abstract class Migration(implicit val context: ActivateContext) {
                 reference => table(reference._1).removeReference("value", reference._2, reference._3)
             }
 
-    private def listTableName(ownerTableName: String, listName: String) =
-        ownerTableName + listName.capitalize
 
     case class Table(name: String, storage: Storage[_]) {
 

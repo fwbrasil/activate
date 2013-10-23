@@ -94,6 +94,32 @@ class EntityPropertyMetadata(
     }
 
     override def toString = "Property: " + name
+
+}
+
+object EntityPropertyMetadata {
+
+    def nestedListNamesFor(metadata: EntityMetadata, property: EntityPropertyMetadata): (String, String) =
+        if (property.originalName != property.name)
+            (property.name, property.name)
+        else
+            (property.name, this.listTableName(metadata.name, property.name))
+
+    def nestedListNamesFor(entityClass: Class[_], propertyName: String): (String, String) = {
+        val metadata =
+            EntityHelper
+                .metadatas
+                .find(_.entityClass == entityClass)
+                .get
+        val property =
+            metadata
+                .propertiesMetadata
+                .find(_.name == propertyName).get
+        nestedListNamesFor(metadata, property)
+    }
+
+    private def listTableName(ownerTableName: String, listName: String) =
+        ownerTableName + listName.capitalize
 }
 
 class EntityMetadata(
