@@ -26,6 +26,9 @@ abstract class IndexSpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
+                    step {
+                        indexFor(step.ctx).get(fullIntValue).ids must beEmpty
+                    }
                     val entityId =
                         step {
                             newEmptyActivateTestEntity

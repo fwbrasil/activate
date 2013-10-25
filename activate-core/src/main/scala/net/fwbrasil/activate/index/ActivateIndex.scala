@@ -14,8 +14,7 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 abstract class ActivateIndex[E <: Entity: Manifest, T](
     keyProducer: E => T,
     context: ActivateContext)
-        extends Lockable
-        with Logging {
+        extends Logging {
 
     context.indexes += this
 
@@ -30,11 +29,9 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     private def clearLazyInit =
         lazyInit =
             unsafeLazy {
-                doWithWriteLock {
-                    info(s"Reloading index $name")
-                    reload
-                    info(s"Index $name reloaded")
-                }
+                info(s"Reloading index $name")
+                reload
+                info(s"Index $name reloaded")
             }
 
     private[index] def unload = {
@@ -45,27 +42,25 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     private[index] def update(
         inserts: List[Entity],
         updates: List[Entity],
-        deletes: List[Entity]) =
-        doWithWriteLock {
-            updateIndex(inserts, updates, deletes)
-        }
+        deletes: List[Entity]) = {
+        lazyInit.get
+        updateIndex(inserts, updates, deletes)
+    }
 
     def get(key: T) = {
         lazyInit.get
-        doWithReadLock {
-            val dirtyEntities =
-                context.liveCache
-                    .dirtyEntitiesFromTransaction(entityClass)
+        val dirtyEntities =
+            context.liveCache
+                .dirtyEntitiesFromTransaction(entityClass)
 
-            val fromIndex =
-                indexGet(key) -- dirtyEntities.map(_.id)
+        val fromIndex =
+            indexGet(key) -- dirtyEntities.map(_.id)
 
-            val dirtyEntitiesFiltered =
-                dirtyEntities.filter(e => keyProducer(e) == key)
-                    .map(_.id)
+        val dirtyEntitiesFiltered =
+            dirtyEntities.filter(e => keyProducer(e) == key)
+                .map(_.id)
 
-            new LazyList((Set() ++ dirtyEntitiesFiltered ++ fromIndex).toList)
-        }
+        new LazyList((Set() ++ dirtyEntitiesFiltered ++ fromIndex).toList)
     }
 
     protected def reload: Unit
@@ -103,13 +98,10 @@ trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext
             def filter(entities: List[Entity]) =
                 entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
 
-            val transaction = new Transaction
-            transactional(transaction) {
-                index.update(
-                    filter(inserts),
-                    filter(updates),
-                    filter(deletes))
-            }
+            index.update(
+                filter(inserts),
+                filter(updates),
+                filter(deletes))
         }
 
     private def filterEntities(index: ActivateIndex[_, _], entities: List[Entity]) = {

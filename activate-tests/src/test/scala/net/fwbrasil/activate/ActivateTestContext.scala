@@ -83,6 +83,13 @@ abstract class ActivateTestMigration(
             .ifNotExists
 
         createInexistentColumnsForAllEntities
+
+        table[ctx.EntityByIntValue]
+            .addIndex(
+                columnName = "key",
+                indexName = "IDX_KEY",
+                unique = true)
+            .ifNotExists
     }
 }
 
@@ -444,15 +451,15 @@ trait ActivateTestContext
             }
     }
 
-//    val persistedIndexActivateTestEntityByIntValue =
-//        persistedIndex[ActivateTestEntity].on(_.intValue).using[EntityByIntValue] {
-//            key =>
-//                query {
-//                    (entry: EntityByIntValue) => where(entry.key :== key) select (entry)
-//                }.headOption.getOrElse {
-//                    new EntityByIntValue(key)
-//                }
-//        }
+    val persistedIndexActivateTestEntityByIntValue =
+        persistedIndex[ActivateTestEntity].on(_.intValue).using[EntityByIntValue] {
+            key =>
+                query {
+                    (entry: EntityByIntValue) => where(entry.key :== key) select (entry)
+                }.headOption.getOrElse {
+                    new EntityByIntValue(key)
+                }
+        }
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 

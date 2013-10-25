@@ -1,25 +1,22 @@
 package net.fwbrasil.activate.index
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentSkipListSet
 import scala.annotation.implicitNotFound
+import scala.collection.JavaConversions._
 import scala.collection.JavaConversions.asScalaSet
 import scala.collection.JavaConversions.bufferAsJavaList
 import scala.collection.JavaConversions.collectionAsScalaIterable
 import scala.collection.JavaConversions.mapAsScalaConcurrentMap
 import scala.collection.JavaConversions.setAsJavaSet
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.HashMap
+
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.radon.transaction.NestedTransaction
 import net.fwbrasil.radon.transaction.Transaction
-import net.fwbrasil.scala.UnsafeLazy._
-import scala.collection.mutable.HashMap
-import scala.collection.JavaConversions._
 import net.fwbrasil.radon.util.Lockable
+import net.fwbrasil.scala.UnsafeLazy._
 
 case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     keyProducer: E => T, context: ActivateContext)
@@ -33,16 +30,21 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
     private val invertedIndex = new HashMap[String, T]()
 
     override protected def indexGet(key: T) =
-        index.get(key).getOrElse(Set())
+        doWithReadLock {
+            index.get(key).getOrElse(Set())
+        }
 
     override protected def updateIndex(
         inserts: List[Entity],
         updates: List[Entity],
-        deletes: List[Entity]) = {
-        insertEntities(inserts)
-        updateEntities(updates)
-        deleteEntities(deletes)
-    }
+        deletes: List[Entity]) =
+        doWithWriteLock {
+            transactional(new Transaction()(context)) {
+                insertEntities(inserts)
+                updateEntities(updates)
+                deleteEntities(deletes)
+            }
+        }
 
     private def updateEntities(entities: List[Entity]) = {
         deleteEntities(entities)
@@ -73,15 +75,16 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
         invertedIndex.clear
     }
 
-    override protected def reload: Unit = {
-        transactional(transient) {
-            val entities =
-                query {
-                    (e: E) => where() select (e)
-                }.toSet
-            updateEntities(entities.filter(_.isPersisted).toList)
+    override protected def reload: Unit =
+        doWithWriteLock {
+            transactional(transient) {
+                val entities =
+                    query {
+                        (e: E) => where() select (e)
+                    }.toSet
+                updateEntities(entities.filter(_.isPersisted).toList)
+            }
         }
-    }
 }
 
 trait MemoryIndexContext {

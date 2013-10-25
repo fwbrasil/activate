@@ -20,16 +20,26 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     private val invertedIndex = new HashMap[String, P]()
 
     override protected def reload: Unit =
-        transactional {
-            for (entity <- all[P]) {
-                index += entity.key -> entity
-                for (id <- entity.ids)
-                    invertedIndex += id -> entity
+        doWithWriteLock {
+            val entries =
+                transactional {
+                    for (
+                        entry <- all[P];
+                        id <- entry.ids
+                    ) yield {
+                        (entry.key, id, entry)
+                    }
+                }
+            for ((key, entityId, entry) <- entries) {
+                invertedIndex.put(entityId, entry)
+                index.put(key, entry)
             }
         }
 
     override protected def indexGet(key: K): Set[String] =
-        indexEntityProducer(key).ids
+        doWithReadLock {
+            indexEntityProducer(key).ids
+        }
 
     override protected def clearIndex = {
         index.clear
@@ -40,9 +50,19 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         inserts: List[Entity],
         updates: List[Entity],
         deletes: List[Entity]) = {
-        insertEntities(inserts)
-        updateEntities(updates)
-        deleteEntities(deletes)
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty)
+            doWithWriteLock {
+                val (idsDelete, entries) =
+                    transactional {
+                        (deleteEntities(deletes), insertEntities(inserts) ++ updateEntities(updates))
+                    }
+                for (id <- idsDelete)
+                    invertedIndex.remove(id)
+                for ((key, entityId, entry) <- entries) {
+                    invertedIndex.put(entityId, entry)
+                    index.put(key, entry)
+                }
+            }
     }
 
     private def updateEntities(entities: List[Entity]) = {
@@ -51,21 +71,20 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     }
 
     private def insertEntities(entities: List[Entity]) =
-        for (entity <- entities) {
+        for (entity <- entities) yield {
             val key = keyProducer(entity.asInstanceOf[E])
-            val entry = index.getOrElseUpdate(key, indexEntityProducer(key))
+            val entry = index.getOrElse(key, indexEntityProducer(key))
             entry.ids += entity.id
-            invertedIndex.put(entity.id, entry)
+            (key, entity.id, entry)
         }
 
     private def deleteEntities(entities: List[Entity]) =
-        for (entity <- entities) {
+        for (entity <- entities) yield {
             val id = entity.id
             invertedIndex.get(id).map {
-                entry =>
-                    entry.ids -= id
-                    invertedIndex.remove(id)
+                _.ids -= id
             }
+            id
         }
 
 }
