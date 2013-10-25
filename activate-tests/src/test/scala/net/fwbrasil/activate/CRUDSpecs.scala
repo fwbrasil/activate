@@ -7,7 +7,7 @@ import org.specs2.runner._
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityValue
 import scala.util.Random
-import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
+import net.fwbrasil.activate.multipleVms._
 
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
@@ -164,12 +164,32 @@ class CRUDSpecs extends ActivateTest {
                 activateTest(
                     (step: StepExecutor) => {
                         import step.ctx._
-                        val i = Random.nextInt
+                        val i = 231
                         step {
                             fullCaseClassEntityValue.customEncodedEntityValue = new CustomEncodedEntityValue(i)
                         }
                         step {
                             fullCaseClassEntityValue.customEncodedEntityValue.i === i
+                        }
+                    })
+            }
+
+            "custom case objects" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val entityId =
+                            step {
+                                fullCaseClassEntityValue.id
+                            }
+                        step {
+                            fullCaseClassEntityValue.userStatus === NormalUser
+                        }
+                        step {
+                            fullCaseClassEntityValue.userStatus == NormalUser
+                        }
+                        step {
+                            fullCaseClassEntityValue.userStatus === NormalUser
                         }
                     })
             }

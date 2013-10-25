@@ -45,7 +45,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.xml.Elem
 import net.fwbrasil.activate.storage.relational.idiom.sqlServerDialect
-import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
+import net.fwbrasil.activate.multipleVms._
 import EnumerationValue._
 import scala.util.Random
 import net.fwbrasil.activate.cache.CacheType
@@ -662,6 +662,7 @@ trait ActivateTestContext
             var entityValue: ActivateTestEntity,
             var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
         var customEncodedEntityValue = new CustomEncodedEntityValue(1)
+        var userStatus: UserStatus = NormalUser
     }
 
     abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity

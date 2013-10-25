@@ -154,7 +154,9 @@ object EntityValue extends ValueContext {
 
     def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
         Option((
-            if (clazz == classOf[String])
+            if(encoders.contains(clazz))
+                (value: Option[Any]) => encoders(clazz).entityValue(value)
+            else if (clazz == classOf[String])
                 (value: Option[String]) => toStringEntityValueOption(value)
             else if (clazz == classOf[Int])
                 (value: Option[Int]) => toIntEntityValueOption(value)
@@ -189,9 +191,7 @@ object EntityValue extends ValueContext {
             else if (classOf[Serializable].isAssignableFrom(clazz) || clazz.isArray)
                 (value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
             else
-                encoders.get(clazz).map { encoder =>
-                    (value: Option[Any]) => encoder.entityValue(value)
-                }.orNull).asInstanceOf[(Option[T]) => EntityValue[T]])
+                null).asInstanceOf[(Option[T]) => EntityValue[T]])
 
     private[activate] def tvalFunction[T](clazz: Class[_], genericParameter: Class[_]): Option[T] => EntityValue[T] =
         tvalFunctionOption[T](clazz, genericParameter).getOrElse(throw new IllegalStateException("Invalid entity property type. " + clazz))
