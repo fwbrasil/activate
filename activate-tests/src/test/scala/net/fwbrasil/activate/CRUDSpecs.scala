@@ -82,9 +82,11 @@ class CRUDSpecs extends ActivateTest {
                             byId[ActivateTestEntity](emptyId).get.delete
                         }
                         step {
-                            byId[ActivateTestEntity](fullId).get.isDeleted must beTrue
-                            byId[ActivateTestEntity](emptyId).get.isDeleted must beTrue
-                        }
+                            byId[ActivateTestEntity](fullId).get.isDeleted
+                        } must beTrue
+                        step {
+                            byId[ActivateTestEntity](emptyId).get.isDeleted
+                        } must beTrue
                     })
             }
             "create, retreive and delete entity without attribute" in {
@@ -99,8 +101,8 @@ class CRUDSpecs extends ActivateTest {
                             byId[EntityWithoutAttribute](entityId).get.delete
                         }
                         step {
-                            byId[EntityWithoutAttribute](entityId).get.isDeleted must beTrue
-                        }
+                            byId[EntityWithoutAttribute](entityId).get.isDeleted
+                        } must beTrue
                     })
             }
 
@@ -122,8 +124,8 @@ class CRUDSpecs extends ActivateTest {
                             byId[EntityWithUninitializedValue](entityId).get.delete
                         }
                         step {
-                            byId[EntityWithUninitializedValue](entityId).get.isDeleted must beTrue
-                        }
+                            byId[EntityWithUninitializedValue](entityId).get.isDeleted
+                        } must beTrue
                     })
             }
 
@@ -139,8 +141,8 @@ class CRUDSpecs extends ActivateTest {
                             byId[CaseClassEntity](entityId).get.delete
                         }
                         step {
-                            byId[CaseClassEntity](entityId).get.isDeleted must beTrue
-                        }
+                            byId[CaseClassEntity](entityId).get.isDeleted
+                        } must beTrue
                     })
             }
 
