@@ -53,7 +53,13 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 
     private def insertEntities(entities: List[Entity]) =
         for (entity <- entities) {
-            val key = keyProducer(entity.asInstanceOf[E])
+            val key = 
+                try keyProducer(entity.asInstanceOf[E])
+                catch {
+                    case e: Throwable =>
+                        context.retry()
+                        throw e
+                }
             val value = index.getOrElseUpdate(key, Set())
             index.put(key, value ++ Set(entity.id))
             invertedIndex.put(entity.id, key)
