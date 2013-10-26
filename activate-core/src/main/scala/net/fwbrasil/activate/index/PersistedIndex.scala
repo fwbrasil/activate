@@ -7,6 +7,7 @@ import scala.collection.mutable.HashMap
 import grizzled.slf4j.Logging
 import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.scala.UnsafeLazy._
+import scala.collection.mutable.ListBuffer
 
 class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifest, K] private[index] (
     keyProducer: E => K, indexEntityProducer: K => P, context: ActivateContext)
@@ -22,7 +23,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     override protected def reload: Unit =
         doWithWriteLock {
             val entries =
-                transactional {
+                transactional(transient) {
                     for (
                         entry <- all[P];
                         id <- entry.ids
@@ -36,55 +37,79 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
             }
         }
 
-    override protected def indexGet(key: K): Set[String] =
-        doWithReadLock {
-            indexEntityProducer(key).ids
-        }
+    override protected def indexGet(key: K): Set[String] = {
+        val entry =
+            doWithReadLock {
+                index.get(key)
+            }.getOrElse {
+                doWithWriteLock {
+                    index.getOrElseUpdate(key, indexEntityProducer(key))
+                }
+            }
+        entry.ids
+    }
 
     override protected def clearIndex = {
         index.clear
         invertedIndex.clear
     }
 
+    private val updatingIndex = new ThreadLocal[Boolean] {
+        override def initialValue = false
+    }
+
     override protected def updateIndex(
         inserts: List[Entity],
         updates: List[Entity],
         deletes: List[Entity]) = {
-        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty)
+        if (!updatingIndex.get && (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty))
             doWithWriteLock {
-                val (idsDelete, entries) =
-                    transactional {
-                        (deleteEntities(deletes), insertEntities(inserts) ++ updateEntities(updates))
-                    }
+                val idsDelete = ListBuffer[String]()
+                val updatedEntries = ListBuffer[(K, String, P)]()
+                updatingIndex.set(true)
+                try transactional {
+                    deleteEntities(deletes, idsDelete)
+                    insertEntities(inserts, updatedEntries)
+                    updateEntities(updates, idsDelete, updatedEntries)
+                }
+                finally updatingIndex.set(false)
                 for (id <- idsDelete)
                     invertedIndex.remove(id)
-                for ((key, entityId, entry) <- entries) {
+                for ((key, entityId, entry) <- updatedEntries) {
                     invertedIndex.put(entityId, entry)
                     index.put(key, entry)
                 }
             }
     }
 
-    private def updateEntities(entities: List[Entity]) = {
-        deleteEntities(entities)
-        insertEntities(entities)
+    private def updateEntities(
+        entities: List[Entity],
+        idsDelete: ListBuffer[String],
+        updatedEntries: ListBuffer[(K, String, P)]) = {
+        deleteEntities(entities, idsDelete)
+        insertEntities(entities, updatedEntries)
     }
 
-    private def insertEntities(entities: List[Entity]) =
-        for (entity <- entities) yield {
+    private def insertEntities(
+        entities: List[Entity],
+        updatedEntries: ListBuffer[(K, String, P)]) = {
+        for (entity <- entities) {
             val key = keyProducer(entity.asInstanceOf[E])
             val entry = index.getOrElse(key, indexEntityProducer(key))
             entry.ids += entity.id
-            (key, entity.id, entry)
+            updatedEntries += ((key, entity.id, entry))
         }
+    }
 
-    private def deleteEntities(entities: List[Entity]) =
-        for (entity <- entities) yield {
+    private def deleteEntities(
+        entities: List[Entity],
+        idsDelete: ListBuffer[String]) =
+        for (entity <- entities) {
             val id = entity.id
             invertedIndex.get(id).map {
                 _.ids -= id
             }
-            id
+            idsDelete += id
         }
 
 }

@@ -42,10 +42,11 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     private[index] def update(
         inserts: List[Entity],
         updates: List[Entity],
-        deletes: List[Entity]) = {
-        lazyInit.get
-        updateIndex(inserts, updates, deletes)
-    }
+        deletes: List[Entity]) =
+        if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty) {
+            lazyInit.get
+            updateIndex(inserts, updates, deletes)
+        }
 
     def get(key: T) = {
         lazyInit.get
