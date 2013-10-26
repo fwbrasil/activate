@@ -20,22 +20,23 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     private val index = new HashMap[K, String]()
     private val invertedIndex = new HashMap[String, String]()
 
-    override protected def reload: Unit =
-        doWithWriteLock {
-            val entries =
-                transactional(transient) {
-                    for (
-                        entry <- all[P];
-                        id <- entry.ids
-                    ) yield {
-                        (entry.key, id, entry)
-                    }
+    override protected def reload: Unit = {
+        val entries =
+            transactional(transient) {
+                for (
+                    entry <- all[P];
+                    id <- entry.ids
+                ) yield {
+                    (entry.key, id, entry)
                 }
+            }
+        doWithWriteLock {
             for ((key, entityId, entry) <- entries) {
                 invertedIndex.put(entityId, entry.id)
                 index.put(key, entry.id)
             }
         }
+    }
 
     override protected def indexGet(key: K): Set[String] = {
         val entryId =
@@ -62,7 +63,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         inserts: List[Entity],
         updates: List[Entity],
         deletes: List[Entity]) = {
-        if (!updatingIndex.get && (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty))
+        if (!updatingIndex.get && (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty)) {
             doWithWriteLock {
                 val idsDelete = ListBuffer[String]()
                 val updatedEntries = ListBuffer[(K, String, String)]()
@@ -80,6 +81,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
                     index.put(key, entryId)
                 }
             }
+        }
     }
 
     private def updateEntities(
@@ -112,12 +114,12 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
             }
             idsDelete += id
         }
-    
+
     private def entry(id: String) =
         byId[P](id).getOrElse(
-                throw new IllegalStateException(
-                        "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
-                        "please fill a bug report with this exception."))
+            throw new IllegalStateException(
+                "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
+                    "please fill a bug report with this exception."))
 
 }
 
