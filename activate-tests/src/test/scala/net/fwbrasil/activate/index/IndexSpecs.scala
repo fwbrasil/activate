@@ -55,38 +55,36 @@ abstract class IndexSpecs extends ActivateTest {
                     }
                     def runIndexed =
                         indexFor(step.ctx).get(emptyIntValue).toSet
-                    def runIndexedAndVerify =
-                        runIndexed ===
-                            query {
-                                (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue) select (e)
-                            }.toSet
-                    step {
-                        runIndexedAndVerify
+                    def runIndexedAndVerify = {
+                        val (indexed, normal) =
+                            step {
+                                val indexed = runIndexed.map(_.id)
+                                val normal =
+                                    query {
+                                        (e: ActivateTestEntity) => where(e.intValue :== emptyIntValue) select (e.id)
+                                    }.toSet
+                                (indexed, normal)
+                            }
+                        indexed === normal
                     }
+                    runIndexedAndVerify
                     step {
                         newEmptyActivateTestEntity
                     }
-                    step {
-                        runIndexedAndVerify
-                    }
+                    runIndexedAndVerify
                     step {
                         newEmptyActivateTestEntity.intValue = fullIntValue
                     }
+                    runIndexedAndVerify
                     step {
-                        runIndexedAndVerify
+                        val entity = runIndexed.head
+                        entity.intValue = fullIntValue
                     }
-                    step {
-                        runIndexed.head.intValue = fullIntValue
-                    }
-                    step {
-                        runIndexedAndVerify
-                    }
+                    runIndexedAndVerify
                     step {
                         all[ActivateTestEntity].foreach(_.delete)
                     }
-                    step {
-                        runIndexedAndVerify
-                    }
+                    runIndexedAndVerify
                 })
         }
 

@@ -10,7 +10,7 @@ import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.ListBuffer
 
 class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifest, K] private[index] (
-    keyProducer: E => K, indexEntityProducer: K => P, context: ActivateContext)
+    keyProducer: E => K, indexEntityProducer: K => P, context: ActivateContext, preloadEntries: Boolean)
         extends ActivateIndex[E, K](keyProducer, context)
         with Logging
         with Lockable {
@@ -20,23 +20,24 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     private val index = new HashMap[K, String]()
     private val invertedIndex = new HashMap[String, String]()
 
-    override protected def reload: Unit = {
-        val entries =
-            transactional(transient) {
-                for (
-                    entry <- all[P];
-                    id <- entry.ids
-                ) yield {
-                    (entry.key, id, entry)
+    override protected def reload: Unit =
+        if (preloadEntries) {
+            val entries =
+                transactional(transient) {
+                    for (
+                        entry <- all[P];
+                        id <- entry.ids
+                    ) yield {
+                        (entry.key, id, entry)
+                    }
+                }
+            doWithWriteLock {
+                for ((key, entityId, entry) <- entries) {
+                    invertedIndex.put(entityId, entry.id)
+                    index.put(key, entry.id)
                 }
             }
-        doWithWriteLock {
-            for ((key, entityId, entry) <- entries) {
-                invertedIndex.put(entityId, entry.id)
-                index.put(key, entry.id)
-            }
         }
-    }
 
     override protected def indexGet(key: K): Set[String] = {
         val entryId =
@@ -121,6 +122,13 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
                 "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
                     "please fill a bug report with this exception."))
 
+    override def toString =
+        transactional(new Transaction()(context)) {
+            (for ((key, entryId) <- index) yield {
+                key + " -> " + entry(entryId).ids
+            }).mkString(",")
+        }
+
 }
 
 trait PersistedIndexEntry[K] extends Entity {
@@ -133,16 +141,17 @@ trait PersistedIndexContext {
 
     type PersistedIndexEntry[K] = net.fwbrasil.activate.index.PersistedIndexEntry[K]
 
-    protected class PersistedIndexProducer0[E <: Entity: Manifest] {
+    protected class PersistedIndexProducer0[E <: Entity: Manifest](preloadEntries: Boolean) {
         def on[K](keyProducer: E => K) =
-            new PersistedIndexProducer1[E, K](keyProducer)
+            new PersistedIndexProducer1[E, K](keyProducer, preloadEntries)
     }
 
-    protected class PersistedIndexProducer1[E <: Entity: Manifest, K](keyProducer: E => K) {
+    protected class PersistedIndexProducer1[E <: Entity: Manifest, K](keyProducer: E => K, preloadEntries: Boolean) {
         def using[P <: PersistedIndexEntry[K]: Manifest](indexEntityProducer: K => P) =
-            new PersistedIndex[E, P, K](keyProducer, indexEntityProducer, PersistedIndexContext.this)
+            new PersistedIndex[E, P, K](keyProducer, indexEntityProducer, PersistedIndexContext.this, preloadEntries)
     }
 
-    protected def persistedIndex[E <: Entity: Manifest] = new PersistedIndexProducer0[E]
+    protected def persistedIndex[E <: Entity: Manifest] = new PersistedIndexProducer0[E](preloadEntries = true)
+    protected def persistedIndex[E <: Entity: Manifest](preloadEntries: Boolean) = new PersistedIndexProducer0[E](preloadEntries)
 
 } 
