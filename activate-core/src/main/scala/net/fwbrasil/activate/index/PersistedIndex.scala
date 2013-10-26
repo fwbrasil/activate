@@ -17,8 +17,8 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
 
     import context._
 
-    private val index = new HashMap[K, P]()
-    private val invertedIndex = new HashMap[String, P]()
+    private val index = new HashMap[K, String]()
+    private val invertedIndex = new HashMap[String, String]()
 
     override protected def reload: Unit =
         doWithWriteLock {
@@ -32,21 +32,21 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
                     }
                 }
             for ((key, entityId, entry) <- entries) {
-                invertedIndex.put(entityId, entry)
-                index.put(key, entry)
+                invertedIndex.put(entityId, entry.id)
+                index.put(key, entry.id)
             }
         }
 
     override protected def indexGet(key: K): Set[String] = {
-        val entry =
+        val entryId =
             doWithReadLock {
                 index.get(key)
             }.getOrElse {
                 doWithWriteLock {
-                    index.getOrElseUpdate(key, indexEntityProducer(key))
+                    index.getOrElseUpdate(key, indexEntityProducer(key).id)
                 }
             }
-        entry.ids
+        entry(entryId).ids
     }
 
     override protected def clearIndex = {
@@ -65,7 +65,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         if (!updatingIndex.get && (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty))
             doWithWriteLock {
                 val idsDelete = ListBuffer[String]()
-                val updatedEntries = ListBuffer[(K, String, P)]()
+                val updatedEntries = ListBuffer[(K, String, String)]()
                 updatingIndex.set(true)
                 try transactional {
                     deleteEntities(deletes, idsDelete)
@@ -75,9 +75,9 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
                 finally updatingIndex.set(false)
                 for (id <- idsDelete)
                     invertedIndex.remove(id)
-                for ((key, entityId, entry) <- updatedEntries) {
-                    invertedIndex.put(entityId, entry)
-                    index.put(key, entry)
+                for ((key, entityId, entryId) <- updatedEntries) {
+                    invertedIndex.put(entityId, entryId)
+                    index.put(key, entryId)
                 }
             }
     }
@@ -85,19 +85,19 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     private def updateEntities(
         entities: List[Entity],
         idsDelete: ListBuffer[String],
-        updatedEntries: ListBuffer[(K, String, P)]) = {
+        updatedEntries: ListBuffer[(K, String, String)]) = {
         deleteEntities(entities, idsDelete)
         insertEntities(entities, updatedEntries)
     }
 
     private def insertEntities(
         entities: List[Entity],
-        updatedEntries: ListBuffer[(K, String, P)]) = {
+        updatedEntries: ListBuffer[(K, String, String)]) = {
         for (entity <- entities) {
             val key = keyProducer(entity.asInstanceOf[E])
-            val entry = index.getOrElse(key, indexEntityProducer(key))
-            entry.ids += entity.id
-            updatedEntries += ((key, entity.id, entry))
+            val entryId = index.getOrElse(key, indexEntityProducer(key).id)
+            entry(entryId).ids += entity.id
+            updatedEntries += ((key, entity.id, entryId))
         }
     }
 
@@ -107,10 +107,17 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         for (entity <- entities) {
             val id = entity.id
             invertedIndex.get(id).map {
-                _.ids -= id
+                entryId =>
+                    entry(entryId).ids -= id
             }
             idsDelete += id
         }
+    
+    private def entry(id: String) =
+        byId[P](id).getOrElse(
+                throw new IllegalStateException(
+                        "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
+                        "please fill a bug report with this exception."))
 
 }
 
