@@ -10,7 +10,7 @@ import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.ListBuffer
 
 class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifest, K] private[index] (
-    keyProducer: E => K, indexEntityProducer: K => P, context: ActivateContext, preloadEntries: Boolean)
+    keyProducer: E => K, indexEntryProducer: K => P, context: ActivateContext, preloadEntries: Boolean)
         extends ActivateIndex[E, K](keyProducer, context)
         with Logging
         with Lockable {
@@ -45,7 +45,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
                 index.get(key)
             }.getOrElse {
                 doWithWriteLock {
-                    index.getOrElseUpdate(key, indexEntityProducer(key).id)
+                    index.getOrElseUpdate(key, indexEntryProducer(key).id)
                 }
             }
         entry(entryId).ids
@@ -89,8 +89,24 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         entities: List[Entity],
         idsDelete: ListBuffer[String],
         updatedEntries: ListBuffer[(K, String, String)]) = {
-        deleteEntities(entities, idsDelete)
-        insertEntities(entities, updatedEntries)
+        for (entity <- entities) {
+            val key = keyProducer(entity.asInstanceOf[E])
+            val entryId = index.getOrElse(key, indexEntryProducer(key).id)
+            val entityId = entity.id
+            val currentEntryOption = invertedIndex.get(entityId)
+            val needsUpdate =
+                currentEntryOption
+                    .map(_ != entryId)
+                    .getOrElse(true)
+            if (needsUpdate) {
+                currentEntryOption.map { oldEntry =>
+                    entry(oldEntry).ids -= entityId
+                    idsDelete += entityId
+                }
+                entry(entryId).ids += entityId
+                updatedEntries += ((key, entity.id, entryId))
+            }
+        }
     }
 
     private def insertEntities(
@@ -98,7 +114,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
         updatedEntries: ListBuffer[(K, String, String)]) = {
         for (entity <- entities) {
             val key = keyProducer(entity.asInstanceOf[E])
-            val entryId = index.getOrElse(key, indexEntityProducer(key).id)
+            val entryId = index.getOrElse(key, indexEntryProducer(key).id)
             entry(entryId).ids += entity.id
             updatedEntries += ((key, entity.id, entryId))
         }
