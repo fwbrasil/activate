@@ -127,7 +127,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
     def creationDateTime = new DateTime(creationTimestamp)
 
     private var persistedflag = false
-    private var initialized = false
+    @volatile private var initialized = false
     private var initializing = true
 
     private[activate] def setPersisted =
@@ -154,16 +154,17 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         initialized
 
     private[activate] def initialize(forWrite: Boolean) = {
-        this.synchronized {
-            if (!initializing && !initialized) {
-                beforeInitialize
-                initializing = true
-                context.liveCache.loadFromDatabase(this)
-                initializing = false
-                initialized = true
-                afterInitialize
+        if (!initialized)
+            this.synchronized {
+                if (!initializing && !initialized) {
+                    beforeInitialize
+                    initializing = true
+                    context.liveCache.loadFromDatabase(this)
+                    initializing = false
+                    initialized = true
+                    afterInitialize
+                }
             }
-        }
         if (!initializing &&
             forWrite &&
             OptimisticOfflineLocking.isEnabled &&
