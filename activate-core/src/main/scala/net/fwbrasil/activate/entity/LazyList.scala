@@ -9,7 +9,7 @@ import scala.collection.TraversableView
 
 case class LazyList[E <: Entity](val ids: List[String])(implicit val m: Manifest[E]) {
     def toList()(implicit context: ActivateContext) =
-        ids.map(context.byId[E](_)).flatten.filter(!_.isDeleted).toList
+        ids.map(context.byId[E](_)).flatten.toList
     def view()(implicit context: ActivateContext) =
         ids.view.map(context.byId[E](_)).flatten.filter(!_.isDeleted)
     override def toString = "LazyList(" + ids.mkString(", ") + ")"

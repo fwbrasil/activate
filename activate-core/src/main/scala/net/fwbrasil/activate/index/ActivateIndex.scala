@@ -58,7 +58,8 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
             indexGet(key) -- dirtyEntities.map(_.id)
 
         val dirtyEntitiesFiltered =
-            dirtyEntities.filter(e => keyProducer(e) == key)
+            dirtyEntities
+            .filter(e => !e.isDeleted && keyProducer(e) == key)
                 .map(_.id)
 
         new LazyList((Set() ++ dirtyEntitiesFiltered ++ fromIndex).toList)
