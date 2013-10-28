@@ -24,29 +24,33 @@ import scala.annotation.implicitNotFound
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.Future
 import net.fwbrasil.activate.entity.map.MutableEntityMap
+import net.fwbrasil.activate.entity.map.EntityMapBase
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class EntityForm[T <: Entity](
     mapping: EntityMapping[T],
     data: Map[String, String] = Map.empty,
     errors: Seq[FormError] = Nil,
-    value: Option[EntityData[T]] = None)(
+    value: Option[MutableEntityMap[T]] = None)(
         implicit context: ActivateContext,
         m: Manifest[T])
-        extends Form[EntityData[T]](mapping, data, errors, value) {
+        extends Form[MutableEntityMap[T]](mapping, data, errors, value) {
 
     implicit val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[T])
 
-    def fillWith(entity: T) =
-        new EntityForm[T](mapping, mapping.unbind(EntityData(entity))._1)
+    def fillWith(entityMap: EntityMapBase[T, _]) =
+        new EntityForm[T](mapping, mapping.unbind(new MutableEntityMap(entityMap.values))._1)
+    
+    def fillWith(entity: T): EntityForm[T] =
+        fillWith(new MutableEntityMap(entity))
 }
 
 object EntityForm {
 
     import language.implicitConversions
 
-    implicit def entityData[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]) =
-        EntityData(entity)(context, m, EntityHelper.getEntityMetadata(erasureOf[T]))
+    implicit def entityMap[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]): MutableEntityMap[T] =
+        new MutableEntityMap(entity)
 
     def entity[T <: Entity](implicit context: ActivateContext, m: Manifest[T]) =
         of[T](new EntityFormatter[T])
@@ -74,52 +78,14 @@ object EntityForm {
     }
 }
 
-class EntityData[T <: Entity](val data: List[(String, Any)])(
-    override implicit val context: ActivateContext,
-    m: Manifest[T],
-    entityMetadata: EntityMetadata)
-        extends MutableEntityMap[T](data.toMap)(m, context) with Serializable {
-    
-    override def tryUpdate(id: String): Option[T] =
-        context.transactional {
-            super.tryUpdate(id)
-        }
-
-    override def createEntity =
-        context.transactional {
-            super.createEntity
-        }
-
-}
-
-object EntityData {
-    def apply[T <: Entity](entity: T)(
-        implicit context: ActivateContext,
-        m: Manifest[T],
-        entityMetadata: EntityMetadata) = {
-
-        val metadatasMap = entityMetadata.propertiesMetadata.mapBy(_.name)
-        val data =
-            for (ref <- entity.vars.filter(_.name != "id")) yield {
-                val value =
-                    if (metadatasMap(ref.name).isOption)
-                        ref.get
-                    else
-                        ref.getValue
-                (ref.name, value)
-            }
-        new EntityData(data.toList)
-    }
-}
-
 case class EntityMapping[T <: Entity](
     val properties: List[Mapping[_]],
     val key: String = "",
-    val constraints: Seq[Constraint[EntityData[T]]] = Nil)(
+    val constraints: Seq[Constraint[MutableEntityMap[T]]] = Nil)(
         implicit context: ActivateContext,
         m: Manifest[T],
         entityMetadata: EntityMetadata)
-        extends Mapping[EntityData[T]]
+        extends Mapping[MutableEntityMap[T]]
         with ObjectMapping {
 
     def bind(data: Map[String, String]) = {
@@ -131,13 +97,13 @@ case class EntityMapping[T <: Entity](
                 val data =
                     for (i <- 0 until results.size)
                         yield (results(i)._1, values(i))
-                applyConstraints(new EntityData(data.toList))
+                applyConstraints(new MutableEntityMap(data.toMap))
             }
         }
     }
 
-    def unbind(value: EntityData[T]) = {
-        val data = value.data
+    def unbind(value: MutableEntityMap[T]) = {
+        val data = value.values
         val res =
             (for ((key, value) <- data)
                 yield properties.find(_.key == key).map(_.asInstanceOf[Mapping[Any]].unbind(value))).flatten
@@ -149,7 +115,7 @@ case class EntityMapping[T <: Entity](
     def withPrefix(prefix: String) =
         addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
 
-    def verifying(addConstraints: Constraint[EntityData[T]]*) = {
+    def verifying(addConstraints: Constraint[MutableEntityMap[T]]*) = {
         this.copy(constraints = constraints ++ addConstraints.toSeq)
     }
 
