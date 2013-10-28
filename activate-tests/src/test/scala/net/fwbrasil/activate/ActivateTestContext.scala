@@ -663,6 +663,10 @@ trait ActivateTestContext
         protected def invariantContentMustBeLongEnough =
             on(_.content).invariant(content.size > 3)
     }
+    
+    class X[T <: Entity] extends Entity {
+        var p: Option[T] = None
+    }
 
     case class CaseClassEntity(
             var stringValue: String,
