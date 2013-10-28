@@ -196,6 +196,33 @@ class CRUDSpecs extends ActivateTest {
                     })
             }
 
+            "readOny/readWrite transactions" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        transactional(readOnly) {
+                            newEmptyActivateTestEntity
+                        } must throwA[IllegalStateException]
+                        transactional(readOnly) {
+                            all[ActivateTestEntity]
+                        } must beEmpty
+                        val entity =
+                            transactional(readWrite) {
+                                newEmptyActivateTestEntity
+                            }
+                        transactional(readOnly) {
+                            entity.intValue
+                        } === emptyIntValue
+                        transactional(readOnly) {
+                            entity.intValue = fullIntValue
+                        } must throwA[IllegalStateException]
+                        transactional(readWrite) {
+                            entity.intValue = fullIntValue
+                            entity.intValue
+                        } must beEqualTo(fullIntValue)
+                    })
+            }
+
         }
     }
 
