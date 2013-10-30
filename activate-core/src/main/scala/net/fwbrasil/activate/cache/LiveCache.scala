@@ -238,9 +238,13 @@ class LiveCache(
         val entity = map.get(entityId)
         if (entity == null) {
             entityId.intern.synchronized {
-                val entity = createLazyEntity(entityClass, entityId)
-                map.put(entityId, entity)
-                entity
+                val entity = map.get(entityId)
+                if (entity == null) {
+                    val entity = createLazyEntity(entityClass, entityId)
+                    map.put(entityId, entity)
+                    entity
+                } else
+                    entity
             }
         } else
             entity
