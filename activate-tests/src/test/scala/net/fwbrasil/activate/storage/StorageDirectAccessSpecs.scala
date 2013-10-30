@@ -60,6 +60,7 @@ class StorageDirectAccessSpecs extends ActivateTest {
                                     .execute(new PrevaylerTransaction[PrevaylerStorageSystem] {
                                         override def executeOn(system: PrevaylerStorageSystem, date: Date) = {
                                             val sys = system.asInstanceOf[PrevaylerStorageSystem]
+                                            import scala.collection.JavaConversions._
                                             sys.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                                         }
                                     })

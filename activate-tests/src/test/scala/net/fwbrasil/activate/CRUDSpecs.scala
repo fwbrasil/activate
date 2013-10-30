@@ -152,11 +152,11 @@ class CRUDSpecs extends ActivateTest {
                         import step.ctx._
                         if (step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactions]) {
                             step {
-                                for (i <- 0 until 10000)
+                                for (i <- 0 until 1000)
                                     CaseClassEntity(fullStringValue, fullEntityValue, fullEntityWithoutAttributeValue)
                             }
                             step {
-                                all[CaseClassEntity].size === 10000
+                                all[CaseClassEntity].size === 1000
                             }
                         }
                     })

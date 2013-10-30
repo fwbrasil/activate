@@ -3,10 +3,7 @@ package net.fwbrasil.activate.storage.prevayler
 import java.util.HashMap
 import java.util.HashSet
 import scala.annotation.implicitNotFound
-import scala.collection.JavaConversions.asScalaSet
-import scala.collection.JavaConversions.mapAsJavaMap
-import scala.collection.JavaConversions.mapAsScalaMap
-import scala.collection.JavaConversions.seqAsJavaList
+import scala.collection.JavaConversions._
 import org.prevayler.implementation.publishing.AbstractPublisher
 import org.prevayler.implementation.publishing.TransactionSubscriber
 import org.prevayler.implementation.PrevalentSystemGuard
@@ -39,8 +36,9 @@ import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.storage.SnapshotableStorage
+import java.util.concurrent.ConcurrentHashMap
 
-class PrevaylerStorageSystem extends scala.collection.mutable.HashMap[String, Entity] with scala.collection.mutable.SynchronizedMap[String, Entity]
+class PrevaylerStorageSystem extends ConcurrentHashMap[String, Entity]
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
@@ -128,10 +126,10 @@ class PrevaylerStorage(
         prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 
         for ((entityId, changeSet) <- assignments)
-            prevalentSystem += (entityId -> context.liveCache.materializeEntity(entityId))
+            prevalentSystem.put(entityId, context.liveCache.materializeEntity(entityId))
 
         for (entityId <- deletes)
-            prevalentSystem -= entityId
+            prevalentSystem.remove(entityId)
 
         None
     }
