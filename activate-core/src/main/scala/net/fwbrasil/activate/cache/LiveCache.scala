@@ -235,15 +235,15 @@ class LiveCache(
 
     def materializeEntity(entityId: String, entityClass: Class[Entity]): Entity = {
         val map = entityInstacesMap(entityClass)
-        entityId.intern.synchronized {
-            val entity = map.get(entityId)
-            if (entity == null) {
+        val entity = map.get(entityId)
+        if (entity == null) {
+            entityId.intern.synchronized {
                 val entity = createLazyEntity(entityClass, entityId)
                 map.put(entityId, entity)
                 entity
-            } else
-                entity
-        }
+            }
+        } else
+            entity
     }
 
     def materializeEntity(entityId: String): Entity = {
