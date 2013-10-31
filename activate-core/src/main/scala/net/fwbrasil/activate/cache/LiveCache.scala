@@ -71,6 +71,9 @@ import java.util.concurrent.ConcurrentMap
 import CacheType._
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
+import net.fwbrasil.activate.statement.In
+import net.fwbrasil.activate.statement.ListValue
+import net.fwbrasil.activate.statement.NotIn
 
 class LiveCache(
         val context: ActivateContext,
@@ -154,7 +157,7 @@ class LiveCache(
             val filteredWithoutDeletedEntities =
                 filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
             val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
-            (rows, filteredWithDeletedEntities)
+            (rows, filteredWithDeletedEntities.filter(_.find(_.isPersisted).isDefined))
         } else
             (List(), List())
     }
@@ -437,6 +440,10 @@ class LiveCache(
                 val matcher = b.asInstanceOf[String]
                 (a != null && matcher != null) &&
                     a.toString.matches(matcher)
+            case operator: In =>
+                b.asInstanceOf[List[_]].contains(a)
+            case operator: NotIn =>
+                !b.asInstanceOf[List[_]].contains(a)
         }
     }
 
@@ -498,6 +505,8 @@ class LiveCache(
                 executeStatementBooleanValue(value)
             case value: StatementSelectValue =>
                 executeStatementSelectValue(value)
+            case value: ListValue[_] =>
+                value.fList()
             case null =>
                 null
         }

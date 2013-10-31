@@ -39,6 +39,7 @@ import net.fwbrasil.activate.statement.StatementValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.ToUpperCase
+import net.fwbrasil.activate.statement.ListValue
 import net.fwbrasil.activate.statement.ToLowerCase
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.statement.SimpleValue
@@ -53,6 +54,8 @@ import net.fwbrasil.activate.statement.query.Select
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import java.util.Date
+import net.fwbrasil.activate.statement.In
+import net.fwbrasil.activate.statement.NotIn
 
 object mongoIdiom {
 
@@ -275,6 +278,8 @@ object mongoIdiom {
                 getMongoValue(Marshaller.marshalling(value.entityValue))
             case value: StatementEntityInstanceValue[_] =>
                 getMongoValue(StringStorageValue(Option(value.entityId)))
+            case value: ListValue[_] =>
+                newList(value.statementSelectValueList.map(getMongoValue): _*)
             case null =>
                 null
             case other =>
@@ -319,6 +324,10 @@ object mongoIdiom {
                 "$ne"
             case operator: IsEqualTo =>
                 unsupported("Mongo doesn't have the $eq operator yet (https://jira.mongodb.org/browse/SERVER-1367).")
+            case in: In =>
+                "$in"
+            case in: NotIn =>
+                "$nin"
         }
 
     private def unsupported(msg: String) =

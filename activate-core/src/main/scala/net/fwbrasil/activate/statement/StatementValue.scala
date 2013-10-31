@@ -150,6 +150,12 @@ class StatementEntitySourcePropertyValue(override val entitySource: EntitySource
             that.asInstanceOf[StatementEntitySourcePropertyValue].propertyPathVars == propertyPathVars
 }
 
+case class ListValue[V](val fList: () => List[V], val f: V => StatementSelectValue) extends StatementValue {
+    def list = fList()
+    def statementSelectValueList = list.map(f)
+    override def toString = list.toString
+}
+
 case class SimpleValue[V](val fAnyValue: () => V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue {
     def anyValue = fAnyValue()
     //	require(anyValue != null)

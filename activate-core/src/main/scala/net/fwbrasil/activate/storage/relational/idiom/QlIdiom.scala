@@ -79,6 +79,9 @@ import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.statement.EntitySource
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
+import net.fwbrasil.activate.statement.ListValue
+import net.fwbrasil.activate.statement.In
+import net.fwbrasil.activate.statement.NotIn
 
 trait QlIdiom {
 
@@ -121,7 +124,7 @@ trait QlIdiom {
                 ""
         }
     }
-    
+
     def toSqlStatement(statement: StorageStatement): List[NormalQlStatement] =
         statement match {
             case insert: InsertStorageStatement =>
@@ -204,9 +207,9 @@ trait QlIdiom {
         else
             ""
     }
-    
+
     def notEqualId(entity: Entity, entitySource: EntitySource)(
-            implicit binds: MutableMap[StorageValue, String]) = 
+        implicit binds: MutableMap[StorageValue, String]) =
         List(entitySource.name + ".id != " + bindId(entity.id))
 
     def bindId(id: String)(implicit binds: MutableMap[StorageValue, String]) =
@@ -245,6 +248,8 @@ trait QlIdiom {
 
     def toSqlDml(value: StatementValue)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
+            case value: ListValue[_] =>
+                "(" + value.statementSelectValueList.map(toSqlDml).mkString(",") + ")"
             case value: StatementBooleanValue =>
                 toSqlDml(value)
             case value: StatementSelectValue =>
@@ -355,6 +360,10 @@ trait QlIdiom {
                 " is null "
             case value: IsNotNull =>
                 " is not null "
+            case value: In =>
+                " in "
+                case value: NotIn =>
+                " not in "
         }
 
     def bind(value: StorageValue)(implicit binds: MutableMap[StorageValue, String]) =

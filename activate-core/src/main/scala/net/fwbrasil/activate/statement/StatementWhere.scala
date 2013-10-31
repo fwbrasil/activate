@@ -33,6 +33,8 @@ trait OperatorContext {
     implicit def toIsNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = IsNull(value)
     implicit def toIsNotNull[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = IsNotNull(value)
     implicit def toMatcher[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = Matcher(value)
+    implicit def toIn[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = In(value)
+    implicit def toNotIn[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = NotIn(value)
     
     def toUpperCase(value: String)(implicit tval1: (=> String) => StatementSelectValue) = ToUpperCase(value)
     def toLowerCase(value: String)(implicit tval1: (=> String) => StatementSelectValue) = ToLowerCase(value)
@@ -47,6 +49,18 @@ case class Matcher(valueA: StatementSelectValue) extends CompositeOperator {
     def regexp(valueB: => String)(implicit f: Option[String] => EntityValue[String]) =
         CompositeOperatorCriteria(valueA, this, SimpleValue(() => valueB, f))
     override def toString = "matches"
+}
+
+case class In(valueA: StatementSelectValue) extends CompositeOperator {
+    def in[V](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
+        CompositeOperatorCriteria(valueA, this, ListValue(() => valueB.toList, (v: V) => ctx.toStatementValueEntityValue(v)))
+    override def toString = "in"
+}
+
+case class NotIn(valueA: StatementSelectValue) extends CompositeOperator {
+    def notIn[V](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
+        CompositeOperatorCriteria(valueA, this, ListValue(() => valueB.toList, (v: V) => ctx.toStatementValueEntityValue(v)))
+    override def toString = "in"
 }
 
 case class IsNull(valueA: StatementSelectValue) extends SimpleOperator {
