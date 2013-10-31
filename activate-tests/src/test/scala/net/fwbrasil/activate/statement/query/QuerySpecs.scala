@@ -638,11 +638,15 @@ class QuerySpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        List(newEmptyActivateTestEntity, newFullActivateTestEntity)
+                        newEmptyActivateTestEntity
+                        newFullActivateTestEntity
                     }
                     step {
                         def test(intValue: Int) = {
-                            val result = select[ActivateTestEntity].where(_.intValue.in(List(intValue))).head
+                            val result =
+                                query {
+                                    (e: ActivateTestEntity) => where(e.intValue.in(List(intValue))) select(e)
+                                }.head
                             result === select[ActivateTestEntity].where(_.intValue :== intValue).head
                         }
                         test(fullIntValue)
@@ -660,18 +664,22 @@ class QuerySpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
-                        List(newEmptyActivateTestEntity, newFullActivateTestEntity)
+                        newEmptyActivateTestEntity
+                        newFullActivateTestEntity
                     }
                     step {
                         def test(intValue: Int) = {
-                            val result = select[ActivateTestEntity].where(_.intValue.notIn(List(intValue))).toSet
+                            val result =
+                                query {
+                                    (e: ActivateTestEntity) => where(e.intValue.notIn(List(intValue))) select(e)
+                                }.toSet
                             result === select[ActivateTestEntity].where(_.intValue :!= intValue).toSet
                         }
                         test(fullIntValue)
                         test(emptyIntValue)
                     }
                     step {
-                        val result = select[ActivateTestEntity].where(_.intValue notIn List(fullIntValue, emptyIntValue)).toSet
+                        val result = select[ActivateTestEntity].where(_.intValue notIn List(fullIntValue, emptyIntValue))
                         result.isEmpty must beTrue
                     }
                 })
