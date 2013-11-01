@@ -51,7 +51,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     def poolConfiguration = PoolConfiguration.Default
     private var pool = new ConnectionPool(objectFactory, poolConfiguration)
 
-    private val dialect = postgresqlDialect
+    val dialect: postgresqlDialect = postgresqlDialect
 
     override protected[activate] def query(
         query: Query[_],

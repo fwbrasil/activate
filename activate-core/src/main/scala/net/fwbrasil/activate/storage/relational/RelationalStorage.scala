@@ -17,6 +17,18 @@ import net.fwbrasil.activate.util.Reflection.NiceObject
 
 trait RelationalStorage[T] extends MarshalStorage[T] {
 
+    protected def noEscape(string: String) = string
+    protected def underscoreSeparated(string: String) = {
+        val chars =
+            List(string.head.toLower) ++ string.tail.collect {
+                case e if (e.isUpper) =>
+                    "_" + e.toLower
+                case e =>
+                    e
+            }
+        chars.mkString("")
+    }
+
     def store(
         readList: List[(Entity, Long)],
         statementList: List[MassModificationStatement],

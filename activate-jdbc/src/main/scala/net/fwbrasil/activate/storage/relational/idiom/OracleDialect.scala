@@ -36,8 +36,21 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
-object oracleDialect extends SqlIdiom {
+object oracleDialect extends oracleDialect(pEscape = string => "\"" + string + "\"", pNormalize = oracleDialectNormalizer.normalize) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = oracleDialectNormalizer.normalize) = 
+        new postgresqlDialect(escape, normalize)
+}
+
+object oracleDialectNormalizer {
+    def normalize(string: String) = 
+        string.toUpperCase.substring((string.length - 30).max(0), string.length)
+}
+
+class oracleDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
     
+    override def escape(string: String) =
+        pEscape(pNormalize(string))
+
     override def supportsLimitedQueries = false
     
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -46,30 +59,24 @@ object oracleDialect extends SqlIdiom {
     override def findTableStatement(tableName: String) =
         "SELECT COUNT(1) " +
             "  FROM USER_TABLES " +
-            " WHERE TABLE_NAME = '" + normalize(tableName) + "'"
+            " WHERE TABLE_NAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM USER_TAB_COLUMNS " +
-            " WHERE TABLE_NAME = '" + normalize(tableName) + "' " +
-            "   AND COLUMN_NAME = '" + normalize(columnName) + "'"
+            " WHERE TABLE_NAME = '" + pNormalize(tableName) + "' " +
+            "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1) " +
             "  FROM USER_INDEXES " +
-            " WHERE INDEX_NAME = '" + normalize(indexName) + "'"
+            " WHERE INDEX_NAME = '" + pNormalize(indexName) + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM USER_CONSTRAINTS " +
-            " WHERE TABLE_NAME = '" + normalize(tableName) + "'" +
-            "   AND CONSTRAINT_NAME = '" + normalize(constraintName) + "'"
-
-    def normalize(string: String) =
-        string.toUpperCase.substring((string.length - 30).max(0), string.length)
-
-    override def escape(string: String) =
-        "\"" + normalize(string) + "\""
+            " WHERE TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND CONSTRAINT_NAME = '" + pNormalize(constraintName) + "'"
 
     override def toSqlDmlLimit(query: LimitedOrderedQuery[_]): String =
         ""

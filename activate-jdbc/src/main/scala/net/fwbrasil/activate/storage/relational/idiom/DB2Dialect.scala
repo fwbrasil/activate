@@ -42,8 +42,16 @@ import java.util.Date
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
-object db2Dialect extends SqlIdiom {
-    
+object db2Dialect extends db2Dialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
+        new postgresqlDialect(escape, normalize)
+}
+
+class db2Dialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+
+    override def escape(string: String) =
+        pEscape(pNormalize(string))
+
     override def supportsLimitedQueries = false
 
     def toSqlDmlRegexp(value: String, regex: String) =
@@ -53,31 +61,28 @@ object db2Dialect extends SqlIdiom {
         "SELECT COUNT(1) " +
             "  FROM SYSCAT.TABLES " +
             " WHERE TABSCHEMA = CURRENT_SCHEMA " +
-            "   AND TABNAME = '" + tableName.toUpperCase + "'"
+            "   AND TABNAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM SYSCAT.COLUMNS " +
             " WHERE TABSCHEMA = CURRENT_SCHEMA " +
-            "   AND TABNAME = '" + tableName.toUpperCase + "'" +
-            "   AND COLNAME = '" + columnName.toUpperCase + "'"
+            "   AND TABNAME = '" + pNormalize(tableName) + "'" +
+            "   AND COLNAME = '" + pNormalize(columnName) + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1) " +
             "  FROM SYSCAT.INDEXES " +
             " WHERE TABSCHEMA = CURRENT_SCHEMA " +
-            "   AND TABNAME = '" + tableName.toUpperCase + "'" +
-            "   AND INDNAME = '" + indexName.toUpperCase + "'"
+            "   AND TABNAME = '" + pNormalize(tableName) + "'" +
+            "   AND INDNAME = '" + pNormalize(indexName) + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM SYSCAT.TABCONST " +
             " WHERE TABSCHEMA = CURRENT_SCHEMA " +
-            "   AND TABNAME = '" + tableName.toUpperCase + "'" +
-            "   AND CONSTNAME = '" + constraintName.toUpperCase + "'"
-
-    override def escape(string: String) =
-        "\"" + string.toUpperCase + "\""
+            "   AND TABNAME = '" + pNormalize(tableName) + "'" +
+            "   AND CONSTNAME = '" + pNormalize(constraintName) + "'"
 
     override def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {

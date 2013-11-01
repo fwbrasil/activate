@@ -108,9 +108,9 @@ object SqlIdiom {
                     List(classOf[SqlIdiom]),
                     classOf[SqlIdiom])
                 .map(classOf[SqlIdiom].getClassLoader.loadClass)
-        for (dialect <- dialects)
-            yield (dialect.getSimpleName.split('$').last ->
-            Reflection.getObject[SqlIdiom](dialect))
+        dialects
+            .map(Reflection.getObjectOption[SqlIdiom]).flatten
+            .map(obj => obj.getClass.getSimpleName.split('$').last -> obj)
     }.toMap
     def dialect(name: String) =
         dialectsMap.getOrElse(name, throw new IllegalArgumentException("Invalid dialect " + name))

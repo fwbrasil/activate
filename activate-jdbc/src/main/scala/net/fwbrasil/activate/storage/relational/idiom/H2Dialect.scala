@@ -27,7 +27,15 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
-object h2Dialect extends SqlIdiom {
+object h2Dialect extends h2Dialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
+        new postgresqlDialect(escape, normalize)
+}
+
+class h2Dialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+
+    override def escape(string: String) =
+        pEscape(pNormalize(string))
 
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " regexp " + regex
@@ -36,31 +44,28 @@ object h2Dialect extends SqlIdiom {
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.TABLES " +
             " WHERE TABLE_SCHEMA = SCHEMA() " +
-            "   AND TABLE_NAME = '" + tableName.toUpperCase + "'"
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.COLUMNS " +
             " WHERE TABLE_SCHEMA = SCHEMA() " +
-            "   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
-            "   AND COLUMN_NAME = '" + columnName.toUpperCase + "'"
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.INDEXES " +
             " WHERE TABLE_SCHEMA = SCHEMA() " +
-            "   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
-            "   AND INDEX_NAME = '" + indexName.toUpperCase + "'"
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND INDEX_NAME = '" + pNormalize(indexName) + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.CONSTRAINTS " +
             " WHERE TABLE_SCHEMA = SCHEMA() " +
-            "   AND TABLE_NAME = '" + tableName.toUpperCase + "'" +
-            "   AND CONSTRAINT_NAME = '" + constraintName.toUpperCase + "'"
-
-    override def escape(string: String) =
-        "\"" + string.toUpperCase + "\""
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND CONSTRAINT_NAME = '" + pNormalize(constraintName) + "'"
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

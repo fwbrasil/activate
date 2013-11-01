@@ -31,7 +31,16 @@ import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
-object postgresqlDialect extends SqlIdiom {
+object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string) = 
+        new postgresqlDialect(escape, normalize)
+}
+
+class postgresqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+    
+    override def escape(string: String) =
+        pEscape(pNormalize(string))
+    
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " ~ " + regex
 
@@ -39,31 +48,28 @@ object postgresqlDialect extends SqlIdiom {
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.TABLES " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName + "'"
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.COLUMNS " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName + "'" +
-            "   AND COLUMN_NAME = '" + columnName + "'"
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1)  " +
             "	FROM pg_catalog.pg_indexes" +
             "  WHERE schemaname = CURRENT_SCHEMA" +
-            "	AND tablename = '" + tableName + "'" +
-            "	AND indexname = '" + indexName + "'"
+            "	AND tablename = '" + pNormalize(tableName) + "'" +
+            "	AND indexname = '" + pNormalize(indexName) + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
             " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
-            "   AND TABLE_NAME = '" + tableName + "'" +
-            "   AND CONSTRAINT_NAME = '" + constraintName + "'"
-
-    override def escape(string: String) =
-        "\"" + string + "\""
+            "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
+            "   AND CONSTRAINT_NAME = '" + pNormalize(constraintName) + "'"
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

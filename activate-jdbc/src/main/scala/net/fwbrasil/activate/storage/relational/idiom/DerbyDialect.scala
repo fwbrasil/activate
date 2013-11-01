@@ -44,7 +44,15 @@ object derbyRegex {
     }
 }
 
-object derbyDialect extends SqlIdiom {
+object derbyDialect extends derbyDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) = 
+        new postgresqlDialect(escape, normalize)
+}
+
+class derbyDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+    
+    override def escape(string: String) =
+        pEscape(pNormalize(string))
 
     override def prepareDatabase(storage: JdbcRelationalStorage) =
         try {
@@ -73,15 +81,15 @@ object derbyDialect extends SqlIdiom {
             "  FROM SYS.SYSTABLES ST, SYS.SYSSCHEMAS SS " +
             " WHERE ST.SCHEMAID = SS.SCHEMAID " +
             "   AND SS.SCHEMANAME = CURRENT SCHEMA" +
-            "   AND ST.TABLENAME = '" + tableName.toUpperCase + "'"
+            "   AND ST.TABLENAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM SYS.SYSCOLUMNS SC, SYS.SYSTABLES ST, SYS.SYSSCHEMAS SS " +
             " WHERE ST.SCHEMAID = SS.SCHEMAID " +
             "   AND SS.SCHEMANAME = CURRENT SCHEMA" +
-            "   AND ST.TABLENAME = '" + tableName.toUpperCase + "'" +
-            "   AND SC.COLUMNNAME = '" + columnName.toUpperCase + "'" +
+            "   AND ST.TABLENAME = '" + pNormalize(tableName) + "'" +
+            "   AND SC.COLUMNNAME = '" + pNormalize(columnName) + "'" +
             "   AND SC.REFERENCEID = ST.TABLEID"
 
     override def findIndexStatement(tableName: String, indexName: String) =
@@ -89,8 +97,8 @@ object derbyDialect extends SqlIdiom {
             "  FROM SYS.SYSCONGLOMERATES SG, SYS.SYSTABLES ST, SYS.SYSSCHEMAS SS " +
             " WHERE ST.SCHEMAID = SS.SCHEMAID " +
             "   AND SS.SCHEMANAME = CURRENT SCHEMA" +
-            "   AND ST.TABLENAME = '" + tableName.toUpperCase + "'" +
-            "   AND SG.CONGLOMERATENAME = '" + indexName.toUpperCase + "'" +
+            "   AND ST.TABLENAME = '" + pNormalize(tableName) + "'" +
+            "   AND SG.CONGLOMERATENAME = '" + pNormalize(indexName) + "'" +
             "   AND SG.TABLEID = ST.TABLEID"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
@@ -98,12 +106,9 @@ object derbyDialect extends SqlIdiom {
             "  FROM SYS.SYSCONSTRAINTS SC, SYS.SYSTABLES ST, SYS.SYSSCHEMAS SS " +
             " WHERE ST.SCHEMAID = SS.SCHEMAID " +
             "   AND SS.SCHEMANAME = CURRENT SCHEMA" +
-            "   AND ST.TABLENAME = '" + tableName.toUpperCase + "'" +
-            "   AND SC.CONSTRAINTNAME = '" + constraintName.toUpperCase + "'" +
+            "   AND ST.TABLENAME = '" + pNormalize(tableName) + "'" +
+            "   AND SC.CONSTRAINTNAME = '" + pNormalize(constraintName) + "'" +
             "   AND SC.TABLEID = ST.TABLEID"
-
-    override def escape(string: String) =
-        "\"" + string.toUpperCase + "\""
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {

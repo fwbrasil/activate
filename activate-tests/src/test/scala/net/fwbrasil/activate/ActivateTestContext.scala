@@ -146,7 +146,12 @@ object postgresqlContext extends ActivateTestContext with SlickQueryContext {
         val user = "postgres"
         val password = "postgres"
         val url = "jdbc:postgresql://127.0.0.1/activate_test"
-        val dialect = postgresqlDialect
+        def normalize(string: String) =
+            string.toLowerCase match {
+                case "order" => "orderr"
+                case other => other
+            }
+        val dialect = postgresqlDialect(escape = noEscape, normalize)
     }
 }
 class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
@@ -164,6 +169,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 database = Some("activate_test_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
+        override val dialect = postgresqlDialect(normalize = underscoreSeparated)
     }
 }
 class AsyncPostgresqlActivateTestMigration extends ActivateTestMigration()(asyncPostgresqlContext)
@@ -352,7 +358,7 @@ object polyglotContext extends ActivateTestContext {
                 database = Some("activate_test_polyglot_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
-        val dialect = postgresqlDialect
+        override val dialect = postgresqlDialect
     }
     lazy val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
@@ -663,7 +669,7 @@ trait ActivateTestContext
         protected def invariantContentMustBeLongEnough =
             on(_.content).invariant(content.size > 3)
     }
-    
+
     class X[T <: Entity] extends Entity {
         var p: Option[T] = None
     }

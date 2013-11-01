@@ -169,7 +169,11 @@ object Reflection {
     def getObject[T](clazz: Class[_]) = {
         clazz.getField("MODULE$").get(clazz).asInstanceOf[T]
     }
-
+    
+    def getObjectOption[T](clazz: Class[_]) = {
+        clazz.getFields.find(_.getName == "MODULE$").map(_.get(clazz)).asInstanceOf[Option[T]]
+    }
+    
     def getCompanionObject[T](clazz: Class[_]) = {
         val companionClassOption =
             try {
