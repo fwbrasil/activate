@@ -60,20 +60,22 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     override protected[activate] def prepareDatabase =
         dialect.prepareDatabase(this)
 
-    protected def getConnectionWithAutoCommit = {
+    def getConnectionReadOnly = {
         val con = getConnection
         con.setAutoCommit(true)
+        con.setReadOnly(true)
         con
     }
 
-    private def getConnectionWithoutAutoCommit = {
+    def getConnectionReadWrite = {
         val con = getConnection
         con.setAutoCommit(false)
+        con.setReadOnly(false)
         con
     }
 
     def directAccess =
-        getConnectionWithoutAutoCommit
+        getConnectionReadWrite
 
     def isMemoryStorage = false
     def isSchemaless = false
@@ -121,7 +123,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement) =
         jdbcStatement.restrictionQuery.map(tuple => {
-            executeWithTransaction(autoCommit = true) {
+            executeWithTransaction(readOnly = true) {
                 connection =>
                     val (query, expected) = tuple
                     val stmt = connection.prepareStatement(query)
@@ -166,7 +168,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance, entitiesReadFromCache)), expectedTypes)
 
     protected[activate] def executeQuery(sqlStatement: NormalQlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
-        executeWithTransaction(autoCommit = true) {
+        executeWithTransaction(readOnly = true) {
             connection =>
                 val (stmt, columns) = acquirePreparedStatement(sqlStatement, connection, false)
                 try {
@@ -247,7 +249,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     }
 
     def executeWithTransactionAndReturnHandle[R](f: (Connection) => R) = {
-        val connection = getConnectionWithoutAutoCommit
+        val connection = getConnectionReadWrite
         try {
             f(connection)
             new TransactionHandle(
@@ -265,20 +267,20 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def executeWithTransaction[R](f: (Connection) => R): R =
         executeWithTransaction(false)(f)
 
-    def executeWithTransaction[R](autoCommit: Boolean)(f: (Connection) => R) = {
+    def executeWithTransaction[R](readOnly: Boolean)(f: (Connection) => R) = {
         val connection =
-            if (autoCommit)
-                getConnectionWithAutoCommit
+            if (readOnly)
+                getConnectionReadOnly
             else
-                getConnectionWithoutAutoCommit
+                getConnectionReadWrite
         try {
             val res = f(connection)
-            if (!autoCommit)
+            if (!readOnly)
                 connection.commit
             res
         } catch {
             case e: Throwable =>
-                if (!autoCommit)
+                if (!readOnly)
                     connection.rollback
                 throw e
         } finally
@@ -361,8 +363,11 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         _connectionPool = new BoneCP(config)
     }
 
-    override protected def getConnectionWithAutoCommit =
-        getConnection
+    override def getConnectionReadOnly = {
+        val con = getConnection // autocommit by default 
+        con.setReadOnly(true)
+        con
+    }
 
 }
 
