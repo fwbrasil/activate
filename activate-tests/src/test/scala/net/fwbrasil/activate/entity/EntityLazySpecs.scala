@@ -67,6 +67,8 @@ class EntityLazySpecs extends ActivateTest {
                     step {
                         for (entity <- all[ActivateTestEntity])
                             entity.isInitialized must beFalse
+                    }
+                    step {
                         for (entity <- all[ActivateTestEntity])
                             entity.vars.head.get
                         for (entity <- all[ActivateTestEntity])

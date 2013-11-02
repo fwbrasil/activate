@@ -36,15 +36,15 @@ trait SlickQueryContext {
 
     lazy val driver =
         storage.asInstanceOf[JdbcRelationalStorage].dialect match {
-            case d: derbyDialect.type =>
+            case d: derbyDialect =>
                 DerbyDriver
-            case d: h2Dialect.type =>
+            case d: h2Dialect =>
                 H2Driver
-            case d: hsqldbDialect.type =>
+            case d: hsqldbDialect =>
                 HsqldbDriver
-            case d: mySqlDialect.type =>
+            case d: mySqlDialect =>
                 MySQLDriver
-            case d: postgresqlDialect.type =>
+            case d: postgresqlDialect =>
                 PostgresDriver
             //            case d: oracleDialect.type =>
             //                OracleDriver

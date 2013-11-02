@@ -140,7 +140,7 @@ class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCu
     override def bigStringType = "TEXT"
 }
 
-object postgresqlContext extends ActivateTestContext with SlickQueryContext {
+object postgresqlContext extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
         val user = "postgres"
@@ -804,6 +804,8 @@ trait ActivateTestContext
         var length = 0
         @transient val transientValue = new Object
         @transient lazy val transientLazyValue = new Object
+        
+        override def toString = s"ActivateTestEntity(id=$id)"
     }
 
     def validateFullTestEntity(entity: ActivateTestEntity = null,

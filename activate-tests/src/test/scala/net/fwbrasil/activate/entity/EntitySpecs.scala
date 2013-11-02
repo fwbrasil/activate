@@ -119,13 +119,16 @@ class EntitySpecs extends ActivateTest {
                     step {
                         verifyReferences(id3,
                             Map(metadata[ActivateTestEntity] -> List(entity(id2)),
-                                metadata[CaseClassEntity] -> List()))
+                                metadata[CaseClassEntity] -> List(),
+                                metadata[X[_]] -> List()))
                         verifyReferences(id2,
                             Map(metadata[CaseClassEntity] -> List(),
-                                metadata[ActivateTestEntity] -> List(entity(id1))))
+                                metadata[ActivateTestEntity] -> List(entity(id1)),
+                                metadata[X[_]] -> List()))
                         verifyReferences(id1,
                             Map(metadata[CaseClassEntity] -> List(),
-                                metadata[ActivateTestEntity] -> List()))
+                                metadata[ActivateTestEntity] -> List(),
+                                metadata[X[_]] -> List()))
                     }
                     step {
                         entity(id1).canDelete === true
