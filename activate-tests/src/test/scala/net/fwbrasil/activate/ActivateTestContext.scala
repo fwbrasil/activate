@@ -169,6 +169,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 database = Some("activate_test_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
+        override def numberOfPartitions = 4
         override val dialect = postgresqlDialect(normalize = underscoreSeparated)
     }
 }

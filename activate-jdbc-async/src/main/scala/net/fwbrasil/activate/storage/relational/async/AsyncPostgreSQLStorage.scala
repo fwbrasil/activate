@@ -40,6 +40,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import io.netty.util.CharsetUtil
 import scala.concurrent.duration.Duration
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
+import com.github.mauricio.async.db.pool.PartitionedConnectionPools
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
@@ -49,7 +50,9 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     val objectFactory: ObjectFactory[PostgreSQLConnection]
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
-    private var pool = new ConnectionPool(objectFactory, poolConfiguration)
+    def numberOfPartitions = 1
+    
+    private val pool = new PartitionedConnectionPools(objectFactory, poolConfiguration, numberOfPartitions)
 
     val dialect: postgresqlDialect = postgresqlDialect
 
