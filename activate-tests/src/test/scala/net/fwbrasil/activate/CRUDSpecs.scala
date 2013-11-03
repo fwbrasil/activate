@@ -13,7 +13,12 @@ import net.fwbrasil.activate.multipleVms._
 class CRUDSpecs extends ActivateTest {
 
     override def executors(ctx: ActivateTestContext): List[StepExecutor] =
-        super.executors(ctx) ++ List(MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
+        List(
+            OneTransaction(ctx),
+            MultipleTransactions(ctx),
+            MultipleAsyncTransactions(ctx),
+            MultipleTransactionsWithReinitialize(ctx),
+            MultipleTransactionsWithReinitializeAndSnapshot(ctx))
 
     "Activate perssitence framework" should {
         "support CRUD" in {
