@@ -27,13 +27,21 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     Runtime.getRuntime.addShutdownHook(
         new Thread {
             override def run = {
-                if (currentBuffer != null) {
-                    byteBufferCleaner.cleanDirect(currentBuffer)
-                    currentBuffer = null
-                }
+                cleanCurrentBuffer
                 bufferPool.destroy
             }
         })
+
+    private def clear = {
+        cleanCurrentBuffer
+        currentBufferIdx = 0
+    }
+
+    private def cleanCurrentBuffer =
+        if (currentBuffer != null) {
+            byteBufferCleaner.cleanDirect(currentBuffer)
+            currentBuffer = null
+        }
 
     def takeSnapshot(system: PrevalentStorageSystem) = {
         val snapshotFile = new File(directory, fileName(nextFileIndex, ".snapshot"))
@@ -57,11 +65,12 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     }
 
     def recover(implicit ctx: ActivateContext) = {
+        clear
         val (nextFileId, system) = recoverSnapshot
         val buffers = directoryBuffers(nextFileId)
         for (buffer <- buffers) yield {
             recoverTransactions(system, buffer)
-            byteBufferCleaner.cleanDirect(currentBuffer)
+            cleanCurrentBuffer
             currentBuffer = buffer
         }
         if (buffers.isEmpty) {
