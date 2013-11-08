@@ -321,7 +321,7 @@ abstract class Migration(implicit val context: ActivateContext) {
             .map(reference =>
                 table(manifestClass(metadata.entityClass)).addReference(reference._1, reference._2, reference._3)) ++
             nestedListsReferencesForEntityMetadata(metadata).map {
-                reference => table(reference._1).addReference("value", reference._2, reference._3)
+                reference => table(reference._1, reference._2).addReference("value", reference._3, reference._4)
             }
 
     private def referencesForEntityMetadata(metadata: EntityMetadata) =
@@ -342,6 +342,7 @@ abstract class Migration(implicit val context: ActivateContext) {
                 context.storageFor(metadata.entityClass) == context.storageFor(property.genericParameter.asInstanceOf[Class[Entity]]))
         ) yield (
             EntityPropertyMetadata.nestedListNamesFor(metadata, property)._2,
+            context.storageFor(metadata.entityClass),
             EntityHelper.getEntityName(property.genericParameter),
             shortConstraintName(metadata.name, property.name))
 
@@ -349,7 +350,7 @@ abstract class Migration(implicit val context: ActivateContext) {
         referencesForEntityMetadata(metadata).map(reference =>
             table(manifestClass(metadata.entityClass)).removeReference(reference._1, reference._2, reference._3)) ++
             nestedListsReferencesForEntityMetadata(metadata).map {
-                reference => table(reference._1).removeReference("value", reference._2, reference._3)
+                reference => table(reference._1, reference._2).removeReference("value", reference._3, reference._4)
             }
 
 

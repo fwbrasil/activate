@@ -10,7 +10,7 @@ import net.fwbrasil.activate.hsqldbContext
 
 @RunWith(classOf[JUnitRunner])
 class CrazyQuerySpecs extends ActivateTest {
-    
+
     override def contexts = super.contexts.filter(_.storage.supportsQueryJoin)
 
     "Crazy queries" should {
@@ -35,29 +35,31 @@ class CrazyQuerySpecs extends ActivateTest {
                         }
                     })
             }
-            "join with dirty entity and uninitialized entity" in {
-                activateTest(
-                    (step: StepExecutor) => {
-                        if (!step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
-                            import step.ctx._
-                            val entityId =
-                                step {
-                                    newFullActivateTestEntity.entityValue.id
-                                }
-                            def entity = byId[ActivateTestEntity](entityId).get
-                            step {
-                                val int = 213
-                                entity.intValue = int
-                                val result =
-                                    query {
-                                        (e: ActivateTestEntity) => where(e.entityValue.intValue :== int) select (e.entityValue)
+
+            if (contexts.find(!_.storage.isMemoryStorage).isDefined)
+                "join with dirty entity and uninitialized entity" in {
+                    activateTest(
+                        (step: StepExecutor) => {
+                            if (!step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
+                                import step.ctx._
+                                val entityId =
+                                    step {
+                                        newFullActivateTestEntity.entityValue.id
                                     }
-                                result === List(entity)
+                                def entity = byId[ActivateTestEntity](entityId).get
+                                step {
+                                    val int = 213
+                                    entity.intValue = int
+                                    val result =
+                                        query {
+                                            (e: ActivateTestEntity) => where(e.entityValue.intValue :== int) select (e.entityValue)
+                                        }
+                                    result === List(entity)
+                                }
                             }
-                        }
-                    })
-            }.pendingUntilFixed("Send partial modifications to db queries")
-            
+                        })
+                }.pendingUntilFixed("Send partial modifications to db queries")
+
             "join with deleted entities" in {
                 activateTest(
                     (step: StepExecutor) => {

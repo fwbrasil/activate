@@ -292,10 +292,7 @@ trait QueryContext extends StatementContext
     def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
 
     def asyncById[T <: Entity](id: => String)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
-        Future.successful(
-            EntityHelper.getEntityClassFromIdOption(id).map {
-                entityClass => liveCache.materializeEntity(id, entityClass).asInstanceOf[T]
-            })
+        Future.successful(byId[T](id))
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {
         val normalizedQueries =

@@ -12,6 +12,7 @@ import java.io.FileOutputStream
 import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.FileInputStream
+import scala.collection.JavaConversions._
 
 class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
@@ -67,6 +68,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     def recover(implicit ctx: ActivateContext) = {
         clear
         val (nextFileId, system) = recoverSnapshot
+        ctx.hidrateEntities(system.values)
         val buffers = directoryBuffers(nextFileId)
         for (buffer <- buffers) yield {
             recoverTransactions(system, buffer)

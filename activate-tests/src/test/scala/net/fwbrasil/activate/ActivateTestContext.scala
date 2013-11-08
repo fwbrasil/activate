@@ -68,7 +68,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == derbyContext || ctx == sqlServerContext)
+        if (ctx == mysqlContext || ctx == derbyContext || ctx == sqlServerContext || ctx == polyglotContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -169,7 +169,7 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 database = Some("activate_test_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
-        override def numberOfPartitions = 4
+        override def numberOfPartitions = 1
         override val dialect = postgresqlDialect(normalize = underscoreSeparated)
     }
 }

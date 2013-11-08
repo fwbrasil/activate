@@ -44,7 +44,7 @@ object ActivateTest {
     val contextsCategoriesMap =
         Map[ActivateTestContextCategory, List[ActivateTestContext]](
             memory -> List(memoryContext),
-            prevalent -> List(prevaylerContext, prevalentContext),
+            prevalent -> List(/*prevaylerContext,*/ prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
             relational -> List(postgresqlContext, asyncPostgresqlContext,
                 mysqlContext, /*derbyContext,*/ h2Context, hsqldbContext),
@@ -88,7 +88,7 @@ object ActivateTest {
 
     private def askForCategories = {
         import scala.collection.JavaConversions._
-        val values = ActivateTestContextCategory.values.map(_.toString).toArray
+        val values = ActivateTestContextCategory.values.map(_.toString).toArray[Object]
         val list = new JList(values)
         list.setSelectedIndices(categoriesIndicesFromPreferences)
         JOptionPane.showMessageDialog(
@@ -213,7 +213,11 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
                 transactional {
                     s
                 }
-            ctx.storage.asInstanceOf[SnapshotableStorage[_]].snapshot
+            ctx.storage match {
+            	case storage:SnapshotableStorage[_] =>
+            		storage.snapshot
+            	case other =>
+            }
             reinitializeContext
             ret
         }

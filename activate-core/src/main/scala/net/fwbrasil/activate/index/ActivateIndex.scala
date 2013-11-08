@@ -53,13 +53,14 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
         val dirtyEntities =
             context.liveCache
                 .dirtyEntitiesFromTransaction(entityClass)
+                .values
 
         val fromIndex =
             indexGet(key) -- dirtyEntities.map(_.id)
 
         val dirtyEntitiesFiltered =
             dirtyEntities
-            .filter(e => !e.isDeleted && keyProducer(e) == key)
+                .filter(e => !e.isDeleted && keyProducer(e) == key)
                 .map(_.id)
 
         new LazyList((Set() ++ dirtyEntitiesFiltered ++ fromIndex).toList)

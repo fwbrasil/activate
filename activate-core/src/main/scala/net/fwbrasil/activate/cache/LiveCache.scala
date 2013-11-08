@@ -105,12 +105,8 @@ class LiveCache(
     def delete(entity: Entity): Unit =
         delete(entity.id)
 
-    def delete(entityId: String) = {
-        val entityClass = EntityHelper.getEntityClassFromId(entityId)
-        entityInstacesMap(entityClass)
-            .remove(entityId)
+    def delete(entityId: String) =
         customCaches.foreach(_.remove(entityId))
-    }
 
     def toCache[E <: Entity](entity: E): E =
         toCache(entity.niceClass, entity)
@@ -152,8 +148,8 @@ class LiveCache(
             val filteredWithDeletedEntities =
                 if (isMemoryStorage)
                     entities
-                else
-                    entities.filter(_.find(dirtyEntities.contains(_)).isDefined)
+                else 
+                    entities.filter(_.find(entity => dirtyEntities.contains(entity.id)).isDefined)
             val filteredWithoutDeletedEntities =
                 filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
             val rows = executeQueryWithEntitySources(query, filteredWithoutDeletedEntities)
@@ -167,8 +163,9 @@ class LiveCache(
         val transaction = context.transactionManager.getRequiredActiveTransaction
         transaction.refsSnapshot.collect {
             case (ref: Var[_], snapshot) if (snapshot.isWrite && entityClass.isAssignableFrom(ref.outerEntityClass)) =>
-                ref.outerEntity.asInstanceOf[E]
-        }.toSeq
+                val entity = ref.outerEntity
+                entity.id -> entity.asInstanceOf[E]
+        }.toMap
     }
 
     def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
@@ -315,17 +312,14 @@ class LiveCache(
     }
 
     def loadFromDatabase(entity: Entity): Unit = {
-        val vars = entity.vars.toList.filter(p => !p.isTransient)
-        if (vars.size != 1) {
-            loadRowFromDatabase(entity).map {
-                row => setEntityValues(entity, vars.zip(row).toMap)
-            }.getOrElse {
-                transactional(transient) {
-                    entity.deleteWithoutInitilize
-                }
+        loadRowFromDatabase(entity).map {
+            val vars = entity.vars.toList.filter(p => !p.isTransient)
+            row => setEntityValues(entity, vars.zip(row).toMap)
+        }.getOrElse {
+            transactional(transient) {
+                entity.deleteWithoutInitilize
             }
         }
-
     }
 
     def setEntityValues(entity: Entity, values: Map[Var[Any], Any]): Unit = {
