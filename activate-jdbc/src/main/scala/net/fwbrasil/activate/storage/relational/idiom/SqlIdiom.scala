@@ -99,7 +99,7 @@ import net.fwbrasil.activate.storage.relational.InsertStorageStatement
 import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
-
+                                       storage
 object SqlIdiom {
     lazy val dialectsMap = {
         val dialects =
@@ -284,20 +284,24 @@ trait SqlIdiom extends QlIdiom {
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
 
-    def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]]) =
+    def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]], queryLimit: Int) =
         for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
-            val ids = versions.map(_._1)
-            var binds = Map[String, StorageValue]()
             val conditions =
                 for (i <- 0 until versions.size) yield {
                     val (id, version) = versions(i)
                     val condition = "(" + escape("id") + " = :id" + i + " and " + escape("version") + " is not null and " + escape("version") + " != :version" + i + ")"
-                    binds += ("id" + i) -> new StringStorageValue(Some(id))
-                    binds += ("version" + i) -> new LongStorageValue(Some(version))
-                    condition
+                    val bindId = ("id" + i) -> new StringStorageValue(Some(id))
+                    val bindVersion = ("version" + i) -> new LongStorageValue(Some(version))
+                    (condition, bindId, bindVersion)
                 }
-            val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + conditions.mkString(" OR ")
-            (new NormalQlStatement(query, binds), versions)
+            val groupedConditions = conditions.grouped(queryLimit)
+            val queries = for (slice <- groupedConditions) yield {
+              val queryConditions = slice.map(_._1)
+              val binds: Map[String, StorageValue] = slice.map(_._2).toMap ++ slice.map(_._3).toMap
+              val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + queryConditions.mkString(" OR ")
+              new NormalQlStatement(query, binds)
+            }
+            (queries, versions)
         }
 
     def ifExistsRestriction(statement: String, boolean: Boolean) =
