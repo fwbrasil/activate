@@ -99,7 +99,7 @@ import net.fwbrasil.activate.storage.relational.InsertStorageStatement
 import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
-                                       storage
+
 object SqlIdiom {
     lazy val dialectsMap = {
         val dialects =
