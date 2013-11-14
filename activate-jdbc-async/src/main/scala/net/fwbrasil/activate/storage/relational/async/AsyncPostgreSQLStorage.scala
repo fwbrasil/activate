@@ -54,6 +54,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     
     private val pool = new PartitionedConnectionPools(objectFactory, poolConfiguration, numberOfPartitions)
 
+    val queryLimit = 1000
     val dialect: postgresqlDialect = postgresqlDialect
 
     override protected[activate] def query(
@@ -166,8 +167,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]])(implicit context: ExecutionContext) = {
-        dialect.versionVerifyQueries(reads).foldLeft(Future[Unit]())((future, tuple) => {
-            val (stmt, expectedVersions) = tuple
+        dialect.versionVerifyQueries(reads, queryLimit).foldLeft(Future[Unit]())((future, stmt) => {
             future.flatMap(_ =>
                 queryAsync(stmt, List(new StringStorageValue(None))).map {
                     _.map {
