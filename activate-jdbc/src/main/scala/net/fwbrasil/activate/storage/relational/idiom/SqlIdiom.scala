@@ -301,7 +301,7 @@ trait SqlIdiom extends QlIdiom {
               val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + queryConditions.mkString(" OR ")
               new NormalQlStatement(query, binds)
             }
-            (queries, versions)
+            queries
         }
 
     def ifExistsRestriction(statement: String, boolean: Boolean) =
