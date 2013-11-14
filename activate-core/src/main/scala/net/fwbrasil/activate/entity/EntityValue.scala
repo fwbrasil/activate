@@ -12,7 +12,7 @@ import net.fwbrasil.activate.serialization.javaSerializer
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.util.Reflection
 
-abstract class EntityValue[V: Manifest](val value: Option[V]) extends Serializable {
+abstract class EntityValue[V](val value: Option[V]) extends Serializable {
     def emptyValue: V
 }
 
@@ -94,11 +94,11 @@ case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: 
     def emptyValue = null.asInstanceOf[E]
 }
 
-case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[String])
-        extends EntityValue[String](value) {
+case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[Entity#ID])
+        extends EntityValue[Entity#ID](value) {
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
-    def emptyValue = null
+    def emptyValue = null.asInstanceOf[Entity#ID]
 }
 
 case class ListEntityValue[V](override val value: Option[List[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])

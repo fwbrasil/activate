@@ -42,8 +42,8 @@ trait MarshalStorage[T] extends Storage[T] {
             marshalling(deleteList))
 
     private def marshalling(list: List[(Entity, Map[String, EntityValue[Any]])]) =
-        list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> ReferenceStorageValue(Some(tuple._1.id)))))
-
+        list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> ReferenceStorageValue(Some(Marshaller.idMarshalling(Some(tuple._1.id)))))))
+        
     protected[activate] def store(
         readList: List[(Entity, Long)],
         statements: List[MassModificationStatement],

@@ -16,7 +16,7 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     context: ActivateContext)
         extends Logging {
 
-    context.indexes += this
+    context.indexes += this.asInstanceOf[ActivateIndex[Entity, _]]
 
     def name = context.indexName(this)
 
@@ -40,9 +40,9 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     }
 
     private[index] def update(
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) =
+        inserts: List[E],
+        updates: List[E],
+        deletes: List[E]) =
         if (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty) {
             lazyInit.get
             updateIndex(inserts, updates, deletes)
@@ -67,19 +67,19 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
     }
 
     protected def reload: Unit
-    protected def indexGet(key: T): Set[String]
+    protected def indexGet(key: T): Set[E#ID]
     protected def clearIndex: Unit
     protected def updateIndex(
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity])
+        inserts: List[E],
+        updates: List[E],
+        deletes: List[E])
 
 }
 
 trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext {
     this: ActivateContext =>
 
-    private[index] val indexes = new ListBuffer[ActivateIndex[_, _]]()
+    private[index] val indexes = new ListBuffer[ActivateIndex[Entity, _]]()
 
     private def indexFields =
         this.getClass.getDeclaredFields.filter(e => classOf[ActivateIndex[_, _]].isAssignableFrom(e.getType))

@@ -9,7 +9,7 @@ import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.ListBuffer
 
-class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifest, K] private[index] (
+class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K, E]: Manifest, K] private[index] (
     keyProducer: E => K, indexEntryProducer: K => P, context: ActivateContext, preloadEntries: Boolean)
         extends ActivateIndex[E, K](keyProducer, context)
         with Logging
@@ -17,8 +17,8 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
 
     import context._
 
-    private val index = new HashMap[K, String]()
-    private val invertedIndex = new HashMap[String, String]()
+    private val index = new HashMap[K, P#ID]()
+    private val invertedIndex = new HashMap[E#ID, P#ID]()
 
     override protected def reload: Unit =
         if (preloadEntries) {
@@ -39,7 +39,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
             }
         }
 
-    override protected def indexGet(key: K): Set[String] = {
+    override protected def indexGet(key: K): Set[E#ID] = {
         val entryId =
             doWithReadLock {
                 index.get(key)
@@ -61,13 +61,13 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     }
 
     override protected def updateIndex(
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) = {
+        inserts: List[E],
+        updates: List[E],
+        deletes: List[E]) = {
         if (!updatingIndex.get && (inserts.nonEmpty || updates.nonEmpty || deletes.nonEmpty)) {
             doWithWriteLock {
-                val idsDelete = ListBuffer[String]()
-                val updatedEntries = ListBuffer[(K, String, String)]()
+                val idsDelete = ListBuffer[E#ID]()
+                val updatedEntries = ListBuffer[(K, E#ID, P#ID)]()
                 updatingIndex.set(true)
                 try transactional {
                     deleteEntities(deletes, idsDelete)
@@ -86,9 +86,9 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     }
 
     private def updateEntities(
-        entities: List[Entity],
-        idsDelete: ListBuffer[String],
-        updatedEntries: ListBuffer[(K, String, String)]) = {
+        entities: List[E],
+        idsDelete: ListBuffer[E#ID],
+        updatedEntries: ListBuffer[(K, E#ID, P#ID)]) = {
         for (entity <- entities) {
             val key = keyProducer(entity.asInstanceOf[E])
             val entryId = index.getOrElse(key, indexEntryProducer(key).id)
@@ -110,8 +110,8 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     }
 
     private def insertEntities(
-        entities: List[Entity],
-        updatedEntries: ListBuffer[(K, String, String)]) = {
+        entities: List[E],
+        updatedEntries: ListBuffer[(K, E#ID, P#ID)]) = {
         for (entity <- entities) {
             val key = keyProducer(entity.asInstanceOf[E])
             val entryId = index.getOrElse(key, indexEntryProducer(key).id)
@@ -121,8 +121,8 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
     }
 
     private def deleteEntities(
-        entities: List[Entity],
-        idsDelete: ListBuffer[String]) =
+        entities: List[E],
+        idsDelete: ListBuffer[E#ID]) =
         for (entity <- entities) {
             val id = entity.id
             invertedIndex.get(id).map {
@@ -132,7 +132,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
             idsDelete += id
         }
 
-    private def entry(id: String) =
+    private def entry(id: P#ID) =
         byId[P](id).getOrElse(
             throw new IllegalStateException(
                 "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
@@ -147,15 +147,15 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K]: Manifes
 
 }
 
-trait PersistedIndexEntry[K] extends Entity {
+trait PersistedIndexEntry[K, V <: Entity] extends Entity {
     def key: K
-    var ids: HashSet[String]
+    var ids: HashSet[V#ID]
 }
 
 trait PersistedIndexContext {
     this: ActivateContext =>
 
-    type PersistedIndexEntry[K] = net.fwbrasil.activate.index.PersistedIndexEntry[K]
+    type PersistedIndexEntry[K, V <: Entity] = net.fwbrasil.activate.index.PersistedIndexEntry[K, V]
 
     protected class PersistedIndexProducer0[E <: Entity: Manifest](preloadEntries: Boolean) {
         def on[K](keyProducer: E => K) =
@@ -163,7 +163,7 @@ trait PersistedIndexContext {
     }
 
     protected class PersistedIndexProducer1[E <: Entity: Manifest, K](keyProducer: E => K, preloadEntries: Boolean) {
-        def using[P <: PersistedIndexEntry[K]: Manifest](indexEntityProducer: K => P) =
+        def using[P <: PersistedIndexEntry[K, E]: Manifest](indexEntityProducer: K => P) =
             new PersistedIndex[E, P, K](keyProducer, indexEntityProducer, PersistedIndexContext.this, preloadEntries)
     }
 

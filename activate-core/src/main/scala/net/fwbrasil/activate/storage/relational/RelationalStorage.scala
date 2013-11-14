@@ -50,7 +50,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     }
 
     private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
-        list.sortBy(_._1.id)
+        list.sortBy(_._1.id.toString)
 
     protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] =
         if (statements.size <= 1)
@@ -63,17 +63,17 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                     for ((propertyName, propertyValue) <- insertA.propertyMap if (propertyValue.value.isDefined)) {
                         propertyValue match {
                             case propertyValue: ReferenceStorageValue if (propertyName != "id") =>
-                                val entityIdB = propertyValue.value.get
+                                val entityIdB = propertyValue.value.get.value.get.asInstanceOf[Entity#ID]
                                 if (entityInsertMap.contains(entityIdB))
                                     tree.addDependency(entityInsertMap(entityIdB), insertA)
                             case ListStorageValue(Some(values: List[StorageValue]), _: ReferenceStorageValue) =>
                                 val ids =
                                     (values.collect {
                                         case value: ReferenceStorageValue =>
-                                            value.value
+                                            value.value.get.value
                                         case value: StringStorageValue =>
                                             value.value
-                                    }).flatten
+                                    }).flatten.asInstanceOf[List[Entity#ID]]
                                 for (entityIdB <- ids)
                                     if (entityInsertMap.contains(entityIdB))
                                         tree.addDependency(entityInsertMap(entityIdB), insertA)
@@ -91,9 +91,9 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         executeStatements(Map(), List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(String, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
+    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(Entity#ID, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(String, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
+    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(Entity#ID, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
         blockingFuture(executeStatements(reads, statements).map(_.commit))
 
     private def statementsFor(

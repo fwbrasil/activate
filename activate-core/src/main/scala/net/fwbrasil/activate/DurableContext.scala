@@ -27,9 +27,10 @@ import java.io.FileOutputStream
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
+import net.fwbrasil.activate.entity.Entity
 
 class ActivateConcurrentTransactionException(
-    val entitiesIds: Set[String],
+    val entitiesIds: Set[(Entity#ID, Class[Entity])],
     refs: List[Ref[_]])
         extends ConcurrentTransactionException(refs)
 
@@ -51,7 +52,7 @@ trait DurableContext {
             }
         }
 
-    def reloadEntities(ids: Set[String]) = {
+    def reloadEntities(ids: Set[(Entity#ID, Class[Entity])]) = {
         val entities =
             liveCache.reloadEntities(ids)
                 .toList.asInstanceOf[List[DurableContext.this.Entity]]
@@ -190,7 +191,7 @@ trait DurableContext {
 
     private def entitiesReadVersions(transaction: Transaction, entitiesToIgnore: List[Entity]) =
         if (OptimisticOfflineLocking.validateReads) {
-            val entitiesRead = MutableMap[String, Entity]()
+            val entitiesRead = MutableMap[AnyRef, Entity]()
             transaction.reads.asInstanceOf[ListBuffer[Var[Any]]].foreach {
                 ref =>
                     val entity = ref.outerEntity

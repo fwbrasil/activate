@@ -9,6 +9,7 @@ import net.fwbrasil.activate.statement.StatementMocks._
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.statement.query.EagerQueryContext
+import net.fwbrasil.activate.storage.marshalling.Marshaller
 
 class StatementValue()
 
@@ -55,6 +56,9 @@ trait StatementValueContext extends ValueContext {
     }
 
     import language.implicitConversions
+    
+    implicit def toStatementValueEntityId(entityId: => Entity#ID): StatementSelectValue =
+        toStatementValueEntityValue(entityId)(EntityValue.tvalFunctionOption(entityId.getClass, classOf[Object]).asInstanceOf[Option[Entity#ID] => EntityValue[Entity#ID]])
 
     @implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
     implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue =
@@ -90,8 +94,9 @@ abstract class StatementEntityValue[V]() extends StatementSelectValue
 case class StatementEntityInstanceValue[E <: Entity](val fEntity: () => E) extends StatementEntityValue[E] {
     def entity = fEntity()
     def entityId = entity.id
+    def storageValue = Marshaller.marshalling(entityValue)
     override def entityValue = EntityInstanceEntityValue[E](Option(entity))(manifestClass[E](entity.getClass))
-    override def toString = entityId
+    override def toString = entityId.toString
     override def hashCode = System.identityHashCode(this)
 }
 

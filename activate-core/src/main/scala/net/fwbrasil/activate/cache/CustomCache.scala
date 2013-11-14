@@ -17,7 +17,7 @@ case class CustomCache[E <: Entity: Manifest](
         limitOption: Option[Long] = None,
         expiration: Duration = Duration.Inf) {
 
-    private val cache = cacheBuilder.build[String, E]
+    private val cache = cacheBuilder.build[AnyRef, E]
 
     def entityClass = erasureOf[E]
 
@@ -31,7 +31,7 @@ case class CustomCache[E <: Entity: Manifest](
     def remove(entity: E): Unit =
         remove(entity.id)
 
-    def remove(entityId: String) =
+    def remove(entityId: AnyRef) =
         cache.invalidate(entityId)
 
     private def satifyCondition(entity: E)(implicit ctx: ActivateContext) =

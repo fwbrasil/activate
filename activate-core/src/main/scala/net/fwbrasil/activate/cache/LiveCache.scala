@@ -86,7 +86,7 @@ class LiveCache(
 
     val cache =
         EntityHelper.allConcreteEntityClasses
-            .map((_, cacheType.mapMaker.makeMap[String, Entity]))
+            .map((_, cacheType.mapMaker.makeMap[Any, Entity]))
             .toMap
 
     def reinitialize =
@@ -95,7 +95,7 @@ class LiveCache(
             customCaches.foreach(_.clear)
         }
 
-    def byId[E <: Entity: Manifest](id: String): Option[E] =
+    def byId[E <: Entity: Manifest](id: Entity#ID): Option[E] =
         Option(entityInstacesMap[E].get(id))
 
     def contains[E <: Entity](entity: E) =
@@ -105,7 +105,7 @@ class LiveCache(
     def delete(entity: Entity): Unit =
         delete(entity.id)
 
-    def delete(entityId: String) =
+    def delete(entityId: AnyRef) =
         customCaches.foreach(_.remove(entityId))
 
     def toCache[E <: Entity](entity: E): E =
@@ -125,12 +125,12 @@ class LiveCache(
         map.values.toList.filter(_.isInitialized)
     }
 
-    def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[String, E] =
+    def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[Any, E] =
         entityInstacesMap(manifestToClass(manifest[E]))
 
-    def entityInstacesMap[E <: Entity](entityClass: Class[E]): ConcurrentMap[String, E] = {
+    def entityInstacesMap[E <: Entity](entityClass: Class[E]): ConcurrentMap[Any, E] = {
         cache(entityClass.asInstanceOf[Class[Entity]])
-    }.asInstanceOf[ConcurrentMap[String, E]]
+    }.asInstanceOf[ConcurrentMap[Any, E]]
 
     def executeMassModification(statement: MassModificationStatement) = {
         val entities =
@@ -148,7 +148,7 @@ class LiveCache(
             val filteredWithDeletedEntities =
                 if (isMemoryStorage)
                     entities
-                else 
+                else
                     entities.filter(_.find(entity => dirtyEntities.contains(entity.id)).isDefined)
             val filteredWithoutDeletedEntities =
                 filteredWithDeletedEntities.filter(_.find(_.isDeleted).isEmpty)
@@ -183,7 +183,7 @@ class LiveCache(
             case value: ReferenceListEntityValue[_] =>
                 value.value.map(_.map(_.map(materializeEntity).orNull)).orNull
             case value: EntityInstanceReferenceValue[_] =>
-                value.value.map(materializeEntity).orNull
+                value.value.map(materializeEntity(_, value.entityClass.asInstanceOf[Class[Entity]])).orNull
             case other: EntityValue[_] =>
                 other.value.getOrElse(null)
         }
@@ -233,11 +233,11 @@ class LiveCache(
         }(context.ectx)
     }
 
-    def materializeEntity(entityId: String, entityClass: Class[Entity]): Entity = {
+    def materializeEntity(entityId: AnyRef, entityClass: Class[Entity]): Entity = {
         val map = entityInstacesMap(entityClass)
         val entity = map.get(entityId)
         if (entity == null) {
-            entityId.intern.synchronized {
+            synchronizeOn(entityId) {
                 val entity = map.get(entityId)
                 if (entity == null) {
                     val entity = createLazyEntity(entityClass, entityId)
@@ -249,6 +249,14 @@ class LiveCache(
         } else
             entity
     }
+
+    private def synchronizeOn[R](entityId: AnyRef)(f: => R) =
+        entityId match {
+            case entityId: String =>
+                entityId.intern.synchronized(f)
+            case entityId =>
+                entityId.synchronized(f)
+        }
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
@@ -263,13 +271,13 @@ class LiveCache(
             field.set(entity, ref)
         }
 
-    private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) = {
+    private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Any) = {
         val idField = entityMetadata.idField
         val ref = new IdVar(entityMetadata.idPropertyMetadata, entity, entityId)
         idField.set(entity, ref)
     }
 
-    private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: String) =
+    private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Any) =
         transactional(transient) {
             initializeLazyEntityProperties(entity, entityMetadata)
             initalizeLazyEntityId(entity, entityMetadata, entityId)
@@ -280,7 +288,7 @@ class LiveCache(
             entity.initializeListeners
         }
 
-    def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: String) = {
+    def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: Any) = {
         val entity = newInstance[E](entityClass)
         val entityMetadata = entity.entityMetadata
         initalizeLazyEntity(entity, entityMetadata, entityId)
@@ -288,8 +296,9 @@ class LiveCache(
         entity
     }
 
-    def reloadEntities(ids: Set[String]) =
-        ids.map(id => byId[Entity](id)(manifestClass(EntityHelper.getEntityClassFromId(id)))).flatten.map(_.reloadFromDatabase)
+    def reloadEntities(ids: Set[(Entity#ID, Class[Entity])]) =
+        (for ((id, clazz) <- ids) yield byId[Entity](id)(manifestClass(clazz)))
+            .flatten.map(_.reloadFromDatabase)
 
     def executePendingMassStatements(entity: Entity) =
         for (statement <- context.currentTransactionStatements)

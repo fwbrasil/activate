@@ -90,7 +90,7 @@ object Marshaller {
             case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
                 ByteArrayEntityValue(storageValue.value)
             case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
-                EntityInstanceReferenceValue(storageValue.value)(entityValue.entityManifest)
+                EntityInstanceReferenceValue(storageValue.value.map(value => unmarshalling(value, entityValue).value).asInstanceOf[Option[Entity#ID]])(entityValue.entityManifest)
             case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
                 val value = if (stringValue.value.isDefined) {
                     val enumerationValueClass = enumerationValue.enumerationClass
@@ -115,11 +115,11 @@ object Marshaller {
             case (storageValue: ListStorageValue, entityValue: LazyListEntityValue[_]) =>
                 val v = storageValue.value.map(list => list.collect {
                     case e: ReferenceStorageValue =>
-                        e.value.get
+                        e.value.map(unmarshalling(_, e)).get.value.get.asInstanceOf[AnyRef]
                     case e: StringStorageValue =>
                         e.value.get
                 }).map { ids =>
-                    new LazyList[Entity](ids)(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
+                    new LazyList[Entity](ids.asInstanceOf[List[Entity#ID]])(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
                 }
                 LazyListEntityValue(v)
             case (storageValue: StorageValue, entityValue: EncoderEntityValue[_, _]) =>
@@ -158,15 +158,15 @@ object Marshaller {
             case value: ByteArrayEntityValue =>
                 ByteArrayStorageValue(value.value)
             case value: EntityInstanceEntityValue[_] =>
-                ReferenceStorageValue(value.value.map(_.id))
+                ReferenceStorageValue(Some(idMarshalling(value.value.map(_.id))))
             case value: EntityInstanceReferenceValue[_] =>
-                ReferenceStorageValue(value.value)
+                ReferenceStorageValue(Some(idMarshalling(value.value)))
             case value: EnumerationEntityValue[_] =>
                 StringStorageValue(value.value.map(_.toString))
             case value: ListEntityValue[_] =>
                 ListStorageValue(value.value.map(list => list.map(e => marshalling(value.valueEntityValue(e)))), marshalling(value.emptyValueEntityValue))
             case value: LazyListEntityValue[_] =>
-                ListStorageValue(value.value.map(list => list.ids.map(e => StringStorageValue(Some(e)))), marshalling(value.emptyValueEntityValue))
+                ListStorageValue(value.value.map(list => list.ids.map(e => idMarshalling(Some(e)))), marshalling(value.emptyValueEntityValue))
             case value: SerializableEntityValue[_] =>
                 ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
             case value: EncoderEntityValue[_, _] =>
@@ -208,6 +208,11 @@ object Marshaller {
 
     def marshalling(column: Column[_]): StorageColumn =
         StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
+        
+    def idMarshalling(entityId: Option[Entity#ID]): StorageValue = {
+    	val entityValue = EntityValue.tvalFunction(entityId.getClass, classOf[Object])(entityId)
+        marshalling(entityValue)
+    }
 }
 
 case class StorageColumn(name: String, storageValue: StorageValue, specificTypeOption: Option[String])

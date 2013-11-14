@@ -19,8 +19,14 @@ import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
+import net.fwbrasil.activate.entity.UUID
 
-class StorageVersion(val contextName: String, var lastScript: Long, var lastAction: Int) extends Entity
+class StorageVersion(
+    val contextName: String,
+    var lastScript: Long,
+    var lastAction: Int)
+        extends Entity
+        with UUID
 
 object Migration {
 
@@ -352,7 +358,6 @@ abstract class Migration(implicit val context: ActivateContext) {
             nestedListsReferencesForEntityMetadata(metadata).map {
                 reference => table(reference._1, reference._2).removeReference("value", reference._3, reference._4)
             }
-
 
     case class Table(name: String, storage: Storage[_]) {
 

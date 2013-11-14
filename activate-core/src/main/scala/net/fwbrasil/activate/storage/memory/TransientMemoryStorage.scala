@@ -16,9 +16,9 @@ import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.TransactionHandle
 import scala.collection.concurrent.TrieMap
 
-class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
+class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: Entity], TrieMap[Entity#ID, Entity]]] {
 
-    private val storageMap = new TrieMap[String, Entity]
+    private val storageMap = MutableHashMap[Class[_ <: Entity], TrieMap[Entity#ID, Entity]]()
 
     def isSchemaless = true
     def isTransactional = false
@@ -30,7 +30,7 @@ class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
         storageMap
 
     override def reinitialize =
-        for (entity <- storageMap.values)
+        for (entity <- storageMap.values.map(_.values).flatten)
             entity.addToLiveCache
 
     override def toStorage(
@@ -41,12 +41,17 @@ class TransientMemoryStorage extends Storage[TrieMap[String, Entity]] {
         deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle] = {
 
         for ((entity, properties) <- insertList)
-            storageMap += entity.id -> entity
+            entityClassMap(entity) += entity.id -> entity
         for ((entity, properties) <- deleteList)
-            storageMap -= entity.id
+            entityClassMap(entity) -= entity.id
 
         None
     }
+    
+    private def entityClassMap(entity: Entity) =
+        storageMap.synchronized {
+            storageMap.getOrElseUpdate(entity.getClass, new TrieMap)
+        }
 
     override def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] =
         List()

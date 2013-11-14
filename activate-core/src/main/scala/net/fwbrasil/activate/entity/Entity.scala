@@ -22,7 +22,7 @@ import net.fwbrasil.activate.cache.CustomCache
 import net.fwbrasil.activate.entity.map.EntityMap
 import net.fwbrasil.activate.statement.StatementMocks
 
-trait Entity extends Serializable with EntityValidation with EntityListeners {
+trait Entity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
     @transient
     private var _baseVar: Var[Any] = null
@@ -76,8 +76,6 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
             ref.isDirty && !OptimisticOfflineLocking.isVersionVar(ref))
             .isDefined
 
-    final val id: String = null
-
     def delete = {
         beforeDelete
         baseVar.destroy
@@ -104,7 +102,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         EntityHelper.getEntityMetadata(this.getClass).references.mapValues {
             references =>
                 val ctx = context
-                ctx.select[Entity](manifestClass(references.head.entityMetadata.entityClass)).where { entity =>
+                ctx.select[ctx.Entity](manifestClass(references.head.entityMetadata.entityClass)).where { entity =>
                     import ctx._
                     var criteria: Criteria = (entity.varNamed(references.head.name).get :== this)
                     for (reference <- references.tail)
@@ -121,10 +119,6 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
         for (ref <- vars; if (ref != _baseVar))
             ref.destroyWithoutInitilize
     }
-
-    def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
-    def creationDate = new Date(creationTimestamp)
-    def creationDateTime = new DateTime(creationTimestamp)
 
     private var persistedflag = false
     @volatile private var initialized = false
@@ -247,7 +241,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners {
 
     protected def writeReplace(): AnyRef =
         if (Entity.serializeUsingEvelope)
-            new EntitySerializationEnvelope(this)
+            new EntitySerializationEnvelopeV2(this)
         else
             this
 
@@ -281,10 +275,18 @@ case class CannotDeleteEntity(references: Map[EntityMetadata, List[Entity]])
     extends Exception(s"Can't delete entity due references from ${references.keys.map(_.name)}.")
 
 class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
-    val id = entity.id
+    val id = entity.id.asInstanceOf[String]
     val context = entity.context
     protected def readResolve(): Any =
         context.liveCache.materializeEntity(id)
+}
+
+class EntitySerializationEnvelopeV2[E <: Entity](entity: E) extends Serializable {
+    val id: AnyRef = entity.id
+    val entityClass = entity.getClass.asInstanceOf[Class[Entity]]
+    val context = entity.context
+    protected def readResolve(): Any =
+        context.liveCache.materializeEntity(id, entityClass)
 }
 
 trait EntityContext extends ValueContext with TransactionContext with LazyListContext {

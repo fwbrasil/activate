@@ -195,7 +195,7 @@ trait SqlIdiom extends QlIdiom {
                 else
                     ps.setInt(i, 0)
             case value: ReferenceStorageValue =>
-                setValue(ps, (v: String) => ps.setString(i, v), i, value.value, Types.VARCHAR)
+                setValue(ps, i, value.value.get)
         }
     }
 
@@ -223,7 +223,7 @@ trait SqlIdiom extends QlIdiom {
             case value: ByteArrayStorageValue =>
                 ByteArrayStorageValue(resultSet.getBytes(i))
             case value: ReferenceStorageValue =>
-                ReferenceStorageValue(resultSet.getString(i))
+                ReferenceStorageValue(value.value.map(getValue(resultSet, i, _)))
         }
     }
 

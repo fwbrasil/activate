@@ -212,8 +212,8 @@ trait QlIdiom {
         implicit binds: MutableMap[StorageValue, String]) =
         List(entitySource.name + ".id != " + bindId(entity.id))
 
-    def bindId(id: String)(implicit binds: MutableMap[StorageValue, String]) =
-        bind(StringStorageValue(Some(id)))
+    def bindId(id: Entity#ID)(implicit binds: MutableMap[StorageValue, String]) =
+        bind(Marshaller.idMarshalling(Some(id)))
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)
@@ -298,7 +298,7 @@ trait QlIdiom {
     def toSqlDml[V](value: StatementEntityValue[V])(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
             case value: StatementEntityInstanceValue[_] =>
-                bind(StringStorageValue(Option(value.entityId)))
+                bind(value.storageValue)
             case value: StatementEntitySourcePropertyValue =>
                 val propertyName = value.propertyPathNames.mkString(".")
                 value.entityValue match {

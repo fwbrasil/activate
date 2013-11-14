@@ -21,6 +21,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.duration.Duration
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentHashMap
+import net.fwbrasil.activate.entity.UUID
 
 trait QueryContext extends StatementContext
         with OrderedQueryContext
@@ -269,10 +270,16 @@ trait QueryContext extends StatementContext
 
     def select[E <: Entity: Manifest] = new SelectEntity[E]
 
+    def byId[T <: Entity: Manifest](id: => T#ID): Option[T] =
+        byId(id, erasureOf[T])
+    
     def byId[T <: Entity](id: => String): Option[T] =
-        EntityHelper.getEntityClassFromIdOption(id).map {
-            entityClass => liveCache.materializeEntity(id, entityClass).asInstanceOf[T]
+        EntityHelper.getEntityClassFromIdOption(id).flatMap {
+            entityClass => byId[T](id.asInstanceOf[T#ID], entityClass)
         }
+    
+    def byId[T <: Entity](id: => T#ID, entityClass: Class[_]) =
+        Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
 
     //ASYNC
 

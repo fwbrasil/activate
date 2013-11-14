@@ -26,8 +26,8 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 
     import context._
 
-    private val index = new HashMap[T, Set[String]]()
-    private val invertedIndex = new HashMap[String, T]()
+    private val index = new HashMap[T, Set[E#ID]]()
+    private val invertedIndex = new HashMap[E#ID, T]()
 
     override protected def indexGet(key: T) =
         doWithReadLock {
@@ -35,9 +35,9 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
         }
 
     override protected def updateIndex(
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) =
+        inserts: List[E],
+        updates: List[E],
+        deletes: List[E]) =
         doWithWriteLock {
             transactional(new Transaction()(context)) {
                 insertEntities(inserts)
@@ -46,12 +46,12 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             }
         }
 
-    private def updateEntities(entities: List[Entity]) = {
+    private def updateEntities(entities: List[E]) = {
         deleteEntities(entities)
         insertEntities(entities)
     }
 
-    private def insertEntities(entities: List[Entity]) =
+    private def insertEntities(entities: List[E]) =
         for (entity <- entities) {
             val key = 
                 try keyProducer(entity.asInstanceOf[E])
@@ -65,7 +65,7 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
             invertedIndex.put(entity.id, key)
         }
 
-    private def deleteEntities(entities: List[Entity]) =
+    private def deleteEntities(entities: List[E]) =
         for (entity <- entities) {
             val id = entity.id
             invertedIndex.get(id).map {

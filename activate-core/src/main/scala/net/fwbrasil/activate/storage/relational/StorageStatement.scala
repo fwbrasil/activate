@@ -12,7 +12,7 @@ abstract class StorageStatement
 
 abstract class DmlStorageStatement(
     val entityClass: Class[_],
-    val entityId: String,
+    val entityId: Entity#ID,
     val propertyMap: Map[String, StorageValue])
         extends StorageStatement {
 
@@ -25,19 +25,19 @@ abstract class DmlStorageStatement(
 
 case class InsertStorageStatement(
     override val entityClass: Class[_],
-    override val entityId: String,
+    override val entityId: Entity#ID,
     override val propertyMap: Map[String, StorageValue])
         extends DmlStorageStatement(entityClass, entityId, propertyMap)
 
 case class UpdateStorageStatement(
     override val entityClass: Class[_],
-    override val entityId: String,
+    override val entityId: Entity#ID,
     override val propertyMap: Map[String, StorageValue])
         extends DmlStorageStatement(entityClass, entityId, propertyMap)
 
 case class DeleteStorageStatement(
     override val entityClass: Class[_],
-    override val entityId: String,
+    override val entityId: Entity#ID,
     override val propertyMap: Map[String, StorageValue])
         extends DmlStorageStatement(entityClass, entityId, propertyMap)
 

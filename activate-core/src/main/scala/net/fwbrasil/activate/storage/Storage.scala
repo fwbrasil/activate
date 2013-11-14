@@ -75,7 +75,7 @@ trait Storage[T] extends Logging {
     protected[activate] def reinitialize = {}
     protected[activate] def migrate(action: StorageAction): Unit
     protected[activate] def prepareDatabase = {}
-    protected def staleDataException(entityIds: Set[String]) =
+    protected def staleDataException(entityIds: Set[(Entity#ID, Class[Entity])]) =
         throw new ActivateConcurrentTransactionException(entityIds, List())
 
 }

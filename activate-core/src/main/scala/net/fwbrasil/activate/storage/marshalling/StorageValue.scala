@@ -36,6 +36,6 @@ case class ByteArrayStorageValue(override val value: Option[Array[Byte]])
 case class ListStorageValue(override val value: Option[List[StorageValue]], val emptyStorageValue: StorageValue)
     extends StorageValue(value)
 
-case class ReferenceStorageValue(override val value: Option[String])
+case class ReferenceStorageValue(override val value: Option[StorageValue])
     extends StorageValue(value)
 

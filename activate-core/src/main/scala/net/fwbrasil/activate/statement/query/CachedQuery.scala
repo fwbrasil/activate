@@ -29,17 +29,17 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
 
     fields.foreach(_.setAccessible(true))
 
-    val parseCache = new ConcurrentCache[(Function, Query[String])]("CachedQuery.parseCache", 50)
+    val parseCache = new ConcurrentCache[(Function, Query[E#ID])]("CachedQuery.parseCache", 50)
 
-    val resultsCache = new ConcurrentHashMap[List[Any], Set[String]]
+    val resultsCache = new ConcurrentHashMap[List[Any], Set[E#ID]]
 
-    def deleteEntities(entities: List[Entity]) =
+    def deleteEntities(entities: List[E]) =
         for (values <- resultsCache.keys()) {
             val newSet = resultsCache.get(values) -- entities.map(_.id).toSet
             resultsCache.put(values, newSet)
         }
 
-    def updateEntities(transaction: Transaction, entities: List[Entity]) = {
+    def updateEntities(transaction: Transaction, entities: List[E]) = {
         val nested = new NestedTransaction(transaction)
         transactional(nested) {
             for (values <- resultsCache.keys()) {
@@ -86,7 +86,7 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
                 }
             setValues(function, values)
             val query =
-                context.produceQuery[String, E, Query[String]] {
+                context.produceQuery[E#ID, E, Query[E#ID]] {
                     (e: E) => function(e).select(e.id)
                 }
             query
@@ -98,7 +98,7 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
             field.set(function, value)
         }
 
-    private def fromResultsCache(query: Query[String], values: List[Any]) = {
+    private def fromResultsCache(query: Query[E#ID], values: List[Any]) = {
         var results = resultsCache.get(values)
         if (results == null) {
             results = context.executeQuery(query, onlyInMemory = false).toSet
@@ -112,7 +112,7 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
 trait CachedQueryContext {
     this: ActivateContext =>
 
-    private val cachedQueries = new ConcurrentHashMap[(Class[_], Class[_]), CachedQuery[_]]()
+    private val cachedQueries = new ConcurrentHashMap[(Class[_], Class[_]), CachedQuery[Entity]]()
 
     private[activate] def clearCachedQueries =
         cachedQueries.clear
@@ -144,7 +144,7 @@ trait CachedQueryContext {
             cachedQueries.get(functionClass, entityClass).asInstanceOf[CachedQuery[E]]
         if (cachedQuery == null) {
             cachedQuery = new CachedQuery[E](functionClass)
-            cachedQueries.put((functionClass, entityClass), cachedQuery)
+            cachedQueries.put((functionClass, entityClass), cachedQuery.asInstanceOf[CachedQuery[Entity]])
         }
         cachedQuery.execute(f)
     }

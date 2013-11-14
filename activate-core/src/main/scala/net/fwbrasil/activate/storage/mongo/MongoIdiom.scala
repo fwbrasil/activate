@@ -87,7 +87,7 @@ object mongoIdiom {
     }
 
     def versionConditionStale(
-        id: String,
+        id: Entity#ID,
         version: Long) = {
         val entityId = newObject("_id" -> id)
         val versionIsNotNull = newObject(versionVarName -> newObject("$ne" -> null))
@@ -188,7 +188,7 @@ object mongoIdiom {
             case value: ByteArrayStorageValue =>
                 ByteArrayStorageValue(getValue[Array[Byte]])
             case value: ReferenceStorageValue =>
-                ReferenceStorageValue(getValue[String])
+                ReferenceStorageValue(value.value.map(getStorageValue(obj, _, fromDBList)))
         }
     }
 
@@ -277,7 +277,7 @@ object mongoIdiom {
             case value: SimpleValue[_] =>
                 getMongoValue(Marshaller.marshalling(value.entityValue))
             case value: StatementEntityInstanceValue[_] =>
-                getMongoValue(StringStorageValue(Option(value.entityId)))
+                getMongoValue(value.storageValue)
             case value: ListValue[_] =>
                 newList(value.statementSelectValueList.map(getMongoValue): _*)
             case null =>
