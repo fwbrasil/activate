@@ -42,7 +42,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     val dialect: SqlIdiom
     val batchLimit = 1000
-    val queryLimit = 250
+    val queryLimit = 1000
     private val preparedStatementCache = new PreparedStatementCache
 
     protected def getConnection: Connection
