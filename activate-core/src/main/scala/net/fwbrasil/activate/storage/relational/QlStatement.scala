@@ -11,6 +11,7 @@ trait QlStatement extends Serializable {
     val statement: String
     val restrictionQuery: Option[(String, Int)]
     val bindsList: List[Map[String, StorageValue]]
+    val entityClass: Class[_]
     def expectedNumbersOfAffectedRowsOption: List[Option[Int]]
 
     lazy val (indexedStatement, columns) = {
@@ -26,7 +27,7 @@ trait QlStatement extends Serializable {
         }
         (result, columns.toList)
     }
-    
+
     def valuesList(columns: List[String]) =
         for (binds <- bindsList)
             yield columns.map(binds(_))
@@ -39,6 +40,7 @@ trait QlStatement extends Serializable {
 
 class NormalQlStatement(
     val statement: String,
+    val entityClass: Class[_],
     val binds: Map[String, StorageValue] = Map(),
     val restrictionQuery: Option[(String, Int)] = None,
     val expectedNumberOfAffectedRowsOption: Option[Int] = None)
@@ -57,6 +59,7 @@ class NormalQlStatement(
 
 class BatchQlStatement(
     val statement: String,
+    val entityClass: Class[_],
     val bindsList: List[Map[String, StorageValue]],
     val restrictionQuery: Option[(String, Int)],
     override val expectedNumbersOfAffectedRowsOption: List[Option[Int]])
@@ -82,7 +85,13 @@ object BatchQlStatement {
             else {
                 val toGroup = List(head) ++ tailToGroup
                 val expectedNumberOfAffectedRows = toGroup.map(_.expectedNumbersOfAffectedRowsOption).flatten
-                val batch = new BatchQlStatement(head.statement, toGroup.map(_.binds), head.restrictionQuery, expectedNumberOfAffectedRows)
+                val batch =
+                    new BatchQlStatement(
+                        head.statement,
+                        head.entityClass,
+                        toGroup.map(_.binds),
+                        head.restrictionQuery,
+                        expectedNumberOfAffectedRows)
                 group(others, batchLimit, grouped ++ List(batch))
             }
         }

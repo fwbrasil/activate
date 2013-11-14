@@ -40,7 +40,6 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import io.netty.util.CharsetUtil
 import scala.concurrent.duration.Duration
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
-import com.github.mauricio.async.db.pool.PartitionedConnectionPools
 
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
@@ -50,9 +49,8 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     val objectFactory: ObjectFactory[PostgreSQLConnection]
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
-    def numberOfPartitions = 1
-    
-    private val pool = new PartitionedConnectionPools(objectFactory, poolConfiguration, numberOfPartitions)
+
+    private val pool = new ConnectionPool(objectFactory, poolConfiguration)
 
     val queryLimit = 1000
     val dialect: postgresqlDialect = postgresqlDialect
@@ -134,7 +132,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     override protected[activate] def executeStatementsAsync(
-        reads: Map[Class[Entity], List[(String, Long)]],
+        reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]],
         sqls: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] = {
         val isDdl = sqls.find(_.isInstanceOf[DdlStorageStatement]).isDefined
         val sqlStatements =
@@ -149,7 +147,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
     }
 
     override protected[activate] def executeStatements(
-        reads: Map[Class[Entity], List[(String, Long)]],
+        reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]],
         statements: List[StorageStatement]) = {
         implicit val ectx = executionContext
         val isDdl = statements.find(_.isInstanceOf[DdlStorageStatement]).isDefined
@@ -166,14 +164,15 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
         Some(Await.result(res, defaultTimeout))
     }
 
-    private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]])(implicit context: ExecutionContext) = {
-        dialect.versionVerifyQueries(reads, queryLimit).foldLeft(Future[Unit]())((future, stmt) => {
-            future.flatMap(_ =>
+    private def verifyReads(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]])(implicit context: ExecutionContext) = {
+        dialect.versionVerifyQueries(reads, queryLimit).foldLeft(Future[Unit]())((future, tuple) => {
+            future.flatMap(_ => {
+                val (stmt, referenceStorageValue, clazz) = tuple
                 queryAsync(stmt, List(new StringStorageValue(None))).map {
                     _.map {
                         _ match {
-                            case StringStorageValue(Some(id)) :: Nil =>
-                                id
+                            case List(ReferenceStorageValue(Some(storageValue))) =>
+                                (storageValue.value.get.asInstanceOf[Entity#ID], clazz)
                             case other =>
                                 throw new IllegalStateException("Invalid version information")
                         }
@@ -182,7 +181,8 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
                     inconsistentVersions =>
                         if (inconsistentVersions.nonEmpty)
                             staleDataException(inconsistentVersions.toSet)
-                })
+                }
+            })
         })
     }
 
@@ -221,12 +221,12 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
                 .flatMap(jdbcStatement.bindsList(_).get("id"))
                 .collect {
                     case StringStorageValue(Some(value: String)) =>
-                        value
-                    case ReferenceStorageValue(Some(value: String)) =>
-                        value
+                        (value, jdbcStatement.entityClass)
+                    case ReferenceStorageValue(Some(value)) =>
+                        (value.value.get, jdbcStatement.entityClass)
                 }
         if (invalidIds.nonEmpty)
-            staleDataException(invalidIds.toSet)
+            staleDataException(invalidIds.toSet.asInstanceOf[Set[(Entity#ID, Class[Entity])]])
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement)(implicit context: ExecutionContext) =

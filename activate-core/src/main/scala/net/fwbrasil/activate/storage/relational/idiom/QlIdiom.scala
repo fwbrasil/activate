@@ -98,6 +98,7 @@ trait QlIdiom {
                 val delete =
                     new NormalQlStatement(
                         statement = "DELETE FROM " + escape(listTable) + " WHERE OWNER = :id",
+                        entityClass = statement.entityClass,
                         binds = Map("id" -> id))
                 val inserts =
                     if (!isDelete && value.value.isDefined) {
@@ -105,6 +106,7 @@ trait QlIdiom {
                         (0 until list.size).map { i =>
                             new NormalQlStatement(
                                 statement = "INSERT INTO " + escape(listTable) + " (" + escape("owner") + ", " + escape("value") + ", " + escape("POS") + ") VALUES (:owner, :value, :pos)",
+                                entityClass = statement.entityClass,
                                 binds = Map("owner" -> id, "value" -> list(i), "pos" -> new IntStorageValue(Some(i))))
                         }
                     } else List()
@@ -133,6 +135,7 @@ trait QlIdiom {
                         statement = "INSERT INTO " + toTableName(insert.entityClass) +
                             " (" + propertyMap.keys.toList.sorted.map(escape).mkString(", ") + ") " +
                             " VALUES (:" + propertyMap.keys.toList.sorted.mkString(", :") + ")",
+                        entityClass = insert.entityClass,
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case update: UpdateStorageStatement =>
@@ -141,6 +144,7 @@ trait QlIdiom {
                         statement = "UPDATE " + toTableName(update.entityClass) +
                             " SET " + (for (key <- propertyMap.keys.toList.sorted if (key != "id")) yield escape(key) + " = :" + key).mkString(", ") +
                             " WHERE ID = :id" + versionCondition(propertyMap),
+                        entityClass = update.entityClass,
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case delete: DeleteStorageStatement =>
@@ -148,6 +152,7 @@ trait QlIdiom {
                     new NormalQlStatement(
                         statement = "DELETE FROM " + toTableName(delete.entityClass) +
                             " WHERE ID = :id " + versionCondition(propertyMap),
+                        entityClass = delete.entityClass,
                         binds = propertyMap,
                         expectedNumberOfAffectedRowsOption = Some(1)))
             case ddl: DdlStorageStatement =>
@@ -175,6 +180,7 @@ trait QlIdiom {
         implicit val binds = MutableMap[StorageValue, String]()
         new NormalQlStatement(
             toSqlDmlQueryString(query, entitiesReadFromCache),
+            classOf[Entity],
             (Map() ++ binds) map { _.swap })
     }
 
@@ -362,7 +368,7 @@ trait QlIdiom {
                 " is not null "
             case value: In =>
                 " in "
-                case value: NotIn =>
+            case value: NotIn =>
                 " not in "
         }
 
@@ -384,10 +390,12 @@ trait QlIdiom {
             case update: MassUpdateStatement =>
                 new NormalQlStatement(
                     removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + toSqlDml(update.where), update.from),
+                    classOf[Entity],
                     (Map() ++ binds) map { _.swap })
             case delete: MassDeleteStatement =>
                 new NormalQlStatement(
                     removeAlias("DELETE FROM " + toSqlDml(delete.from) + toSqlDml(delete.where), delete.from),
+                    classOf[Entity],
                     (Map() ++ binds) map { _.swap })
         }
     }

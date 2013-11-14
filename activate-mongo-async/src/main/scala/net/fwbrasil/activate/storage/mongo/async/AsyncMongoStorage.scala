@@ -51,6 +51,7 @@ import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.util.Reflection._
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -271,7 +272,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 coll(entity).update(dbObject(query), dbObject(set)).map {
                     result =>
                         if (result.n != 1)
-                            staleDataException(Set(entity.id))
+                            staleDataException(Set((entity.id, entity.niceClass)))
                 }
             }
         }
@@ -285,7 +286,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 coll(entity).remove(dbObject(query)).map {
                     result =>
                         if (result.n != 1)
-                            staleDataException(Set(entity.id))
+                            staleDataException(Set((entity.id, entity.niceClass)))
                 }
             }
         }
@@ -352,17 +353,19 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         Future {
             mongoIdiom.findStaleDataQueries(data)
         }.flatMap { queries =>
-            queries.foldLeft(Future(List[BSONDocument]())) { (future, query) =>
+            queries.foldLeft(Future(List[(Entity#ID, Class[Entity])]())) { (future, query) =>
                 future.flatMap { list =>
                     val (entity, where, select) = query
                     val cursor = coll(entity).find(dbObject(where), dbObject(select)).cursor[BSONDocument]
-                    try cursor.toList.map { _ ++ list }
+                    try cursor.toList
+                        .map(_.map(_.get("_id").map(storageValue(_).asInstanceOf[Entity#ID]))
+                            .flatten.map(id => (id, entity.niceClass)) ++ list)
                     finally cursor.close
                 }
             }
         }.map { stale =>
             if (stale.nonEmpty)
-                staleDataException(stale.map(_.getAs[String]("_id")).flatten.toSet)
+                staleDataException(stale.toSet)
         }
 
     private[this] def coll(from: From): BSONCollection =

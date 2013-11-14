@@ -46,7 +46,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         executeStatementsAsync(verionsFor(readList), statementsFor(statements, insertList, updateList, deleteList))
 
     private def verionsFor(readList: List[(Entity, Long)]) = {
-        readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (tuple._1.id, tuple._2)))
+        readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (Marshaller.idMarshalling(Some(tuple._1.id)), tuple._2)))
     }
 
     private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
@@ -91,9 +91,9 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         executeStatements(Map(), List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(Entity#ID, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
+    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(Entity#ID, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
+    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
         blockingFuture(executeStatements(reads, statements).map(_.commit))
 
     private def statementsFor(

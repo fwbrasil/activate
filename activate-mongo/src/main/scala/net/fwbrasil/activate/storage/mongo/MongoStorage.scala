@@ -148,9 +148,10 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         val stale =
             (for ((entity, query, select) <- queries) yield {
                 coll(entity).find(dbObject(query), dbObject(select)).toArray.toList
+                .map(_.get("_id").asInstanceOf[Entity#ID]).map(id => (id, entity.niceClass))
             }).flatten
         if (stale.nonEmpty)
-            staleDataException(stale.map(_.get("_id").asInstanceOf[String]).toSet)
+            staleDataException(stale.toSet)
     }
 
     private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
@@ -158,7 +159,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             val query = mongoIdiom.toDelete(entity, properties)
             val result = coll(entity).remove(dbObject(query))
             if (result.getN != 1)
-                staleDataException(Set(entity.id))
+                staleDataException(Set((entity.id, entity.niceClass)))
         }
 
     private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
@@ -166,7 +167,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             val (query, set) = mongoIdiom.toUpdate(entity, properties)
             val result = coll(entity).update(dbObject(query), dbObject(set))
             if (result.getN != 1)
-                staleDataException(Set(entity.id))
+                staleDataException(Set((entity.id, entity.niceClass)))
         }
 
     private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {

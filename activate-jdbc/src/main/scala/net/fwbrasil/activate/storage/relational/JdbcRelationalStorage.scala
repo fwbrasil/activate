@@ -84,7 +84,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def supportsQueryJoin = true
 
     override protected[activate] def executeStatements(
-        reads: Map[Class[Entity], List[(String, Long)]],
+        reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]],
         storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         verifyReads(reads)
         if (storageStatements.isEmpty)
@@ -106,21 +106,20 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         }
     }
 
-    private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
+    private def verifyReads(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]]) = {
         val inconsistentVersions =
-            ( for(stmt <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
-                executeQuery(stmt, List(new StringStorageValue(None))).map {
+            (for ((stmt, referenceStorageValue, clazz) <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
+                executeQuery(stmt, List(referenceStorageValue)).map {
                     _ match {
-                        case List(StringStorageValue(Some(id))) =>
-                            id
+                        case List(ReferenceStorageValue(Some(storageValue))) =>
+                            (storageValue.value.get.asInstanceOf[Entity#ID], clazz)
                         case other =>
                             throw new IllegalStateException("Invalid version information")
                     }
-                 }
-            } ).flatten
+                }
+            }).flatten
         if (inconsistentVersions.nonEmpty)
             staleDataException(inconsistentVersions.toSet)
-
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement) =
@@ -299,12 +298,12 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 .flatMap(jdbcStatement.bindsList(_).get("id"))
                 .collect {
                     case StringStorageValue(Some(value: String)) =>
-                        value
-                    case ReferenceStorageValue(Some(value: String)) =>
-                        value
+                        (value, jdbcStatement.entityClass)
+                    case ReferenceStorageValue(Some(value)) =>
+                        (value.value.get, jdbcStatement.entityClass)
                 }
         if (invalidIds.nonEmpty)
-            staleDataException(invalidIds.toSet)
+            staleDataException(invalidIds.toSet.asInstanceOf[Set[(Entity#ID, Class[Entity])]])
     }
 
 }
