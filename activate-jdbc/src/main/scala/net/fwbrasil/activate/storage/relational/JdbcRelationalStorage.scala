@@ -42,6 +42,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
     val dialect: SqlIdiom
     val batchLimit = 1000
+    val queryLimit = 1000
     private val preparedStatementCache = new PreparedStatementCache
 
     protected def getConnection: Connection
@@ -106,8 +107,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     }
 
     private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
-        for ((stmt, expectedVersions) <- dialect.versionVerifyQueries(reads)) {
-            val inconsistentVersions =
+        val inconsistentVersions =
+            ( for(stmt <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
                 executeQuery(stmt, List(new StringStorageValue(None))).map {
                     _ match {
                         case List(StringStorageValue(Some(id))) =>
@@ -115,10 +116,11 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                         case other =>
                             throw new IllegalStateException("Invalid version information")
                     }
-                }
-            if (inconsistentVersions.nonEmpty)
-                staleDataException(inconsistentVersions.toSet)
-        }
+                 }
+            } ).flatten
+        if (inconsistentVersions.nonEmpty)
+            staleDataException(inconsistentVersions.toSet)
+
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement) =
