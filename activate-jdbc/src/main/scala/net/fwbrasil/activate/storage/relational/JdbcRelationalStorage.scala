@@ -107,8 +107,8 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     }
 
     private def verifyReads(reads: Map[Class[Entity], List[(String, Long)]]) = {
-        for ((stmtQueries, expectedVersions) <- dialect.versionVerifyQueries(reads, queryLimit)) {
-            val inconsistentVersions = ( for(stmt <- stmtQueries) yield {
+        val inconsistentVersions =
+            ( for(stmt <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
                 executeQuery(stmt, List(new StringStorageValue(None))).map {
                     _ match {
                         case List(StringStorageValue(Some(id))) =>
@@ -116,11 +116,11 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                         case other =>
                             throw new IllegalStateException("Invalid version information")
                     }
-                }
+                 }
             } ).flatten
-            if (inconsistentVersions.nonEmpty)
-                staleDataException(inconsistentVersions.toSet)
-        }
+        if (inconsistentVersions.nonEmpty)
+            staleDataException(inconsistentVersions.toSet)
+
     }
 
     private protected[activate] def satisfyRestriction(jdbcStatement: QlStatement) =

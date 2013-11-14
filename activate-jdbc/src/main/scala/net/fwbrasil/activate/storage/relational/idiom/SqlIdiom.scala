@@ -285,7 +285,7 @@ trait SqlIdiom extends QlIdiom {
         }
 
     def versionVerifyQueries(reads: Map[Class[Entity], List[(String, Long)]], queryLimit: Int) =
-        for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
+      ( for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
             val conditions =
                 for (i <- 0 until versions.size) yield {
                     val (id, version) = versions(i)
@@ -295,14 +295,13 @@ trait SqlIdiom extends QlIdiom {
                     (condition, bindId, bindVersion)
                 }
             val groupedConditions = conditions.grouped(queryLimit)
-            val queries = for (slice <- groupedConditions) yield {
+            for (slice <- groupedConditions) yield {
               val queryConditions = slice.map(_._1)
               val binds: Map[String, StorageValue] = slice.map(_._2).toMap ++ slice.map(_._3).toMap
               val query = "SELECT " + escape("id") + " FROM " + toTableName(clazz) + " WHERE " + queryConditions.mkString(" OR ")
               new NormalQlStatement(query, binds)
             }
-            queries
-        }
+        } ).flatten
 
     def ifExistsRestriction(statement: String, boolean: Boolean) =
         if (boolean)
