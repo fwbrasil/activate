@@ -32,18 +32,18 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
     def put[V, V1 <: V](f: E => V)(value: V1): T
 
-    def updateEntity(id: String): E = tryUpdate(id).get
+    def updateEntity(id: E#ID): E = tryUpdate(id).get
 
-    def tryUpdate(id: String): Option[E] =
+    def tryUpdate(id: E#ID): Option[E] =
         context.byId[E](id).map(updateEntity(_))
 
     def asyncCreateEntity(implicit ctx: TransactionalExecutionContext) =
         Future(createEntity)
 
-    def asyncUpdateEntity(id: String)(implicit ctx: TransactionalExecutionContext): Future[E] =
+    def asyncUpdateEntity(id: E#ID)(implicit ctx: TransactionalExecutionContext): Future[E] =
         asyncTryUpdate(id).map(_.get)
 
-    def asyncTryUpdate(id: String)(implicit ctx: TransactionalExecutionContext): Future[Option[E]] =
+    def asyncTryUpdate(id: E#ID)(implicit ctx: TransactionalExecutionContext): Future[Option[E]] =
         context.asyncById[E](id).map(_.map(updateEntity(_)))
 
     def createEntityUsingConstructor =

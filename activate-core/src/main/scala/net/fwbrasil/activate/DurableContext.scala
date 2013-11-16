@@ -55,7 +55,7 @@ trait DurableContext {
     def reloadEntities(ids: Set[(Entity#ID, Class[Entity])]) = {
         val entities =
             liveCache.reloadEntities(ids)
-                .toList.asInstanceOf[List[DurableContext.this.Entity]]
+                .toList.asInstanceOf[List[Entity]]
         if (entities.nonEmpty) 
             updateIndexes(inserts = List(), entities, deletes = List())
     }

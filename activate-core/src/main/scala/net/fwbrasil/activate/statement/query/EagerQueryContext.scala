@@ -1,11 +1,11 @@
 package net.fwbrasil.activate.statement.query
 
 import scala.language.implicitConversions
-
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.statement.StatementSelectValue
+import net.fwbrasil.activate.entity.Entity
 
 object EagerQueryContext {
     

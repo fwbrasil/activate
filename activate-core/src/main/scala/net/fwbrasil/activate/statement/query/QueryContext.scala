@@ -273,10 +273,10 @@ trait QueryContext extends StatementContext
     def byId[T <: Entity: Manifest](id: => T#ID): Option[T] =
         byId(id, erasureOf[T])
     
-    def byId[T <: Entity](id: => String): Option[T] =
-        EntityHelper.getEntityClassFromIdOption(id).flatMap {
-            entityClass => byId[T](id.asInstanceOf[T#ID], entityClass)
-        }
+//    def byId[T <: Entity](id: => String): Option[T] =
+//        EntityHelper.getEntityClassFromIdOption(id).flatMap {
+//            entityClass => byId[T](id.asInstanceOf[T#ID], entityClass)
+//        }
     
     def byId[T <: Entity](id: => T#ID, entityClass: Class[_]) =
         Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
@@ -298,7 +298,7 @@ trait QueryContext extends StatementContext
 
     def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncById[T <: Entity](id: => String)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
+    def asyncById[T <: Entity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
         Future.successful(byId[T](id))
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {

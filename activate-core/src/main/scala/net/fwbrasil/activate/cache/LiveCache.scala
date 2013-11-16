@@ -308,7 +308,7 @@ class LiveCache(
             }
 
     def initializeEntityIfNecessary[E <: Entity: Manifest](values: Map[String, Any]) = {
-        val id = values("id").asInstanceOf[String]
+        val id = values("id").asInstanceOf[E#ID]
         val entity = context.byId[E](id).get
         entity.synchronized {
             if (!entity.isInitialized) {

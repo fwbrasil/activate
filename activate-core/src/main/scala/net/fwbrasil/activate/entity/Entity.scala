@@ -102,7 +102,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
         EntityHelper.getEntityMetadata(this.getClass).references.mapValues {
             references =>
                 val ctx = context
-                ctx.select[ctx.Entity](manifestClass(references.head.entityMetadata.entityClass)).where { entity =>
+                ctx.select(manifestClass(references.head.entityMetadata.entityClass)).where { entity: Entity =>
                     import ctx._
                     var criteria: Criteria = (entity.varNamed(references.head.name).get :== this)
                     for (reference <- references.tail)
@@ -294,7 +294,6 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
 
     EntityHelper.initialize(this.getClass)
 
-    type Entity = net.fwbrasil.activate.entity.Entity
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
     type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.EntityMap[E]

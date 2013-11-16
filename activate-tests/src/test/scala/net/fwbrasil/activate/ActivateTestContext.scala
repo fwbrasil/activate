@@ -421,7 +421,7 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext {
+        extends StoppableActivateContext with UUIDByDefault {
 
     override val milisToWaitBeforeRetry = 1
 

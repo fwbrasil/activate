@@ -6,8 +6,9 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.migration.ManualMigration
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.asyncMongoContext
+import net.fwbrasil.activate.UUIDByDefault
 
-trait MultiVMContext extends StoppableActivateContext {
+trait MultiVMContext extends StoppableActivateContext with UUIDByDefault {
 
     override val milisToWaitBeforeRetry = 0
     override val retryLimit = Int.MaxValue

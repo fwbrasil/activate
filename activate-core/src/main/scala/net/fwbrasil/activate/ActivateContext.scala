@@ -28,6 +28,14 @@ import net.fwbrasil.activate.util.Reflection
 import java.util.concurrent.ConcurrentHashMap
 import net.fwbrasil.activate.index.MemoryIndexContext
 import net.fwbrasil.activate.index.ActivateIndexContext
+import net.fwbrasil.activate.entity.CustomID
+
+trait UUIDByDefault {
+    this: ActivateContext =>
+      
+    trait Entity extends net.fwbrasil.activate.entity.Entity with UUID
+    trait EntityWithCustomID[ID <: AnyRef] extends net.fwbrasil.activate.entity.Entity with CustomID[ID]
+}
 
 trait ActivateContext
         extends EntityContext
