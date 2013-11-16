@@ -58,7 +58,7 @@ trait StatementValueContext extends ValueContext {
     import language.implicitConversions
     
     implicit def toStatementValueEntityId(entityId: => Entity#ID): StatementSelectValue =
-        toStatementValueEntityValue(entityId)(EntityValue.tvalFunctionOption(entityId.getClass, classOf[Object]).asInstanceOf[Option[Entity#ID] => EntityValue[Entity#ID]])
+        toStatementValueEntityValue(entityId)(EntityValue.tvalFunction(entityId.getClass, classOf[Object]))
 
     @implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
     implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue =

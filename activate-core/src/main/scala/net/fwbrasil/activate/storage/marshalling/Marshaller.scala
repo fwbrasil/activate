@@ -90,7 +90,7 @@ object Marshaller {
             case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
                 ByteArrayEntityValue(storageValue.value)
             case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
-                EntityInstanceReferenceValue(storageValue.value.map(value => unmarshalling(value, entityValue).value).asInstanceOf[Option[Entity#ID]])(entityValue.entityManifest)
+                EntityInstanceReferenceValue(storageValue.value.asInstanceOf[Option[Entity#ID]])(entityValue.entityManifest)
             case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
                 val value = if (stringValue.value.isDefined) {
                     val enumerationValueClass = enumerationValue.enumerationClass
@@ -109,13 +109,13 @@ object Marshaller {
                     unmarshalling(e, entityValue.emptyValueEntityValue).value
                 }))
                 if (entityValue.emptyValueEntityValue.isInstanceOf[EntityInstanceEntityValue[_]])
-                    ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[String]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+                    ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[Entity#ID]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
                 else
                     ListEntityValue[Any](v.map(_.map(_.orNull)))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
             case (storageValue: ListStorageValue, entityValue: LazyListEntityValue[_]) =>
                 val v = storageValue.value.map(list => list.collect {
                     case e: ReferenceStorageValue =>
-                        e.value.map(unmarshalling(_, e)).get.value.get.asInstanceOf[AnyRef]
+                        e.value.get.asInstanceOf[AnyRef]
                     case e: StringStorageValue =>
                         e.value.get
                 }).map { ids =>
@@ -123,7 +123,7 @@ object Marshaller {
                 }
                 LazyListEntityValue(v)
             case (storageValue: StorageValue, entityValue: EncoderEntityValue[_, _]) =>
-                val anyEncoderEntityValue = entityValue.asInstanceOf[EncoderEntityValue[Any, Any]] 
+                val anyEncoderEntityValue = entityValue.asInstanceOf[EncoderEntityValue[Any, Any]]
                 val tempValue = unmarshalling(storageValue, entityValue.emptyTempValue)
                 val value = anyEncoderEntityValue.decode(tempValue.asInstanceOf[EntityValue[Any]])
                 EncoderEntityValue[Any, Any](anyEncoderEntityValue.encoder)(value)
@@ -158,9 +158,9 @@ object Marshaller {
             case value: ByteArrayEntityValue =>
                 ByteArrayStorageValue(value.value)
             case value: EntityInstanceEntityValue[_] =>
-                ReferenceStorageValue(Some(idMarshalling(value.value.map(_.id))))
+                idMarshalling(value.value.map(_.id))
             case value: EntityInstanceReferenceValue[_] =>
-                ReferenceStorageValue(Some(idMarshalling(value.value)))
+                idMarshalling(value.value)
             case value: EnumerationEntityValue[_] =>
                 StringStorageValue(value.value.map(_.toString))
             case value: ListEntityValue[_] =>
@@ -208,10 +208,14 @@ object Marshaller {
 
     def marshalling(column: Column[_]): StorageColumn =
         StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
-        
+
     def idMarshalling(entityId: Option[Entity#ID]): ReferenceStorageValue = {
-    	val entityValue = EntityValue.tvalFunction(entityId.getClass, classOf[Object])(entityId)
-        ReferenceStorageValue(Some(marshalling(entityValue)))
+        val value =
+            entityId.map { id =>
+                val entityValue = EntityValue.tvalFunction(id.getClass, classOf[Object])(entityId)
+                marshalling(entityValue)
+            }
+        ReferenceStorageValue(value)
     }
 }
 

@@ -22,6 +22,7 @@ import scala.concurrent.duration.Duration
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentHashMap
 import net.fwbrasil.activate.entity.UUID
+import net.fwbrasil.activate.util.ManifestUtil
 
 trait QueryContext extends StatementContext
         with OrderedQueryContext
@@ -272,14 +273,17 @@ trait QueryContext extends StatementContext
 
     def byId[T <: Entity: Manifest](id: => T#ID): Option[T] =
         byId(id, erasureOf[T])
-    
-//    def byId[T <: Entity](id: => String): Option[T] =
-//        EntityHelper.getEntityClassFromIdOption(id).flatMap {
-//            entityClass => byId[T](id.asInstanceOf[T#ID], entityClass)
-//        }
-    
-    def byId[T <: Entity](id: => T#ID, entityClass: Class[_]) =
-        Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
+
+    def byId[T <: Entity](id: => T#ID, entityClass: Class[T]) = {
+        val manifest = ManifestUtil.manifestClass[Entity](entityClass)
+        val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
+        if (isPolymorfic) {
+            query {
+                (e: Entity) => where(e.id :== id) select (e)
+            }(manifest).headOption.asInstanceOf[Option[T]]
+        } else
+            Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
+    }
 
     //ASYNC
 
@@ -298,8 +302,24 @@ trait QueryContext extends StatementContext
 
     def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncById[T <: Entity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
-        Future.successful(byId[T](id))
+    def asyncById[T <: Entity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
+    	        
+    	Future.successful(byId[T](id))
+    }
+    
+    def asyncById[T <: Entity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
+        import texctx.ctx._
+        val manifest = ManifestUtil.manifestClass[Entity](entityClass)
+        val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
+        if (isPolymorfic) {
+            asyncQuery {
+                (e: Entity) => where(e.id :== id) select (e)
+            }(manifest, texctx).map {
+                _.headOption.asInstanceOf[Option[T]]
+            }
+        } else
+            Future.successful(Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T]))
+    }
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {
         val normalizedQueries =

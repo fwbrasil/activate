@@ -69,7 +69,7 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
     def createEntity =
         context.transactional(context.nested) {
-            val id = null//IdVar.generateId(entityClass)
+            val id = IdVar.generateId(entityClass)
             val entity = context.liveCache.createLazyEntity(entityClass, id)
             entity.setInitialized
             entity.setNotPersisted

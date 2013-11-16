@@ -36,8 +36,9 @@ class StorageDirectAccessSpecs extends ActivateTest {
                         }
                     step {
                         storage.directAccess match {
-                            case memorySet: TrieMap[String, Entity] =>
-                                memorySet.values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
+                            case memorySet: TrieMap[_, _] =>
+                                memorySet.asInstanceOf[TrieMap[String, Entity]]
+                                    .values.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                             case jdbcConnection: Connection =>
                                 try {
                                     val dialect = storage.asInstanceOf[JdbcRelationalStorage].dialect

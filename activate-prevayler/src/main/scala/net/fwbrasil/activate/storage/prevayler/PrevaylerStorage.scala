@@ -38,23 +38,24 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.storage.SnapshotableStorage
 import scala.collection.concurrent.TrieMap
+import java.util.concurrent.ConcurrentHashMap
 
-class PrevaylerStorageSystem {
-    val contents = new TrieMap[Class[Entity], TrieMap[Entity#ID, Entity]]
+class PrevaylerStorageSystem extends Serializable {
+    val contents = new ConcurrentHashMap[Class[Entity], ConcurrentHashMap[Entity#ID, Entity]]
     def add(entity: Entity) =
         entitiesMapFor(entity.niceClass) += entity.id -> entity
     def remove(entityClass: Class[Entity], entityId: Entity#ID) =
         entitiesMapFor(entityClass) -= entityId
     def entities =
         contents.values.map(_.values).flatten
-        def entitiesListFor(name: String) = 
-            contents.keys.filter(clazz => EntityHelper.getEntityName(clazz) == name)
+    def entitiesListFor(name: String) =
+        contents.keys.filter(clazz => EntityHelper.getEntityName(clazz) == name)
             .map(contents(_).values)
             .flatten
     def entitiesMapFor(entityClass: Class[Entity]) = {
-        contents.get(entityClass).getOrElse {
+        Option(contents.get(entityClass)).getOrElse {
             this.synchronized {
-                contents.getOrElseUpdate(entityClass, new TrieMap[Entity#ID, Entity])
+                contents.getOrElseUpdate(entityClass, new ConcurrentHashMap[Entity#ID, Entity])
             }
         }
     }
@@ -160,10 +161,10 @@ class PrevaylerStorage(
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         action match {
             case action: StorageRemoveTable =>
-                val idsToRemove = prevalentSystem.entitiesListFor(action.name).map(entity => (entity.id, entity.niceClass))
+                val idsToRemove = prevalentSystem.entitiesListFor(action.name).map(entity => (entity.id, entity.niceClass)).toList
                 prevayler.execute(new PrevaylerMemoryStorageTransaction(context, new HashMap, new HashSet(idsToRemove)))
                 PrevaylerMemoryStorageTransaction.destroyEntity(new HashSet(idsToRemove), context.liveCache)
-                for((entityId, entityClass) <- idsToRemove)
+                for ((entityId, entityClass) <- idsToRemove)
                     prevalentSystem.remove(entityClass, entityId)
             case _ =>
         }

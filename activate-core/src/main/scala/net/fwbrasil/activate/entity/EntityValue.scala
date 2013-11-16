@@ -89,6 +89,7 @@ case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
 
 case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
         extends EntityValue[E](value) {
+    val e = value.map(_.id)
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
     def emptyValue = null.asInstanceOf[E]
@@ -124,8 +125,8 @@ case class SetEntityValue[V](override val value: Option[Set[V]])(implicit val m:
     def emptyValue = Set[V]()
 }
 
-case class ReferenceListEntityValue[V](override val value: Option[List[Option[String]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[List[Option[String]]](value) {
+case class ReferenceListEntityValue[V](override val value: Option[List[Option[Entity#ID]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
+        extends EntityValue[List[Option[Entity#ID]]](value) {
     def emptyValue = List()
 }
 

@@ -55,9 +55,6 @@ class AsyncQuerySpecs extends ActivateTest {
                                 implicit ctx =>
                                     asyncById[ActivateTestEntity](emptyId)
                         }) must beSome
-                        await(asyncTransactionalChain {
-                                implicit ctx =>asyncById[ActivateTestEntity]("89889089")
-                        }) must beNone
                     }
                 })
         }

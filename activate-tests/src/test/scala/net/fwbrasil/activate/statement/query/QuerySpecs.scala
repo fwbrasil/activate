@@ -26,7 +26,6 @@ class QuerySpecs extends ActivateTest {
                     step {
                         byId[ActivateTestEntity](fullId) must beSome
                         byId[ActivateTestEntity](emptyId) must beSome
-                        byId[ActivateTestEntity]("89889089") must beNone
                     }
                 })
         }

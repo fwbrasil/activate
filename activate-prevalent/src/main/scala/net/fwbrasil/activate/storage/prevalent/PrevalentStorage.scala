@@ -26,9 +26,11 @@ import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.util.Reflection._
 import scala.collection.concurrent.TrieMap
 import net.fwbrasil.activate.entity.EntityHelper
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConversions._
 
-class PrevalentStorageSystem {
-    val contents = new TrieMap[Class[Entity], TrieMap[Entity#ID, Entity]]
+class PrevalentStorageSystem extends Serializable {
+    val contents = new ConcurrentHashMap[Class[Entity], ConcurrentHashMap[Entity#ID, Entity]]
     def add(entity: Entity) =
         entitiesMapFor(entity.niceClass) += entity.id -> entity
     def remove(entityClass: Class[Entity], entityId: Entity#ID) =
@@ -42,9 +44,9 @@ class PrevalentStorageSystem {
             .map(contents(_).values)
             .flatten
     def entitiesMapFor(entityClass: Class[Entity]) = {
-        contents.get(entityClass).getOrElse {
+        Option(contents.get(entityClass)).getOrElse {
             this.synchronized {
-                contents.getOrElseUpdate(entityClass, new TrieMap[Entity#ID, Entity])
+                contents.getOrElseUpdate(entityClass, new ConcurrentHashMap[Entity#ID, Entity])
             }
         }
     }

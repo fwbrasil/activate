@@ -56,8 +56,6 @@ import net.fwbrasil.activate.entity.EntityMetadata
 import org.joda.time.base.AbstractInstant
 import net.fwbrasil.activate.entity.ListEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
-import net.fwbrasil.activate.entity.EntityInstanceEntityValue
-import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.ReferenceListEntityValue
 import scala.concurrent.Future
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
@@ -181,9 +179,9 @@ class LiveCache(
     def materialize(value: EntityValue[_]) =
         value match {
             case value: ReferenceListEntityValue[_] =>
-                value.value.map(_.map(_.map(materializeEntity).orNull)).orNull
+                value.value.map(_.map(_.map(id => context.byId(id)(value.m.asInstanceOf[Manifest[Entity]])).orNull)).orNull
             case value: EntityInstanceReferenceValue[_] =>
-                value.value.map(materializeEntity(_, value.entityClass.asInstanceOf[Class[Entity]])).orNull
+                value.value.map(id => context.byId(id, value.entityClass.asInstanceOf[Class[Entity]])).orNull
             case other: EntityValue[_] =>
                 other.value.getOrElse(null)
         }
