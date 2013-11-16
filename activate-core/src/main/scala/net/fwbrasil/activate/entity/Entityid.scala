@@ -32,4 +32,3 @@ trait CustomID[T] {
     
     val id: T
 }
-

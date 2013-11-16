@@ -148,7 +148,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
         val stale =
             (for ((entity, query, select) <- queries) yield {
                 coll(entity).find(dbObject(query), dbObject(select)).toArray.toList
-                .map(_.get("_id").asInstanceOf[Entity#ID]).map(id => (id, entity.niceClass))
+                    .map(_.get("_id").asInstanceOf[Entity#ID]).map(id => (id, entity.niceClass))
             }).flatten
         if (stale.nonEmpty)
             staleDataException(stale.toSet)
@@ -255,6 +255,8 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 obj.put(action.columnName, 1)
                 if (!action.ifExists || collHasIndex(action.tableName, action.columnName))
                     coll(action.tableName).dropIndex(obj)
+            case action: StorageModifyColumnType =>
+            // Do nothing!
             case action: StorageAddReference =>
             // Do nothing!
             case action: StorageRemoveReference =>

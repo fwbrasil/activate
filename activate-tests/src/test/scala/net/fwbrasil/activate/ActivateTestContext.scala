@@ -1,7 +1,6 @@
 package net.fwbrasil.activate
 
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.storage.cassandra.AsyncCassandraStorage
 import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
 import net.fwbrasil.activate.migration.Migration
@@ -36,7 +35,6 @@ import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.pool.PoolConfiguration
 import scala.concurrent.ExecutionContext
 import java.util.concurrent.Executors
-import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
 import net.fwbrasil.activate.storage.prevalent.PrevalentStorage
 import java.io.File
@@ -125,7 +123,7 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
-object mysqlContext extends ActivateTestContext with SlickQueryContext {
+object mysqlContext extends ActivateTestContext {
     System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
     System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
     System.getProperties.put("activate.storage.mysql.user", "root")
@@ -196,7 +194,7 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
 //    override def bigStringType = "TEXT"
 //}
 
-object h2Context extends ActivateTestContext with SlickQueryContext {
+object h2Context extends ActivateTestContext {
     lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
         val storage = new SimpleJdbcRelationalStorage {
             val jdbcDriver = "org.h2.Driver"
@@ -214,7 +212,7 @@ class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCusto
     override def bigStringType = "CLOB"
 }
 
-object hsqldbContext extends ActivateTestContext with SlickQueryContext {
+object hsqldbContext extends ActivateTestContext {
     lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
         val storage = new SimpleJdbcRelationalStorage {
             val jdbcDriver = "org.hsqldb.jdbcDriver"
@@ -232,7 +230,7 @@ class HsqldbActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object derbyContext extends ActivateTestContext with SlickQueryContext {
+object derbyContext extends ActivateTestContext {
     System.setProperty("derby.locks.deadlockTrace", "true")
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
@@ -290,29 +288,29 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
     override def bigStringType = "CLOB"
 }
 
-object asyncCassandraContext extends ActivateTestContext {
-    lazy val storage = new AsyncCassandraStorage {
-        def contactPoints = List("localhost")
-        def keyspace = "ACTIVATE_TEST"
-    }
-}
-class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
-class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCassandraContext) {
-    val timestamp = ActivateTestMigration.timestamp + 1
-    def up = {
-        for (clazz <- EntityHelper.allConcreteEntityClasses) {
-            val t = table(manifestClass(clazz))
-            val metadata = EntityHelper.getEntityMetadata(clazz)
-            for (
-                property <- metadata.persistentPropertiesMetadata;
-                if (property.name != "id" &&
-                    !property.isTransient &&
-                    property.propertyType != classOf[List[_]] &&
-                    property.propertyType != classOf[LazyList[_]])
-            ) t.addIndex(property.name, metadata.name + "Ix" + property.name.capitalize).ifNotExists
-        }
-    }
-}
+//object asyncCassandraContext extends ActivateTestContext {
+//    lazy val storage = new AsyncCassandraStorage {
+//        def contactPoints = List("localhost")
+//        def keyspace = "ACTIVATE_TEST"
+//    }
+//}
+//class AsyncCassandraActivateTestMigration extends ActivateTestMigration()(asyncCassandraContext)
+//class AdditionalAsyncCassandraActivateTestMigration extends Migration()(asyncCassandraContext) {
+//    val timestamp = ActivateTestMigration.timestamp + 1
+//    def up = {
+//        for (clazz <- EntityHelper.allConcreteEntityClasses) {
+//            val t = table(manifestClass(clazz))
+//            val metadata = EntityHelper.getEntityMetadata(clazz)
+//            for (
+//                property <- metadata.persistentPropertiesMetadata;
+//                if (property.name != "id" &&
+//                    !property.isTransient &&
+//                    property.propertyType != classOf[List[_]] &&
+//                    property.propertyType != classOf[LazyList[_]])
+//            ) t.addIndex(property.name, metadata.name + "Ix" + property.name.capitalize).ifNotExists
+//        }
+//    }
+//}
 
 object db2Context extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
@@ -451,7 +449,7 @@ trait ActivateTestContext
 
     val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity].on(_.intValue)
 
-    class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int] {
+    class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTestEntity] {
         var ids =
             new HashSet[String] ++ query {
                 (e: ActivateTestEntity) => where(e.intValue :== key) select (e.id)
@@ -683,7 +681,7 @@ trait ActivateTestContext
         var userStatus: UserStatus = NormalUser
     }
 
-    abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
+    abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity with UUID
 
     // Relational reserved words
     class Order(var key: String) extends Entity

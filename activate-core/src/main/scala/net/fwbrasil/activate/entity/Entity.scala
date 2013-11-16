@@ -300,6 +300,8 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.EntityMap[E]
     type MutableEntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
+    type UUID = net.fwbrasil.activate.entity.UUID
+    type CustomID[ID] = net.fwbrasil.activate.entity.CustomID[ID]
 
     protected def liveCacheType = CacheType.softReferences
 

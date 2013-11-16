@@ -59,7 +59,7 @@ trait ActivateContext
         query.from.entitySources.map(source => storageFor(source.entityClass))
             .toSet.onlyOne(storages => s"Query $query uses entities from different storages: $storages.")
 
-    private[activate] def storageFor[E <: Entity](entityClass: Class[E]): Storage[Any] =
+    private[activate] def storageFor(entityClass: Class[_]): Storage[Any] =
         additionalStoragesByEntityClasses.getOrElse(
             entityClass.asInstanceOf[Class[Entity]],
             storage.asInstanceOf[Storage[Any]])
@@ -85,7 +85,7 @@ trait ActivateContext
     def contextName =
         this.getClass.getSimpleName.split('$').last
 
-    def acceptEntity[E <: Entity](entityClass: Class[E]) =
+    def acceptEntity(entityClass: Class[_]) =
         contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
     protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
