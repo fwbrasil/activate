@@ -38,4 +38,3 @@ case class ListStorageValue(override val value: Option[List[StorageValue]], val 
 
 case class ReferenceStorageValue(override val value: Option[StorageValue])
     extends StorageValue(value)
-

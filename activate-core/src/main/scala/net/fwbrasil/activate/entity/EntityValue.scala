@@ -89,7 +89,6 @@ case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
 
 case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
         extends EntityValue[E](value) {
-    val e = value.map(_.id)
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
     def emptyValue = null.asInstanceOf[E]

@@ -176,28 +176,29 @@ class PrevaylerMemoryStorageTransaction(
     val assignments: HashMap[(Entity#ID, Class[Entity]), HashMap[String, StorageValue]],
     val deletes: HashSet[(Entity#ID, Class[Entity])])
         extends PrevaylerTransaction[PrevaylerStorageSystem] {
-    def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
-        val liveCache = context.liveCache
+    def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) =
+        context.transactional(context.transient) {
+            val liveCache = context.liveCache
 
-        for (((entityId, entityClass), changeSet) <- assignments)
-            system.add(liveCache.materializeEntity(entityId, entityClass))
+            for (((entityId, entityClass), changeSet) <- assignments)
+                system.add(liveCache.materializeEntity(entityId, entityClass))
 
-        for ((entityId, entityClass) <- deletes)
-            system.remove(entityClass, entityId)
+            for ((entityId, entityClass) <- deletes)
+                system.remove(entityClass, entityId)
 
-        for (((entityId, entityClass), changeSet) <- assignments) {
-            val entity = liveCache.materializeEntity(entityId, entityClass)
-            entity.setInitialized
-            for ((varName, value) <- changeSet; if (varName != "id")) {
-                val ref = entity.varNamed(varName)
-                val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
-                ref.setRefContent(Option(liveCache.materialize(entityValue)))
+            for (((entityId, entityClass), changeSet) <- assignments) {
+                val entity = liveCache.materializeEntity(entityId, entityClass)
+                entity.setInitialized
+                for ((varName, value) <- changeSet; if (varName != "id")) {
+                    val ref = entity.varNamed(varName)
+                    val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
+                    ref.setRefContent(Option(liveCache.materialize(entityValue)))
+                }
             }
+
+            PrevaylerMemoryStorageTransaction.destroyEntity(deletes, liveCache)
+
         }
-
-        PrevaylerMemoryStorageTransaction.destroyEntity(deletes, liveCache)
-
-    }
 }
 
 object PrevaylerMemoryStorageTransaction {

@@ -44,7 +44,7 @@ object ActivateTest {
     val contextsCategoriesMap =
         Map[ActivateTestContextCategory, List[ActivateTestContext]](
             memory -> List(memoryContext),
-            prevalent -> List(/*prevaylerContext,*/ prevalentContext),
+            prevalent -> List(prevaylerContext, prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
             relational -> List(postgresqlContext, asyncPostgresqlContext,
                 mysqlContext, /*derbyContext,*/ h2Context, hsqldbContext),

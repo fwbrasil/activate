@@ -90,7 +90,8 @@ object Marshaller {
             case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
                 ByteArrayEntityValue(storageValue.value)
             case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
-                EntityInstanceReferenceValue(storageValue.value.asInstanceOf[Option[Entity#ID]])(entityValue.entityManifest)
+                val id = storageValue.value.flatMap(_.value).asInstanceOf[Option[Entity#ID]]
+                EntityInstanceReferenceValue(id)(entityValue.entityManifest)
             case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
                 val value = if (stringValue.value.isDefined) {
                     val enumerationValueClass = enumerationValue.enumerationClass
@@ -115,7 +116,7 @@ object Marshaller {
             case (storageValue: ListStorageValue, entityValue: LazyListEntityValue[_]) =>
                 val v = storageValue.value.map(list => list.collect {
                     case e: ReferenceStorageValue =>
-                        e.value.get.asInstanceOf[AnyRef]
+                        e.value.get.value.get.asInstanceOf[AnyRef]
                     case e: StringStorageValue =>
                         e.value.get
                 }).map { ids =>
