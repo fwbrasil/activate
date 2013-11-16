@@ -139,5 +139,5 @@ class EntityFormatter[T <: Entity](
         }
     }
 
-    def unbind(key: String, value: T) = Map(key -> value.id)
+    def unbind(key: String, value: T) = Map(key -> value.id.toString)
 }

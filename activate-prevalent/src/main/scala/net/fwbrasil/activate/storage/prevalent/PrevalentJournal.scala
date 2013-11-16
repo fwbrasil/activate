@@ -68,7 +68,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     def recover(implicit ctx: ActivateContext) = {
         clear
         val (nextFileId, system) = recoverSnapshot
-        ctx.hidrateEntities(system.values)
+        ctx.hidrateEntities(system.entities)
         val buffers = directoryBuffers(nextFileId)
         for (buffer <- buffers) yield {
             recoverTransactions(system, buffer)

@@ -18,33 +18,39 @@ import java.util.Date
 import java.nio.BufferUnderflowException
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.serialization.javaSerializer
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
+import java.io.ObjectInputStream
+import java.io.ByteArrayInputStream
 
 object prevalentTransactionSerializer {
-    
+
     def write(transaction: PrevalentTransaction)(implicit buffer: ByteBuffer) = {
         writeBoolean(true)
         writeValuesArray(transaction.insertList)
         writeValuesArray(transaction.updateList)
-        writeStringArray(transaction.deleteList)
+        writeIdsArray(transaction.deleteList)
     }
 
-    def read(implicit buffer: ByteBuffer) = 
+    def read(implicit buffer: ByteBuffer) =
         if (hasTrue) {
             Some(
                 new PrevalentTransaction(
                     insertList = readValuesArray,
                     updateList = readValuesArray,
-                    deleteList = readStringArray))
+                    deleteList = readIdsArray))
         } else
             None
 
     private def hasTrue(implicit buffer: ByteBuffer) =
         try {
             buffer.mark
-            if(!readBoolean){
+            if (!readBoolean) {
                 buffer.reset
                 false
-            } else 
+            } else
                 true
         } catch {
             case e: BufferUnderflowException =>
@@ -52,9 +58,34 @@ object prevalentTransactionSerializer {
                 false
         }
 
-    private def writeStringArray(array: Array[String])(implicit buffer: ByteBuffer) = {
+    private def writeIdsArray(array: Array[(Entity#ID, Class[Entity])])(implicit buffer: ByteBuffer) = {
         buffer.putInt(array.length)
-        array.foreach(writeString)
+        array.foreach(tuple => writeId(tuple._1, tuple._2))
+    }
+
+    private def readIdsArray(implicit buffer: ByteBuffer) = {
+        val length = buffer.getInt
+        val ids = new Array[(Entity#ID, Class[Entity])](length)
+        for (i <- 0 until length)
+            ids(i) = readId
+        ids
+    }
+
+    private def writeId(entityId: Entity#ID, entityClass: Class[Entity])(implicit buffer: ByteBuffer) = {
+        val baos = new ByteArrayOutputStream()
+        val oos = new ObjectOutputStream(baos)
+        oos.writeObject(entityId)
+        oos.writeObject(entityClass)
+        writeByteArray(baos.toByteArray)
+    }
+
+    private def readId(implicit buffer: ByteBuffer) = {
+        val bytes = readByteArray
+        val bios = new ByteArrayInputStream(bytes)
+        val ois = new ObjectInputStream(bios)
+        val entityId = ois.readObject.asInstanceOf[Entity#ID]
+        val entityClass = ois.readObject.asInstanceOf[Class[Entity]]
+        (entityId, entityClass)
     }
 
     private def readStringArray(implicit buffer: ByteBuffer) = {
@@ -65,26 +96,26 @@ object prevalentTransactionSerializer {
         array
     }
 
-    private def writeValuesArray(array: Array[(String, Map[String, StorageValue])])(implicit buffer: ByteBuffer) = {
+    private def writeValuesArray(array: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])])(implicit buffer: ByteBuffer) = {
         buffer.putInt(array.size)
         array.foreach(writeTuple)
     }
 
     private def readValuesArray(implicit buffer: ByteBuffer) = {
         val length = buffer.getInt
-        val array = new Array[(String, Map[String, StorageValue])](length)
+        val array = new Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])](length)
         for (i <- 0 until length)
             array(i) = readTuple
         array
     }
 
-    private def writeTuple(tuple: (String, Map[String, StorageValue]))(implicit buffer: ByteBuffer) = {
-        writeString(tuple._1)
+    private def writeTuple(tuple: ((Entity#ID, Class[Entity]), Map[String, StorageValue]))(implicit buffer: ByteBuffer) = {
+        writeId(tuple._1._1, tuple._1._2)
         writeMap(tuple._2)
     }
 
     private def readTuple(implicit buffer: ByteBuffer) =
-        (readString, readMap)
+        (readId, readMap)
 
     private def writeString(string: String)(implicit buffer: ByteBuffer) = {
         val bytes = string.getBytes
@@ -154,7 +185,7 @@ object prevalentTransactionSerializer {
                 writeValue[List[StorageValue]](9, value.value, writeList(_))
                 writeValue(value.emptyStorageValue)
             case value: ReferenceStorageValue =>
-                writeValue[String](10, value.value, writeString(_))
+                writeValue[StorageValue](10, value.value, writeValue(_))
         }
 
     private def readValue(implicit buffer: ByteBuffer): StorageValue =
@@ -180,7 +211,7 @@ object prevalentTransactionSerializer {
             case 9 =>
                 ListStorageValue(readValue(readList), readValue)
             case 10 =>
-                ReferenceStorageValue(readValue(readString))
+                ReferenceStorageValue(readValue(readValue))
         }
 
     private def writeList(list: List[StorageValue])(implicit buffer: ByteBuffer) = {

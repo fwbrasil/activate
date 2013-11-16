@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.storage.prevayler
 
-import java.util.HashMap
 import java.util.HashSet
+import java.util.HashMap
 import scala.annotation.implicitNotFound
 import scala.collection.JavaConversions._
 import org.prevayler.implementation.publishing.AbstractPublisher
@@ -35,10 +35,30 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.cache.LiveCache
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Var
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.storage.SnapshotableStorage
-import java.util.concurrent.ConcurrentHashMap
+import scala.collection.concurrent.TrieMap
 
-class PrevaylerStorageSystem extends ConcurrentHashMap[String, Entity]
+class PrevaylerStorageSystem {
+    val contents = new TrieMap[Class[Entity], TrieMap[Entity#ID, Entity]]
+    def add(entity: Entity) =
+        entitiesMapFor(entity.niceClass) += entity.id -> entity
+    def remove(entityClass: Class[Entity], entityId: Entity#ID) =
+        entitiesMapFor(entityClass) -= entityId
+    def entities =
+        contents.values.map(_.values).flatten
+        def entitiesListFor(name: String) = 
+            contents.keys.filter(clazz => EntityHelper.getEntityName(clazz) == name)
+            .map(contents(_).values)
+            .flatten
+    def entitiesMapFor(entityClass: Class[Entity]) = {
+        contents.get(entityClass).getOrElse {
+            this.synchronized {
+                contents.getOrElseUpdate(entityClass, new TrieMap[Entity#ID, Entity])
+            }
+        }
+    }
+}
 
 @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
 class PrevaylerStorage(
@@ -73,7 +93,7 @@ class PrevaylerStorage(
         prevayler = factory.create()
         prevalentSystem = prevayler.prevalentSystem.asInstanceOf[PrevaylerStorageSystem]
         hackPrevaylerToActAsARedoLogOnly
-        context.hidrateEntities(prevalentSystem.values)
+        context.hidrateEntities(prevalentSystem.entities)
     }
 
     private def hackPrevaylerToActAsARedoLogOnly = {
@@ -113,23 +133,23 @@ class PrevaylerStorage(
         // Just ignore mass statements!
         val inserts =
             (for ((entity, propertyMap) <- insertList)
-                yield (entity.id -> propertyMap.toList))
+                yield ((entity.id, entity.niceClass) -> propertyMap.toList))
         val updates =
             (for ((entity, propertyMap) <- updateList)
-                yield (entity.id -> propertyMap.toList))
+                yield ((entity.id, entity.niceClass) -> propertyMap.toList))
         val deletes =
             for ((entity, propertyMap) <- deleteList)
-                yield entity.id
+                yield (entity.id, entity.niceClass)
         val assignments =
-            new HashMap[String, HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
+            new HashMap[(Entity#ID, Class[Entity]), HashMap[String, StorageValue]]((inserts ++ updates).toMap.mapValues(l => new HashMap[String, StorageValue](l.toMap)))
 
         prevayler.execute(new PrevaylerMemoryStorageTransaction(context, assignments, new HashSet(deletes)))
 
-        for ((entityId, changeSet) <- assignments)
-            prevalentSystem.put(entityId, context.liveCache.materializeEntity(entityId))
+        for (((entityId, entityClass), changeSet) <- assignments)
+            prevalentSystem.add(context.liveCache.materializeEntity(entityId, entityClass))
 
-        for (entityId <- deletes)
-            prevalentSystem.remove(entityId)
+        for ((entityId, entityClass) <- deletes)
+            prevalentSystem.remove(entityClass, entityId)
 
         None
     }
@@ -140,12 +160,11 @@ class PrevaylerStorage(
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         action match {
             case action: StorageRemoveTable =>
-                val idsByEntityName = prevalentSystem.keys.toList.groupBy(id =>
-                    EntityHelper.getEntityName(EntityHelper.getEntityClassFromId(id)))
-                val idsToRemove = idsByEntityName.getOrElse(action.name, List())
+                val idsToRemove = prevalentSystem.entitiesListFor(action.name).map(entity => (entity.id, entity.niceClass))
                 prevayler.execute(new PrevaylerMemoryStorageTransaction(context, new HashMap, new HashSet(idsToRemove)))
                 PrevaylerMemoryStorageTransaction.destroyEntity(new HashSet(idsToRemove), context.liveCache)
-                prevalentSystem --= idsToRemove
+                for((entityId, entityClass) <- idsToRemove)
+                    prevalentSystem.remove(entityClass, entityId)
             case _ =>
         }
 
@@ -153,20 +172,20 @@ class PrevaylerStorage(
 
 class PrevaylerMemoryStorageTransaction(
     val context: ActivateContext,
-    val assignments: HashMap[String, HashMap[String, StorageValue]],
-    val deletes: HashSet[String])
+    val assignments: HashMap[(Entity#ID, Class[Entity]), HashMap[String, StorageValue]],
+    val deletes: HashSet[(Entity#ID, Class[Entity])])
         extends PrevaylerTransaction[PrevaylerStorageSystem] {
     def executeOn(system: PrevaylerStorageSystem, date: java.util.Date) = {
         val liveCache = context.liveCache
 
-        for ((entityId, changeSet) <- assignments)
-            system += (entityId -> liveCache.materializeEntity(entityId))
+        for (((entityId, entityClass), changeSet) <- assignments)
+            system.add(liveCache.materializeEntity(entityId, entityClass))
 
-        for (entityId <- deletes)
-            system -= entityId
+        for ((entityId, entityClass) <- deletes)
+            system.remove(entityClass, entityId)
 
-        for ((entityId, changeSet) <- assignments) {
-            val entity = liveCache.materializeEntity(entityId)
+        for (((entityId, entityClass), changeSet) <- assignments) {
+            val entity = liveCache.materializeEntity(entityId, entityClass)
             entity.setInitialized
             for ((varName, value) <- changeSet; if (varName != "id")) {
                 val ref = entity.varNamed(varName)
@@ -181,9 +200,9 @@ class PrevaylerMemoryStorageTransaction(
 }
 
 object PrevaylerMemoryStorageTransaction {
-    def destroyEntity(entityIds: HashSet[String], liveCache: LiveCache) =
-        for (entityId <- entityIds) {
-            val entity = liveCache.materializeEntity(entityId)
+    def destroyEntity(entityIds: HashSet[(Entity#ID, Class[Entity])], liveCache: LiveCache) =
+        for ((entityId, entityClass) <- entityIds) {
+            val entity = liveCache.materializeEntity(entityId, entityClass)
             liveCache.delete(entityId)
             entity.setInitialized
             for (ref <- entity.vars)

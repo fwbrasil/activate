@@ -23,8 +23,32 @@ import java.io.FileOutputStream
 import net.fwbrasil.activate.storage.SnapshotableStorage
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
+import net.fwbrasil.activate.util.Reflection._
+import scala.collection.concurrent.TrieMap
+import net.fwbrasil.activate.entity.EntityHelper
 
-class PrevalentStorageSystem extends HashMap[String, Entity]
+class PrevalentStorageSystem {
+    val contents = new TrieMap[Class[Entity], TrieMap[Entity#ID, Entity]]
+    def add(entity: Entity) =
+        entitiesMapFor(entity.niceClass) += entity.id -> entity
+    def remove(entityClass: Class[Entity], entityId: Entity#ID) =
+        entitiesMapFor(entityClass) -= entityId
+    def remove(entity: Entity): Unit =
+        remove(entity.niceClass, entity.id)
+    def entities =
+        contents.values.map(_.values).flatten
+        def entitiesListFor(name: String) = 
+            contents.keys.filter(clazz => EntityHelper.getEntityName(clazz) == name)
+            .map(contents(_).values)
+            .flatten
+    def entitiesMapFor(entityClass: Class[Entity]) = {
+        contents.get(entityClass).getOrElse {
+            this.synchronized {
+                contents.getOrElseUpdate(entityClass, new TrieMap[Entity#ID, Entity])
+            }
+        }
+    }
+}
 
 class PrevalentStorage(
     directory: String,
@@ -62,7 +86,7 @@ class PrevalentStorage(
     override protected[activate] def reinitialize = {
         system = journal.recover
         import scala.collection.JavaConversions._
-        context.hidrateEntities(system.values)
+        context.hidrateEntities(system.entities)
     }
 
     override protected[activate] def store(
@@ -85,18 +109,18 @@ class PrevalentStorage(
         updateList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]) =
         new PrevalentTransaction(
-            insertList.map(tuple => (tuple._1.id, tuple._2)).toArray,
-            updateList.map(tuple => (tuple._1.id, tuple._2)).toArray,
-            deleteList.map(_._1.id).toArray)
+            insertList.map(tuple => ((tuple._1.id, tuple._1.niceClass), tuple._2)).toArray,
+            updateList.map(tuple => ((tuple._1.id, tuple._1.niceClass), tuple._2)).toArray,
+            deleteList.map(tuple => (tuple._1.id, tuple._1.niceClass)).toArray)
 
     private def updateSystem(
         insertList: List[(Entity, Map[String, StorageValue])],
         deleteList: List[(Entity, Map[String, StorageValue])]) =
         system.synchronized {
             for ((entity, properties) <- insertList)
-                system.put(entity.id, entity)
+                system.add(entity)
             for ((entity, properties) <- deleteList)
-                system.remove(entity.id)
+                system.remove(entity)
         }
 
     protected[activate] def query(
