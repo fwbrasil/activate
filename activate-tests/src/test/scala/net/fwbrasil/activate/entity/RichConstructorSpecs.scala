@@ -7,7 +7,7 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.util.RichList._
 
-class Super(param: Int) extends Entity {
+class Super(param: Int) extends Entity with UUID {
     var intValue = param * 2
 }
 class Sub(param: Int) extends Super(param) {

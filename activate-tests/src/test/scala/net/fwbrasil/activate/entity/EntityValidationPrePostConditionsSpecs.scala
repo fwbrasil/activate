@@ -7,7 +7,7 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.entity.EntityValidationOption._
 import net.fwbrasil.activate.util.ManifestUtil._
 
-class EntityValidationPrePostConditionsSpecsEntity extends Entity {
+class EntityValidationPrePostConditionsSpecsEntity extends Entity with UUID {
     var string = "s"
     def methodWithPreCondition(f: => Unit) =
         preCondition(string == "s") {

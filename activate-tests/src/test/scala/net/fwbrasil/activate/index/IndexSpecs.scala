@@ -16,9 +16,7 @@ abstract class IndexSpecs extends ActivateTest {
 
     override def contexts = super.contexts.filter(c => c != derbyContext && c != h2Context && c != hsqldbContext)
 
-    type I <: ActivateIndex[ActivateTestContext#ActivateTestEntity, Int]
-
-    def indexFor(context: ActivateTestContext): I
+    def indexFor(context: ActivateTestContext): ActivateIndex[_ <: ActivateTestContext#ActivateTestEntity, Int]
 
     "Memory indexes" should {
 

@@ -167,7 +167,6 @@ object asyncPostgresqlContext extends ActivateTestContext {
                 database = Some("activate_test_async"))
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
-        override def numberOfPartitions = 1
         override val dialect = postgresqlDialect(normalize = underscoreSeparated)
     }
 }
@@ -449,7 +448,7 @@ trait ActivateTestContext
 
     val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity].on(_.intValue)
 
-    class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTestEntity] {
+    class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTestEntity] with UUID {
         var ids =
             new HashSet[String] ++ query {
                 (e: ActivateTestEntity) => where(e.intValue :== key) select (e.id)
@@ -468,7 +467,7 @@ trait ActivateTestContext
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
-    override protected[activate] def entityMaterialized(entity: Entity) =
+    override protected[activate] def entityMaterialized(entity: net.fwbrasil.activate.entity.Entity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)
 

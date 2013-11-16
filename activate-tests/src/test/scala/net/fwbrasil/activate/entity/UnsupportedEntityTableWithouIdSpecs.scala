@@ -9,7 +9,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class UnsupportedEntityTableWithouIdSpecs extends ActivateTest {
 
-    class Car(var color: String) extends Entity
+    class Car(var color: String) extends Entity with UUID
 
     override def contexts = super.contexts.filter(_.name == "mysqlContext")
 
