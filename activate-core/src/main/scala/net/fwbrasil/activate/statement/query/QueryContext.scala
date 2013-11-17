@@ -278,9 +278,11 @@ trait QueryContext extends StatementContext
         val manifest = ManifestUtil.manifestClass[Entity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic) {
-            dynamicQuery {
-                (e: Entity) => where(e.id :== id) select (e)
-            }(manifest).headOption.asInstanceOf[Option[T]]
+            val result =
+                dynamicQuery {
+                    (e: Entity) => where(e.id :== id) select (e)
+                }(manifest)
+            result.headOption.asInstanceOf[Option[T]]
         } else
             Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
     }

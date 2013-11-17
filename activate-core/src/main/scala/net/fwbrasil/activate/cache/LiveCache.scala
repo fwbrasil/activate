@@ -176,7 +176,7 @@ class LiveCache(
             .fromStorageAsync(query, entitiesReadFromCache)(texctx)
             .map(materializeLines)(texctx)
 
-    def materialize(value: EntityValue[_]) = 
+    def materialize(value: EntityValue[_]) =
         value match {
             case value: ReferenceListEntityValue[_] =>
                 value.value.map(_.map(_.flatMap(id => context.byId(id)(value.m.asInstanceOf[Manifest[Entity]])).orNull)).orNull

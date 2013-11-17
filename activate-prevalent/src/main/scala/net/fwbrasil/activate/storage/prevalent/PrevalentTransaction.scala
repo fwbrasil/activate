@@ -14,7 +14,25 @@ class PrevalentTransaction(
     def recover(system: PrevalentStorageSystem)(implicit context: ActivateContext) = {
         import context._
         transactional {
-            for (((entityId, entityClass), changeSet) <- insertList ++ updateList) {
+            
+            val assignments = insertList ++ updateList
+            
+            for (((entityId, entityClass), changeSet) <- assignments) {
+                val entity = liveCache.materializeEntity(entityId, entityClass)
+                entity.setInitialized
+                system.add(entity)
+            }
+            
+            for ((entityId, entityClass) <- deleteList) {
+                val entity = liveCache.materializeEntity(entityId, entityClass)
+                entity.setInitialized
+                liveCache.delete(entity)
+                system.remove(entityClass, entityId)
+                for (ref <- entity.vars)
+                    ref.destroyInternal
+            }
+            
+            for (((entityId, entityClass), changeSet) <- assignments) {
                 val entity = liveCache.materializeEntity(entityId, entityClass)
                 entity.setInitialized
                 system.add(entity)
@@ -23,14 +41,6 @@ class PrevalentTransaction(
                     val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
                     ref.setRefContent(Option(liveCache.materialize(entityValue)))
                 }
-            }
-            for ((entityId, entityClass) <- deleteList) {
-                val entity = liveCache.materializeEntity(entityId, entityClass)
-                entity.setInitialized
-                liveCache.delete(entity)
-                system.remove(entityClass, entityId)
-                for (ref <- entity.vars)
-                    ref.destroyInternal
             }
         }
     }

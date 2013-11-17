@@ -180,8 +180,11 @@ class PrevaylerMemoryStorageTransaction(
         context.transactional(context.transient) {
             val liveCache = context.liveCache
 
-            for (((entityId, entityClass), changeSet) <- assignments)
-                system.add(liveCache.materializeEntity(entityId, entityClass))
+            for (((entityId, entityClass), changeSet) <- assignments) {
+                val entity = liveCache.materializeEntity(entityId, entityClass)
+                entity.setInitialized
+                system.add(entity)
+            }
 
             for ((entityId, entityClass) <- deletes)
                 system.remove(entityClass, entityId)
