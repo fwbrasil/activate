@@ -1,36 +1,17 @@
 package net.fwbrasil.activate.storage.prevalent
 
-import net.fwbrasil.activate.storage.marshalling.MarshalStorage
-import net.fwbrasil.activate.storage.TransactionHandle
-import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.statement.mass.MassModificationStatement
-import net.fwbrasil.activate.entity.Entity
-import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
-import net.fwbrasil.activate.statement.query.Query
 import java.io.File
-import java.io.RandomAccessFile
-import java.nio.channels.FileChannel
-import java.util.HashSet
+
 import net.fwbrasil.activate.ActivateContext
-import java.util.HashMap
+import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.serialization.Serializer
-import net.fwbrasil.activate.serialization.javaSerializer
-import net.fwbrasil.activate.storage.marshalling.Marshaller
-import java.nio.BufferUnderflowException
-import net.fwbrasil.activate.cache.LiveCache
-import net.fwbrasil.activate.serialization.kryoSerializer
-import java.io.FileOutputStream
-import net.fwbrasil.activate.storage.SnapshotableStorage
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
-import net.fwbrasil.activate.util.Reflection._
-import scala.collection.concurrent.TrieMap
-import net.fwbrasil.activate.entity.EntityHelper
-import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConversions._
-import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
-import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
+import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.memory.BasePrevalentStorage
+import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
+import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
+import net.fwbrasil.activate.serialization.javaSerializer
 
 class PrevalentStorage(
     val directory: String,

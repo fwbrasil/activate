@@ -3,7 +3,6 @@ package net.fwbrasil.activate
 import net.fwbrasil.activate.storage.prevayler._
 import net.fwbrasil.activate.storage.relational._
 import net.fwbrasil.activate.storage.memory._
-import net.fwbrasil.activate.storage.SnapshotableStorage
 import net.fwbrasil.activate.serialization.jsonSerializer
 import net.fwbrasil.activate.util.Reflection._
 import org.specs2.mutable._
@@ -44,7 +43,7 @@ object ActivateTest {
     val contextsCategoriesMap =
         Map[ActivateTestContextCategory, List[ActivateTestContext]](
             memory -> List(memoryContext),
-            prevalent -> List(/*prevaylerContext,*/ prevalentContext),
+            prevalent -> List(prevaylerContext, prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
             relational -> List(postgresqlContext, asyncPostgresqlContext,
                 mysqlContext, /*derbyContext,*/ h2Context, hsqldbContext),
@@ -188,7 +187,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
             ret
         }
         override def accept(ctx: ActivateTestContext) =
-            !ctx.storage.isInstanceOf[SnapshotableStorage[_]]
+            !ctx.storage.isInstanceOf[BasePrevalentStorage[_, _]]
     }
 
     case class MultipleAsyncTransactionsWithReinitialize(ctx: ActivateTestContext) extends StepExecutor {
@@ -214,15 +213,15 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
                     s
                 }
             ctx.storage match {
-            	case storage:SnapshotableStorage[_] =>
-            		storage.snapshot
-            	case other =>
+                case storage: BasePrevalentStorage[_, _] =>
+                    storage.snapshot
+                case other =>
             }
             reinitializeContext
             ret
         }
         override def accept(ctx: ActivateTestContext) =
-            ctx.storage.isInstanceOf[SnapshotableStorage[_]]
+            ctx.storage.isInstanceOf[BasePrevalentStorage[_, _]]
     }
 
     def activateTest[A](f: (StepExecutor) => A) = runningFlag.synchronized {

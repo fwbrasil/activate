@@ -3,7 +3,6 @@ package net.fwbrasil.activate.storage.memory
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.MarshalStorage
-import net.fwbrasil.activate.storage.SnapshotableStorage
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.entity.Entity
@@ -14,8 +13,7 @@ import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
 
 trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
-        extends MarshalStorage[D]
-        with SnapshotableStorage[D]{
+        extends MarshalStorage[D]{
 
     protected implicit val context: ActivateContext
 
@@ -26,7 +24,7 @@ trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
     def isTransactional = true
     def supportsQueryJoin = true
 
-    def snapshot =
+    def snapshot: Unit =
         try {
             Entity.serializeUsingEvelope = false
             snapshot(system)
