@@ -171,7 +171,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
                 queryAsync(stmt, List(new StringStorageValue(None))).map {
                     _.map {
                         _ match {
-                            case List(ReferenceStorageValue(Some(storageValue))) =>
+                            case List(ReferenceStorageValue(storageValue)) =>
                                 (storageValue.value.get.asInstanceOf[Entity#ID], clazz)
                             case other =>
                                 throw new IllegalStateException("Invalid version information")
@@ -222,7 +222,7 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
                 .collect {
                     case StringStorageValue(Some(value: String)) =>
                         (value, jdbcStatement.entityClass)
-                    case ReferenceStorageValue(Some(value)) =>
+                    case ReferenceStorageValue(value) =>
                         (value.value.get, jdbcStatement.entityClass)
                 }
         if (invalidIds.nonEmpty)
@@ -308,15 +308,17 @@ trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnecti
             jdbcStatement.indexedStatement,
             jdbcStatement.valuesList.head.map(toValue))
 
-    private def toValue(storageValue: StorageValue) =
+    private def toValue(storageValue: StorageValue): Any =
         storageValue match {
             case value: ListStorageValue =>
                 if (value.value.isDefined)
                     "1"
                 else
                     "0"
-            case other =>
-                other.value.getOrElse(null)
+            case value: StorageOptionalValue =>
+                value.value.getOrElse(null)
+            case value: ReferenceStorageValue =>
+                toValue(value.value)
         }
 
 }

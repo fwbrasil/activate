@@ -14,9 +14,9 @@ class CRUDSpecs extends ActivateTest {
 
     override def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(
-            OneTransaction(ctx),
-            MultipleTransactions(ctx),
-            MultipleAsyncTransactions(ctx),
+//            OneTransaction(ctx),
+//            MultipleTransactions(ctx),
+//            MultipleAsyncTransactions(ctx),
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx))
 

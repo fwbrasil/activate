@@ -278,7 +278,7 @@ trait QueryContext extends StatementContext
         val manifest = ManifestUtil.manifestClass[Entity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic) {
-            query {
+            dynamicQuery {
                 (e: Entity) => where(e.id :== id) select (e)
             }(manifest).headOption.asInstanceOf[Option[T]]
         } else
@@ -303,10 +303,10 @@ trait QueryContext extends StatementContext
     def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
 
     def asyncById[T <: Entity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
-    	        
-    	Future.successful(byId[T](id))
+
+        Future.successful(byId[T](id))
     }
-    
+
     def asyncById[T <: Entity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         val manifest = ManifestUtil.manifestClass[Entity](entityClass)
