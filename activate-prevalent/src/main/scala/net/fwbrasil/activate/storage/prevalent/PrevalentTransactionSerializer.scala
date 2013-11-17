@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.ByteArrayInputStream
+import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
 
 object prevalentTransactionSerializer {
 
@@ -185,7 +186,7 @@ object prevalentTransactionSerializer {
                 writeValue[List[StorageValue]](9, value.value, writeList(_))
                 writeValue(value.emptyStorageValue)
             case value: ReferenceStorageValue =>
-                writeValue[StorageValue](10, value.value, writeValue(_))
+                writeValue[StorageValue](10, Some(value.value), writeValue(_))
         }
 
     private def readValue(implicit buffer: ByteBuffer): StorageValue =
@@ -211,7 +212,7 @@ object prevalentTransactionSerializer {
             case 9 =>
                 ListStorageValue(readValue(readList), readValue)
             case 10 =>
-                ReferenceStorageValue(readValue(readValue))
+                ReferenceStorageValue(readValue(readValue).get.asInstanceOf[StorageOptionalValue])
         }
 
     private def writeList(list: List[StorageValue])(implicit buffer: ByteBuffer) = {

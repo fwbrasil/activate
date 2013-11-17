@@ -56,6 +56,7 @@ import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import java.util.Date
 import net.fwbrasil.activate.statement.In
 import net.fwbrasil.activate.statement.NotIn
+import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
 
 object mongoIdiom {
 
@@ -188,7 +189,7 @@ object mongoIdiom {
             case value: ByteArrayStorageValue =>
                 ByteArrayStorageValue(getValue[Array[Byte]])
             case value: ReferenceStorageValue =>
-                ReferenceStorageValue(value.value.map(getStorageValue(obj, _, fromDBList)))
+                ReferenceStorageValue(getStorageValue(obj, value.value, fromDBList).asInstanceOf[StorageOptionalValue])
         }
     }
 
@@ -366,7 +367,7 @@ object mongoIdiom {
             case value: ByteArrayStorageValue =>
                 value.value.getOrElse(null)
             case value: ReferenceStorageValue =>
-                value.value.getOrElse(null)
+                value.value.value.getOrElse(null)
         }
 
     private def newObject(elems: (String, Any)*) =

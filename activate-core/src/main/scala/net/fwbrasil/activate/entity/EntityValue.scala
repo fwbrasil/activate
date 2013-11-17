@@ -111,6 +111,7 @@ case class ListEntityValue[V](override val value: Option[List[V]])(implicit val 
 
 case class LazyListEntityValue[V <: Entity](override val value: Option[LazyList[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
         extends EntityValue[LazyList[V]](value) {
+    def entityClass = erasureOf[V]
     def emptyValueEntityValue = tval(None)
     def valueManifest = manifest[V]
     def emptyValue = LazyList[V]()

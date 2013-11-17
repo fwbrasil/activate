@@ -72,12 +72,12 @@ class hsqldbDialect(pEscape: String => String, pNormalize: String => String) ext
                 "DROP TABLE " + escape(listTableName)
             case StorageCreateListTable(ownerTableName, listTableName, valueColumn, orderColumn, ifNotExists) =>
                 "CREATE TABLE " + escape(listTableName) + "(\n" +
-                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(StringStorageValue(None))) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
                     ")"
             case StorageCreateTable(tableName, columns, ifNotExists) =>
                 "CREATE TABLE " + escape(tableName) + "(\n" +
-                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+                    "	ID " + toSqlDdl(ReferenceStorageValue(StringStorageValue(None))) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
                     columns.map(toSqlDdl).mkString(", \n") +
                     ")"
             case StorageRenameTable(oldName, newName, ifExists) =>

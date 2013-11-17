@@ -45,9 +45,8 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
         deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
         executeStatementsAsync(verionsFor(readList), statementsFor(statements, insertList, updateList, deleteList))
 
-    private def verionsFor(readList: List[(Entity, Long)]) = {
-        readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (Marshaller.idMarshalling(Some(tuple._1.id)), tuple._2)))
-    }
+    private def verionsFor(readList: List[(Entity, Long)]) =
+        readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (Marshaller.idMarshalling(Some(tuple._1.id), tuple._1.niceClass), tuple._2)))
 
     private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
         list.sortBy(_._1.id.toString)
@@ -60,17 +59,17 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                 val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
                 val tree = new DependencyTree[DmlStorageStatement](statements)
                 for (insertA <- statements) {
-                    for ((propertyName, propertyValue) <- insertA.propertyMap if (propertyValue.value.isDefined)) {
+                    for ((propertyName, propertyValue) <- insertA.propertyMap) {
                         propertyValue match {
-                            case propertyValue: ReferenceStorageValue if (propertyName != "id") =>
-                                val entityIdB = propertyValue.value.get.value.get.asInstanceOf[Entity#ID]
+                            case propertyValue: ReferenceStorageValue if (propertyName != "id" && propertyValue.value.value.isDefined) =>
+                                val entityIdB = propertyValue.value.value.get.asInstanceOf[Entity#ID]
                                 if (entityInsertMap.contains(entityIdB))
                                     tree.addDependency(entityInsertMap(entityIdB), insertA)
                             case ListStorageValue(Some(values: List[StorageValue]), _: ReferenceStorageValue) =>
                                 val ids =
                                     (values.collect {
                                         case value: ReferenceStorageValue =>
-                                            value.value.get.value
+                                            value.value.value
                                         case value: StringStorageValue =>
                                             value.value
                                     }).flatten.asInstanceOf[List[Entity#ID]]

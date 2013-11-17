@@ -2,7 +2,7 @@ package net.fwbrasil.activate.entity
 
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.collection.mutable.{Map => MutableMap}
+import scala.collection.mutable.{ Map => MutableMap }
 
 import net.fwbrasil.activate.util.Reflection.toRichClass
 import net.fwbrasil.activate.util.uuid.UUIDUtil

@@ -99,6 +99,7 @@ import net.fwbrasil.activate.storage.relational.InsertStorageStatement
 import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -195,7 +196,7 @@ trait SqlIdiom extends QlIdiom {
                 else
                     ps.setInt(i, 0)
             case value: ReferenceStorageValue =>
-                setValue(ps, i, value.value.get)
+                setValue(ps, i, value.value)
         }
     }
 
@@ -223,7 +224,7 @@ trait SqlIdiom extends QlIdiom {
             case value: ByteArrayStorageValue =>
                 ByteArrayStorageValue(resultSet.getBytes(i))
             case value: ReferenceStorageValue =>
-                ReferenceStorageValue(value.value.map(getValue(resultSet, i, _)))
+                ReferenceStorageValue(getValue(resultSet, i, value.value).asInstanceOf[StorageOptionalValue])
         }
     }
 

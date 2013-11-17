@@ -11,6 +11,7 @@ import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.TransactionHandle
+import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 trait MarshalStorage[T] extends Storage[T] {
@@ -42,7 +43,7 @@ trait MarshalStorage[T] extends Storage[T] {
             marshalling(deleteList))
 
     private def marshalling(list: List[(Entity, Map[String, EntityValue[Any]])]) =
-        list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> Marshaller.idMarshalling(Some(tuple._1.id)))))
+        list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> Marshaller.idMarshalling(Some(tuple._1.id), tuple._1.niceClass))))
         
     protected[activate] def store(
         readList: List[(Entity, Long)],

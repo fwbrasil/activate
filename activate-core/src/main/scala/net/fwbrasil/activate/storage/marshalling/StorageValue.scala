@@ -4,37 +4,67 @@ import net.fwbrasil.activate.entity.EntityValue
 import java.util.Date
 import java.io.OutputStream
 
-abstract class StorageValue(val value: Option[_]) extends Serializable 
+trait StorageValue extends Serializable {
+    type V
+    val value: V
+}
+
+trait StorageOptionalValue extends StorageValue {
+    type T
+    type V = Option[T]
+}
 
 case class IntStorageValue(override val value: Option[Int])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Int
+}
 
 case class LongStorageValue(override val value: Option[Long])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Long
+}
 
 case class BooleanStorageValue(override val value: Option[Boolean])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Boolean
+}
 
 case class StringStorageValue(override val value: Option[String])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = String
+}
 
 case class FloatStorageValue(override val value: Option[Float])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Float
+}
 
 case class DoubleStorageValue(override val value: Option[Double])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Double
+}
 
 case class BigDecimalStorageValue(override val value: Option[BigDecimal])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = BigDecimal
+}
 
 case class DateStorageValue(override val value: Option[Date])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Date
+}
 
 case class ByteArrayStorageValue(override val value: Option[Array[Byte]])
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = Array[Byte]
+}
 
 case class ListStorageValue(override val value: Option[List[StorageValue]], val emptyStorageValue: StorageValue)
-    extends StorageValue(value)
+    extends StorageOptionalValue {
+    type T = List[StorageValue]
+}
 
-case class ReferenceStorageValue(override val value: Option[StorageValue])
-    extends StorageValue(value)
+case class ReferenceStorageValue(override val value: StorageOptionalValue)
+    extends StorageValue {
+    type V = StorageOptionalValue
+}

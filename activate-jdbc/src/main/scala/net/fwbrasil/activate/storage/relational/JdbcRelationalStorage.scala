@@ -111,7 +111,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
             (for ((stmt, referenceStorageValue, clazz) <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
                 executeQuery(stmt, List(referenceStorageValue)).map {
                     _ match {
-                        case List(ReferenceStorageValue(Some(storageValue))) =>
+                        case List(ReferenceStorageValue(storageValue)) =>
                             (storageValue.value.get.asInstanceOf[Entity#ID], clazz)
                         case other =>
                             throw new IllegalStateException("Invalid version information")
@@ -299,7 +299,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 .collect {
                     case StringStorageValue(Some(value: String)) =>
                         (value, jdbcStatement.entityClass)
-                    case ReferenceStorageValue(Some(value)) =>
+                    case ReferenceStorageValue(value) =>
                         (value.value.get, jdbcStatement.entityClass)
                 }
         if (invalidIds.nonEmpty)

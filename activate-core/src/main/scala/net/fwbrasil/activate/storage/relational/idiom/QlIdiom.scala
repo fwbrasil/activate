@@ -216,10 +216,10 @@ trait QlIdiom {
 
     def notEqualId(entity: Entity, entitySource: EntitySource)(
         implicit binds: MutableMap[StorageValue, String]) =
-        List(entitySource.name + ".id != " + bindId(entity.id))
+        List(entitySource.name + ".id != " + bindId(entity.id, entitySource.entityClass))
 
-    def bindId(id: Entity#ID)(implicit binds: MutableMap[StorageValue, String]) =
-        bind(Marshaller.idMarshalling(Some(id)))
+    def bindId(entityId: Entity#ID, entityClass: Class[_])(implicit binds: MutableMap[StorageValue, String]) =
+        bind(Marshaller.idMarshalling(Some(entityId), entityClass))
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
         (for (value <- select.values)
@@ -431,12 +431,12 @@ trait QlIdiom {
                 "DROP TABLE " + escape(listTableName)
             case StorageCreateListTable(ownerTableName, listTableName, valueColumn, orderColumn, ifNotExists) =>
                 "CREATE TABLE " + escape(listTableName) + "(\n" +
-                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(None)) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+                    "	" + escape("owner") + " " + toSqlDdl(ReferenceStorageValue(StringStorageValue(None))) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
                     ")"
             case StorageCreateTable(tableName, columns, ifNotExists) =>
                 "CREATE TABLE " + escape(tableName) + "(\n" +
-                    "	ID " + toSqlDdl(ReferenceStorageValue(None)) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+                    "	ID " + toSqlDdl(ReferenceStorageValue(StringStorageValue(None))) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
                     columns.map(toSqlDdl).mkString(", \n") +
                     ")"
             case StorageRenameTable(oldName, newName, ifExists) =>
