@@ -25,20 +25,23 @@ import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.ByteArrayInputStream
 import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
+import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
+import net.fwbrasil.activate.ActivateContext
 
-object prevalentTransactionSerializer {
+object PrevalentTransactionSerializer {
 
-    def write(transaction: PrevalentTransaction)(implicit buffer: ByteBuffer) = {
+    def write(transaction: BasePrevalentTransaction)(implicit buffer: ByteBuffer) = {
         writeBoolean(true)
         writeValuesArray(transaction.insertList)
         writeValuesArray(transaction.updateList)
         writeIdsArray(transaction.deleteList)
     }
 
-    def read(implicit buffer: ByteBuffer) =
+    def read(implicit buffer: ByteBuffer, context: ActivateContext) =
         if (hasTrue) {
             Some(
-                new PrevalentTransaction(
+                new BasePrevalentTransaction(
+                        context,
                     insertList = readValuesArray,
                     updateList = readValuesArray,
                     deleteList = readIdsArray))

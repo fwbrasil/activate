@@ -80,8 +80,6 @@ class Var[T](
         super.get.getOrElse(null.asInstanceOf[T])
 
     def putWithoutInitialize(value: Option[T]) = {
-        if(name == "traitValue1" && value.isDefined && !value.get.getClass.getName.endsWith("TraitAttribute1"))
-            println(1)
         super.put(value)
     }
 
@@ -90,7 +88,7 @@ class Var[T](
 
     def destroyWithoutInitilize: Unit =
         super.destroy
-        
+
     override def destroy: Unit =
         doInitialized(forWrite = true) {
             super.destroy

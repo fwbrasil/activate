@@ -13,6 +13,8 @@ import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.FileInputStream
 import scala.collection.JavaConversions._
+import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
+import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
 
 class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
@@ -44,7 +46,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
             currentBuffer = null
         }
 
-    def takeSnapshot(system: PrevalentStorageSystem) = {
+    def takeSnapshot(system: BasePrevalentStorageSystem) = {
         val snapshotFile = new File(directory, fileName(nextFileIndex, ".snapshot"))
         require(snapshotFile.createNewFile)
         val stream = new ObjectOutputStream(new FileOutputStream(snapshotFile))
@@ -52,7 +54,7 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         stream.close
     }
 
-    def add(transaction: PrevalentTransaction): Unit = {
+    def add(transaction: BasePrevalentTransaction): Unit = {
         val temp = bufferPool.pop
         try {
             serializeToTempBuffer(temp, transaction)
@@ -86,14 +88,14 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
     private def recoverSnapshot(implicit ctx: ActivateContext) =
         snapshotFiles.lastOption.map { file =>
             val stream = new ObjectInputStream(new FileInputStream(file))
-            val system = stream.readObject.asInstanceOf[PrevalentStorageSystem]
+            val system = stream.readObject.asInstanceOf[BasePrevalentStorageSystem]
 
             val idx = fileNameToIndex(file)
             (idx + 1, system)
-        }.getOrElse((0, new PrevalentStorageSystem))
+        }.getOrElse((0, new BasePrevalentStorageSystem))
 
-    private def serializeToTempBuffer(temp: ByteBuffer, transaction: PrevalentTransaction) = {
-        prevalentTransactionSerializer.write(transaction)(temp)
+    private def serializeToTempBuffer(temp: ByteBuffer, transaction: BasePrevalentTransaction) = {
+        PrevalentTransactionSerializer.write(transaction)(temp)
         val totalSize = temp.position
         temp.limit(temp.position)
         temp.rewind
@@ -128,12 +130,12 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
         directory + fileSeparator + fileName(fileIdx)
 
     private def recoverTransactions(
-        system: PrevalentStorageSystem,
+        system: BasePrevalentStorageSystem,
         buffer: ByteBuffer)(implicit ctx: ActivateContext) = {
-        var transactionOption = prevalentTransactionSerializer.read(buffer)
+        var transactionOption = PrevalentTransactionSerializer.read(buffer, ctx)
         while (transactionOption.isDefined) {
-            transactionOption.get.recover(system)
-            transactionOption = prevalentTransactionSerializer.read(buffer)
+            transactionOption.get.execute(system)
+            transactionOption = PrevalentTransactionSerializer.read(buffer, ctx)
         }
     }
 

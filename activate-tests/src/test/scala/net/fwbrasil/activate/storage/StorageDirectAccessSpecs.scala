@@ -11,10 +11,10 @@ import com.mongodb.DB
 import org.prevayler.Prevayler
 import net.fwbrasil.activate.ActivateTestContext
 import org.prevayler.{ Transaction => PrevaylerTransaction }
-import net.fwbrasil.activate.storage.prevayler.PrevaylerStorageSystem
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import scala.collection.concurrent.TrieMap
+import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
 
 @RunWith(classOf[JUnitRunner])
 class StorageDirectAccessSpecs extends ActivateTest {
@@ -57,10 +57,10 @@ class StorageDirectAccessSpecs extends ActivateTest {
                                 cursor.next.get("_id") must beEqualTo(id)
                                 cursor.hasNext must beFalse
                             case prevayler: Prevayler[_] =>
-                                prevayler.asInstanceOf[Prevayler[PrevaylerStorageSystem]]
-                                    .execute(new PrevaylerTransaction[PrevaylerStorageSystem] {
-                                        override def executeOn(system: PrevaylerStorageSystem, date: Date) = {
-                                            val sys = system.asInstanceOf[PrevaylerStorageSystem]
+                                prevayler.asInstanceOf[Prevayler[BasePrevalentStorageSystem]]
+                                    .execute(new PrevaylerTransaction[BasePrevalentStorageSystem] {
+                                        override def executeOn(system: BasePrevalentStorageSystem, date: Date) = {
+                                            val sys = system.asInstanceOf[BasePrevalentStorageSystem]
                                             import scala.collection.JavaConversions._
                                             sys.entities.filter(_.isInstanceOf[ActivateTestEntity]).onlyOne.id must beEqualTo(id)
                                         }

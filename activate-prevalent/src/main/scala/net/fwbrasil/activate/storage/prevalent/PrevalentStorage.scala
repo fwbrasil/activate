@@ -28,111 +28,39 @@ import scala.collection.concurrent.TrieMap
 import net.fwbrasil.activate.entity.EntityHelper
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConversions._
-
-class PrevalentStorageSystem extends Serializable {
-    val contents = new ConcurrentHashMap[Class[Entity], ConcurrentHashMap[Entity#ID, Entity]]
-    def add(entity: Entity) =
-        entitiesMapFor(entity.niceClass) += entity.id -> entity
-    def remove(entityClass: Class[Entity], entityId: Entity#ID) =
-        entitiesMapFor(entityClass) -= entityId
-    def remove(entity: Entity): Unit =
-        remove(entity.niceClass, entity.id)
-    def entities =
-        contents.values.map(_.values).flatten
-        def entitiesListFor(name: String) = 
-            contents.keys.filter(clazz => EntityHelper.getEntityName(clazz) == name)
-            .map(contents(_).values)
-            .flatten
-    def entitiesMapFor(entityClass: Class[Entity]) = {
-        Option(contents.get(entityClass)).getOrElse {
-            this.synchronized {
-                contents.getOrElseUpdate(entityClass, new ConcurrentHashMap[Entity#ID, Entity])
-            }
-        }
-    }
-}
+import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
+import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
+import net.fwbrasil.activate.storage.memory.BasePrevalentStorage
 
 class PrevalentStorage(
-    directory: String,
-    serializer: Serializer = javaSerializer,
-    fileSize: Int = 10 * 1000 * 1000,
-    bufferPoolSize: Int = Runtime.getRuntime.availableProcessors)(implicit context: ActivateContext)
-        extends MarshalStorage[PrevalentStorageSystem]
-        with SnapshotableStorage[PrevalentStorageSystem] {
+    val directory: String,
+    val serializer: Serializer = javaSerializer,
+    val fileSize: Int = 10 * 1000 * 1000,
+    val bufferPoolSize: Int = Runtime.getRuntime.availableProcessors)(implicit val context: ActivateContext)
+        extends BasePrevalentStorage[BasePrevalentStorageSystem, BasePrevalentStorageSystem] {
 
-    private val directoryFile = new File(directory)
-    directoryFile.mkdir
-    private val journal = new PrevalentJournal(directoryFile, serializer, fileSize, bufferPoolSize)
-
-    private var system = journal.recover
+    private var journal: PrevalentJournal = _
 
     def directAccess = system
 
-    def isMemoryStorage = true
-    def isSchemaless = true
-    def isTransactional = true
-    def supportsQueryJoin = true
+    override protected def snapshot(system: BasePrevalentStorageSystem) =
+        journal.takeSnapshot(system)
 
-    initialize
-
-    protected[activate] def initialize = {}
-
-    def snapshot =
-        try {
-            Entity.serializeUsingEvelope = false
-            journal.takeSnapshot(system)
-        } finally {
-            Entity.serializeUsingEvelope = true
+    override protected def recover = {
+        if (journal == null) {
+            val directoryFile = new File(directory)
+            directoryFile.mkdir
+            journal = new PrevalentJournal(directoryFile, serializer, fileSize, bufferPoolSize)
         }
-
-    override protected[activate] def reinitialize = {
-        system = journal.recover
-        import scala.collection.JavaConversions._
-        context.hidrateEntities(system.entities)
+        journal.recover
     }
 
-    override protected[activate] def store(
-        readList: List[(Entity, Long)],
-        statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
-
-        val transaction =
-            createTransaction(insertList, updateList, deleteList)
+    override protected def logTransaction(
+        insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
+        updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
+        deleteList: Array[(Entity#ID, Class[Entity])]) = {
+        val transaction = new BasePrevalentTransaction(context, insertList, updateList, deleteList)
         journal.add(transaction)
-        updateSystem(insertList, deleteList)
-
-        None
-    }
-
-    private def createTransaction(
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]) =
-        new PrevalentTransaction(
-            insertList.map(tuple => ((tuple._1.id, tuple._1.niceClass), tuple._2)).toArray,
-            updateList.map(tuple => ((tuple._1.id, tuple._1.niceClass), tuple._2)).toArray,
-            deleteList.map(tuple => (tuple._1.id, tuple._1.niceClass)).toArray)
-
-    private def updateSystem(
-        insertList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]) =
-        system.synchronized {
-            for ((entity, properties) <- insertList)
-                system.add(entity)
-            for ((entity, properties) <- deleteList)
-                system.remove(entity)
-        }
-
-    protected[activate] def query(
-        query: Query[_],
-        expectedTypes: List[StorageValue],
-        entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
-        List()
-
-    override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit = {
-
     }
 
 }
