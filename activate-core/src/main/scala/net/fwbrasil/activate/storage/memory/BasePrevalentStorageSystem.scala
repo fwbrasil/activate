@@ -1,19 +1,19 @@
 package net.fwbrasil.activate.storage.memory
 
 import java.util.concurrent.ConcurrentHashMap
-
 import scala.collection.JavaConversions.collectionAsScalaIterable
 import scala.collection.JavaConversions.enumerationAsScalaIterator
 import scala.collection.JavaConversions.mapAsScalaConcurrentMap
 import scala.collection.TraversableOnce.flattenTraversableOnce
-
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.Reflection.NiceObject
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.SynchronizedMap
 
 class BasePrevalentStorageSystem extends Serializable {
-    val contents = new ConcurrentHashMap[String, ConcurrentHashMap[Entity#ID, Entity]]
+    val contents = new HashMap[String, HashMap[Entity#ID, Entity]] with SynchronizedMap[String, HashMap[Entity#ID, Entity]]
     def add(entity: Entity) =
         entitiesMapFor(entity.niceClass) += entity.id -> entity
     def remove(entityClass: Class[Entity], entityId: Entity#ID) =
@@ -27,9 +27,9 @@ class BasePrevalentStorageSystem extends Serializable {
             .map(contents(_).values)
             .flatten
     def entitiesMapFor(entityClass: Class[Entity]) = {
-        Option(contents.get(entityClass)).getOrElse {
+        contents.get(entityClass.getName).getOrElse {
             this.synchronized {
-                contents.getOrElseUpdate(entityClass.getName, new ConcurrentHashMap[Entity#ID, Entity])
+                contents.getOrElseUpdate(entityClass.getName, new HashMap[Entity#ID, Entity] with SynchronizedMap[Entity#ID, Entity])
             }
         }
     }

@@ -28,6 +28,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.cache.CustomCache
 
 class ActivateConcurrentTransactionException(
     val entitiesIds: Set[(Entity#ID, Class[Entity])],
@@ -56,7 +57,7 @@ trait DurableContext {
         val entities =
             liveCache.reloadEntities(ids)
                 .toList.asInstanceOf[List[Entity]]
-        if (entities.nonEmpty) 
+        if (entities.nonEmpty)
             updateIndexes(inserts = List(), entities, deletes = List())
     }
 
@@ -76,10 +77,16 @@ trait DurableContext {
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-            transaction.attachments += (() => updateIndexes(insertsEntities, updatesEntities, deletesEntities))
+            transaction.attachments += (() => {
+                if (customCaches.nonEmpty)
+                    for (entity <- (insertsEntities ++ deletesEntities))
+                        customCaches.foreach(
+                            _.asInstanceOf[CustomCache[Entity]].add(entity)(context))
+                updateIndexes(insertsEntities, updatesEntities, deletesEntities)
+            })
         }
     }
-    
+
     override def afterCommit(transaction: Transaction): Unit = {
         transaction.attachments.collect {
             case f: Function0[_] =>
@@ -104,7 +111,13 @@ trait DurableContext {
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
-                    transaction.attachments += (() => updateIndexes(insertsEntities, updatesEntities, deletesEntities)) 
+                    transaction.attachments += (() => {
+                        if (customCaches.nonEmpty)
+                            for (entity <- (insertsEntities ++ deletesEntities))
+                                customCaches.foreach(
+                                    _.asInstanceOf[CustomCache[Entity]].add(entity)(context))
+                        updateIndexes(insertsEntities, updatesEntities, deletesEntities)
+                    })
                 }
             }
         } else

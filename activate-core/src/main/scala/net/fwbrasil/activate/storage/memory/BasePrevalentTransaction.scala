@@ -14,7 +14,7 @@ class BasePrevalentTransaction(
 
     def execute(system: BasePrevalentStorageSystem) = {
         import context._
-        transactional(transient) {
+        transactional(transient){
 
             val assignments = insertList ++ updateList
 
@@ -27,7 +27,7 @@ class BasePrevalentTransaction(
             for ((entityId, entityClass) <- deleteList) {
                 val entity = liveCache.materializeEntity(entityId, entityClass)
                 entity.setInitialized
-                liveCache.delete(entity)
+                liveCache.remove(entity)
                 system.remove(entityClass, entityId)
                 for (ref <- entity.vars)
                     ref.destroyInternal

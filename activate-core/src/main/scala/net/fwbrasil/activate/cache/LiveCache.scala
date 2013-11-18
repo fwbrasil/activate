@@ -105,6 +105,9 @@ class LiveCache(
 
     def delete(entityId: AnyRef) =
         customCaches.foreach(_.remove(entityId))
+        
+    def remove(entity: Entity): Unit =
+        entityInstacesMap(entity.niceClass).remove(entity.id)
 
     def toCache[E <: Entity](entity: E): E =
         toCache(entity.niceClass, entity)
@@ -112,8 +115,6 @@ class LiveCache(
     def toCache[E <: Entity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
-        customCaches.foreach(
-            _.asInstanceOf[CustomCache[Entity]].add(entity)(context))
         entity
     }
 
@@ -240,6 +241,8 @@ class LiveCache(
                 if (entity == null) {
                     val entity = createLazyEntity(entityClass, entityId)
                     map.put(entityId, entity)
+                    if (entity.getClass.getName.endsWith("EntityByIntValue"))
+                        println(1)
                     entity
                 } else
                     entity
