@@ -43,7 +43,7 @@ object ActivateBuild extends Build {
 	val h2 = "com.h2database" % "h2" % "1.3.173"
 	val derby = "org.apache.derby" % "derby" % "10.10.1.1"
 	val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.0"
-	val db2jcc = "com.ibm.db2" % "db2jcc4" % "10.0.1"
+	val db2jcc = "com.ibm.db2.jcc" % "db2jcc4" % "10.1"
 	val jtds = "net.sourceforge.jtds" % "jtds" % "1.3.1"
 
 	val gfork = "org.gfork" % "gfork" % "0.11"
@@ -254,7 +254,8 @@ object ActivateBuild extends Build {
   	    "fwbrasil.net" at "http://fwbrasil.net/maven/",
   	    "spray" at "http://repo.spray.io/",
   	    "Sonatype OSS Releases"  at "http://oss.sonatype.org/content/repositories/releases/",
-  		"Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+  		"Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
+  		"Alfesco" at "https://maven.alfresco.com/nexus/content/groups/public/"
   	)
 
     	
