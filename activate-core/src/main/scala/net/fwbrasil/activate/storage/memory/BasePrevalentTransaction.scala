@@ -16,22 +16,21 @@ class BasePrevalentTransaction(
         import context._
         transactional(transient) {
 
-            val assignments = insertList ++ updateList
-
-            for (((entityId, entityClass), changeSet) <- assignments) 
+            for (((entityId, entityClass), changeSet) <- insertList) 
                 system.add(materialize(entityId, entityClass))
 
             for ((entityId, entityClass) <- deleteList) {
-                val entity = materialize(entityId, entityClass)
+                val entity = system.entitiesMapFor(entityClass)(entityId)
                 liveCache.remove(entity)
                 system.remove(entityClass, entityId)
                 for (ref <- entity.vars)
                     ref.destroyInternal
             }
+            
+            val assignments = insertList ++ updateList
 
             for (((entityId, entityClass), changeSet) <- assignments) {
-                val entity = materialize(entityId, entityClass)
-                system.add(entity)
+                val entity = system.entitiesMapFor(entityClass)(entityId)
                 for ((varName, value) <- changeSet; if (varName != "id")) {
                     val ref = entity.varNamed(varName)
                     val entityValue = Marshaller.unmarshalling(value, ref.tval(None))
