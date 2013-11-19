@@ -14,19 +14,15 @@ class BasePrevalentTransaction(
 
     def execute(system: BasePrevalentStorageSystem) = {
         import context._
-        transactional(transient){
+        transactional(transient) {
 
             val assignments = insertList ++ updateList
 
-            for (((entityId, entityClass), changeSet) <- assignments) {
-                val entity = liveCache.materializeEntity(entityId, entityClass)
-                entity.setInitialized
-                system.add(entity)
-            }
+            for (((entityId, entityClass), changeSet) <- assignments) 
+                system.add(materialize(entityId, entityClass))
 
             for ((entityId, entityClass) <- deleteList) {
-                val entity = liveCache.materializeEntity(entityId, entityClass)
-                entity.setInitialized
+                val entity = materialize(entityId, entityClass)
                 liveCache.remove(entity)
                 system.remove(entityClass, entityId)
                 for (ref <- entity.vars)
@@ -34,8 +30,7 @@ class BasePrevalentTransaction(
             }
 
             for (((entityId, entityClass), changeSet) <- assignments) {
-                val entity = liveCache.materializeEntity(entityId, entityClass)
-                entity.setInitialized
+                val entity = materialize(entityId, entityClass)
                 system.add(entity)
                 for ((varName, value) <- changeSet; if (varName != "id")) {
                     val ref = entity.varNamed(varName)
@@ -44,6 +39,12 @@ class BasePrevalentTransaction(
                 }
             }
         }
+    }
+
+    private def materialize(entityId: Entity#ID, entityClass: Class[Entity]) = {
+        val entity = context.liveCache.materializeEntity(entityId, entityClass)
+        entity.setInitialized
+        entity
     }
 
 }

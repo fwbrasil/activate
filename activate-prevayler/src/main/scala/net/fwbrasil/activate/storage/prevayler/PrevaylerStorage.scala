@@ -69,7 +69,12 @@ class PrevaylerStorage(
         insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
         updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
         deleteList: Array[(Entity#ID, Class[Entity])]) = {
-        val transaction = new PrevaylerTransaction(context, insertList, updateList, deleteList)
+        val transaction =
+            new PrevaylerTransaction(
+                context,
+                insertList,
+                updateList,
+                deleteList)
         prevayler.execute(transaction)
     }
 
