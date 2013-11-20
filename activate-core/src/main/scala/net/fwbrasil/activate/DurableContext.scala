@@ -64,16 +64,16 @@ trait DurableContext {
     override def makeDurable(transaction: Transaction): Unit = {
         val statements = statementsForTransaction(transaction)
         val assignments = transaction.assignments
-        if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
+        val entitiesRead = entitiesReadVersions(transaction)
+        if (entitiesRead.nonEmpty || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(assignments.toList)
             val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
             val insertsEntities = inserts.keys.toList
             val updatesEntities = updates.keys.toList
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
-            val entitiesRead = entitiesReadVersions(transaction, entitiesToIgnore = entities)
             validateTransactionEnd(transaction, entities)
-            store(statements.toList, inserts, updates, deletes, entitiesRead)
+            store(statements.toList, inserts, updates, deletes, entitiesRead -- entities)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -98,16 +98,16 @@ trait DurableContext {
         // TODO Refactoring (see makeDurable)
         val statements = statementsForTransaction(transaction)
         val assignments = transaction.assignments
-        if (OptimisticOfflineLocking.validateReads || statements.nonEmpty || assignments.nonEmpty) {
+        val entitiesRead = entitiesReadVersions(transaction)
+        if (entitiesRead.nonEmpty || statements.nonEmpty || assignments.nonEmpty) {
             val (inserts, updates, deletesUnfiltered) = filterVars(transaction.assignments.toList)
             val deletes = filterDeletes(transaction, statements, deletesUnfiltered)
             val insertsEntities = inserts.keys.toList
             val updatesEntities = updates.keys.toList
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
-            val entitiesRead = this.entitiesReadVersions(transaction, entitiesToIgnore = entities)
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
-                storeAsync(statements.toList, inserts, updates, deletes, entitiesRead).map { _ =>
+                storeAsync(statements.toList, inserts, updates, deletes, entitiesRead -- entities).map { _ =>
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -202,25 +202,22 @@ trait DurableContext {
         (insertStatementsNormalized, updateStatementsNormalized, deleteAssignmentsNormalized)
     }
 
-    private def entitiesReadVersions(transaction: Transaction, entitiesToIgnore: List[Entity]) =
+    private def entitiesReadVersions(transaction: Transaction) =
         if (OptimisticOfflineLocking.validateReads) {
-            val entitiesRead = MutableMap[AnyRef, Entity]()
-            transaction.reads.asInstanceOf[ListBuffer[Var[Any]]].foreach {
-                ref =>
-                    val entity = ref.outerEntity
-                    if (!entitiesToIgnore.contains(entity))
-                        entitiesRead += entity.id -> entity
-            }
-            val result = new IdentityHashMap[Entity, Long]
-            val nestedTransaction = new NestedTransaction(transaction)
-            transactional(nestedTransaction) {
-                for ((id, entity) <- entitiesRead) {
-                    entity.varNamed(OptimisticOfflineLocking.versionVarName).get.map { version =>
-                        result.put(entity, version.asInstanceOf[Long])
+            val vars = transaction.reads.asInstanceOf[ListBuffer[Var[Any]]].filter(_.isMutable)
+    		val result = new IdentityHashMap[Entity, Long]
+            if (!vars.isEmpty) {
+                val entitiesRead = vars.map(_.outerEntity).map(e => e.id -> e).toMap
+                val nestedTransaction = new NestedTransaction(transaction)
+                transactional(nestedTransaction) {
+                    for ((id, entity) <- entitiesRead) {
+                        entity.varNamed(OptimisticOfflineLocking.versionVarName).get.map { version =>
+                            result.put(entity, version.asInstanceOf[Long])
+                        }
                     }
                 }
+                nestedTransaction.rollback
             }
-            nestedTransaction.rollback
             result
         } else
             new IdentityHashMap[Entity, Long]
