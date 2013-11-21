@@ -127,7 +127,7 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
             case value: FloatStorageValue =>
                 "DOUBLE PRECISION"
             case value: DateStorageValue =>
-                "TIMESTAMP"
+                "TIMESTAMPTZ"
             case value: DoubleStorageValue =>
                 "DOUBLE PRECISION"
             case value: BigDecimalStorageValue =>
