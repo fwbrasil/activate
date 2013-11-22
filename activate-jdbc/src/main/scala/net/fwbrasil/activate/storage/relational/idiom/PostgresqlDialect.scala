@@ -30,13 +30,14 @@ import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import java.sql.{Types, PreparedStatement}
 
-object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
-    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string) = 
-        new postgresqlDialect(escape, normalize)
+object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string, false) {
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string, useArray: Boolean = false) =
+        new postgresqlDialect(escape, normalize, useArray)
 }
 
-class postgresqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+class postgresqlDialect(pEscape: String => String, pNormalize: String => String, useArray: Boolean = false) extends SqlIdiom {
     
     override def escape(string: String) =
         pEscape(pNormalize(string))
@@ -73,9 +74,9 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {
-            case StorageRemoveListTable(listTableName, ifNotExists) =>
+            case StorageRemoveListTable(listTableName, ifNotExists) if !useArray =>
                 "DROP TABLE " + escape(listTableName)
-            case StorageCreateListTable(ownerTableName, ownerIdColumn, listTableName, valueColumn, orderColumn, ifNotExists) =>
+            case StorageCreateListTable(ownerTableName, ownerIdColumn, listTableName, valueColumn, orderColumn, ifNotExists) if !useArray =>
                 "CREATE TABLE " + escape(listTableName) + "(\n" +
                     "	" + escape("owner") + " " + columnType(ownerIdColumn) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
@@ -105,6 +106,7 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                 "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
             case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
+            case _ => "" //TODO: Log or Error
         }
     }
 
@@ -132,12 +134,26 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                 "DOUBLE PRECISION"
             case value: BigDecimalStorageValue =>
                 "DECIMAL"
-            case value: ListStorageValue =>
+            case value: ListStorageValue if !useArray =>
                 "VARCHAR(1)"
+            case value: ListStorageValue if useArray =>
+                value.value match {
+                  case Some(x :: xs) => toSqlDdl(x) + "[]"
+                  case _ => toSqlDdl(value.emptyStorageValue) + "[]"
+                }
             case value: ByteArrayStorageValue =>
                 "BYTEA"
             case value: ReferenceStorageValue =>
                 "VARCHAR(45)"
         }
+
+    override def setValue(ps: PreparedStatement, i: Int, storageValue: StorageValue): Unit = {
+      storageValue match {
+        case value: ListStorageValue if useArray => {
+          setValue(ps, (v: java.sql.Array) => ps.setArray(i, v), i, value.value, Types.ARRAY)
+        }
+        case _ => super.setValue(ps, i, storageValue)
+      }
+    }
 }
 
