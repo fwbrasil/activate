@@ -40,6 +40,7 @@ case class CreateTable(
     storage: Storage[_],
     number: Int,
     tableName: String,
+    idColumn: Column[_],
     columns: List[Column[_]])
         extends StorageAction
         with IfNotExists[CreateTable] {
@@ -57,6 +58,7 @@ case class CreateListTable(
     storage: Storage[_],
     number: Int,
     ownerTableName: String,
+    ownerIdColumn: Column[_],
     listTableName: String,
     valueColumn: Column[_])
         extends StorageAction

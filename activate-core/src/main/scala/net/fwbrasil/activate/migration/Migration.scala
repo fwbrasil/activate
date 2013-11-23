@@ -20,6 +20,7 @@ import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
 import net.fwbrasil.activate.entity.id.UUID
+import net.fwbrasil.activate.entity.id.EntityId
 
 class StorageVersion(
     val contextName: String,
@@ -359,12 +360,18 @@ abstract class Migration(implicit val context: ActivateContext) {
                 reference => table(reference._1, reference._2).removeReference("value", reference._3, reference._4)
             }
 
-    case class Table(name: String, storage: Storage[_]) {
+    case class Table(name: String, storage: Storage[_], idColumnDef: (ColumnDef) => Unit) {
+
+        val idColumn = {
+            val columns = new ColumnDef()
+            idColumnDef(columns)
+            columns.definitions.head
+        }
 
         def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable = {
             val columns = new ColumnDef()
             definitions.foreach(_(columns))
-            addAction(CreateTable(Migration.this, storage, nextNumber, name, columns.definitions))
+            addAction(CreateTable(Migration.this, storage, nextNumber, name, idColumn, columns.definitions))
         }
         def removeTable: RemoveTable =
             addAction(RemoveTable(Migration.this, storage, nextNumber, name))
@@ -412,7 +419,7 @@ abstract class Migration(implicit val context: ActivateContext) {
 
         def createNestedListTableOf[T](columnName: String, listTableName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
             val addColumnAction = addColumn(_.column[List[T]](columnName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
-            val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, listTableName, Column("value", None)))
+            val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, idColumn, listTableName, Column("value", None)))
             IfNotExistsBag(List(addColumnAction, addTableAction))
         }
         def removeNestedListTable(columnName: String, listTableName: String) = {
@@ -422,11 +429,15 @@ abstract class Migration(implicit val context: ActivateContext) {
         }
     }
     def table[E <: Entity: Manifest]: Table =
-        table(EntityHelper.getEntityName(erasureOf[E]), context.storageFor(erasureOf[E]))
+        table(EntityHelper.getEntityName(erasureOf[E]), context.storageFor(erasureOf[E]), idColumnFor[E])
     def table(name: String, storage: Storage[_]): Table =
-        Table(name, storage)
+        table(name, storage, stringIdColumnDef)
+    def table(name: String, storage: Storage[_], idColumnDef: (ColumnDef) => Unit): Table =
+        Table(name, storage, idColumnDef)
     def table(name: String): Table =
-        Table(name, context.storage)
+        table(name, stringIdColumnDef)
+    def table(name: String, idColumnDef: (ColumnDef) => Unit): Table =
+        Table(name, context.storage, idColumnDef)
     def customScript(f: => Unit) =
         addAction(CustomScriptAction(this, nextNumber, () => context.transactional(f)))
     def up: Unit
@@ -435,6 +446,17 @@ abstract class Migration(implicit val context: ActivateContext) {
         _actions = List[MigrationAction]()
         revertActions.reverse.foreach(addAction(_))
     }
+
+    private def idColumnFor[E <: Entity: Manifest] = {
+        c: ColumnDef =>
+            val entityClass = erasureOf[E]
+            val idClass = EntityId.idClassFor(entityClass)
+            val tval = EntityValue.tvalFunction[Any](idClass, classOf[Object])
+            c.column[Any]("id")(manifestClass(idClass), tval): Unit
+    }
+
+    private def stringIdColumnDef =
+        (c: ColumnDef) => c.column[String]("id"): Unit
 
     override def toString =
         "" + timestamp + " - " + name + " - Developers: " + developers.mkString(",")
