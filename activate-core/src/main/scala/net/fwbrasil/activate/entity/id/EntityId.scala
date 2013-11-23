@@ -1,4 +1,4 @@
-package net.fwbrasil.activate.entity.id
+ package net.fwbrasil.activate.entity.id
 
 import org.joda.time.DateTime
 import java.util.Date
@@ -9,11 +9,17 @@ import scala.Array.canBuildFrom
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.ActivateContext
 import java.util.concurrent.ConcurrentHashMap
+import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.util.ManifestUtil._
+import java.lang.reflect.Modifier
+import net.fwbrasil.activate.entity.EntityMetadata
+import scala.reflect.runtime.universe.Type
+import net.fwbrasil.smirror._
 
 trait EntityId {
     this: Entity =>
 
-    type ID <: AnyRef
+    type ID
 
     val id: ID
 }
@@ -24,13 +30,13 @@ object EntityId {
         if (classOf[UUID].isAssignableFrom(entityClass))
             classOf[String]
         else if (classOf[CustomID[_]].isAssignableFrom(entityClass)) {
-            val interfaces =
-                entityClass.getGenericInterfaces.collect {
-                    case typ: ParameterizedType =>
-                        typ
-                }
-            println(interfaces)
-            ???
+            implicit val mirror = runtimeMirror(entityClass.getClassLoader)
+            val fields = sClassOf(entityClass).fields
+            val getterSymbol = fields.find(_.name == "id").get.getterSymbol
+            val typ = Reflection.get(Reflection.get(getterSymbol, "mtpeResult"), "resultType").asInstanceOf[Type]
+            val sClass = sClassOf(typ)
+            val clazz = sClass.javaClassOption.get
+            clazz
         } else
             throw new IllegalStateException("Invalid id type for " + entityClass)
 }
@@ -38,32 +44,50 @@ object EntityId {
 trait EntityIdContext {
     this: ActivateContext =>
 
+    EntityHelper.initialize(this.getClass)
+
     type UUID = net.fwbrasil.activate.entity.id.UUID
     type CustomID[ID] = net.fwbrasil.activate.entity.id.CustomID[ID]
 
-    val idGenerators = Map[Class[_], IdGenerator[_]]()
+    private val generatorsByConcreteEntityClass = {
 
-    def nextIdFor[E <: EntityId](entityClass: Class[E]) =
+        val generatorsByBaseEntityClass =
+            Reflection
+                .getAllImplementorsNames(List(this.getClass, classOf[EntityId]), classOf[IdGenerator[_]])
+                .map(name => ActivateContext.loadClass(name))
+                .filter(clazz => !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface)
+                .map(_.newInstance.asInstanceOf[IdGenerator[Entity]])
+                .groupBy(_.entityClass.asInstanceOf[Class[Entity]])
+                .mapValues(_.head)
+
+        val values =
+            for (entityClass <- EntityHelper.allConcreteEntityClasses.toList) yield {
+                val candidates =
+                    generatorsByBaseEntityClass
+                        .filterKeys(_.isAssignableFrom(entityClass))
+                val mostSpecific =
+                    candidates.keys.toList
+                        .sortWith((c1, c2) => c1.isAssignableFrom(c2)).lastOption.getOrElse {
+                            throw new IllegalStateException("Can't find a generator for entity class " + entityClass)
+                        }
+                entityClass -> candidates(mostSpecific)
+            }
+
+        values.toMap
+    }
+
+    def nextIdFor[E <: Entity](entityClass: Class[E]) =
         idGeneratorFor(entityClass).nextId(entityClass).asInstanceOf[Entity#ID]
 
-    import scala.collection.JavaConversions._
-
-    private val idGeneratorsCache = new ConcurrentHashMap[Class[_], IdGenerator[_]]
-
-    def idGeneratorFor[E <: EntityId](entityClass: Class[E]) =
-        idGeneratorsCache.getOrElse(entityClass, {
-            if (classOf[UUID].isAssignableFrom(entityClass))
-                UUIDGenerator
-            else {
-                val candidates = idGenerators.filterKeys(_.isAssignableFrom(entityClass))
-                ???
-            }
-        })
+    def idGeneratorFor[E <: Entity](entityClass: Class[E]): IdGenerator[E] =
+        generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[Entity]])
+            .asInstanceOf[IdGenerator[E]]
 
 }
 
-trait IdGenerator[ID] {
-    def nextId(entityClass: Class[_]): ID
+abstract class IdGenerator[E <: Entity: Manifest] {
+    def entityClass = erasureOf[E]
+    def nextId(entityClass: Class[_]): E#ID
 }
 
 trait CustomID[T] {
@@ -71,5 +95,5 @@ trait CustomID[T] {
 
     type ID = T
 
-    val id: T
+    val id = null.asInstanceOf[T]
 }

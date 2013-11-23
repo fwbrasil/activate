@@ -103,7 +103,7 @@ class LiveCache(
     def delete(entity: Entity): Unit =
         delete(entity.id)
 
-    def delete(entityId: AnyRef) =
+    def delete(entityId: Entity#ID) =
         customCaches.foreach(_.remove(entityId))
         
     def remove(entity: Entity): Unit =
@@ -249,7 +249,7 @@ class LiveCache(
             entity
     }
 
-    private def synchronizeOn[R](entityId: AnyRef)(f: => R) =
+    private def synchronizeOn[R](entityId: Entity#ID)(f: => R) =
         entityId match {
             case entityId: String =>
                 entityId.intern.synchronized(f)

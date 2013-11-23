@@ -284,7 +284,7 @@ class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
 }
 
 class EntitySerializationEnvelopeV2[E <: Entity](entity: E) extends Serializable {
-    val id: AnyRef = entity.id
+    val id = entity.id.asInstanceOf[AnyRef]
     val entityClass = entity.getClass.asInstanceOf[Class[Entity]]
     val context = entity.context
     protected def readResolve(): Any =
@@ -297,8 +297,6 @@ trait EntityContext
         with LazyListContext
         with EntityIdContext {
     this: ActivateContext =>
-
-    EntityHelper.initialize(this.getClass)
 
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]

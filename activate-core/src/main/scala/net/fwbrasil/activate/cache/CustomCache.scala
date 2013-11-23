@@ -23,7 +23,7 @@ case class CustomCache[E <: Entity: Manifest](
 
     def add(entity: E)(implicit ctx: ActivateContext) =
         if (erasureOf[E].isAssignableFrom(entity.getClass) && satifyCondition(entity))
-            cache.put(entity.id, entity)
+            cache.put(entity.id.asInstanceOf[AnyRef], entity)
 
     def clear =
         cache.invalidateAll
@@ -31,7 +31,7 @@ case class CustomCache[E <: Entity: Manifest](
     def remove(entity: E): Unit =
         remove(entity.id)
 
-    def remove(entityId: AnyRef) =
+    def remove(entityId: Entity#ID) =
         cache.invalidate(entityId)
 
     private def satifyCondition(entity: E)(implicit ctx: ActivateContext) =

@@ -10,10 +10,19 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 import net.fwbrasil.activate.entity.id.UUID
+import net.fwbrasil.activate.entity.id.CustomID
+import net.fwbrasil.activate.entity.id.IdGenerator
+import java.util.concurrent.atomic.AtomicInteger
 
 class String1MustNotBeEmpty extends Exception
 
-class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends Entity with UUID {
+class TestValidationEntityIdGenerator extends IdGenerator[TestValidationEntity] {
+    val sequence = new AtomicInteger(0)
+    def nextId(entityClass: Class[_]) =
+        sequence.incrementAndGet
+}
+
+class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends Entity with CustomID[Int] {
     var string2 = "s2"
     def string1MustNotBeEmpty =
         invariant(new String1MustNotBeEmpty) {

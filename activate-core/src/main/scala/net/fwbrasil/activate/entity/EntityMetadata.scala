@@ -9,6 +9,7 @@ import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 import net.fwbrasil.smirror._
 import net.fwbrasil.radon.ref.RefListener
+import net.fwbrasil.activate.entity.id.EntityId
 
 class EntityPropertyMetadata(
         val entityMetadata: EntityMetadata,
@@ -50,21 +51,24 @@ class EntityPropertyMetadata(
                     classOf[Object]
             }
     }
-    val propertyType = {
-        val typ =
-            if (getter == null)
-                classOf[Object]
-            else
-                getter.getReturnType
-        if (typ == classOf[Option[_]])
-            genericParameter
-        else if (typ == classOf[Object]) {
-            val fields = entityMetadata.sClass.fields
-            val fieldOption = fields.find(_.name == originalName)
-            fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
-        } else
-            typ
-    }
+    val propertyType =
+        if (name == "id")
+            EntityId.idClassFor(entityClass)
+        else {
+            val typ =
+                if (getter == null)
+                    classOf[Object]
+                else
+                    getter.getReturnType
+            if (typ == classOf[Option[_]])
+                genericParameter
+            else if (typ == classOf[Object]) {
+                val fields = entityMetadata.sClass.fields
+                val fieldOption = fields.find(_.name == originalName)
+                fieldOption.flatMap(_.sClass.javaClassOption).getOrElse(classOf[Object])
+            } else
+                typ
+        }
     require(propertyType != null)
     if (propertyType == classOf[Enumeration#Value])
         throw new IllegalArgumentException("To use enumerations with activate you must sublcass Val. " +

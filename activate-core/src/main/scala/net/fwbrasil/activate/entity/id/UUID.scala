@@ -18,7 +18,7 @@ trait UUID {
     def creationDateTime = new DateTime(creationTimestamp)
 }
 
-object UUIDGenerator extends IdGenerator[UUID#ID] { 
+class UUIDGenerator extends IdGenerator[Entity with UUID] { 
     def nextId(entityClass: Class[_]) = {
         val uuid = UUIDUtil.generateUUID
         val classId = EntityHelper.getEntityClassHashId(entityClass)
