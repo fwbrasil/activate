@@ -232,7 +232,7 @@ class LiveCache(
         }(context.ectx)
     }
 
-    def materializeEntity(entityId: AnyRef, entityClass: Class[Entity]): Entity = {
+    def materializeEntity(entityId: Entity#ID, entityClass: Class[Entity]): Entity = {
         val map = entityInstacesMap(entityClass)
         val entity = map.get(entityId)
         if (entity == null) {
@@ -259,7 +259,7 @@ class LiveCache(
 
     def materializeEntity(entityId: String): Entity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
-        materializeEntity(entityId, entityClass)
+        materializeEntity(entityId.asInstanceOf[Entity#ID], entityClass)
     }
 
     private def initializeLazyEntityProperties[E <: Entity](entity: E, entityMetadata: EntityMetadata) =
@@ -270,13 +270,13 @@ class LiveCache(
             field.set(entity, ref)
         }
 
-    private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Any) = {
+    private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Entity#ID) = {
         val idField = entityMetadata.idField
         val ref = new IdVar(entityMetadata.idPropertyMetadata, entity, entityId)
         idField.set(entity, ref)
     }
 
-    private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Any) =
+    private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Entity#ID) =
         transactional(transient) {
             initializeLazyEntityProperties(entity, entityMetadata)
             initalizeLazyEntityId(entity, entityMetadata, entityId)
@@ -287,7 +287,7 @@ class LiveCache(
             entity.initializeListeners
         }
 
-    def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: Any) = {
+    def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: Entity#ID) = {
         val entity = newInstance[E](entityClass)
         val entityMetadata = entity.entityMetadata
         initalizeLazyEntity(entity, entityMetadata, entityId)

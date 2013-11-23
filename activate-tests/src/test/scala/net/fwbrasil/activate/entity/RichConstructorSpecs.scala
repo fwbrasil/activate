@@ -6,6 +6,7 @@ import org.specs2.runner._
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.entity.id.UUID
 
 class Super(param: Int) extends Entity with UUID {
     var intValue = param * 2

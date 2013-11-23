@@ -21,6 +21,8 @@ import net.fwbrasil.activate.cache.CacheType
 import net.fwbrasil.activate.cache.CustomCache
 import net.fwbrasil.activate.entity.map.EntityMap
 import net.fwbrasil.activate.statement.StatementMocks
+import net.fwbrasil.activate.entity.id.EntityId
+import net.fwbrasil.activate.entity.id.EntityIdContext
 
 trait Entity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
@@ -286,10 +288,14 @@ class EntitySerializationEnvelopeV2[E <: Entity](entity: E) extends Serializable
     val entityClass = entity.getClass.asInstanceOf[Class[Entity]]
     val context = entity.context
     protected def readResolve(): Any =
-        context.liveCache.materializeEntity(id, entityClass)
+        context.liveCache.materializeEntity(id.asInstanceOf[Entity#ID], entityClass)
 }
 
-trait EntityContext extends ValueContext with TransactionContext with LazyListContext {
+trait EntityContext
+        extends ValueContext
+        with TransactionContext
+        with LazyListContext
+        with EntityIdContext {
     this: ActivateContext =>
 
     EntityHelper.initialize(this.getClass)
@@ -299,8 +305,6 @@ trait EntityContext extends ValueContext with TransactionContext with LazyListCo
     type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.EntityMap[E]
     type MutableEntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
-    type UUID = net.fwbrasil.activate.entity.UUID
-    type CustomID[ID] = net.fwbrasil.activate.entity.CustomID[ID]
 
     protected def liveCacheType = CacheType.softReferences
 

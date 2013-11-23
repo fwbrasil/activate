@@ -19,7 +19,7 @@ import net.fwbrasil.activate.util.GraphUtil.CyclicReferenceException
 import scala.annotation.implicitNotFound
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
-import net.fwbrasil.activate.entity.UUID
+import net.fwbrasil.activate.entity.id.UUID
 
 class StorageVersion(
     val contextName: String,

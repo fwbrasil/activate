@@ -56,7 +56,7 @@ import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.activate.migration.ModifyColumnType
 import net.fwbrasil.activate.entity.EncoderEntityValue
 import net.fwbrasil.activate.entity.EntityHelper
-import net.fwbrasil.activate.entity.EntityId
+import net.fwbrasil.activate.entity.id.EntityId
 
 object Marshaller {
 

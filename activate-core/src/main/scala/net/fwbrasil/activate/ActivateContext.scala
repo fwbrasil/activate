@@ -28,7 +28,8 @@ import net.fwbrasil.activate.util.Reflection
 import java.util.concurrent.ConcurrentHashMap
 import net.fwbrasil.activate.index.MemoryIndexContext
 import net.fwbrasil.activate.index.ActivateIndexContext
-import net.fwbrasil.activate.entity.CustomID
+import net.fwbrasil.activate.entity.id.CustomID
+import net.fwbrasil.activate.entity.id.UUID
 
 trait UUIDByDefault {
     this: ActivateContext =>

@@ -21,7 +21,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.duration.Duration
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentHashMap
-import net.fwbrasil.activate.entity.UUID
+import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.util.ManifestUtil
 
 trait QueryContext extends StatementContext

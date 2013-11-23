@@ -9,6 +9,7 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
+import net.fwbrasil.activate.entity.id.UUID
 
 class String1MustNotBeEmpty extends Exception
 

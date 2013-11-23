@@ -2,25 +2,17 @@ package net.fwbrasil.activate.entity
 
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-object IdVar {
-    def generateId(entityClass: Class[_]) = {
-        val uuid = UUIDUtil.generateUUID
-        val classId = EntityHelper.getEntityClassHashId(entityClass)
-        uuid + "-" + classId
-    }
-}
-
-class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId: Any)
-        extends Var[Any](metadata, outerEntity, false) {
+class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId: Entity#ID)
+        extends Var[Entity#ID](metadata, outerEntity, false) {
 
     def this(metadata: EntityPropertyMetadata, outerEntity: Entity) =
-        this(metadata, outerEntity, IdVar.generateId(metadata.entityMetadata.entityClass))
+        this(metadata, outerEntity, outerEntity.context.nextIdFor(outerEntity.getClass))
 
-    super.put(Option(entityId))
+    super.putValue(entityId)
 
-    override def getValue() =
+    override def getValue =
         entityId
-
+    
     override def get =
         Some(entityId)
 
