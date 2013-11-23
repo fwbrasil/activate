@@ -56,12 +56,14 @@ trait EntityIdContext {
                 .getAllImplementorsNames(List(this.getClass, classOf[EntityId]), classOf[IdGenerator[_]])
                 .map(name => ActivateContext.loadClass(name))
                 .filter(clazz => !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface)
-                .map(_.newInstance.asInstanceOf[IdGenerator[Entity]])
-                .groupBy(_.entityClass.asInstanceOf[Class[Entity]])
+                .map(Reflection.getObjectOption(_).asInstanceOf[Option[IdGenerator[Entity]]])
+                .flatten.groupBy(_.entityClass.asInstanceOf[Class[Entity]])
                 .mapValues(_.head)
 
         val values =
             for (entityClass <- EntityHelper.allConcreteEntityClasses.toList) yield {
+                if(entityClass.getName.endsWith("ValidationEntity"))
+                    println(1)
                 val candidates =
                     generatorsByBaseEntityClass
                         .filterKeys(_.isAssignableFrom(entityClass))
@@ -83,11 +85,6 @@ trait EntityIdContext {
         generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[Entity]])
             .asInstanceOf[IdGenerator[E]]
 
-}
-
-abstract class IdGenerator[E <: Entity: Manifest] {
-    def entityClass = erasureOf[E]
-    def nextId(entityClass: Class[_]): E#ID
 }
 
 trait CustomID[T] {

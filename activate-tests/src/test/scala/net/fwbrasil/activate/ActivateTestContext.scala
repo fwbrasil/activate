@@ -1,5 +1,6 @@
 package net.fwbrasil.activate
 
+import net.fwbrasil.activate.sequence.IntSequenceEntity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.util.Reflection._
 import org.joda.time.DateTime
@@ -50,6 +51,8 @@ import net.fwbrasil.activate.cache.CacheType
 import net.liftweb.http.js.JE.Num
 import net.fwbrasil.activate.cache.CustomCache
 import scala.collection.immutable.HashSet
+import net.fwbrasil.activate.entity.id._
+import net.fwbrasil.activate.entity.TestValidationEntity
 
 case class DummySeriablizable(val string: String)
 
@@ -446,6 +449,12 @@ trait ActivateTestContext
                 transactionalCondition = true,
                 condition = _.dummy == true))
 
+    object testValidationEntityIdGenerator
+        extends SegmentedIdGenerator[TestValidationEntity](
+            IntSequenceEntity(
+                "testValidationEntityId",
+                step = 5))
+
     val indexActivateTestEntityByIntValue = memoryIndex[ActivateTestEntity].on(_.intValue)
 
     class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTestEntity] with UUID {
@@ -802,7 +811,7 @@ trait ActivateTestContext
         var length = 0
         @transient val transientValue = new Object
         @transient lazy val transientLazyValue = new Object
-        
+
         override def toString = s"ActivateTestEntity(id=$id)"
     }
 

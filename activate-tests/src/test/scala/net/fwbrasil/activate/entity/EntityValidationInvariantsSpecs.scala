@@ -13,14 +13,10 @@ import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.entity.id.CustomID
 import net.fwbrasil.activate.entity.id.IdGenerator
 import java.util.concurrent.atomic.AtomicInteger
+import net.fwbrasil.activate.entity.id.SegmentedIdGenerator
+import net.fwbrasil.activate.sequence._
 
 class String1MustNotBeEmpty extends Exception
-
-class TestValidationEntityIdGenerator extends IdGenerator[TestValidationEntity] {
-    val sequence = new AtomicInteger(0)
-    def nextId(entityClass: Class[_]) =
-        sequence.incrementAndGet
-}
 
 class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends Entity with CustomID[Int] {
     var string2 = "s2"
