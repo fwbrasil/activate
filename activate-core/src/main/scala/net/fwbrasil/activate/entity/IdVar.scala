@@ -8,13 +8,15 @@ class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId:
     def this(metadata: EntityPropertyMetadata, outerEntity: Entity) =
         this(metadata, outerEntity, outerEntity.context.nextIdFor(outerEntity.getClass))
 
-    super.putValue(entityId)
+    super.put(Option(entityId))
 
-    override def getValue =
+    override def getValue() =
         entityId
-    
+
     override def get =
         Some(entityId)
+
+    override def put(value: Option[Entity#ID]) = {}
 
     override protected def doInitialized[A](forWrite: Boolean)(f: => A): A =
         f

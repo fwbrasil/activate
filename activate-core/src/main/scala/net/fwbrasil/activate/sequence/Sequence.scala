@@ -4,12 +4,14 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.ActivateContext
 
-abstract class Sequence[T](implicit ctx: ActivateContext) {
+abstract class Sequence[T] {
+
+    private[activate] def context: ActivateContext
 
     val step: Int
 
     final def nextValue(step: Int) =
-        ctx.transactional(ctx.requiresNew) {
+        context.transactional(context.requiresNew) {
             _nextValue
         }
 
