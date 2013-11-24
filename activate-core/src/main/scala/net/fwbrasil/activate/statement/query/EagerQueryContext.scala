@@ -28,8 +28,6 @@ trait EagerQueryContext {
     implicit class EagerEntity[E <: Entity: Manifest](entity: => E)(implicit tval: (=> E) => StatementSelectValue) {
         def eager = {
             tval(entity) match {
-//                case value: StatementEntitySourcePropertyValue =>
-//                    fail(value)
                 case value: StatementEntitySourceValue[_] =>
                 	EagerQueryContext.setEager
                 case other =>

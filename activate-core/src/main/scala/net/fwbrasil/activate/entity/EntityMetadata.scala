@@ -150,7 +150,7 @@ class EntityMetadata(
     val idField =
         allFields.find(_.getName == "id").get
     def isEntityProperty(varField: Field) =
-        varField.getName.split('$').last != "_baseVar" //&& allMethods.find(_.getName == varField.getName).nonEmpty
+        varField.getName.split('$').last != "_baseVar"
     val propertiesMetadata =
         (for (varField <- varFields; if (isEntityProperty(varField)))
             yield new EntityPropertyMetadata(this, varField, allMethods, entityClass)).sortBy(_.name)

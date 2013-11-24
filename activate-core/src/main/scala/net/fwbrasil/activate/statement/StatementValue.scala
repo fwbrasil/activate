@@ -163,7 +163,6 @@ case class ListValue[V](val fList: () => List[V], val f: V => StatementSelectVal
 
 case class SimpleValue[V](val fAnyValue: () => V, val f: (Option[V]) => EntityValue[V]) extends StatementSelectValue {
     def anyValue = fAnyValue()
-    //	require(anyValue != null)
     def entityValue: EntityValue[V] = f(Option(anyValue))
     override def toString =
         if (anyValue == null)

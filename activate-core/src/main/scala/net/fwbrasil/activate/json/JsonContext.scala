@@ -9,8 +9,8 @@ trait JsonContext[J] {
     def createEntityFromJson[E <: Entity: Manifest](json: String): E
     def createEntityFromJson[E <: Entity: Manifest](json: J): E
 
-    def updateEntityFromJson[E <: Entity: Manifest](json: String, id: String): E
-    def updateEntityFromJson[E <: Entity: Manifest](json: J, id: String): E
+    def updateEntityFromJson[E <: Entity: Manifest](json: String, id: E#ID): E
+    def updateEntityFromJson[E <: Entity: Manifest](json: J, id: E#ID): E
     def updateEntityFromJson[E <: Entity: Manifest](json: String, entity: E): E
     def updateEntityFromJson[E <: Entity: Manifest](json: J, entity: E): E
     def updateEntityFromJson[E <: Entity: Manifest](json: String): E

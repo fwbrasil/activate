@@ -11,6 +11,7 @@ import net.fwbrasil.activate.serialization.Serializer
 import net.fwbrasil.activate.serialization.javaSerializer
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.util.Reflection
+import net.fwbrasil.activate.entity.id.EntityId
 
 abstract class EntityValue[V](val value: Option[V]) extends Serializable {
     def emptyValue: V

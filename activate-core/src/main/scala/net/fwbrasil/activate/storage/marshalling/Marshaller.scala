@@ -211,7 +211,7 @@ object Marshaller {
 
     def marshalling(column: Column[_]): StorageColumn =
         StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
-
+        
     def idMarshalling(entityId: Option[Entity#ID], entityClass: Class[_]): ReferenceStorageValue = {
         val idClass = EntityId.idClassFor(entityClass)
         val tval = EntityValue.tvalFunction[Entity#ID](idClass, classOf[Object])

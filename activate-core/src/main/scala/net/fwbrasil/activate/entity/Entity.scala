@@ -268,7 +268,7 @@ object Entity {
         set += entity
         ret
     }
-    def toStringRemoveSeen(entity: Entity) = //{}
+    def toStringRemoveSeen(entity: Entity) =
         toStringLoopSeen.get -= entity
 
 }
