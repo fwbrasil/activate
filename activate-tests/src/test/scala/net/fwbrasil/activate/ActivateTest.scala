@@ -23,6 +23,7 @@ import javax.swing.JFrame
 import javax.swing.JList
 import java.util.prefs.Preferences
 import net.fwbrasil.activate.entity.TestValidationEntity
+import net.fwbrasil.radon.ConcurrentTransactionException
 
 object runningFlag
 
@@ -240,16 +241,25 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
                     all[ShortNameEntity].foreach(_.delete)
                 }
                 val executors = this.executors(ctx)
-                for (executor <- executors) {
-                    clear
-                    f(executor)
-                    executor.finalizeExecution
-                    clear
-                }
+                for (executor <- executors)
+                    runWithRetry {
+                        clear
+                        f(executor)
+                        executor.finalizeExecution
+                        clear
+                    }
             } finally
                 stop
         }
         ok
+    }
+
+    private def runWithRetry(f: => Unit): Unit = {
+        try f
+        catch {
+            case e: ConcurrentTransactionException =>
+                runWithRetry(f)
+        }
     }
 
 }
