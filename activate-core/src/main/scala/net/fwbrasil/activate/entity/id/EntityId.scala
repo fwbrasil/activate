@@ -1,4 +1,4 @@
- package net.fwbrasil.activate.entity.id
+package net.fwbrasil.activate.entity.id
 
 import org.joda.time.DateTime
 import java.util.Date
@@ -13,8 +13,11 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.util.ManifestUtil._
 import java.lang.reflect.Modifier
 import net.fwbrasil.activate.entity.EntityMetadata
+import net.fwbrasil.scala.UnsafeLazy._
 import scala.reflect.runtime.universe.Type
 import net.fwbrasil.smirror._
+import scala.util.Try
+import java.lang.reflect.InvocationTargetException
 
 trait EntityId {
     this: Entity =>
@@ -49,41 +52,63 @@ trait EntityIdContext {
     type UUID = net.fwbrasil.activate.entity.id.UUID
     type CustomID[ID] = net.fwbrasil.activate.entity.id.CustomID[ID]
 
-    private val generatorsByConcreteEntityClass = {
+    private val generatorsByConcreteEntityClass =
+        unsafeLazy {
 
-        val generatorsByBaseEntityClass =
-            Reflection
-                .getAllImplementorsNames(List(this.getClass, classOf[EntityId]), classOf[IdGenerator[_]])
-                .map(name => ActivateContext.loadClass(name))
-                .filter(clazz => !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface)
-                .map(Reflection.getObjectOption(_).asInstanceOf[Option[IdGenerator[Entity]]])
-                .flatten.groupBy(_.entityClass.asInstanceOf[Class[Entity]])
-                .mapValues(_.head)
+            val generatorsByBaseEntityClass =
+                Reflection
+                    .getAllImplementorsNames(List(this.getClass, classOf[EntityId]), classOf[IdGenerator[_]])
+                    .map(name => ActivateContext.loadClass(name))
+                    .filter(clazz => !Modifier.isAbstract(clazz.getModifiers) && !clazz.isInterface)
+                    .filter(_.getConstructors.filter(c => !Modifier.isPrivate(c.getModifiers())).nonEmpty)
+                    .map { clazz =>
+                        (try clazz.newInstance
+                        catch {
+                            case e: InstantiationException =>
+                                val constructor =
+                                    clazz.getConstructors.toList.find { constructor =>
+                                        val params = constructor.getParameterTypes
+                                        params.size == 1 &&
+                                            params.head.isAssignableFrom(this.getClass)
+                                    }.getOrElse {
+                                        throw new IllegalStateException("Can't instantiate generator " + clazz)
+                                    }
+                                constructor.newInstance(this)
+                        }).asInstanceOf[IdGenerator[Entity]]
+                    }.groupBy(_.entityClass.asInstanceOf[Class[Entity]])
+                    .mapValues(_.head)
 
-        val values =
-            for (entityClass <- EntityHelper.allConcreteEntityClasses.toList) yield {
-                if(entityClass.getName.endsWith("ValidationEntity"))
-                    println(1)
-                val candidates =
-                    generatorsByBaseEntityClass
-                        .filterKeys(_.isAssignableFrom(entityClass))
-                val mostSpecific =
-                    candidates.keys.toList
-                        .sortWith((c1, c2) => c1.isAssignableFrom(c2)).lastOption.getOrElse {
-                            throw new IllegalStateException("Can't find a generator for entity class " + entityClass)
-                        }
-                entityClass -> candidates(mostSpecific)
-            }
+            val customIdClasses = EntityHelper.allConcreteEntityClasses.toList.filter(!classOf[UUID].isAssignableFrom(_))
 
-        values.toMap
-    }
+            val values =
+                for (entityClass <- customIdClasses) yield {
+                    if (entityClass.getName.endsWith("ValidationEntity"))
+                        println(1)
+                    val candidates =
+                        generatorsByBaseEntityClass
+                            .filterKeys(_.isAssignableFrom(entityClass))
+                    val mostSpecific =
+                        candidates.keys.toList
+                            .sortWith((c1, c2) => c1.isAssignableFrom(c2)).lastOption.getOrElse {
+                                throw new IllegalStateException("Can't find a generator for entity class " + entityClass)
+                            }
+                    entityClass -> candidates(mostSpecific)
+                }
+
+            values.toMap
+        }
 
     def nextIdFor[E <: Entity](entityClass: Class[E]) =
         idGeneratorFor(entityClass).nextId(entityClass).asInstanceOf[Entity#ID]
 
-    def idGeneratorFor[E <: Entity](entityClass: Class[E]): IdGenerator[E] =
-        generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[Entity]])
-            .asInstanceOf[IdGenerator[E]]
+    def idGeneratorFor[E <: Entity](entityClass: Class[E]): IdGenerator[E] = {
+        val generator =
+            if (classOf[UUID].isAssignableFrom(entityClass))
+                uuidGenerator
+            else
+                generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[Entity]])
+        generator.asInstanceOf[IdGenerator[E]]
+    }
 
 }
 
@@ -92,5 +117,5 @@ trait CustomID[T] {
 
     type ID = T
 
-    val id = null.asInstanceOf[T]
+    final val id = null.asInstanceOf[T]
 }

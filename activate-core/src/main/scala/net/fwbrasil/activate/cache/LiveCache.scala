@@ -105,7 +105,7 @@ class LiveCache(
 
     def delete(entityId: Entity#ID) =
         customCaches.foreach(_.remove(entityId))
-        
+
     def remove(entity: Entity): Unit =
         entityInstacesMap(entity.niceClass).remove(entity.id)
 
@@ -161,7 +161,9 @@ class LiveCache(
         import scala.collection.JavaConversions._
         val transaction = context.transactionManager.getRequiredActiveTransaction
         transaction.refsSnapshot.collect {
-            case (ref: Var[_], snapshot) if (snapshot.isWrite && entityClass.isAssignableFrom(ref.outerEntityClass)) =>
+            case (ref: Var[_], snapshot) if (
+                snapshot.isWrite && entityClass.isAssignableFrom(ref.outerEntityClass) &&
+                ref.outerEntity.isInitialized) =>
                 val entity = ref.outerEntity
                 entity.id -> entity.asInstanceOf[E]
         }.toMap

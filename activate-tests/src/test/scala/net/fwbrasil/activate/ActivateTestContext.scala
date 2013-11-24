@@ -449,7 +449,7 @@ trait ActivateTestContext
                 transactionalCondition = true,
                 condition = _.dummy == true))
 
-    object testValidationEntityIdGenerator
+    class TestValidationEntityIdGenerator
         extends SegmentedIdGenerator[TestValidationEntity](
             IntSequenceEntity(
                 "testValidationEntityId",

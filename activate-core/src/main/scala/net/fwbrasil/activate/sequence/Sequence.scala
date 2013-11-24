@@ -41,8 +41,10 @@ class IntSequenceEntity private[activate] (
 object IntSequenceEntity {
     def apply(sequenceName: String, step: Int = 1)(implicit ctx: ActivateContext) = {
         import ctx._
-        select[IntSequenceEntity].where(_.name :== sequenceName).headOption.getOrElse {
-            new IntSequenceEntity(sequenceName, step)
+        transactional(requiresNew) {
+            select[IntSequenceEntity].where(_.name :== sequenceName).headOption.getOrElse {
+                new IntSequenceEntity(sequenceName, step)
+            }
         }
     }
 }
