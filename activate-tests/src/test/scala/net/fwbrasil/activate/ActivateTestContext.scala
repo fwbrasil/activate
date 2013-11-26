@@ -53,6 +53,7 @@ import net.fwbrasil.activate.cache.CustomCache
 import scala.collection.immutable.HashSet
 import net.fwbrasil.activate.entity.id._
 import net.fwbrasil.activate.entity.TestValidationEntity
+import net.fwbrasil.activate.slick.SlickQueryContext
 
 case class DummySeriablizable(val string: String)
 
@@ -126,7 +127,7 @@ object memoryContext extends ActivateTestContext {
 }
 class MemoryActivateTestMigration extends ActivateTestMigration()(memoryContext)
 
-object mysqlContext extends ActivateTestContext {
+object mysqlContext extends ActivateTestContext with SlickQueryContext {
     System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
     System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
     System.getProperties.put("activate.storage.mysql.user", "root")
