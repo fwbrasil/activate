@@ -24,7 +24,12 @@ class EntityPropertyMetadata(
             .getOrElse(originalName)
     def findMethods(names: String*) =
         entityMethods.filter(m => names.contains(m.getName))
-    val getter = findMethods(javaName, originalName).filter(_.getParameterTypes.isEmpty).headOption.orNull
+    val getter = findMethods(javaName, originalName).filter(_.getParameterTypes.isEmpty).headOption.getOrElse {
+        if (name.head.isDigit)
+            null
+        else
+            throw new IllegalStateException(s"Can't find getter for $entityClass.$name. Maybe it should be declared as var or val.")
+    }
     val setter = findMethods(javaName + "_$eq", originalName + "_$eq").headOption.orNull
     val genericParameter = {
         if (getter == null)
