@@ -417,6 +417,11 @@ abstract class Migration(implicit val context: ActivateContext) {
         private[activate] def removeReference(columnName: String, referencedTable: String, constraintName: String): RemoveReference =
             addAction(RemoveReference(Migration.this, storage, nextNumber, name, columnName, referencedTable, constraintName))
 
+        def createNestedListTableOf[T](columnName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]): IfNotExistsBag = {
+            val defaultListTableName = EntityPropertyMetadata.listTableName(name, columnName)
+            createNestedListTableOf[T](columnName, defaultListTableName)
+        }
+            
         def createNestedListTableOf[T](columnName: String, listTableName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
             val addColumnAction = addColumn(_.column[List[T]](columnName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
             val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, idColumn, listTableName, Column("value", None)))

@@ -127,7 +127,7 @@ object EntityPropertyMetadata {
         nestedListNamesFor(metadata, property)
     }
 
-    private def listTableName(ownerTableName: String, listName: String) =
+    def listTableName(ownerTableName: String, listName: String) =
         ownerTableName + listName.capitalize
 }
 

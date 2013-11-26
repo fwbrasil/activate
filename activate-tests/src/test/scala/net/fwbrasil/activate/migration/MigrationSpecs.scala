@@ -617,7 +617,7 @@ class MigrationSpecs extends MigrationTest {
                     }) must throwA[IllegalStateException]
             }
 
-            "up" in {
+            "down" in {
                 migrationTest(
                     new TestMigration()(_) {
                         import context._
@@ -629,6 +629,29 @@ class MigrationSpecs extends MigrationTest {
                             }
                         }
                     }) must throwA[IllegalStateException]
+            }
+        }
+
+        "nested lists" in {
+
+            "default naming" in {
+                migrationTest(
+                    new TestMigration()(_) {
+                        import context._
+                        def up = {
+                            createTableForEntity[Num]
+                            table[Box]
+                                .createTable(
+                                    _.column[Box]("parent"),
+                                    _.column[String]("string"))
+                            table[Box]
+                                .createNestedListTableOf[Num]("contains")
+                        }
+                        override def validateUp =
+                            transactional {
+                                new Box(List(new Num(0)))
+                            }
+                    })
             }
         }
 
