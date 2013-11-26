@@ -55,7 +55,10 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
                     parameter =>
                         parameter.hasDefaultValue || availableProperties.contains(parameter.name)
                 })
-            val constructor = selected.onlyOne("More than one constructor found.")
+            val constructor =
+                selected.onlyOne(
+                    "There should be one and only one constructor available for the actual " +
+                        "entity map values. Found: " + selected)
             val values =
                 constructor.parameters.map {
                     parameter =>
