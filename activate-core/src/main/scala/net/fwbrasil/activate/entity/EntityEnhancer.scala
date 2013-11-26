@@ -153,10 +153,10 @@ object EntityEnhancer extends Logging {
 
     }
 
-    def enhancedEntityClasses(referenceClass: Class[_]) = synchronized {
+    def enhancedEntityClasses(classpathHints: List[Any]) = synchronized {
         val classPool = new ClassPool(false)
         classPool.appendClassPath(new ClassClassPath(this.getClass))
-        val (notLoaded, alreadyLoaded) = entityClassesNames(referenceClass).partition(!isLoaded(_))
+        val (notLoaded, alreadyLoaded) = entityClassesNames(classpathHints).partition(!isLoaded(_))
         val enhancedEntityClasses =
             notLoaded.map(enhance(_, classPool)).flatten
         val resolved =
@@ -186,8 +186,8 @@ object EntityEnhancer extends Logging {
             ActivateContext.loadClass(name).asInstanceOf[Class[Entity]]
         }
 
-    private def entityClassesNames(referenceClass: Class[_]) =
-        Reflection.getAllImplementorsNames(List(classOf[ActivateContext], referenceClass: Class[_]), classOf[Entity])
+    private def entityClassesNames(classpathHints: List[Any]) =
+        Reflection.getAllImplementorsNames(classpathHints ++ List(classOf[ActivateContext]), classOf[Entity])
 
     private def resolveDependencies(enhancedEntityClasses: Set[CtClass]) = {
         val tree = new DependencyTree(enhancedEntityClasses)

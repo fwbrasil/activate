@@ -53,7 +53,7 @@ object EntityId {
 trait EntityIdContext {
     this: ActivateContext =>
 
-    EntityHelper.initialize(this.getClass)
+    EntityHelper.initialize(classpathHints)
 
     type UUID = net.fwbrasil.activate.entity.id.UUID
     type CustomID[ID] = net.fwbrasil.activate.entity.id.CustomID[ID]
@@ -64,6 +64,10 @@ trait EntityIdContext {
     private var generatorsByConcreteEntityClass: UnsafeLazyItem[Map[Class[Entity], IdGenerator[Entity]]] = _
 
     reload
+    
+    private def classpathHints = List[Any](this.getClass) ++ entitiesPackages
+    
+    protected def entitiesPackages = List[String]()
 
     private def reload =
         generatorsByConcreteEntityClass =

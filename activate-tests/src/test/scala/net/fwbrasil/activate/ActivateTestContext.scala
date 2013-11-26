@@ -450,6 +450,8 @@ trait ActivateTestContext
                 transactionalCondition = true,
                 condition = _.dummy == true))
 
+    override protected def entitiesPackages = List("customPackage")
+
     class TestValidationEntityIdGenerator
         extends SegmentedIdGenerator[TestValidationEntity](
             IntSequenceEntity(

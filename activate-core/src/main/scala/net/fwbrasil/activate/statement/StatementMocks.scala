@@ -97,8 +97,9 @@ object StatementMocks {
             throw new IllegalStateException(
                 "Can't find a concrete class for " + entityClass + ".\n" +
                     "Maybe the context isn't initialized or you must override acceptEntity on your context.\n" +
-                    "Important: The context definition must be declared in a base package of the entities packages.\n" +
-                    "Example: com.app.myContext for com.app.model.MyEntity")
+                    "The context definition must be declared in a base package of the entities packages or " + 
+                    " the entitiesPackages method must be overriden on your ActivateContext to specify which packages" + 
+                    " should be scanned for entities.")
         }
         val entity = newInstance(concreteClass)
         val entityMetadata = entity.entityMetadata

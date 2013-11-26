@@ -96,13 +96,16 @@ object Reflection {
 
     val reflectionsCache = MutableHashMap[Set[Object], Reflections]()
 
-    private def reflectionsHints(classes: List[Class[_]]) =
-        (classes.map {
-            clazz =>
-                if (clazz.getPackage == null)
+    private def reflectionsHints(classpathHints: List[Any]) =
+        (classpathHints.map {
+            _ match {
+                case clazz: Class[_] if(clazz.getPackage == null) =>
                     clazz.getClassLoader
-                else
+                case clazz: Class[_] =>
                     clazz.getPackage.getName
+                case packag: String =>
+                    packag
+            }
         }).toSet
 
     private def reflectionsFor(hints: Set[Object]) =
@@ -110,8 +113,8 @@ object Reflection {
             reflectionsCache.getOrElseUpdate(hints, new Reflections(hints.toArray[Object]))
         }
 
-    def getAllImplementorsNames(pointsOfView: List[Class[_]], interfaceClass: Class[_]) = {
-        val hints = reflectionsHints(pointsOfView ++ List(interfaceClass))
+    def getAllImplementorsNames(classpathHints: List[Any], interfaceClass: Class[_]) = {
+        val hints = reflectionsHints(classpathHints ++ List(interfaceClass))
         val reflections = reflectionsFor(hints)
         val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
         Set(subtypes: _*).asInstanceOf[Set[String]]

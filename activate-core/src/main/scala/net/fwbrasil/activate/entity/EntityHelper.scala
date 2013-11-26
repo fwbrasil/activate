@@ -36,11 +36,11 @@ object EntityHelper {
             ) yield metadata.entityClass
         }.toList.asInstanceOf[List[Class[Entity]]])
 
-    def initialize(referenceClass: Class[_]): Unit =
+    def initialize(classpathHints: List[Any]): Unit =
         synchronized {
             UUIDUtil.generateUUID
-            EntityValue.registerEncodersFor(referenceClass)
-            for (entityClass <- EntityEnhancer.enhancedEntityClasses(referenceClass))
+            EntityValue.registerEncodersFor(classpathHints)
+            for (entityClass <- EntityEnhancer.enhancedEntityClasses(classpathHints))
                 if (!entityClass.isInterface()) {
                     val entityClassHashId = getEntityClassHashId(entityClass)
                     val entityName = getEntityName(entityClass)

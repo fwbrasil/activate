@@ -145,9 +145,9 @@ object EntityValue extends ValueContext {
     private val encoders =
         MutableMap[Class[_], Encoder[Any, Any]]()
 
-    def registerEncodersFor(referenceClass: Class[_]) = {
+    def registerEncodersFor(classpathHints: List[Any]) = {
         val encoders =
-            Reflection.getAllImplementorsNames(List(referenceClass), classOf[Encoder[_, _]])
+            Reflection.getAllImplementorsNames(classpathHints, classOf[Encoder[_, _]])
                 .map(name => ActivateContext.loadClass(name))
                 .map(_.newInstance.asInstanceOf[Encoder[Any, Any]])
         for (encoder <- encoders)
