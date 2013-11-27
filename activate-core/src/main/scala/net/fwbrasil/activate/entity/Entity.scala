@@ -262,7 +262,7 @@ object Entity {
     
     private[activate] def deferReadValidationFor(duration: Duration, entity: Entity) =
         if (duration.isFinite)
-            entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
+            !entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
         else
             false
 

@@ -10,6 +10,7 @@ import net.fwbrasil.activate.multipleVms.JvmFork
 import net.fwbrasil.activate.postgresqlContext
 import org.joda.time.DateTimeUtils
 import org.joda.time.DateTime
+import scala.concurrent.duration._
 
 object readValidationContext extends ActivateContext {
     object versionMigration extends ManualMigration {
@@ -40,13 +41,15 @@ import readValidationContext._
 @RunWith(classOf[JUnitRunner])
 class ReadValidationSpecs extends SpecificationWithJUnit with Serializable {
 
+    override def intToRichLong(v: Int) = ???
+
     args.execute(threadsNb = 1)
 
     val optimisticOfflineLockingOption = "-Dactivate.offlineLocking.enable=true"
     val optimisticOfflineLockingValidateReadOption = "-Dactivate.offlineLocking.validateReads=true"
 
     "The read validation" should {
-        
+
         "maintain the lastVersionValidation" in {
 
             "on create" in fork {
@@ -62,7 +65,7 @@ class ReadValidationSpecs extends SpecificationWithJUnit with Serializable {
                 transactional(entity.intValue = 2)
                 require(entity.lastVersionValidation.equals(DateTime.now))
             }
-            
+
             "on delete" in fork {
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
@@ -70,7 +73,7 @@ class ReadValidationSpecs extends SpecificationWithJUnit with Serializable {
                 transactional(entity.delete)
                 require(entity.lastVersionValidation.equals(DateTime.now))
             }
-            
+
             "on read validation" in fork {
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
@@ -80,13 +83,59 @@ class ReadValidationSpecs extends SpecificationWithJUnit with Serializable {
                 require(entity.lastVersionValidation.equals(DateTime.now))
             }
         }
-        
-        "perform deferred read validation" in fork {
+
+        "defer read validation for 1 milis" in fork {
             setTime(1)
             val entity = transactional(new ReadValidationEntity(0))
-            ReadValidationEntity.shouldValidateRead = () => Entity.deferReadValidationFor(10l, entity)
+            deferReadValidationFor(1 millis, entity)
+            require(!entity.shouldValidateRead)
+            setTime(2)
+            require(entity.shouldValidateRead)
+        }
+
+        "defer read validation for the infinite" in fork {
+            setTime(1)
+            val entity = transactional(new ReadValidationEntity(0))
+            deferReadValidationFor(Duration.Inf, entity)
+            require(!entity.shouldValidateRead)
+            setTime(2000)
+            require(!entity.shouldValidateRead)
+        }
+
+        "reload the entity if necessary" in fork {
+            val oldValue = 0
+            val newValue = 1
+            setTime(1)
+            val entity = transactional(new ReadValidationEntity(0))
+            ReadValidationEntity.shouldValidateRead = () => true
+            modifyEntityOnDatabase(entity.id, newValue)
+            require(transactional(entity.intValue) == newValue)
+        }
+
+        "reload the entity if necessary after the deferred read time" in fork {
+            val oldValue = 0
+            val newValue = 1
+            setTime(1)
+            val entity = transactional(new ReadValidationEntity(0))
+            val entityId = entity.id
+            modifyEntityOnDatabase(entity.id, newValue)
+            deferReadValidationFor(1 millis, entity)
+            require(transactional(entity.intValue) == oldValue)
+            setTime(2)
+            require(transactional(entity.intValue) == newValue)
         }
     }
+
+    def modifyEntityOnDatabase(entityId: String, value: Int) = {
+        val con = readValidationContext.storage.directAccess
+        con.prepareStatement(s"UPDATE ReadValidationEntity SET version = version + 1, intValue = $value WHERE ID = '$entityId'")
+            .executeUpdate
+        con.commit
+        con.close
+    }
+
+    def deferReadValidationFor(duration: Duration, entity: Entity) =
+        ReadValidationEntity.shouldValidateRead = () => Entity.deferReadValidationFor(duration, entity)
 
     def setTime(milis: Long) =
         DateTimeUtils.setCurrentMillisFixed(milis)
