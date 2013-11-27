@@ -145,7 +145,7 @@ trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     case class OneTransaction(ctx: ActivateTestContext) extends StepExecutor {
         import ctx._
-        val transaction = new Transaction
+        lazy val transaction = new Transaction
         def apply[A](s: => A): A = execute {
             transactional(transaction) {
                 s

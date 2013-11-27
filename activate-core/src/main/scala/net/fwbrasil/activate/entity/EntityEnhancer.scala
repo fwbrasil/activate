@@ -68,7 +68,8 @@ object EntityEnhancer extends Logging {
             !isScalaVariable(field) &&
             !isValidEntityField(field) &&
             !isStatic(field) &&
-            field.getName != "_varsMap"
+            field.getName != "_varsMap" &&
+            field.getName != "lastVersionValidation"
 
     def removeLazyValueValue(fieldsToEnhance: Array[CtField]) = {
         val lazyValueValueSuffix = "Value"

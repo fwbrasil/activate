@@ -230,7 +230,8 @@ object Reflection {
                 clazz,
                 getDeclaredFieldsIncludingSuperClasses(res.getClass)
                     .filter(field => !Modifier.isTransient(field.getModifiers) &&
-                        field.getName.startsWith("bitmap$") && field.getType == classOf[Byte]))
+                        field.getName.startsWith("bitmap$") && 
+                        valuesMap.contains(field.getType)))
         for (field <- fields) {
             field.setAccessible(true)
             field.set(res, valuesMap(field.getType))

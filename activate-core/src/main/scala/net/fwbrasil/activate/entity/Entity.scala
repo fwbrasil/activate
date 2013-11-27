@@ -23,6 +23,7 @@ import net.fwbrasil.activate.entity.map.EntityMap
 import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.entity.id.EntityId
 import net.fwbrasil.activate.entity.id.EntityIdContext
+import scala.concurrent.duration.Duration
 
 trait Entity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
@@ -219,6 +220,14 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
         varNamed(name).getOriginalValue.getOrElse(null).asInstanceOf[T]
     }
 
+    var lastVersionValidation = DateTime.now
+
+    protected def deferFor(duration: Duration) =
+        Entity.deferReadValidationFor(duration, this)
+
+    def shouldValidateRead: Boolean =
+        context.shouldValidateRead(this)
+
     private[activate] def addToLiveCache =
         context.liveCache.toCache(this)
 
@@ -250,6 +259,12 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
 }
 
 object Entity {
+    
+    private[activate] def deferReadValidationFor(duration: Duration, entity: Entity) =
+        if (duration.isFinite)
+            entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
+        else
+            false
 
     var serializeUsingEvelope = true
     @transient

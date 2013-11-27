@@ -29,6 +29,8 @@ import scala.concurrent.Future
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.cache.CustomCache
+import org.joda.time.DateTime
+import scala.concurrent.duration.Duration
 
 class ActivateConcurrentTransactionException(
     val entitiesIds: Set[(Entity#ID, Class[Entity])],
@@ -73,7 +75,9 @@ trait DurableContext {
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
             validateTransactionEnd(transaction, entities)
-            store(statements.toList, inserts, updates, deletes, entitiesRead -- entities)
+            val entitiesReadOnly = entitiesRead -- entities
+            store(statements.toList, inserts, updates, deletes, entitiesReadOnly)
+            (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = DateTime.now)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -107,7 +111,9 @@ trait DurableContext {
             val deletesEntities = deletes.keys.toList
             val entities = insertsEntities ++ updatesEntities ++ deletesEntities
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
-                storeAsync(statements.toList, inserts, updates, deletes, entitiesRead -- entities).map { _ =>
+                val entitiesReadOnly = entitiesRead -- entities
+                storeAsync(statements.toList, inserts, updates, deletes, entitiesReadOnly).map { _ =>
+                    (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = DateTime.now)
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -201,13 +207,22 @@ trait DurableContext {
         val (insertStatementsNormalized, updateStatementsNormalized) = normalize(modifyAssignments).partition(tuple => !tuple._1.isPersisted)
         (insertStatementsNormalized, updateStatementsNormalized, deleteAssignmentsNormalized)
     }
+    
+    protected def deferFor(duration: Duration)(entity: Entity) =
+        Entity.deferReadValidationFor(duration, entity)
+
+    def shouldValidateRead(entity: Entity) =
+        true
 
     private def entitiesReadVersions(transaction: Transaction) =
         if (OptimisticOfflineLocking.validateReads) {
             val vars = transaction.reads.asInstanceOf[ListBuffer[Var[Any]]].filter(_.isMutable)
-    		val result = new IdentityHashMap[Entity, Long]
+            val result = new IdentityHashMap[Entity, Long]
             if (!vars.isEmpty) {
-                val entitiesRead = vars.map(_.outerEntity).map(e => e.id -> e).toMap
+                val entitiesRead =
+                    vars.map(_.outerEntity)
+                        .filter(_.shouldValidateRead)
+                        .map(e => e.id -> e).toMap
                 val nestedTransaction = new NestedTransaction(transaction)
                 transactional(nestedTransaction) {
                     for ((id, entity) <- entitiesRead) {
