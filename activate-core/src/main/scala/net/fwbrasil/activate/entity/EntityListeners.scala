@@ -18,6 +18,9 @@ trait EntityListeners {
     protected def afterInitialize = {}
     protected def beforeDelete = {}
     protected def afterDelete = {}
+    def beforeInsert = {}
+    def beforeUpdate = {}
+    def beforeInsertOrUpdate = {}
 
     protected class On(val vars: List[Var[Any]]) {
         def change(f: => Unit): RefListener[_] = {

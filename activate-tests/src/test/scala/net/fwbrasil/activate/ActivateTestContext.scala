@@ -797,6 +797,9 @@ trait ActivateTestContext
         override protected def afterInitialize = ActivateTestEntity.lifecycleCallback("afterInitialize")
         override protected def beforeDelete = ActivateTestEntity.lifecycleCallback("beforeDelete")
         override protected def afterDelete = ActivateTestEntity.lifecycleCallback("afterDelete")
+        override def beforeInsert = ActivateTestEntity.lifecycleCallback("beforeInsert")
+        override def beforeUpdate = ActivateTestEntity.lifecycleCallback("beforeUpdate")
+        override def beforeInsertOrUpdate = ActivateTestEntity.lifecycleCallback("beforeInsertOrUpdate")
 
         def onModifyFloat =
             on(_.floatValue).change {

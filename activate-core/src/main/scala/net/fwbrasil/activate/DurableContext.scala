@@ -31,6 +31,7 @@ import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.cache.CustomCache
 import org.joda.time.DateTime
 import scala.concurrent.duration.Duration
+import scala.annotation.tailrec
 
 class ActivateConcurrentTransactionException(
     val entitiesIds: Set[(Entity#ID, Class[Entity])],
@@ -61,6 +62,30 @@ trait DurableContext {
                 .toList.asInstanceOf[List[Entity]]
         if (entities.nonEmpty)
             updateIndexes(inserts = List(), entities, deletes = List())
+    }
+
+    override def beforeCommit(transaction: Transaction): Unit =
+        if (!transaction.transient)
+            beforeCommit(transaction, List())
+
+    private def beforeCommit(transaction: Transaction, seenEntities: List[Entity#ID]): Unit = {
+        import scala.collection.JavaConversions._
+        def assignments =
+            transaction.refsSnapshot.values
+                .filter(snap => snap.isWrite && !snap.destroyedFlag)
+                .map(_.ref.asInstanceOf[Var[Any]].outerEntity)
+                .groupBy(System.identityHashCode)
+                .mapValues(_.head)
+                .values.toList
+        val writes = assignments
+        val entitiesMap = writes.groupBy(_.id).mapValues(_.head)
+        val entities = entitiesMap.filterKeys(!seenEntities.contains(_)).values
+        entities.foreach(_.beforeInsertOrUpdate)
+        val (persistedEntities, newEntities) = entities.partition(_.isPersisted)
+        persistedEntities.foreach(_.beforeUpdate)
+        newEntities.foreach(_.beforeInsert)
+        if (writes != assignments)
+            beforeCommit(transaction, entities.map(_.id).toList)
     }
 
     override def makeDurable(transaction: Transaction): Unit = {
@@ -207,7 +232,7 @@ trait DurableContext {
         val (insertStatementsNormalized, updateStatementsNormalized) = normalize(modifyAssignments).partition(tuple => !tuple._1.isPersisted)
         (insertStatementsNormalized, updateStatementsNormalized, deleteAssignmentsNormalized)
     }
-    
+
     protected def deferFor(duration: Duration)(entity: Entity) =
         Entity.deferReadValidationFor(duration, entity)
 

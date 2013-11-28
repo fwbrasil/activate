@@ -20,8 +20,7 @@ class EntityListenersSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     if (step.ctx != memoryContext &&
-                        (step.isInstanceOf[MultipleTransactionsWithReinitialize] ||
-                            step.isInstanceOf[MultipleTransactionsWithReinitializeAndSnapshot])) {
+                        step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
                         var events = List[String]()
                         ActivateTestEntity.lifecycleCallback =
                             (event: String) => events ++= List(event)
@@ -29,16 +28,20 @@ class EntityListenersSpecs extends ActivateTest {
                             newEmptyActivateTestEntity.id
                         }
                         step {
-                            val entity = all[ActivateTestEntity].onlyOne
-                            entity.intValue
-                            entity.delete
+                            all[ActivateTestEntity].onlyOne.intValue = 2131
+                        }
+                        step {
+                            all[ActivateTestEntity].onlyOne.delete
                         }
                         step {
                             events.startsWith(List(
-                                "beforeConstruct", "insideConstructor",
-                                "afterConstruct", "beforeInitialize",
-                                "afterInitialize", "beforeDelete",
-                                "afterDelete")) must beTrue
+                                "beforeConstruct", "insideConstructor", "afterConstruct",
+                                "beforeInsertOrUpdate", "beforeInsert", "beforeInitialize",
+                                "afterInitialize", "beforeInsertOrUpdate", "beforeUpdate",
+                                "beforeInsertOrUpdate", "beforeUpdate", "beforeDelete",
+                                "beforeInitialize", "afterInitialize", "afterDelete",
+                                "beforeDelete", "afterDelete"
+                            )) must beTrue
                         }
                     }
                 })
