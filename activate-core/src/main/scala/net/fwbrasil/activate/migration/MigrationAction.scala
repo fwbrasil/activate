@@ -177,7 +177,7 @@ case class AddIndex(
     storage: Storage[_],
     number: Int,
     tableName: String,
-    columnName: String,
+    columns: List[String],
     indexName: String,
     unique: Boolean)
         extends StorageAction
@@ -189,7 +189,7 @@ case class AddIndex(
                 storage,
                 number,
                 tableName,
-                columnName,
+                columns,
                 indexName,
                 unique)
         if (onlyIfNotExists)
@@ -203,7 +203,7 @@ case class RemoveIndex(
     storage: Storage[_],
     number: Int,
     tableName: String,
-    columnName: String,
+    columns: List[String],
     name: String,
     unique: Boolean)
         extends StorageAction
@@ -214,7 +214,7 @@ case class RemoveIndex(
                 migration, storage,
                 number,
                 tableName,
-                columnName,
+                columns,
                 name,
                 unique)
         if (onlyIfExists)

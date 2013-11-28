@@ -201,12 +201,14 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 coll(action.tableName).update(BSONDocument(), dbObject(update))
             case action: StorageAddIndex =>
                 val manager = coll(action.tableName).indexesManager
+                val columns = action.columns.map((_, IndexType.Ascending))
                 val future = manager.ensure(
-                    Index(Seq((action.columnName, IndexType.Ascending)), unique = action.unique))
+                    Index(columns, unique = action.unique))
                 await(future)
             case action: StorageRemoveIndex =>
                 val manager = coll(action.tableName).indexesManager
-                manager.delete(Index(Seq((action.columnName, IndexType.Ascending))))
+                val columns = action.columns.map((_, IndexType.Ascending))
+                manager.delete(Index(columns))
             case action: StorageModifyColumnType =>
             // Do nothing!
             case action: StorageAddReference =>

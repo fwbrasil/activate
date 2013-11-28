@@ -402,10 +402,22 @@ abstract class Migration(implicit val context: ActivateContext) {
             addAction(ModifyColumnType(Migration.this, storage, nextNumber, name, definition))
         }
 
+        @deprecated("Use addIndex(indexName: String, unique: Boolean = false)(columns: String*)", "1.5")
         def addIndex(columnName: String, indexName: String, unique: Boolean = false): AddIndex =
-            addAction(AddIndex(Migration.this, storage, nextNumber, name, columnName, indexName, unique))
+            addIndex(indexName, unique)(columnName)
+
+        @deprecated("Use removeIndex(indexName: String, unique: Boolean = false)(columns: String*)", "1.5")
         def removeIndex(columnName: String, indexName: String, unique: Boolean = false): RemoveIndex =
-            addAction(RemoveIndex(Migration.this, storage, nextNumber, name, columnName, indexName, unique))
+            removeIndex(indexName, unique)(columnName)
+
+        def addIndex(indexName: String)(columns: String*): AddIndex =
+            addIndex(indexName: String, unique = false)(columns: _*)
+        def addIndex(indexName: String, unique: Boolean)(columns: String*): AddIndex =
+            addAction(AddIndex(Migration.this, storage, nextNumber, name, columns.toList, indexName, unique))
+        def removeIndex(indexName: String)(columns: String*): RemoveIndex =
+            removeIndex(indexName, unique = false)(columns: _*)
+        def removeIndex(indexName: String, unique: Boolean)(columns: String*): RemoveIndex =
+            addAction(RemoveIndex(Migration.this, storage, nextNumber, name, columns.toList, indexName, unique))
 
         def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference =
             addReference(columnName, referencedTable.name, constraintName)
@@ -421,7 +433,7 @@ abstract class Migration(implicit val context: ActivateContext) {
             val defaultListTableName = EntityPropertyMetadata.listTableName(name, columnName)
             createNestedListTableOf[T](columnName, defaultListTableName)
         }
-            
+
         def createNestedListTableOf[T](columnName: String, listTableName: String)(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
             val addColumnAction = addColumn(_.column[List[T]](columnName)(manifest[List[T]], EntityValue.toListEntityValueOption(_)(manifest[T], tval)))
             val addTableAction = addAction(CreateListTable(Migration.this, storage, nextNumber, name, idColumn, listTableName, Column("value", None)))

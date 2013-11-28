@@ -387,7 +387,7 @@ class MigrationSpecs extends MigrationTest {
 
         "AddIndex" in {
 
-            "Table.addIndexes" in
+            "Table.adIndex" in
                 migrationTest(
                     new TestMigration()(_) {
                         import context._
@@ -406,8 +406,29 @@ class MigrationSpecs extends MigrationTest {
                         def up =
                             table[TraitAttribute1].addIndex("attribute", "att_idx").ifNotExists
                     })
+            
+            
+            "Table.adIndex (multiple columns)" in
+                migrationTest(
+                    new TestMigration()(_) {
+                        import context._
+                        def up = {
+                            createTableForEntity[TraitAttribute1]
+                            table[TraitAttribute1].addIndex("att_idx")("attribute", "dummy")
+                            table[TraitAttribute1].addIndex("att_idx")("attribute", "dummy").ifNotExists
+                        }
+                        override def down = {}
+                        override def validateUp = {
+                            transactional(new TraitAttribute1("a"))
+                        }
+                    },
+                    new TestMigration()(_) {
+                        import context._
+                        def up =
+                            table[TraitAttribute1].addIndex("att_idx")("attribute", "dummy").ifNotExists
+                    })
 
-            "Table.addIndexes (unique)" in
+            "Table.addIndex (unique)" in
                 migrationTest(
                     new TestMigration()(_) {
                         import context._

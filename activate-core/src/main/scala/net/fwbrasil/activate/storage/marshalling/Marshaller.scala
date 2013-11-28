@@ -197,9 +197,9 @@ object Marshaller {
             case action: RemoveColumn =>
                 StorageRemoveColumn(action.tableName, action.name, action.onlyIfExists)
             case action: AddIndex =>
-                StorageAddIndex(action.tableName, action.columnName, action.indexName, action.onlyIfNotExists, action.unique)
+                StorageAddIndex(action.tableName, action.columns, action.indexName, action.onlyIfNotExists, action.unique)
             case action: RemoveIndex =>
-                StorageRemoveIndex(action.tableName, action.columnName, action.name, action.onlyIfExists)
+                StorageRemoveIndex(action.tableName, action.columns, action.name, action.onlyIfExists)
             case action: AddReference =>
                 StorageAddReference(action.tableName, action.columnName, action.referencedTable, action.constraintName, action.onlyIfNotExists)
             case action: RemoveReference =>
@@ -247,7 +247,7 @@ case class StorageCreateListTable(
     val addOwnerIndexAction = 
         StorageAddIndex(
                 listTableName, 
-                "owner", 
+                List("owner"), 
                 "own_idx_" + listTableName, 
                 ifNotExists, 
                 unique = false)
@@ -297,7 +297,7 @@ case class StorageRemoveColumn(
 
 case class StorageAddIndex(
     tableName: String,
-    columnName: String,
+    columns: List[String],
     indexName: String,
     ifNotExists: Boolean,
     unique: Boolean)
@@ -305,7 +305,7 @@ case class StorageAddIndex(
 
 case class StorageRemoveIndex(
     tableName: String,
-    columnName: String,
+    columns: List[String],
     name: String,
     ifExists: Boolean)
         extends ModifyStorageAction

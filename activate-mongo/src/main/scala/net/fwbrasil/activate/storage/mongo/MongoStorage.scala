@@ -244,17 +244,16 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 coll(action.tableName).update(new BasicDBObject, dbObject(update))
             case action: StorageAddIndex =>
                 val obj = new BasicDBObject
-                obj.put(action.columnName, 1)
+                action.columns.foreach(obj.put(_, 1))
                 val options = new BasicDBObject
+                options.put("name", action.indexName)
                 if (action.unique)
                     options.put("unique", true)
-                if (!action.ifNotExists || !collHasIndex(action.tableName, action.columnName))
+                if (!action.ifNotExists || !collHasIndex(action.tableName, action.indexName))
                     coll(action.tableName).ensureIndex(obj, options)
             case action: StorageRemoveIndex =>
-                val obj = new BasicDBObject
-                obj.put(action.columnName, 1)
-                if (!action.ifExists || collHasIndex(action.tableName, action.columnName))
-                    coll(action.tableName).dropIndex(obj)
+                if (!action.ifExists || collHasIndex(action.tableName, action.name))
+                    coll(action.tableName).dropIndex(action.name)
             case action: StorageModifyColumnType =>
             // Do nothing!
             case action: StorageAddReference =>
@@ -267,8 +266,8 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
             // Do nothing!
         }
 
-    private def collHasIndex(name: String, column: String) =
-        coll(name).getIndexInfo().find(_.containsField(name)).nonEmpty
+    private def collHasIndex(name: String, indexName: String) =
+        coll(name).getIndexInfo().find(_.get("name") == indexName).isDefined
 
     private def limitQueryIfNecessary(query: Query[_], ret: DBCursor) =
         query match {

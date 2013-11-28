@@ -123,8 +123,8 @@ class oracleDialect(pEscape: String => String, pNormalize: String => String) ext
                 "ALTER TABLE " + escape(tableName) + " MODIFY " + escape(column.name) + " " + columnType(column)
             case StorageRemoveColumn(tableName, name, ifExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
-            case StorageAddIndex(tableName, columnName, indexName, ifNotExists, unique) =>
-                "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + escape(columnName) + ")"
+            case StorageAddIndex(tableName, columns, indexName, ifNotExists, unique) =>
+                "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " + escape(indexName) + " ON " + escape(tableName) + " (" + columns.map(escape).mkString(",") + ")"
             case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
                 "DROP INDEX " + escape(name)
             case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
