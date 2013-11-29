@@ -180,6 +180,8 @@ trait HikariWithoutUrl {
 
 trait SqlIdiom extends QlIdiom {
 
+    def SQL2003 = false
+
     def supportsLimitedQueries = true
 
     def supportsRegex = true
@@ -232,11 +234,15 @@ trait SqlIdiom extends QlIdiom {
                 setValue(ps, (v: BigDecimal) => ps.setBigDecimal(i, v.bigDecimal), i, value.value, Types.BIGINT)
             case value: ByteArrayStorageValue =>
                 setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BINARY)
-            case value: ListStorageValue =>
+            case value: ListStorageValue if !SQL2003 =>
                 if (value.value.isDefined)
                     ps.setInt(i, 1)
                 else
                     ps.setInt(i, 0)
+            case value: ListStorageValue if SQL2003 =>
+                setValue(ps, (v: List[AnyRef]) => ps.setArray(i,
+                  ps.getConnection.createArrayOf(toSqlDdl(value.emptyStorageValue), v.toArray)),
+                  i, value.value, Types.ARRAY)
             case value: ReferenceStorageValue =>
                 setValue(ps, i, value.value)
         }
@@ -384,6 +390,5 @@ trait SqlIdiom extends QlIdiom {
             case value: ReferenceStorageValue =>
                 toValue(value.value)
         }
-
 }
 
