@@ -32,9 +32,9 @@ class EntitySerializationSpecs extends ActivateTest {
                     import step.ctx._
                     val serialized =
                         step {
-                            Entity.serializeUsingEvelope = false
+                            BaseEntity.serializeUsingEvelope = false
                             val res = javaSerializer.toSerialized(newEmptyActivateTestEntity)
-                            Entity.serializeUsingEvelope = true
+                            BaseEntity.serializeUsingEvelope = true
                             res
                         }
                     step {

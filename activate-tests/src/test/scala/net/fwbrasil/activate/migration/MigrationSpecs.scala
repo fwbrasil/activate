@@ -7,7 +7,6 @@ import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
-import net.fwbrasil.activate.entity.Entity
 import java.util.NoSuchElementException
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.polyglotContext

@@ -424,7 +424,7 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext with UUIDByDefault {
+        extends StoppableActivateContext {
 
     override val milisToWaitBeforeRetry = 1
 
@@ -479,7 +479,7 @@ trait ActivateTestContext
 
     override def executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
-    override protected[activate] def entityMaterialized(entity: net.fwbrasil.activate.entity.Entity) =
+    override protected[activate] def entityMaterialized(entity: net.fwbrasil.activate.entity.BaseEntity) =
         if (entity.getClass.getDeclaringClass == classOf[ActivateTestContext])
             Reflection.set(entity, "$outer", this)
 

@@ -8,7 +8,6 @@ import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.polyglotContext
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.asyncMongoContext
 

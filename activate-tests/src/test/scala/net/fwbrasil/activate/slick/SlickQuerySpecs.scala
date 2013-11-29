@@ -4,7 +4,6 @@ import org.junit.runner._
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.memoryContext
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.slick.direct.Queryable

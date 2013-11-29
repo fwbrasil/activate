@@ -2,13 +2,11 @@ package net.fwbrasil.activate.multipleVms
 
 import net.fwbrasil.activate.StoppableActivateContext
 import net.fwbrasil.activate.postgresqlContext
-import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.migration.ManualMigration
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.asyncMongoContext
-import net.fwbrasil.activate.UUIDByDefault
 
-trait MultiVMContext extends StoppableActivateContext with UUIDByDefault {
+trait MultiVMContext extends StoppableActivateContext {
 
     override val milisToWaitBeforeRetry = 0
     override val retryLimit = Int.MaxValue

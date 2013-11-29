@@ -318,8 +318,8 @@ trait EntityContext
     type MutableEntityMap[E <: BaseEntity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
     
-    type Entity = BaseEntity with UUID
-    type EntityWithCustomID[ID] = BaseEntity with CustomID[ID]
+    trait Entity extends BaseEntity with UUID
+    trait EntityWithCustomID[ID] extends BaseEntity with CustomID[ID]
 
     protected def liveCacheType = CacheType.softReferences
 

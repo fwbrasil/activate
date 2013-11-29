@@ -8,7 +8,7 @@ import net.fwbrasil.activate.memoryContext
 import net.fwbrasil.activate.util.RichList._
 import spray.json._
 import DefaultJsonProtocol._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import org.joda.time.DateTime
 import net.fwbrasil.activate.asyncPostgresqlContext
 import net.fwbrasil.activate.postgresqlContext
@@ -26,11 +26,11 @@ class Event(
     val internalId: String,
     val singleTerms: List[String],
     val compoundTerms: List[String],
-    var boundingBoxes: List[BoundingBox]) extends Entity with UUID
+    var boundingBoxes: List[BoundingBox]) extends BaseEntity with UUID
 
-class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends Entity with UUID
+class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends BaseEntity with UUID
 
-case class GeoData(latitude: Float, longitude: Float) extends Entity with UUID
+case class GeoData(latitude: Float, longitude: Float) extends BaseEntity with UUID
 
 @RunWith(classOf[JUnitRunner])
 class SprayJsonSpecs extends ActivateTest {

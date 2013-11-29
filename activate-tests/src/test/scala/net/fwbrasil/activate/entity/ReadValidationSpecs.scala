@@ -28,7 +28,7 @@ object readValidationContext extends ActivateContext {
     versionMigration.execute
 }
 
-class ReadValidationEntity(var intValue: Int) extends Entity with UUID {
+class ReadValidationEntity(var intValue: Int) extends BaseEntity with UUID {
     override def shouldValidateRead = ReadValidationEntity.shouldValidateRead()
 }
 
@@ -134,8 +134,8 @@ class ReadValidationSpecs extends SpecificationWithJUnit with Serializable {
         con.close
     }
 
-    def deferReadValidationFor(duration: Duration, entity: Entity) =
-        ReadValidationEntity.shouldValidateRead = () => Entity.deferReadValidationFor(duration, entity)
+    def deferReadValidationFor(duration: Duration, entity: BaseEntity) =
+        ReadValidationEntity.shouldValidateRead = () => BaseEntity.deferReadValidationFor(duration, entity)
 
     def setTime(milis: Long) =
         DateTimeUtils.setCurrentMillisFixed(milis)
