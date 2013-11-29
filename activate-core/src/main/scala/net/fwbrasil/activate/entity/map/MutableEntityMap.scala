@@ -7,6 +7,8 @@ class MutableEntityMap[E <: Entity] private[activate] (var _values: Map[String, 
     implicit val m: Manifest[E], val context: ActivateContext)
         extends EntityMapBase[E, MutableEntityMap[E]] {
 
+    verifyValuesTypes
+
     def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
         this(entity.vars.map(ref =>
             (ref.name, EntityMapBase.varToValue(ref))).toMap)

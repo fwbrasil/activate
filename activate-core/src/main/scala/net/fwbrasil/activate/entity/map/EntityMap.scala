@@ -14,6 +14,8 @@ import net.fwbrasil.activate.entity.Var
 class EntityMap[E <: Entity] private[activate] (val _values: Map[String, Any])(
     implicit val m: Manifest[E], val context: ActivateContext)
         extends EntityMapBase[E, EntityMap[E]] {
+    
+    verifyValuesTypes
 
     def this(entity: E)(implicit m: Manifest[E], context: ActivateContext) =
         this(entity.vars.map(ref =>

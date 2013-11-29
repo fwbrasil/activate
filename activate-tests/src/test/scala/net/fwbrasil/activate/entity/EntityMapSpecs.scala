@@ -181,19 +181,19 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
-        
-         "support initialize using a query" in {
-                activateTest(
-                    (step: StepExecutor) => {
-                        import step.ctx._
-                        step {
-                            newEmptyActivateTestEntity
-                            val map = new EntityMap[ActivateTestEntity](_.entityValue -> ActivateTestEntity.all.head)
-                            map.get(_.entityValue).get === ActivateTestEntity.all.head // throws a ClassCast before the fix
-                        }
-                    })
-            }
-        
+
+        "support initialize using a query" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newEmptyActivateTestEntity
+                        val map = new EntityMap[ActivateTestEntity](_.entityValue -> ActivateTestEntity.all.head)
+                        map.get(_.entityValue).get === ActivateTestEntity.all.head // throws a ClassCast before the fix
+                    }
+                })
+        }
+
         "create entity using the constructor" in {
 
             "with all parameters" in {
@@ -258,7 +258,18 @@ class EntityMapSpecs extends ActivateTest {
                         }
                     })
             }
-            
+
+        }
+
+        "have a proper error message for invalid arguments" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        new EntityMap[TestValidationEntity](_.option -> 213, _.string1 -> "a") must throwA[IllegalStateException]
+                    }
+                })
+
         }
 
     }

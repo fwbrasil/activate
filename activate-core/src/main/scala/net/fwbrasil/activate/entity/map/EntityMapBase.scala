@@ -13,6 +13,7 @@ import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.smirror.SConstructor
 import net.fwbrasil.smirror.SClass
+import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
 trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
@@ -114,6 +115,47 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
     private val entityClass = erasureOf[E]
     private val entityMetadata = EntityHelper.getEntityMetadata(entityClass)
+    private val properties = entityMetadata.propertiesMetadata.groupBy(_.name).mapValues(_.head)
+
+    protected def verifyValuesTypes =
+        for ((propertyName, value) <- values)
+            try {
+                val property = propertyNamed(propertyName)
+                val propertyType = typeFor(property.propertyType)
+                if (property.isOption)
+                    value match {
+                        case None =>
+                        case Some(value) =>
+                            propertyType.cast(value)
+                        case other =>
+                            classOf[Option[Any]].cast(other)
+                    }
+                else
+                    propertyType.cast(value)
+            } catch {
+                case e: ClassCastException =>
+                    throw new IllegalStateException(s"Invalid value '$value' for property '$propertyName'", e)
+            }
+
+    private def propertyNamed(propertyName: String) =
+        properties.get(propertyName)
+            .getOrElse(throw new IllegalStateException(s"Invalid property $propertyName. $this"))
+
+    private def typeFor(clazz: Class[_]) =
+        if (clazz == classOf[Int])
+            classOf[java.lang.Integer]
+        else if (clazz == classOf[Long])
+            classOf[java.lang.Long]
+        else if (clazz == classOf[Float])
+            classOf[java.lang.Float]
+        else if (clazz == classOf[Double])
+            classOf[java.lang.Double]
+        else if (clazz == classOf[Char])
+            classOf[java.lang.Character]
+        else if (clazz == classOf[Boolean])
+            classOf[java.lang.Boolean]
+        else
+            clazz
 
 }
 
