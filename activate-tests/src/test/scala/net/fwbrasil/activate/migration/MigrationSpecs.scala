@@ -308,6 +308,15 @@ class MigrationSpecs extends MigrationTest {
                         }
                     })
 
+            "Table.addColumns(Option) fails" in
+                migrationTest(
+                    new TestMigration()(_) {
+                        import context._
+                        def up = {
+                            table[ActivateTestEntity].createTable(
+                                _.column[Option[String]]("optionValue")) must throwA[IllegalStateException]
+                        }
+                    })
         }
 
         "RenameColumn" in {
@@ -406,8 +415,7 @@ class MigrationSpecs extends MigrationTest {
                         def up =
                             table[TraitAttribute1].addIndex("attribute", "att_idx").ifNotExists
                     })
-            
-            
+
             "Table.adIndex (multiple columns)" in
                 migrationTest(
                     new TestMigration()(_) {

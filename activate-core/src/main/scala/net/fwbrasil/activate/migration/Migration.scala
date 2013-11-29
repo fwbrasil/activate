@@ -230,6 +230,8 @@ abstract class Migration(implicit val context: ActivateContext) {
         private[activate] def definitions =
             _definitions.toList
         private def buildColumn[T](name: String, customTypeNameOption: Option[String])(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
+            if(m.erasure == classOf[Option[_]])
+                throw new IllegalStateException("Don't use Option[T] for column migration, use T directly.")
             val column = Column[T](name, customTypeNameOption)
             _definitions ++= List(column)
             column
