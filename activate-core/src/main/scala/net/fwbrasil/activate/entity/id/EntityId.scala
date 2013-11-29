@@ -3,7 +3,7 @@ package net.fwbrasil.activate.entity.id
 import org.joda.time.DateTime
 import java.util.Date
 import java.lang.reflect.ParameterizedType
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper
 import scala.Array.canBuildFrom
 import net.fwbrasil.activate.util.uuid.UUIDUtil
@@ -19,9 +19,10 @@ import net.fwbrasil.smirror._
 import scala.util.Try
 import java.lang.reflect.InvocationTargetException
 import net.fwbrasil.activate.entity.EntityValue
+import net.fwbrasil.activate.entity.BaseEntity
 
 trait EntityId {
-    this: Entity =>
+    this: BaseEntity =>
 
     type ID
 
@@ -46,7 +47,7 @@ object EntityId {
 
     def idTvalFunctionFor(entityClass: Class[_]) = {
         val idClass = EntityId.idClassFor(entityClass)
-        EntityValue.tvalFunction[Entity#ID](idClass, classOf[Object])
+        EntityValue.tvalFunction[BaseEntity](idClass, classOf[Object])
     }
 }
 
@@ -61,7 +62,7 @@ trait EntityIdContext {
     protected def reinitializeIdGenerators =
         reload
 
-    private var generatorsByConcreteEntityClass: UnsafeLazyItem[Map[Class[Entity], IdGenerator[Entity]]] = _
+    private var generatorsByConcreteEntityClass: UnsafeLazyItem[Map[Class[BaseEntity], IdGenerator[BaseEntity]]] = _
 
     reload
     
@@ -92,8 +93,8 @@ trait EntityIdContext {
                                             throw new IllegalStateException("Can't instantiate generator " + clazz)
                                         }
                                     constructor.newInstance(this)
-                            }).asInstanceOf[IdGenerator[Entity]]
-                        }.groupBy(_.entityClass.asInstanceOf[Class[Entity]])
+                            }).asInstanceOf[IdGenerator[BaseEntity]]
+                        }.groupBy(_.entityClass.asInstanceOf[Class[BaseEntity]])
                         .mapValues(_.head)
 
                 val customIdClasses = EntityHelper.allConcreteEntityClasses.toList.filter(!classOf[UUID].isAssignableFrom(_))
@@ -116,22 +117,22 @@ trait EntityIdContext {
                 values.toMap
             }
 
-    def nextIdFor[E <: Entity](entityClass: Class[E]) =
-        idGeneratorFor(entityClass).nextId(entityClass).asInstanceOf[Entity#ID]
+    def nextIdFor[E <: BaseEntity](entityClass: Class[E]) =
+        idGeneratorFor(entityClass).nextId(entityClass).asInstanceOf[BaseEntity#ID]
 
-    def idGeneratorFor[E <: Entity](entityClass: Class[E]): IdGenerator[E] = {
+    def idGeneratorFor[E <: BaseEntity](entityClass: Class[E]): IdGenerator[E] = {
         val generator =
             if (classOf[UUID].isAssignableFrom(entityClass))
                 uuidGenerator
             else
-                generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[Entity]])
+                generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[BaseEntity]])
         generator.asInstanceOf[IdGenerator[E]]
     }
 
 }
 
 trait CustomID[T] {
-    this: Entity =>
+    this: BaseEntity =>
 
     type ID = T
 

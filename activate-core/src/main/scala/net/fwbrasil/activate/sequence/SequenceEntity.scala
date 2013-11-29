@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.sequence
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.id.UUID
 
@@ -9,7 +9,7 @@ abstract class SequenceEntity[T] private[activate] (
     val step: Int)(
         implicit ctx: ActivateContext)
         extends Sequence[T]
-        with Entity
+        with BaseEntity
         with UUID
 
 class IntSequenceEntity private[activate] (

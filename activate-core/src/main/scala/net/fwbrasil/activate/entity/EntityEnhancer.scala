@@ -32,7 +32,7 @@ object EntityEnhancer extends Logging {
 
     val varClassName = classOf[Var[_]].getName
     val idVarClassName = classOf[IdVar].getName
-    val entityClassName = classOf[Entity].getName
+    val entityClassName = classOf[BaseEntity].getName
     val entityClassFieldPrefix = entityClassName.replace(".", "$")
     val scalaVariablesPrefixes = Array("$outer", "bitmap$init$")
     val entityValidationFields = Array("listeners", "invariants", "listener")
@@ -179,16 +179,16 @@ object EntityEnhancer extends Logging {
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
         for (enhancedEntityClass <- resolved) yield 
-        enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[Entity]]
+        enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[BaseEntity]]
     }
 
     private def getClasses(names: Set[String]) =
         for (name <- names) yield {
-            ActivateContext.loadClass(name).asInstanceOf[Class[Entity]]
+            ActivateContext.loadClass(name).asInstanceOf[Class[BaseEntity]]
         }
 
     private def entityClassesNames(classpathHints: List[Any]) =
-        Reflection.getAllImplementorsNames(classpathHints ++ List(classOf[ActivateContext]), classOf[Entity])
+        Reflection.getAllImplementorsNames(classpathHints ++ List(classOf[ActivateContext]), classOf[BaseEntity])
 
     private def resolveDependencies(enhancedEntityClasses: Set[CtClass]) = {
         val tree = new DependencyTree(enhancedEntityClasses)

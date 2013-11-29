@@ -4,7 +4,7 @@ import scala.annotation.implicitNotFound
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
@@ -17,11 +17,11 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 trait MarshalStorage[T] extends Storage[T] {
 
     override protected[activate] def toStorage(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, EntityValue[Any]])],
-        updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])]) =
+        insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])]) =
         store(
             readList,
             statements,
@@ -30,11 +30,11 @@ trait MarshalStorage[T] extends Storage[T] {
             marshalling(deleteList))
 
     override protected[activate] def toStorageAsync(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, EntityValue[Any]])],
-        updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
         storeAsync(
             readList,
             statements,
@@ -42,41 +42,41 @@ trait MarshalStorage[T] extends Storage[T] {
             marshalling(updateList),
             marshalling(deleteList))
 
-    private def marshalling(list: List[(Entity, Map[String, EntityValue[Any]])]) =
+    private def marshalling(list: List[(BaseEntity, Map[String, EntityValue[Any]])]) =
         list.map(tuple => (tuple._1, tuple._2.mapValues(Marshaller.marshalling(_)) + ("id" -> Marshaller.idMarshalling(Some(tuple._1.id), tuple._1.niceClass))))
         
     protected[activate] def store(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle]
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]): Option[TransactionHandle]
 
     protected[activate] def storeAsync(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
         blockingFuture(store(readList, statements, insertList, updateList, deleteList).map(_.commit))
 
     override def fromStorage(
-        queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] = {
+        queryInstance: Query[_], entitiesReadFromCache: List[List[BaseEntity]]): List[List[EntityValue[_]]] = {
         val (entityValues, expectedTypes) = prepareQuery(queryInstance)
         val lines = query(queryInstance, expectedTypes, entitiesReadFromCache)
         mapLines(lines, entityValues)
     }
 
     override protected[activate] def fromStorageAsync(
-        queryInstance: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] = {
+        queryInstance: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] = {
         val (entityValues, expectedTypes) = prepareQuery(queryInstance)
         queryAsync(queryInstance, expectedTypes, entitiesReadFromCache)
             .map(mapLines(_, entityValues))
     }
 
-    protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]]
+    protected[activate] def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]]): List[List[StorageValue]]
 
-    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] =
+    protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] =
         blockingFuture(this.query(query, expectedTypes, entitiesReadFromCache))
 
     override protected[activate] def migrate(action: StorageAction): Unit =

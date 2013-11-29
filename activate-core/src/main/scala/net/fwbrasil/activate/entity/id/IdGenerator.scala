@@ -1,18 +1,18 @@
 package net.fwbrasil.activate.entity.id
 
 import net.fwbrasil.activate.sequence._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.ManifestUtil._
 import scala.math.Numeric
 import net.fwbrasil.activate.ActivateContext
 import scala.annotation.tailrec
 
-abstract class IdGenerator[E <: Entity: Manifest] {
+abstract class IdGenerator[E <: BaseEntity: Manifest] {
     def entityClass = erasureOf[E]
     def nextId(entityClass: Class[_]): E#ID
 }
 
-abstract class SegmentedIdGenerator[E <: Entity: Manifest](
+abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
     val sequence: Sequence[E#ID])(
         implicit n: Numeric[E#ID])
         extends IdGenerator[E] {

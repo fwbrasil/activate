@@ -13,7 +13,7 @@ object EntityHelper {
         MutableMap[String, EntityMetadata]()
 
     private[this] val concreteEntityClasses =
-        MutableMap[Class[_ <: Entity], List[Class[Entity]]]()
+        MutableMap[Class[_ <: BaseEntity], List[Class[BaseEntity]]]()
 
     def clearMetadatas = {
         entitiesMetadatas.clear
@@ -28,13 +28,13 @@ object EntityHelper {
         concreteEntityClasses.values.flatten.toSet
     }
 
-    def concreteClasses[E <: Entity](clazz: Class[E]) =
+    def concreteClasses[E <: BaseEntity](clazz: Class[E]) =
         concreteEntityClasses.getOrElseUpdate(clazz, {
             for (
                 (hash, metadata) <- entitiesMetadatas;
                 if ((clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)) && metadata.entityClass.isConcreteClass)
             ) yield metadata.entityClass
-        }.toList.asInstanceOf[List[Class[Entity]]])
+        }.toList.asInstanceOf[List[Class[BaseEntity]]])
 
     def initialize(classpathHints: List[Any]): Unit =
         synchronized {

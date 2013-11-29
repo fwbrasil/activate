@@ -1,9 +1,9 @@
 package net.fwbrasil.activate.entity.map
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.ActivateContext
 
-class MutableEntityMap[E <: Entity] private[activate] (var _values: Map[String, Any])(
+class MutableEntityMap[E <: BaseEntity] private[activate] (var _values: Map[String, Any])(
     implicit val m: Manifest[E], val context: ActivateContext)
         extends EntityMapBase[E, MutableEntityMap[E]] {
 

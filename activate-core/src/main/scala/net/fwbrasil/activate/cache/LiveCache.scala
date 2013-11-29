@@ -67,7 +67,7 @@ import scala.collection.concurrent.TrieMap
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
 import CacheType._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.In
 import net.fwbrasil.activate.statement.ListValue
@@ -76,7 +76,7 @@ import net.fwbrasil.activate.statement.NotIn
 class LiveCache(
         val context: ActivateContext,
         cacheType: CacheType,
-        customCaches: List[CustomCache[_]]) extends Logging {
+        customCaches: List[CustomCache[BaseEntity]]) extends Logging {
 
     info("Initializing live cache for context " + context.contextName)
 
@@ -84,7 +84,7 @@ class LiveCache(
 
     val cache =
         EntityHelper.allConcreteEntityClasses
-            .map((_, cacheType.mapMaker.makeMap[Any, Entity]))
+            .map((_, cacheType.mapMaker.makeMap[Any, BaseEntity]))
             .toMap
 
     def reinitialize =
@@ -93,42 +93,42 @@ class LiveCache(
             customCaches.foreach(_.clear)
         }
 
-    def byId[E <: Entity: Manifest](id: Entity#ID): Option[E] =
+    def byId[E <: BaseEntity: Manifest](id: BaseEntity#ID): Option[E] =
         Option(entityInstacesMap[E].get(id))
 
-    def contains[E <: Entity](entity: E) =
+    def contains[E <: BaseEntity](entity: E) =
         entityInstacesMap(entity.getClass)
             .containsKey(entity.id)
 
-    def delete(entity: Entity): Unit =
+    def delete(entity: BaseEntity): Unit =
         delete(entity.id)
 
-    def delete(entityId: Entity#ID) =
+    def delete(entityId: BaseEntity#ID) =
         customCaches.foreach(_.remove(entityId))
 
-    def remove(entity: Entity): Unit =
+    def remove(entity: BaseEntity): Unit =
         entityInstacesMap(entity.niceClass).remove(entity.id)
 
-    def toCache[E <: Entity](entity: E): E =
+    def toCache[E <: BaseEntity](entity: E): E =
         toCache(entity.niceClass, entity)
 
-    def toCache[E <: Entity](entityClass: Class[E], entity: E): E = {
+    def toCache[E <: BaseEntity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
         entity
     }
 
-    def fromCache[E <: Entity](entityClass: Class[E]) = {
+    def fromCache[E <: BaseEntity](entityClass: Class[E]) = {
         import scala.collection.JavaConversions._
         val map = entityInstacesMap(entityClass)
         map.values.toList.filter(_.isInitialized)
     }
 
-    def entityInstacesMap[E <: Entity: Manifest]: ConcurrentMap[Any, E] =
+    def entityInstacesMap[E <: BaseEntity: Manifest]: ConcurrentMap[Any, E] =
         entityInstacesMap(manifestToClass(manifest[E]))
 
-    def entityInstacesMap[E <: Entity](entityClass: Class[E]): ConcurrentMap[Any, E] = {
-        cache(entityClass.asInstanceOf[Class[Entity]])
+    def entityInstacesMap[E <: BaseEntity](entityClass: Class[E]): ConcurrentMap[Any, E] = {
+        cache(entityClass.asInstanceOf[Class[BaseEntity]])
     }.asInstanceOf[ConcurrentMap[Any, E]]
 
     def executeMassModification(statement: MassModificationStatement) = {
@@ -140,7 +140,7 @@ class LiveCache(
 
     def entitiesFromCache[S](query: Query[S]) = {
         val isMemoryStorage = storageFor(query).isMemoryStorage
-        val dirtyEntities = dirtyEntitiesFromTransaction(classOf[Entity])
+        val dirtyEntities = dirtyEntitiesFromTransaction(classOf[BaseEntity])
         if (isMemoryStorage || dirtyEntities.nonEmpty) {
             val entities =
                 entitySourceInstancesCombined(query.from)
@@ -157,7 +157,7 @@ class LiveCache(
             (List(), List())
     }
 
-    def dirtyEntitiesFromTransaction[E <: Entity](entityClass: Class[E]) = {
+    def dirtyEntitiesFromTransaction[E <: BaseEntity](entityClass: Class[E]) = {
         import scala.collection.JavaConversions._
         val transaction = context.transactionManager.getRequiredActiveTransaction
         transaction.refsSnapshot.collect {
@@ -169,12 +169,12 @@ class LiveCache(
         }.toMap
     }
 
-    def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[Entity]]) =
+    def entitiesFromStorage[S](query: Query[S], entitiesReadFromCache: List[List[BaseEntity]]) =
         materializeLines(
             storageFor(query)
                 .fromStorage(query, entitiesReadFromCache))
 
-    private def entitiesFromStorageAsync[S](query: Query[S], entitiesReadFromCache: List[List[Entity]])(implicit texctx: TransactionalExecutionContext) =
+    private def entitiesFromStorageAsync[S](query: Query[S], entitiesReadFromCache: List[List[BaseEntity]])(implicit texctx: TransactionalExecutionContext) =
         storageFor(query)
             .fromStorageAsync(query, entitiesReadFromCache)(texctx)
             .map(materializeLines)(texctx)
@@ -182,9 +182,9 @@ class LiveCache(
     def materialize(value: EntityValue[_]) =
         value match {
             case value: ReferenceListEntityValue[_] =>
-                value.value.map(_.map(_.flatMap(id => context.byId(id)(value.m.asInstanceOf[Manifest[Entity]])).orNull)).orNull
+                value.value.map(_.map(_.flatMap(id => context.byId(id)(value.m.asInstanceOf[Manifest[BaseEntity]])).orNull)).orNull
             case value: EntityInstanceReferenceValue[_] =>
-                value.value.flatMap(id => context.byId(id, value.entityClass.asInstanceOf[Class[Entity]])).orNull
+                value.value.flatMap(id => context.byId(id, value.entityClass.asInstanceOf[Class[BaseEntity]])).orNull
             case other: EntityValue[_] =>
                 other.value.getOrElse(null)
         }
@@ -234,7 +234,7 @@ class LiveCache(
         }(context.ectx)
     }
 
-    def materializeEntity(entityId: Entity#ID, entityClass: Class[Entity]): Entity = {
+    def materializeEntity(entityId: BaseEntity#ID, entityClass: Class[BaseEntity]): BaseEntity = {
         val map = entityInstacesMap(entityClass)
         val entity = map.get(entityId)
         if (entity == null) {
@@ -251,7 +251,7 @@ class LiveCache(
             entity
     }
 
-    private def synchronizeOn[R](entityId: Entity#ID)(f: => R) =
+    private def synchronizeOn[R](entityId: BaseEntity#ID)(f: => R) =
         entityId match {
             case entityId: String =>
                 entityId.intern.synchronized(f)
@@ -259,12 +259,12 @@ class LiveCache(
                 entityId.synchronized(f)
         }
 
-    def materializeEntity(entityId: String): Entity = {
+    def materializeEntity(entityId: String): BaseEntity = {
         val entityClass = EntityHelper.getEntityClassFromId(entityId)
-        materializeEntity(entityId.asInstanceOf[Entity#ID], entityClass)
+        materializeEntity(entityId.asInstanceOf[BaseEntity#ID], entityClass)
     }
 
-    private def initializeLazyEntityProperties[E <: Entity](entity: E, entityMetadata: EntityMetadata) =
+    private def initializeLazyEntityProperties[E <: BaseEntity](entity: E, entityMetadata: EntityMetadata) =
         for (propertyMetadata <- entityMetadata.propertiesMetadata) {
             val typ = propertyMetadata.propertyType
             val field = propertyMetadata.varField
@@ -272,13 +272,13 @@ class LiveCache(
             field.set(entity, ref)
         }
 
-    private def initalizeLazyEntityId[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Entity#ID) = {
+    private def initalizeLazyEntityId[E <: BaseEntity](entity: E, entityMetadata: EntityMetadata, entityId: BaseEntity#ID) = {
         val idField = entityMetadata.idField
         val ref = new IdVar(entityMetadata.idPropertyMetadata, entity, entityId)
         idField.set(entity, ref)
     }
 
-    private def initalizeLazyEntity[E <: Entity](entity: E, entityMetadata: EntityMetadata, entityId: Entity#ID) =
+    private def initalizeLazyEntity[E <: BaseEntity](entity: E, entityMetadata: EntityMetadata, entityId: BaseEntity#ID) =
         transactional(transient) {
             initializeLazyEntityProperties(entity, entityMetadata)
             initalizeLazyEntityId(entity, entityMetadata, entityId)
@@ -289,7 +289,7 @@ class LiveCache(
             entity.initializeListeners
         }
 
-    def createLazyEntity[E <: Entity](entityClass: Class[E], entityId: Entity#ID) = {
+    def createLazyEntity[E <: BaseEntity](entityClass: Class[E], entityId: BaseEntity#ID) = {
         val entity = newInstance[E](entityClass)
         val entityMetadata = entity.entityMetadata
         initalizeLazyEntity(entity, entityMetadata, entityId)
@@ -297,18 +297,18 @@ class LiveCache(
         entity
     }
 
-    def reloadEntities(ids: Set[(Entity#ID, Class[Entity])]) =
-        (for ((id, clazz) <- ids) yield byId[Entity](id)(manifestClass(clazz)))
+    def reloadEntities(ids: Set[(BaseEntity#ID, Class[BaseEntity])]) =
+        (for ((id, clazz) <- ids) yield byId[BaseEntity](id)(manifestClass(clazz)))
             .flatten.map(_.reloadFromDatabase)
 
-    def executePendingMassStatements(entity: Entity) =
+    def executePendingMassStatements(entity: BaseEntity) =
         for (statement <- context.currentTransactionStatements)
             if (statement.from.entitySources.onlyOne.entityClass == entity.getClass) {
                 val entities = List(List(entity))
                 executeMassModificationWithEntitySources(statement, entities)
             }
 
-    def initializeEntityIfNecessary[E <: Entity: Manifest](values: Map[String, Any]) = {
+    def initializeEntityIfNecessary[E <: BaseEntity: Manifest](values: Map[String, Any]) = {
         val id = values("id").asInstanceOf[E#ID]
         val entity = context.byId[E](id).get
         entity.synchronized {
@@ -321,7 +321,7 @@ class LiveCache(
         entity
     }
 
-    def loadFromDatabase(entity: Entity): Unit = {
+    def loadFromDatabase(entity: BaseEntity): Unit = {
         loadRowFromDatabase(entity).map {
             val vars = entity.vars.toList.filter(p => !p.isTransient)
             row => setEntityValues(entity, vars.zip(row).toMap)
@@ -332,7 +332,7 @@ class LiveCache(
         }
     }
 
-    def setEntityValues(entity: Entity, values: Map[Var[Any], Any]): Unit = {
+    def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {
         transactional(transient) {
             for ((ref, value) <- values)
                 ref.putValueWithoutInitialize(value)
@@ -340,19 +340,19 @@ class LiveCache(
         executePendingMassStatements(entity)
     }
 
-    def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[Entity]]): List[List[Any]] = {
+    def executeQueryWithEntitySources[S](query: Query[S], entitySourcesInstancesCombined: List[List[BaseEntity]]): List[List[Any]] = {
         val result = ListBuffer[List[Any]]()
         for (entitySourcesInstances <- entitySourcesInstancesCombined)
             result ++= executeQueryWithEntitySourcesMap(query, entitySourceInstancesMap(query.from, entitySourcesInstances))
         result.toList
     }
 
-    def executeMassModificationWithEntitySources[S](statement: MassModificationStatement, entitySourcesInstancesCombined: List[List[Entity]]) =
+    def executeMassModificationWithEntitySources[S](statement: MassModificationStatement, entitySourcesInstancesCombined: List[List[BaseEntity]]) =
         for (entitySourcesInstances <- entitySourcesInstancesCombined)
             executeMassModificationWithEntitySourcesMap(statement, entitySourceInstancesMap(statement.from, entitySourcesInstances))
 
-    def entitySourceInstancesMap(from: From, entitySourcesInstances: List[Entity]) = {
-        val result = ListBuffer[(EntitySource, Entity)]()
+    def entitySourceInstancesMap(from: From, entitySourcesInstances: List[BaseEntity]) = {
+        val result = ListBuffer[(EntitySource, BaseEntity)]()
         var i = 0
         for (entitySourceInstance <- entitySourcesInstances) {
             result += (from.entitySources(i) -> entitySourceInstance)
@@ -361,7 +361,7 @@ class LiveCache(
         result.toMap
     }
 
-    def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, Entity]): List[List[Any]] = {
+    def executeQueryWithEntitySourcesMap[S](query: Query[S], entitySourceInstancesMap: Map[EntitySource, BaseEntity]): List[List[Any]] = {
         val satisfyWhere = executeCriteria(query.where.valueOption)(entitySourceInstancesMap)
         if (satisfyWhere) {
             List(executeSelect[S](query.select.values: _*)(entitySourceInstancesMap))
@@ -369,7 +369,7 @@ class LiveCache(
             List[List[Any]]()
     }
 
-    def executeMassModificationWithEntitySourcesMap[S](statement: MassModificationStatement, entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
+    def executeMassModificationWithEntitySourcesMap[S](statement: MassModificationStatement, entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Unit = {
         val satisfyWhere = executeCriteria(statement.where.valueOption)(entitySourceInstancesMap)
         if (satisfyWhere)
             statement match {
@@ -380,14 +380,14 @@ class LiveCache(
             }
     }
 
-    def executeSelect[S](values: StatementSelectValue*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): List[Any] = {
+    def executeSelect[S](values: StatementSelectValue*)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): List[Any] = {
         val list = ListBuffer[Any]()
         for (value <- values)
             list += executeStatementSelectValue(value)
         list.toList
     }
 
-    def executeUpdateAssignment[S](updateAssignments: UpdateAssignment*)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Unit = {
+    def executeUpdateAssignment[S](updateAssignments: UpdateAssignment*)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Unit = {
         for (assignment <- updateAssignments) {
             val valueToSet = executeStatementValue(assignment.value)
             assignment.assignee match {
@@ -402,7 +402,7 @@ class LiveCache(
         }
     }
 
-    def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+    def executeCriteria(criteriaOption: Option[Criteria])(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean =
         criteriaOption match {
             case Some(criteria: Criteria) =>
                 executeCriteria(criteria)
@@ -410,7 +410,7 @@ class LiveCache(
                 true
         }
 
-    def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+    def executeCriteria(criteria: Criteria)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean =
         criteria match {
             case criteria: BooleanOperatorCriteria =>
                 executeBooleanOperatorCriteria(criteria)
@@ -420,7 +420,7 @@ class LiveCache(
                 executeCompositeOperatorCriteria(criteria)
         }
 
-    def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean = {
+    def executeCompositeOperatorCriteria(criteria: CompositeOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean = {
         val a = executeStatementValue(criteria.valueA)
         val b = executeStatementValue(criteria.valueB)
         criteria.operator match {
@@ -469,7 +469,7 @@ class LiveCache(
 
     def valueForEquals(a: Any) =
         a match {
-            case entity: Entity =>
+            case entity: BaseEntity =>
                 entity.id
             case instant: AbstractInstant =>
                 instant.getMillis
@@ -477,7 +477,7 @@ class LiveCache(
                 other
         }
 
-    def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+    def executeSimpleOperatorCriteria(criteria: SimpleOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean =
         criteria.operator match {
             case operator: IsNull =>
                 executeStatementValue(criteria.valueA) == null
@@ -485,7 +485,7 @@ class LiveCache(
                 executeStatementValue(criteria.valueA) != null
         }
 
-    def executeBooleanOperatorCriteria(criteria: BooleanOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+    def executeBooleanOperatorCriteria(criteria: BooleanOperatorCriteria)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean =
         criteria.operator match {
             case operator: And =>
                 executeStatementBooleanValue(criteria.valueA) && executeStatementBooleanValue(criteria.valueB)
@@ -493,7 +493,7 @@ class LiveCache(
                 executeStatementBooleanValue(criteria.valueA) || executeStatementBooleanValue(criteria.valueB)
         }
 
-    def executeStatementBooleanValue(value: StatementBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Boolean =
+    def executeStatementBooleanValue(value: StatementBooleanValue)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Boolean =
         value match {
             case value: SimpleStatementBooleanValue =>
                 value.value
@@ -501,7 +501,7 @@ class LiveCache(
                 executeCriteria(Some(value))
         }
 
-    def executeStatementValue(value: StatementValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+    def executeStatementValue(value: StatementValue)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any =
         value match {
             case value: Criteria =>
                 executeCriteria(Some(value))
@@ -515,7 +515,7 @@ class LiveCache(
                 null
         }
 
-    def executeFunctionApply(apply: FunctionApply[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+    def executeFunctionApply(apply: FunctionApply[_])(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any =
         apply match {
             case value: ToUpperCase =>
                 executeStatementSelectValue(value.value).asInstanceOf[String].toUpperCase()
@@ -523,7 +523,7 @@ class LiveCache(
                 executeStatementSelectValue(value.value).asInstanceOf[String].toLowerCase()
         }
 
-    def executeStatementSelectValue(value: StatementSelectValue)(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+    def executeStatementSelectValue(value: StatementSelectValue)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any =
         value match {
             case value: FunctionApply[_] =>
                 executeFunctionApply(value)
@@ -533,7 +533,7 @@ class LiveCache(
                 value.anyValue
         }
 
-    def executeStatementEntityValue(value: StatementEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any =
+    def executeStatementEntityValue(value: StatementEntityValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any =
         value match {
             case value: StatementEntityInstanceValue[_] =>
                 value.entity
@@ -541,7 +541,7 @@ class LiveCache(
                 executeStatementEntitySourceValue(value)
         }
 
-    def executeStatementEntitySourceValue(value: StatementEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, Entity]): Any = {
+    def executeStatementEntitySourceValue(value: StatementEntitySourceValue[_])(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any = {
         val entity = entitySourceInstancesMap.get(value.entitySource).get
         value match {
             case value: StatementEntitySourcePropertyValue =>
@@ -551,14 +551,14 @@ class LiveCache(
         }
     }
 
-    def entityPropertyPathRef(entity: Entity, propertyPathVars: List[Var[_]]): Any =
+    def entityPropertyPathRef(entity: BaseEntity, propertyPathVars: List[Var[_]]): Any =
         propertyPathVars match {
             case Nil =>
                 null
             case propertyVar :: Nil =>
                 entityProperty(entity, propertyVar.name)
             case propertyVar :: propertyPath => {
-                val property = entityProperty[Entity](entity, propertyVar.name)
+                val property = entityProperty[BaseEntity](entity, propertyVar.name)
                 if (property != null)
                     entityPropertyPathRef(
                         property,
@@ -568,7 +568,7 @@ class LiveCache(
             }
         }
 
-    def entityProperty[T](entity: Entity, propertyName: String) = {
+    def entityProperty[T](entity: BaseEntity, propertyName: String) = {
         var ref = entity.varNamed(propertyName)
         (if (ref == null)
             null
@@ -591,8 +591,8 @@ class LiveCache(
         for (entitySource <- entitySources)
             yield fromCache(entitySource.entityClass)
 
-    private def loadRowFromDatabase(entity: Entity) = {
-        val query = produceQuery[Product, Entity, Query[Product]]({ (e: Entity) =>
+    private def loadRowFromDatabase(entity: BaseEntity) = {
+        val query = produceQuery[Product, BaseEntity, Query[Product]]({ (e: BaseEntity) =>
             where(e :== entity.id)
                 .selectList(e.vars.filter(p => !p.isTransient).map(toStatementValueRef).toList)
         })(manifestClass(entity.getClass))

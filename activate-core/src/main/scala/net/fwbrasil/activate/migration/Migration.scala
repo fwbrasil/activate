@@ -3,7 +3,7 @@ package net.fwbrasil.activate.migration
 import language.postfixOps
 import language.existentials
 import net.fwbrasil.activate.util.Reflection
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import java.util.Date
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.EntityValue
@@ -26,7 +26,7 @@ class StorageVersion(
     val contextName: String,
     var lastScript: Long,
     var lastAction: Int)
-        extends Entity
+        extends BaseEntity
         with UUID
 
 object Migration {
@@ -246,13 +246,13 @@ abstract class Migration(implicit val context: ActivateContext) {
     def createTableForAllEntities =
         IfNotExistsBag(entitiesMetadatas.map(createTableForEntityMetadata))
 
-    def createTableForEntity[E <: Entity: Manifest] =
+    def createTableForEntity[E <: BaseEntity: Manifest] =
         createTableForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
 
     def createInexistentColumnsForAllEntities =
         entitiesMetadatas.map(createInexistentColumnsForEntityMetadata)
 
-    def createInexistentColumnsForEntity[E <: Entity: Manifest] =
+    def createInexistentColumnsForEntity[E <: BaseEntity: Manifest] =
         createInexistentColumnsForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E]))
 
     def createReferencesForAllEntities =
@@ -261,7 +261,7 @@ abstract class Migration(implicit val context: ActivateContext) {
     def removeReferencesForAllEntities =
         IfExistsBag(entitiesMetadatas.map(removeReferencesForEntityMetadata).flatten)
 
-    def createReferencesForEntity[E <: Entity: Manifest] =
+    def createReferencesForEntity[E <: BaseEntity: Manifest] =
         IfNotExistsBag(createReferencesForEntityMetadata(EntityHelper.getEntityMetadata(erasureOf[E])))
 
     def removeAllEntitiesTables = {
@@ -336,19 +336,19 @@ abstract class Migration(implicit val context: ActivateContext) {
     private def referencesForEntityMetadata(metadata: EntityMetadata) =
         for (
             property <- metadata.persistentPropertiesMetadata;
-            if (classOf[Entity].isAssignableFrom(property.propertyType) &&
+            if (classOf[BaseEntity].isAssignableFrom(property.propertyType) &&
                 !property.propertyType.isInterface &&
                 !Modifier.isAbstract(property.propertyType.getModifiers) &&
-                context.storageFor(metadata.entityClass) == context.storageFor(property.propertyType.asInstanceOf[Class[Entity]]))
+                context.storageFor(metadata.entityClass) == context.storageFor(property.propertyType.asInstanceOf[Class[BaseEntity]]))
         ) yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))
 
     private def nestedListsReferencesForEntityMetadata(metadata: EntityMetadata) =
         for (
             property <- metadata.persistentListPropertiesMetadata;
-            if (classOf[Entity].isAssignableFrom(property.genericParameter) &&
+            if (classOf[BaseEntity].isAssignableFrom(property.genericParameter) &&
                 !property.genericParameter.isInterface &&
                 !Modifier.isAbstract(property.genericParameter.getModifiers) &&
-                context.storageFor(metadata.entityClass) == context.storageFor(property.genericParameter.asInstanceOf[Class[Entity]]))
+                context.storageFor(metadata.entityClass) == context.storageFor(property.genericParameter.asInstanceOf[Class[BaseEntity]]))
         ) yield (
             EntityPropertyMetadata.nestedListNamesFor(metadata, property)._2,
             context.storageFor(metadata.entityClass),
@@ -447,7 +447,7 @@ abstract class Migration(implicit val context: ActivateContext) {
             IfExistsBag(List(removeColumnAction, removeTableAction))
         }
     }
-    def table[E <: Entity: Manifest]: Table =
+    def table[E <: BaseEntity: Manifest]: Table =
         table(EntityHelper.getEntityName(erasureOf[E]), context.storageFor(erasureOf[E]), idColumnFor[E])
     def table(name: String, storage: Storage[_]): Table =
         table(name, storage, stringIdColumnDef)
@@ -466,7 +466,7 @@ abstract class Migration(implicit val context: ActivateContext) {
         revertActions.reverse.foreach(addAction(_))
     }
 
-    private def idColumnFor[E <: Entity: Manifest] = {
+    private def idColumnFor[E <: BaseEntity: Manifest] = {
         c: ColumnDef =>
             val entityClass = erasureOf[E]
             val idClass = EntityId.idClassFor(entityClass)

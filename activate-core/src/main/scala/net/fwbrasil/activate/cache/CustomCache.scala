@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.cache
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import CacheType._
 import com.google.common.collect.MapMaker
 import scala.concurrent.duration.Duration
@@ -10,7 +10,7 @@ import net.fwbrasil.radon.transaction.NestedTransaction
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
 
-case class CustomCache[E <: Entity: Manifest](
+case class CustomCache[E <: BaseEntity: Manifest](
         cacheType: CacheType,
         transactionalCondition: Boolean = false,
         condition: E => Boolean = (e: E) => true,
@@ -31,7 +31,7 @@ case class CustomCache[E <: Entity: Manifest](
     def remove(entity: E): Unit =
         remove(entity.id)
 
-    def remove(entityId: Entity#ID) =
+    def remove(entityId: E#ID) =
         cache.invalidate(entityId)
 
     private def satifyCondition(entity: E)(implicit ctx: ActivateContext) =

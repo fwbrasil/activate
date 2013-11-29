@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.statement.query
 
 import scala.collection.JavaConversions._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import java.util.concurrent.ConcurrentHashMap
 import java.lang.reflect.Modifier
 import net.fwbrasil.activate.ActivateContext
@@ -19,7 +19,7 @@ import net.fwbrasil.activate.util.Reflection
 import java.util.concurrent.atomic.AtomicInteger
 import net.fwbrasil.activate.util.ConcurrentCache
 
-class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: ActivateContext) {
+class CachedQuery[E <: BaseEntity: Manifest](clazz: Class[_])(implicit context: ActivateContext) {
 
     import context._
 
@@ -112,16 +112,16 @@ class CachedQuery[E <: Entity: Manifest](clazz: Class[_])(implicit context: Acti
 trait CachedQueryContext {
     this: ActivateContext =>
 
-    private val cachedQueries = new ConcurrentHashMap[(Class[_], Class[_]), CachedQuery[Entity]]()
+    private val cachedQueries = new ConcurrentHashMap[(Class[_], Class[_]), CachedQuery[BaseEntity]]()
 
     private[activate] def clearCachedQueries =
         cachedQueries.clear
 
     private[activate] def updateCachedQueries(
         transaction: Transaction,
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) =
+        inserts: List[BaseEntity],
+        updates: List[BaseEntity],
+        deletes: List[BaseEntity]) =
         if (!cachedQueries.isEmpty) {
             for (((functionClass, entityClass), cachedQuery) <- cachedQueries) {
 
@@ -137,14 +137,14 @@ trait CachedQueryContext {
             }
         }
 
-    def cachedQuery[E <: Entity: Manifest](f: (E) => Where) = {
+    def cachedQuery[E <: BaseEntity: Manifest](f: (E) => Where) = {
         val functionClass = f.getClass
         val entityClass = erasureOf[E]
         var cachedQuery =
             cachedQueries.get(functionClass, entityClass).asInstanceOf[CachedQuery[E]]
         if (cachedQuery == null) {
             cachedQuery = new CachedQuery[E](functionClass)
-            cachedQueries.put((functionClass, entityClass), cachedQuery.asInstanceOf[CachedQuery[Entity]])
+            cachedQueries.put((functionClass, entityClass), cachedQuery.asInstanceOf[CachedQuery[BaseEntity]])
         }
         cachedQuery.execute(f)
     }

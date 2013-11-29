@@ -3,7 +3,7 @@ package net.fwbrasil.activate.storage.relational
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.storage.marshalling.MarshalStorage
@@ -30,25 +30,25 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     }
 
     def store(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statementList: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] =
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]): Option[TransactionHandle] =
         executeStatements(verionsFor(readList), statementsFor(statementList, insertList, updateList, deleteList))
 
     override def storeAsync(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] =
         executeStatementsAsync(verionsFor(readList), statementsFor(statements, insertList, updateList, deleteList))
 
-    private def verionsFor(readList: List[(Entity, Long)]) =
+    private def verionsFor(readList: List[(BaseEntity, Long)]) =
         readList.groupBy(_._1.niceClass).mapValues(_.map(tuple => (Marshaller.idMarshalling(Some(tuple._1.id), tuple._1.niceClass), tuple._2)))
 
-    private def sortToAvoidDeadlocks(list: List[(Entity, Map[String, StorageValue])]) =
+    private def sortToAvoidDeadlocks(list: List[(BaseEntity, Map[String, StorageValue])]) =
         list.sortBy(_._1.id.toString)
 
     protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] =
@@ -62,7 +62,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                     for ((propertyName, propertyValue) <- insertA.propertyMap) {
                         propertyValue match {
                             case propertyValue: ReferenceStorageValue if (propertyName != "id" && propertyValue.value.value.isDefined) =>
-                                val entityIdB = propertyValue.value.value.get.asInstanceOf[Entity#ID]
+                                val entityIdB = propertyValue.value.value.get.asInstanceOf[BaseEntity#ID]
                                 if (entityInsertMap.contains(entityIdB))
                                     tree.addDependency(entityInsertMap(entityIdB), insertA)
                             case ListStorageValue(Some(values: List[StorageValue]), _: ReferenceStorageValue) =>
@@ -72,7 +72,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                                             value.value.value
                                         case value: StringStorageValue =>
                                             value.value
-                                    }).flatten.asInstanceOf[List[Entity#ID]]
+                                    }).flatten.asInstanceOf[List[BaseEntity#ID]]
                                 for (entityIdB <- ids)
                                     if (entityInsertMap.contains(entityIdB))
                                         tree.addDependency(entityInsertMap(entityIdB), insertA)
@@ -90,16 +90,16 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =
         executeStatements(Map(), List(DdlStorageStatement(action))).map(_.commit)
 
-    protected[activate] def executeStatements(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
+    protected[activate] def executeStatements(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement]): Option[TransactionHandle]
 
-    protected[activate] def executeStatementsAsync(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
+    protected[activate] def executeStatementsAsync(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]], statements: List[StorageStatement])(implicit context: ExecutionContext): Future[Unit] =
         blockingFuture(executeStatements(reads, statements).map(_.commit))
 
     private def statementsFor(
         statementList: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]) = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]) = {
 
         val statements =
             statementList.map(ModifyStorageStatement(_))

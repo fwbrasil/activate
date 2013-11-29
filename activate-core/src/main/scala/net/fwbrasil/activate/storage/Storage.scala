@@ -3,7 +3,7 @@ package net.fwbrasil.activate.storage
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.util.RichList._
@@ -34,23 +34,23 @@ class TransactionHandle(
 trait Storage[T] extends Logging {
 
     protected[activate] def toStorage(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, EntityValue[Any]])],
-        updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
+        insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
     protected[activate] def toStorageAsync(
-        readList: List[(Entity, Long)],    
+        readList: List[(BaseEntity, Long)],    
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, EntityValue[Any]])],
-        updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
+        insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])])(implicit ecxt: ExecutionContext): Future[Unit] =
         blockingFuture(toStorage(readList, statements, insertList, updateList, deleteList).map(_.commit))
 
-    protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]]
+    protected[activate] def fromStorage(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]]): List[List[EntityValue[_]]]
 
-    protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] =
+    protected[activate] def fromStorageAsync(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(implicit ecxt: TransactionalExecutionContext): Future[List[List[EntityValue[_]]]] =
         blockingFuture(fromStorage(query, entitiesReadFromCache))
 
     private var blockingFutureWarned = false
@@ -75,7 +75,7 @@ trait Storage[T] extends Logging {
     protected[activate] def reinitialize = {}
     protected[activate] def migrate(action: StorageAction): Unit
     protected[activate] def prepareDatabase = {}
-    protected def staleDataException(entityIds: Set[(Entity#ID, Class[Entity])]) =
+    protected def staleDataException(entityIds: Set[(BaseEntity#ID, Class[BaseEntity])]) =
         throw new ActivateConcurrentTransactionException(entityIds, List())
 
 }

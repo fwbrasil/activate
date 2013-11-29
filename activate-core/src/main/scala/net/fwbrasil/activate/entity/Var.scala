@@ -14,7 +14,7 @@ class Var[T](
     val baseTVal: Option[Any] => EntityValue[Any],
     val valueClass: Class[_],
     val isLazyFlag: Boolean,
-    val outerEntity: Entity,
+    val outerEntity: BaseEntity,
     val isOptionalValue: Boolean,
     val isMutable: Boolean,
     initialize: Boolean,
@@ -22,7 +22,7 @@ class Var[T](
         extends Ref[T](valueOption, initialize)(outerEntity.context)
         with java.io.Serializable {
 
-    def this(metadata: EntityPropertyMetadata, outerEntity: Entity, initialize: Boolean) =
+    def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, initialize: Boolean) =
         this(
             metadata.name,
             metadata.isTransient,
@@ -63,7 +63,7 @@ class Var[T](
     override def get =
         doInitialized(forWrite = false) {
             if (outerEntity == null)
-                throw new IllegalStateException("Var isnt bound to an Entity.")
+                throw new IllegalStateException("Var isnt bound to an BaseEntity.")
             super.get
         }
 

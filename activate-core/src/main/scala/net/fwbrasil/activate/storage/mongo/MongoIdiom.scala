@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.storage.mongo
 
 import net.fwbrasil.activate.storage.marshalling.StorageValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import scala.collection.mutable.{ Map => MutableMap }
 import scala.collection.mutable.ListBuffer
@@ -61,7 +61,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
 object mongoIdiom {
 
     def findStaleDataQueries(
-        data: List[(Entity, Long)]) = {
+        data: List[(BaseEntity, Long)]) = {
         for ((entity, version) <- data) yield {
             val query = versionConditionStale(entity.id, version)
             val select = newObject("_id" -> 1)
@@ -75,7 +75,7 @@ object mongoIdiom {
             .flatMap(_.asInstanceOf[LongStorageValue].value.map(version => versionCondition(version - 1l)))
             .getOrElse(Map())
 
-    def expectedVersions(values: List[(Entity, Map[String, StorageValue])]) =
+    def expectedVersions(values: List[(BaseEntity, Map[String, StorageValue])]) =
         values.collect {
             case (entity, map) if (map.contains(versionVarName)) =>
                 map(versionVarName).asInstanceOf[LongStorageValue].value.map(v => (entity, v - 1l))
@@ -88,7 +88,7 @@ object mongoIdiom {
     }
 
     def versionConditionStale(
-        id: Entity#ID,
+        id: BaseEntity#ID,
         version: Long) = {
         val entityId = newObject("_id" -> id)
         val versionIsNotNull = newObject(versionVarName -> newObject("$ne" -> null))
@@ -101,7 +101,7 @@ object mongoIdiom {
             "Mongo storage supports only simple queries (only one 'from' entity and without nested properties)")
             .entityClass
 
-    def toQuery(query: Query[_], entitiesReadFromCache: List[List[Entity]]) =
+    def toQuery(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]]) =
         (removeEntitiesReadFromCache(toQueryWhere(query.where), entitiesReadFromCache),
             toQuerySelect(query.select))
 
@@ -121,7 +121,7 @@ object mongoIdiom {
                 Map()
         }
 
-    def removeEntitiesReadFromCache(baseWhere: Map[String, Any], entitiesReadFromCache: List[List[Entity]]) =
+    def removeEntitiesReadFromCache(baseWhere: Map[String, Any], entitiesReadFromCache: List[List[BaseEntity]]) =
         if (entitiesReadFromCache.nonEmpty) {
             val idsList = newList(entitiesReadFromCache.map(_.head.id): _*)
             val idsCondition = newObject("_id" -> newObject("$nin" -> idsList))
@@ -193,7 +193,7 @@ object mongoIdiom {
         }
     }
 
-    def toInsertMap(insertList: List[(Entity, Map[String, StorageValue])]) = {
+    def toInsertMap(insertList: List[(BaseEntity, Map[String, StorageValue])]) = {
         val insertMap = new IdentityHashMap[Class[_], ListBuffer[Map[String, Any]]]()
         for ((entity, properties) <- insertList) {
             val values =
@@ -206,14 +206,14 @@ object mongoIdiom {
         insertMap
     }
 
-    def toUpdate(entity: Entity, properties: Map[String, StorageValue]) = {
+    def toUpdate(entity: BaseEntity, properties: Map[String, StorageValue]) = {
         val query = newObject("_id" -> entity.id) ++ versionConditionOrEmpty(properties)
         val toSet =
             (for ((name, value) <- properties if (name != "id")) yield name -> getMongoValue(value)).toMap
         (query, newObject("$set" -> toSet))
     }
 
-    def toDelete(entity: Entity, properties: Map[String, StorageValue]) =
+    def toDelete(entity: BaseEntity, properties: Map[String, StorageValue]) =
         newObject("_id" -> entity.id) ++ versionConditionOrEmpty(properties)
 
     def renameColumn(oldName: String, newName: String) =

@@ -1,7 +1,7 @@
 package net.fwbrasil.activate.index
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.entity.LazyList
 import net.fwbrasil.scala.UnsafeLazy._
@@ -10,13 +10,14 @@ import grizzled.slf4j.Logging
 import net.fwbrasil.radon.transaction.Transaction
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.radon.transaction.NestedTransaction
+import net.fwbrasil.activate.entity.BaseEntity
 
-abstract class ActivateIndex[E <: Entity: Manifest, T](
+abstract class ActivateIndex[E <: BaseEntity: Manifest, T](
     keyProducer: E => T,
     context: ActivateContext)
         extends Logging {
 
-    context.indexes += this.asInstanceOf[ActivateIndex[Entity, _]]
+    context.indexes += this.asInstanceOf[ActivateIndex[BaseEntity, _]]
 
     def name = context.indexName(this)
 
@@ -79,7 +80,7 @@ abstract class ActivateIndex[E <: Entity: Manifest, T](
 trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext {
     this: ActivateContext =>
 
-    private[index] val indexes = new ListBuffer[ActivateIndex[Entity, _]]()
+    private[index] val indexes = new ListBuffer[ActivateIndex[BaseEntity, _]]()
 
     private def indexFields =
         this.getClass.getDeclaredFields.filter(e => classOf[ActivateIndex[_, _]].isAssignableFrom(e.getType))
@@ -91,14 +92,14 @@ trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext
         indexesNames.getOrElse(index, throw new IllegalStateException)
 
     private[activate] def updateIndexes(
-        inserts: List[Entity],
-        updates: List[Entity],
-        deletes: List[Entity]) =
+        inserts: List[BaseEntity],
+        updates: List[BaseEntity],
+        deletes: List[BaseEntity]) =
         for (index <- indexes) {
 
             val entityClass = index.entityClass
 
-            def filter(entities: List[Entity]) =
+            def filter(entities: List[BaseEntity]) =
                 entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
 
             index.update(
@@ -107,7 +108,7 @@ trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext
                 filter(deletes))
         }
 
-    private def filterEntities(index: ActivateIndex[_, _], entities: List[Entity]) = {
+    private def filterEntities(index: ActivateIndex[_, _], entities: List[BaseEntity]) = {
         val entityClass = index.entityClass
         entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
     }

@@ -2,7 +2,7 @@ package net.fwbrasil.activate.entity.map
 
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.ManifestUtil._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import net.fwbrasil.activate.entity.IdVar
@@ -15,7 +15,7 @@ import net.fwbrasil.smirror.SConstructor
 import net.fwbrasil.smirror.SClass
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
-trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
+trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
 
     import EntityMapBase._
 
@@ -161,7 +161,7 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
 trait EntityMapContext {
     this: ActivateContext =>
-    implicit class EntityToMap[E <: Entity: Manifest](entity: E) {
+    implicit class EntityToMap[E <: BaseEntity: Manifest](entity: E) {
         def toMap = new EntityMap(entity)
         def toMutableMap = new MutableEntityMap(entity)
     }
@@ -175,18 +175,18 @@ object EntityMapBase {
         else
             ref.getValue
 
-    private[activate] def mock[E <: Entity: Manifest] =
+    private[activate] def mock[E <: BaseEntity: Manifest] =
         StatementMocks.mockEntity(erasureOf[E]).asInstanceOf[E]
 
     private[activate] def lastVarNameCalled =
         StatementMocks.lastFakeVarCalled.get.name
 
-    private[activate] def keyFor[E <: Entity: Manifest](f: E => Any) = {
+    private[activate] def keyFor[E <: BaseEntity: Manifest](f: E => Any) = {
         f(mock)
         lastVarNameCalled
     }
 
-    private[activate] def keyAndValueFor[E <: Entity: Manifest](f: E => (_, _)) = {
+    private[activate] def keyAndValueFor[E <: BaseEntity: Manifest](f: E => (_, _)) = {
         val value = f(mock)
         (lastVarNameCalled, value._2)
     }

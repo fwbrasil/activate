@@ -2,7 +2,7 @@ package net.fwbrasil.activate.storage.relational.idiom
 
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.entity.ListEntityValue
@@ -176,15 +176,15 @@ trait QlIdiom {
     def toSqlDml(statement: QueryStorageStatement): NormalQlStatement =
         toSqlDml(statement.query, statement.entitiesReadFromCache)
 
-    def toSqlDml(query: Query[_], entitiesReadFromCache: List[List[Entity]]): NormalQlStatement = {
+    def toSqlDml(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]]): NormalQlStatement = {
         implicit val binds = MutableMap[StorageValue, String]()
         new NormalQlStatement(
             toSqlDmlQueryString(query, entitiesReadFromCache),
-            classOf[Entity],
+            classOf[BaseEntity],
             (Map() ++ binds) map { _.swap })
     }
 
-    def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
+    def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(implicit binds: MutableMap[StorageValue, String]) =
         "SELECT " + toSqlDml(query.select) +
             " FROM " + toSqlDml(query.from) +
             toSqlDml(query.where) +
@@ -192,7 +192,7 @@ trait QlIdiom {
             toSqlDmlOrderBy(query)
 
     def toSqlDmlRemoveEntitiesReadFromCache(
-        query: Query[_], entitiesReadFromCache: List[List[Entity]])(
+        query: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(
             implicit binds: MutableMap[StorageValue, String]) = {
 
         val entitySources = query.from.entitySources
@@ -214,11 +214,11 @@ trait QlIdiom {
             ""
     }
 
-    def notEqualId(entity: Entity, entitySource: EntitySource)(
+    def notEqualId(entity: BaseEntity, entitySource: EntitySource)(
         implicit binds: MutableMap[StorageValue, String]) =
         List(entitySource.name + ".id != " + bindId(entity.id, entitySource.entityClass))
 
-    def bindId(entityId: Entity#ID, entityClass: Class[_])(implicit binds: MutableMap[StorageValue, String]) =
+    def bindId(entityId: BaseEntity#ID, entityClass: Class[_])(implicit binds: MutableMap[StorageValue, String]) =
         bind(Marshaller.idMarshalling(Some(entityId), entityClass))
 
     def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String =
@@ -390,12 +390,12 @@ trait QlIdiom {
             case update: MassUpdateStatement =>
                 new NormalQlStatement(
                     removeAlias("UPDATE " + toSqlDml(update.from) + " SET " + toSqlDml(update.assignments.toList) + toSqlDml(update.where), update.from),
-                    classOf[Entity],
+                    classOf[BaseEntity],
                     (Map() ++ binds) map { _.swap })
             case delete: MassDeleteStatement =>
                 new NormalQlStatement(
                     removeAlias("DELETE FROM " + toSqlDml(delete.from) + toSqlDml(delete.where), delete.from),
-                    classOf[Entity],
+                    classOf[BaseEntity],
                     (Map() ++ binds) map { _.swap })
         }
     }

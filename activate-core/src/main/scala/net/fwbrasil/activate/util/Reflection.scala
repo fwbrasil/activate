@@ -16,7 +16,7 @@ import org.joda.time.base.AbstractInstant
 import org.objenesis.ObjenesisStd
 import org.reflections.Reflections
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 
 object Reflection {
 
@@ -150,7 +150,7 @@ object Reflection {
                         yield deepCopyMapping(elem, map)
                 case obj: Enumeration#Value =>
                     obj
-                case obj: Entity =>
+                case obj: BaseEntity =>
                     obj
                 case obj: Product =>
                     val values =

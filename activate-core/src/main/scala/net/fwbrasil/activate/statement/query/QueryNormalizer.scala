@@ -18,7 +18,7 @@ import net.fwbrasil.activate.util.Reflection.findObject
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.ManifestUtil._
 
 object QueryNormalizer extends StatementNormalizer[Query[_]] {
@@ -105,7 +105,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
 
     def entitySourceFor(base: EntitySource, ref: Var[Any])(implicit pathNormalizationCache: MutableMap[(EntitySource, Var[Any]), (Criteria, EntitySource)]) = {
         pathNormalizationCache.getOrElseUpdate((base, ref), {
-            val entitySource = EntitySource(ref.valueClass.asInstanceOf[Class[Entity]], "t" + (pathNormalizationCache.size + 1))
+            val entitySource = EntitySource(ref.valueClass.asInstanceOf[Class[BaseEntity]], "t" + (pathNormalizationCache.size + 1))
             val criteria = IsEqualTo(new StatementEntitySourcePropertyValue(base, List(ref))) :== new StatementEntitySourceValue(entitySource)
             (criteria, entitySource)
         })._2
@@ -140,7 +140,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
                 _ match {
                     case value: StatementEntitySourceValue[_] if (value.eager) =>
                         val values = value.explodedSelectValues.map(v => (v.lastVar.name, iterator.next)).toMap
-                        ctx.liveCache.initializeEntityIfNecessary[Entity](values)(manifestClass(value.entityClass).asInstanceOf[Manifest[Entity]])
+                        ctx.liveCache.initializeEntityIfNecessary[BaseEntity](values)(manifestClass(value.entityClass).asInstanceOf[Manifest[BaseEntity]])
                     case other =>
                         iterator.next
                 }

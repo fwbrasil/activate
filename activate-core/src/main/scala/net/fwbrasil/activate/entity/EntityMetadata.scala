@@ -15,7 +15,7 @@ class EntityPropertyMetadata(
         val entityMetadata: EntityMetadata,
         val varField: Field,
         entityMethods: List[Method],
-        entityClass: Class[Entity]) {
+        entityClass: Class[BaseEntity]) {
     val javaName = varField.getName
     val originalName = javaName.split('$').last
     val name =
@@ -133,7 +133,7 @@ object EntityPropertyMetadata {
 
 class EntityMetadata(
         val name: String,
-        val entityClass: Class[Entity]) {
+        val entityClass: Class[BaseEntity]) {
     val allFields =
         Reflection.getDeclaredFieldsIncludingSuperClasses(entityClass)
     val allMethods =
@@ -151,7 +151,7 @@ class EntityMetadata(
         allFields.filter(
             (field: Field) =>
                 classOf[Var[_]].isAssignableFrom(field.getType)
-                    && field.getName != "net$fwbrasil$activate$entity$Entity$$_baseVar")
+                    && field.getName != "net$fwbrasil$activate$entity$BaseEntity$$_baseVar")
     val idField =
         allFields.find(_.getName == "id").get
     def isEntityProperty(varField: Field) =
@@ -182,5 +182,5 @@ class EntityMetadata(
             .map(m => (m, m.persistentPropertiesMetadata.filter(_.propertyType.isAssignableFrom(this.entityClass))))
             .filter(_._2.nonEmpty).toMap
 
-    override def toString = "Entity metadata for " + name
+    override def toString = "BaseEntity metadata for " + name
 }

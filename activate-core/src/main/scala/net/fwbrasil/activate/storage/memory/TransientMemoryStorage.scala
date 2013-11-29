@@ -3,7 +3,7 @@ package net.fwbrasil.activate.storage.memory
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.migration.StorageAction
@@ -16,9 +16,9 @@ import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.TransactionHandle
 import scala.collection.concurrent.TrieMap
 
-class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: Entity], TrieMap[Entity#ID, Entity]]] {
+class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: BaseEntity], TrieMap[BaseEntity#ID, BaseEntity]]] {
 
-    private val storageMap = MutableHashMap[Class[_ <: Entity], TrieMap[Entity#ID, Entity]]()
+    private val storageMap = MutableHashMap[Class[_ <: BaseEntity], TrieMap[BaseEntity#ID, BaseEntity]]()
 
     def isSchemaless = true
     def isTransactional = false
@@ -34,11 +34,11 @@ class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: Entity], 
             entity.addToLiveCache
 
     override def toStorage(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, EntityValue[Any]])],
-        updateList: List[(Entity, Map[String, EntityValue[Any]])],
-        deleteList: List[(Entity, Map[String, EntityValue[Any]])]): Option[TransactionHandle] = {
+        insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
+        deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])]): Option[TransactionHandle] = {
 
         for ((entity, properties) <- insertList)
             entityClassMap(entity) += entity.id -> entity
@@ -48,12 +48,12 @@ class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: Entity], 
         None
     }
     
-    private def entityClassMap(entity: Entity) =
+    private def entityClassMap(entity: BaseEntity) =
         storageMap.synchronized {
             storageMap.getOrElseUpdate(entity.getClass, new TrieMap)
         }
 
-    override def fromStorage(query: Query[_], entitiesReadFromCache: List[List[Entity]]): List[List[EntityValue[_]]] =
+    override def fromStorage(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]]): List[List[EntityValue[_]]] =
         List()
 
     override def isMemoryStorage = true

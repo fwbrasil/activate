@@ -2,12 +2,12 @@ package net.fwbrasil.activate.entity.id
 
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.uuid.UUIDUtil
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import org.joda.time.DateTime
 import java.util.Date
 
 trait UUID {
-    this: Entity =>
+    this: BaseEntity =>
 
     type ID = String
 
@@ -18,7 +18,7 @@ trait UUID {
     def creationDateTime = new DateTime(creationTimestamp)
 }
 
-object uuidGenerator extends IdGenerator[Entity with UUID] { 
+object uuidGenerator extends IdGenerator[BaseEntity with UUID] { 
     def nextId(entityClass: Class[_]) = {
         val uuid = UUIDUtil.generateUUID
         val classId = EntityHelper.getEntityClassHashId(entityClass)

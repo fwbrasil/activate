@@ -5,7 +5,7 @@ import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.StatementSelectValue
 import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.StatementValue
 import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.util.RichList._
@@ -22,11 +22,11 @@ trait MassUpdateContext extends StatementContext {
     implicit def toWhereDecorator(where: Where) =
         WhereUpdateDecorator(where)
     import From._
-    def produceUpdate[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
+    def produceUpdate[S, E1 <: BaseEntity: Manifest](f: (E1) => MassUpdateStatement): MassUpdateStatement =
         runAndClearFrom {
             f(mockEntity[E1])
         }
-    def update[S, E1 <: Entity: Manifest](f: (E1) => MassUpdateStatement): Unit =
+    def update[S, E1 <: BaseEntity: Manifest](f: (E1) => MassUpdateStatement): Unit =
         executeStatementWithParseCache[MassUpdateStatement, Unit](f, () => produceUpdate(f), (update: MassUpdateStatement) => update.execute)
 
 }

@@ -26,7 +26,7 @@ import net.fwbrasil.activate.entity.id.EntityIdContext
 import scala.concurrent.duration.Duration
 import net.fwbrasil.activate.entity.map.EntityMapContext
 
-trait Entity extends Serializable with EntityValidation with EntityListeners with EntityId {
+trait BaseEntity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
     @transient
     private var _baseVar: Var[Any] = null
@@ -106,7 +106,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
         EntityHelper.getEntityMetadata(this.getClass).references.mapValues {
             references =>
                 val ctx = context
-                ctx.select(manifestClass(references.head.entityMetadata.entityClass)).where { entity: Entity =>
+                ctx.select(manifestClass(references.head.entityMetadata.entityClass)).where { entity: BaseEntity =>
                     import ctx._
                     var criteria: Criteria = (entity.varNamed(references.head.name).get :== this)
                     for (reference <- references.tail)
@@ -181,7 +181,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
     private[activate] def initializeGraph: Unit =
         initializeGraph(Set())
 
-    private[activate] def initializeGraph(seen: Set[Entity]): Unit =
+    private[activate] def initializeGraph(seen: Set[BaseEntity]): Unit =
         this.synchronized {
             initialize(forWrite = false)
             if (!isDeletedSnapshot)
@@ -194,7 +194,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
         }
 
     private def varsOfTypeEntity =
-        vars.filterByType[Entity, Var[Entity]]((ref: Var[Any]) => ref.valueClass)
+        vars.filterByType[BaseEntity, Var[BaseEntity]]((ref: Var[Any]) => ref.valueClass)
 
     private[activate] def isInLiveCache =
         context.liveCache.contains(this)
@@ -221,7 +221,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
     var lastVersionValidation = DateTime.now
 
     protected def deferFor(duration: Duration) =
-        Entity.deferReadValidationFor(duration, this)
+        BaseEntity.deferReadValidationFor(duration, this)
 
     def shouldValidateRead: Boolean =
         context.shouldValidateRead(this)
@@ -234,7 +234,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
 
     override def toString =
         EntityHelper.getEntityName(this.getClass) + (
-            if (Entity.toStringSeen(this))
+            if (BaseEntity.toStringSeen(this))
                 "(loop id->" + id + ")"
             else {
                 val varsString =
@@ -244,21 +244,21 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
                         }
                     } else
                         "(uninitialized id->" + id + ")"
-                Entity.toStringRemoveSeen(this)
+                BaseEntity.toStringRemoveSeen(this)
                 varsString
             })
 
     protected def writeReplace(): AnyRef =
-        if (Entity.serializeUsingEvelope)
+        if (BaseEntity.serializeUsingEvelope)
             new EntitySerializationEnvelopeV2(this)
         else
             this
 
 }
 
-object Entity {
+object BaseEntity {
 
-    private[activate] def deferReadValidationFor(duration: Duration, entity: Entity) =
+    private[activate] def deferReadValidationFor(duration: Duration, entity: BaseEntity) =
         if (duration.isFinite)
             !entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
         else
@@ -266,42 +266,42 @@ object Entity {
 
     var serializeUsingEvelope = true
     @transient
-    private var _toStringLoopSeen: ThreadLocal[MutableHashSet[Entity]] = _
+    private var _toStringLoopSeen: ThreadLocal[MutableHashSet[BaseEntity]] = _
     private def toStringLoopSeen =
         synchronized {
             if (_toStringLoopSeen == null)
-                _toStringLoopSeen = new ThreadLocal[MutableHashSet[Entity]]() {
-                    override def initialValue = MutableHashSet[Entity]()
+                _toStringLoopSeen = new ThreadLocal[MutableHashSet[BaseEntity]]() {
+                    override def initialValue = MutableHashSet[BaseEntity]()
                 }
             _toStringLoopSeen
         }
-    def toStringSeen(entity: Entity) = {
+    def toStringSeen(entity: BaseEntity) = {
         val set = toStringLoopSeen.get
         val ret = set.contains(entity)
         set += entity
         ret
     }
-    def toStringRemoveSeen(entity: Entity) =
+    def toStringRemoveSeen(entity: BaseEntity) =
         toStringLoopSeen.get -= entity
 
 }
 
-case class CannotDeleteEntity(references: Map[EntityMetadata, List[Entity]])
+case class CannotDeleteEntity(references: Map[EntityMetadata, List[BaseEntity]])
     extends Exception(s"Can't delete entity due references from ${references.keys.map(_.name)}.")
 
-class EntitySerializationEnvelope[E <: Entity](entity: E) extends Serializable {
+class EntitySerializationEnvelope[E <: BaseEntity](entity: E) extends Serializable {
     val id = entity.id.asInstanceOf[String]
     val context = entity.context
     protected def readResolve(): Any =
         context.liveCache.materializeEntity(id)
 }
 
-class EntitySerializationEnvelopeV2[E <: Entity](entity: E) extends Serializable {
+class EntitySerializationEnvelopeV2[E <: BaseEntity](entity: E) extends Serializable {
     val id = entity.id.asInstanceOf[AnyRef]
-    val entityClass = entity.getClass.asInstanceOf[Class[Entity]]
+    val entityClass = entity.getClass.asInstanceOf[Class[BaseEntity]]
     val context = entity.context
     protected def readResolve(): Any =
-        context.liveCache.materializeEntity(id.asInstanceOf[Entity#ID], entityClass)
+        context.liveCache.materializeEntity(id.asInstanceOf[BaseEntity#ID], entityClass)
 }
 
 trait EntityContext
@@ -314,19 +314,20 @@ trait EntityContext
 
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field
     type Var[A] = net.fwbrasil.activate.entity.Var[A]
-    type EntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.EntityMap[E]
-    type MutableEntityMap[E <: Entity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
+    type EntityMap[E <: BaseEntity] = net.fwbrasil.activate.entity.map.EntityMap[E]
+    type MutableEntityMap[E <: BaseEntity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
 
     protected def liveCacheType = CacheType.softReferences
 
     protected def customCaches: List[CustomCache[_]] = List()
 
-    protected[activate] val liveCache = new LiveCache(this, liveCacheType, customCaches)
+    protected[activate] val liveCache = 
+        new LiveCache(this, liveCacheType, customCaches.asInstanceOf[List[CustomCache[BaseEntity]]])
 
-    protected[activate] def entityMaterialized(entity: Entity) = {}
+    protected[activate] def entityMaterialized(entity: BaseEntity) = {}
 
-    protected[activate] def hidrateEntities(entities: Iterable[Entity])(implicit context: ActivateContext) =
+    protected[activate] def hidrateEntities(entities: Iterable[BaseEntity])(implicit context: ActivateContext) =
         for (entity <- entities) {
             initializeBitmaps(entity)
             entity.invariants
@@ -337,7 +338,7 @@ trait EntityContext
             context.liveCache.toCache(entity)
         }
 
-    private def initializeLazyFlags(entity: net.fwbrasil.activate.entity.Entity): Unit = {
+    private def initializeLazyFlags(entity: net.fwbrasil.activate.entity.BaseEntity): Unit = {
         val metadata = EntityHelper.getEntityMetadata(entity.getClass)
         val lazyFlags = metadata.propertiesMetadata.filter(p => p.isLazyFlag && p.isTransient)
         for (propertyMetadata <- lazyFlags) {

@@ -37,7 +37,7 @@
 //            val ids =
 //                transactional {
 //                    produceQuery {
-//                        (e: Entity) => where(e isNotNull) select (e.id)
+//                        (e: BaseEntity) => where(e isNotNull) select (e.id)
 //                    }(manifestClass(clazz)).execute
 //                }
 //            val groups = ids.grouped(step).toList
@@ -50,7 +50,7 @@
 //                transactional {
 //                    for (id <- slot) {
 //                        set(context, "storage", oldStorage)
-//                        val entity = byId[Entity](id).get
+//                        val entity = byId[BaseEntity](id).get
 //                        liveCache.initialize(entity)
 //                        entity.setNotPersisted
 //                        entity.vars.foreach(ref => ref.put(ref.get)) //touch

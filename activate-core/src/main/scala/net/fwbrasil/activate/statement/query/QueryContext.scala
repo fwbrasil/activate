@@ -3,7 +3,7 @@ package net.fwbrasil.activate.statement.query
 import scala.concurrent.Future
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.cache.LiveCache
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.statement.Criteria
 import net.fwbrasil.activate.statement.From
@@ -40,46 +40,46 @@ trait QueryContext extends StatementContext
         treatResults(query, normalizedQueries, results)
     }
 
-    private[activate] def queryInternal[E1 <: Entity: Manifest](f: (E1) => Query[Product]) =
+    private[activate] def queryInternal[E1 <: BaseEntity: Manifest](f: (E1) => Query[Product]) =
         runAndClearFrom {
             f(mockEntity[E1])
         }
 
-    def produceQuery[S, E1 <: Entity: Manifest, Q <: Query[S]](f: (E1) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest](f: (E1) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest](f: (E1) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest](f: (E1) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, Query[S]](f),
             (query: Query[S]) => query.execute,
             manifest[E1])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => Query[S]): List[S] =
         produceQuery[S, E1, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2) => Q): Q =
         runAndClearFrom {
             val e1 = mockEntity[E1]
             val e2 = mockEntity[E2](e1)
             f(e1, e2)
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, Query[S]](f),
@@ -87,23 +87,23 @@ trait QueryContext extends StatementContext
             manifest[E1],
             manifest[E2])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => Query[S]): List[S] =
         produceQuery[S, E1, E2, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2, E3) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1],
                 mockEntity[E2],
                 mockEntity[E3])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, E3, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, E3, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, Query[S]](f),
@@ -112,10 +112,10 @@ trait QueryContext extends StatementContext
             manifest[E2],
             manifest[E3])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => Query[S]): List[S] =
         produceQuery[S, E1, E2, E3, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1],
                 mockEntity[E2],
@@ -123,13 +123,13 @@ trait QueryContext extends StatementContext
                 mockEntity[E4])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, E3, E4, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, Query[S]](f),
@@ -139,10 +139,10 @@ trait QueryContext extends StatementContext
             manifest[E3],
             manifest[E4])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => Query[S]): List[S] =
         produceQuery[S, E1, E2, E3, E4, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1],
                 mockEntity[E2],
@@ -151,13 +151,13 @@ trait QueryContext extends StatementContext
                 mockEntity[E5])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, E3, E4, E5, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f),
@@ -168,10 +168,10 @@ trait QueryContext extends StatementContext
             manifest[E4],
             manifest[E5])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S]): List[S] =
         produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1],
                 mockEntity[E2],
@@ -181,13 +181,13 @@ trait QueryContext extends StatementContext
                 mockEntity[E6])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, E3, E4, E5, E6, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, E6, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f),
@@ -199,10 +199,10 @@ trait QueryContext extends StatementContext
             manifest[E5],
             manifest[E6])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S]): List[S] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f).execute
 
-    def produceQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6, E7) => Q): Q =
+    def produceQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest, Q <: Query[S]](f: (E1, E2, E3, E4, E5, E6, E7) => Q): Q =
         runAndClearFrom {
             f(mockEntity[E1],
                 mockEntity[E2],
@@ -213,13 +213,13 @@ trait QueryContext extends StatementContext
                 mockEntity[E7])
         }
 
-    def paginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => OrderedQuery[S]): Pagination[S] =
+    def paginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => OrderedQuery[S]): Pagination[S] =
         new Pagination(produceQuery[S, E1, E2, E3, E4, E5, E6, E7, OrderedQuery[S]](f))
 
-    def asyncPaginatedQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => OrderedQuery[S]): AsyncPagination[S] =
+    def asyncPaginatedQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => OrderedQuery[S]): AsyncPagination[S] =
         new AsyncPagination(produceQuery[S, E1, E2, E3, E4, E5, E6, E7, OrderedQuery[S]](f))
 
-    def query[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
+    def query[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
         executeStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f),
@@ -232,10 +232,10 @@ trait QueryContext extends StatementContext
             manifest[E6],
             manifest[E7])
 
-    def dynamicQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
+    def dynamicQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S]): List[S] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).execute
 
-    private def allWhereQuery[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+    private def allWhereQuery[E <: BaseEntity: Manifest](criterias: ((E) => Criteria)*) =
         produceQuery[E, E, Query[E]] { (entity: E) =>
             val w =
                 if (criterias.isEmpty)
@@ -250,77 +250,77 @@ trait QueryContext extends StatementContext
             w.select(entity)
         }
 
-    @deprecated("Use select[Entity] where(_.column :== value)", since = "1.1")
-    def allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+    @deprecated("Use select[BaseEntity] where(_.column :== value)", since = "1.1")
+    def allWhere[E <: BaseEntity: Manifest](criterias: ((E) => Criteria)*) =
         _allWhere[E](criterias: _*)
 
-    private def _allWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*) =
+    private def _allWhere[E <: BaseEntity: Manifest](criterias: ((E) => Criteria)*) =
         allWhereQuery[E](criterias: _*).execute
 
     import language.postfixOps
 
-    def all[E <: Entity: Manifest] =
+    def all[E <: BaseEntity: Manifest] =
         query {
             (e: E) => where() select (e)
         }
 
-    class SelectEntity[E <: Entity: Manifest] {
+    class SelectEntity[E <: BaseEntity: Manifest] {
         def where(criterias: ((E) => Criteria)*) =
             _allWhere[E](criterias: _*)
     }
 
-    def select[E <: Entity: Manifest] = new SelectEntity[E]
+    def select[E <: BaseEntity: Manifest] = new SelectEntity[E]
 
-    def byId[T <: Entity: Manifest](id: => T#ID): Option[T] =
+    def byId[T <: BaseEntity: Manifest](id: => T#ID): Option[T] =
         byId(id, erasureOf[T])
 
-    def byId[T <: Entity](id: => T#ID, entityClass: Class[T]) = {
-        val manifest = ManifestUtil.manifestClass[Entity](entityClass)
+    def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T]) = {
+        val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic) {
             val result =
                 dynamicQuery {
-                    (e: Entity) => where(e.id :== id) select (e)
+                    (e: BaseEntity) => where(e.id :== id) select (e)
                 }(manifest)
             result.headOption.asInstanceOf[Option[T]]
         } else
-            Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T])
+            Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[T])
     }
 
     //ASYNC
 
-    private def _asyncAllWhere[E <: Entity: Manifest](criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =
+    private def _asyncAllWhere[E <: BaseEntity: Manifest](criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =
         allWhereQuery[E](criterias: _*).executeAsync
 
-    def asyncAll[E <: Entity: Manifest](implicit texctx: TransactionalExecutionContext) =
+    def asyncAll[E <: BaseEntity: Manifest](implicit texctx: TransactionalExecutionContext) =
         asyncQuery {
             (e: E) => where() select (e)
         }
 
-    class AsyncSelectEntity[E <: Entity: Manifest] {
+    class AsyncSelectEntity[E <: BaseEntity: Manifest] {
         def where(criterias: ((E) => Criteria)*)(implicit texctx: TransactionalExecutionContext) =
             _asyncAllWhere[E](criterias: _*)
     }
 
-    def asyncSelect[E <: Entity: Manifest] = new AsyncSelectEntity[E]
+    def asyncSelect[E <: BaseEntity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncById[T <: Entity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
+    def asyncById[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
 
         Future.successful(byId[T](id))
     }
 
-    def asyncById[T <: Entity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
+    def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
-        val manifest = ManifestUtil.manifestClass[Entity](entityClass)
+        val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic) {
             asyncQuery {
-                (e: Entity) => where(e.id :== id) select (e)
+                (e: BaseEntity) => where(e.id :== id) select (e)
             }(manifest, texctx).map {
                 _.headOption.asInstanceOf[Option[T]]
             }
         } else
-            Future.successful(Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[Entity]]).asInstanceOf[T]))
+            Future.successful(Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[T]))
     }
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {
@@ -333,25 +333,25 @@ trait QueryContext extends StatementContext
         future.map(treatResults(query, normalizedQueries, _))
     }
 
-    def asyncQuery[S, E1 <: Entity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest](f: (E1, E2) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest](f: (E1, E2, E3) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest](f: (E1, E2, E3, E4) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f).executeAsync
 
-    def asyncQuery[S, E1 <: Entity: Manifest, E2 <: Entity: Manifest, E3 <: Entity: Manifest, E4 <: Entity: Manifest, E5 <: Entity: Manifest, E6 <: Entity: Manifest, E7 <: Entity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
+    def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
         produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f).executeAsync
 
     private def treatResults[S](query: Query[S], normalized: List[Query[S]], results: List[List[Any]]): List[S] = {

@@ -6,12 +6,12 @@ import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.Future
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityValidation
 import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.entity.Var
 
-class EntityMap[E <: Entity] private[activate] (val _values: Map[String, Any])(
+class EntityMap[E <: BaseEntity] private[activate] (val _values: Map[String, Any])(
     implicit val m: Manifest[E], val context: ActivateContext)
         extends EntityMapBase[E, EntityMap[E]] {
     

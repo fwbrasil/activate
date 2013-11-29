@@ -9,7 +9,7 @@ import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.scala.UnsafeLazy._
 import scala.collection.mutable.ListBuffer
 
-class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K, E]: Manifest, K] private[index] (
+class PersistedIndex[E <: BaseEntity: Manifest, P <: PersistedIndexEntry[K, E]: Manifest, K] private[index] (
     keyProducer: E => K, indexEntryProducer: K => P, context: ActivateContext, preloadEntries: Boolean)
         extends ActivateIndex[E, K](keyProducer, context)
         with Logging
@@ -147,7 +147,7 @@ class PersistedIndex[E <: Entity: Manifest, P <: PersistedIndexEntry[K, E]: Mani
 
 }
 
-trait PersistedIndexEntry[K, V <: Entity] extends Entity {
+trait PersistedIndexEntry[K, V <: BaseEntity] extends BaseEntity {
     def key: K
     var ids: HashSet[V#ID]
 }
@@ -155,19 +155,19 @@ trait PersistedIndexEntry[K, V <: Entity] extends Entity {
 trait PersistedIndexContext {
     this: ActivateContext =>
 
-    type PersistedIndexEntry[K, V <: Entity] = net.fwbrasil.activate.index.PersistedIndexEntry[K, V]
+    type PersistedIndexEntry[K, V <: BaseEntity] = net.fwbrasil.activate.index.PersistedIndexEntry[K, V]
 
-    protected class PersistedIndexProducer0[E <: Entity: Manifest](preloadEntries: Boolean) {
+    protected class PersistedIndexProducer0[E <: BaseEntity: Manifest](preloadEntries: Boolean) {
         def on[K](keyProducer: E => K) =
             new PersistedIndexProducer1[E, K](keyProducer, preloadEntries)
     }
 
-    protected class PersistedIndexProducer1[E <: Entity: Manifest, K](keyProducer: E => K, preloadEntries: Boolean) {
+    protected class PersistedIndexProducer1[E <: BaseEntity: Manifest, K](keyProducer: E => K, preloadEntries: Boolean) {
         def using[P <: PersistedIndexEntry[K, E]: Manifest](indexEntityProducer: K => P) =
             new PersistedIndex[E, P, K](keyProducer, indexEntityProducer, PersistedIndexContext.this, preloadEntries)
     }
 
-    protected def persistedIndex[E <: Entity: Manifest] = new PersistedIndexProducer0[E](preloadEntries = true)
-    protected def persistedIndex[E <: Entity: Manifest](preloadEntries: Boolean) = new PersistedIndexProducer0[E](preloadEntries)
+    protected def persistedIndex[E <: BaseEntity: Manifest] = new PersistedIndexProducer0[E](preloadEntries = true)
+    protected def persistedIndex[E <: BaseEntity: Manifest](preloadEntries: Boolean) = new PersistedIndexProducer0[E](preloadEntries)
 
 } 

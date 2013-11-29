@@ -10,7 +10,7 @@ import scala.collection.JavaConversions.setAsJavaSet
 import scala.collection.mutable.HashMap
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import net.fwbrasil.radon.transaction.NestedTransaction
@@ -18,7 +18,7 @@ import net.fwbrasil.radon.transaction.Transaction
 import net.fwbrasil.radon.util.Lockable
 import net.fwbrasil.scala.UnsafeLazy._
 
-case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
+case class MemoryIndex[E <: BaseEntity: Manifest, T] private[index] (
     keyProducer: E => T, context: ActivateContext)
         extends ActivateIndex[E, T](keyProducer, context)
         with Logging
@@ -96,11 +96,11 @@ case class MemoryIndex[E <: Entity: Manifest, T] private[index] (
 trait MemoryIndexContext {
     this: ActivateContext =>
 
-    protected class MemoryIndexProducer[E <: Entity: Manifest] {
+    protected class MemoryIndexProducer[E <: BaseEntity: Manifest] {
         def on[T](keyProducer: E => T) =
             new MemoryIndex[E, T](keyProducer, MemoryIndexContext.this)
     }
 
-    protected def memoryIndex[E <: Entity: Manifest] = new MemoryIndexProducer[E]
+    protected def memoryIndex[E <: BaseEntity: Manifest] = new MemoryIndexProducer[E]
 
 } 

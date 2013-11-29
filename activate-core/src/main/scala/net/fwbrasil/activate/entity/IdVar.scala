@@ -2,10 +2,10 @@ package net.fwbrasil.activate.entity
 
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId: Entity#ID)
-        extends Var[Entity#ID](metadata, outerEntity, false) {
+class IdVar(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, val entityId: BaseEntity#ID)
+        extends Var[BaseEntity#ID](metadata, outerEntity, false) {
 
-    def this(metadata: EntityPropertyMetadata, outerEntity: Entity) =
+    def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity) =
         this(metadata, outerEntity, outerEntity.context.nextIdFor(outerEntity.getClass))
 
     super.put(Option(entityId))
@@ -16,7 +16,7 @@ class IdVar(metadata: EntityPropertyMetadata, outerEntity: Entity, val entityId:
     override def get =
         Some(entityId)
 
-    override def put(value: Option[Entity#ID]) = {}
+    override def put(value: Option[BaseEntity#ID]) = {}
 
     override protected def doInitialized[A](forWrite: Boolean)(f: => A): A =
         f

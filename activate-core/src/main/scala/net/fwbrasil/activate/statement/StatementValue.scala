@@ -3,7 +3,7 @@ package net.fwbrasil.activate.statement
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.ValueContext
 import net.fwbrasil.activate.entity.Var
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.statement.StatementMocks._
 import net.fwbrasil.activate.util.ManifestUtil._
@@ -46,7 +46,7 @@ trait StatementValueContext extends ValueContext {
         }
     }
 
-    private def toStatementValueEntity[E <: Entity](fEntity: () => E): StatementEntityValue[E] = {
+    private def toStatementValueEntity[E <: BaseEntity](fEntity: () => E): StatementEntityValue[E] = {
         val entity = fEntity()
         val sourceOption = From.entitySourceFor(entity)
         if (sourceOption.isDefined)
@@ -57,7 +57,7 @@ trait StatementValueContext extends ValueContext {
 
     import language.implicitConversions
     
-    implicit def toStatementValueEntityId(entityId: => Entity#ID): StatementSelectValue =
+    implicit def toStatementValueEntityId(entityId: => BaseEntity#ID): StatementSelectValue =
         toStatementValueEntityValue(entityId)(EntityValue.tvalFunction(entityId.getClass, classOf[Object]))
 
     @implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
@@ -79,8 +79,8 @@ trait StatementValueContext extends ValueContext {
                 value.getOrElse(null.asInstanceOf[V]) match {
                     case function: FunctionApply[V] =>
                         function
-                    case entity: Entity =>
-                        toStatementValueEntity(() => value.getOrElse(null.asInstanceOf[V]).asInstanceOf[Entity]).asInstanceOf[StatementSelectValue]
+                    case entity: BaseEntity =>
+                        toStatementValueEntity(() => value.getOrElse(null.asInstanceOf[V]).asInstanceOf[BaseEntity]).asInstanceOf[StatementSelectValue]
                     case other =>
                         new SimpleValue[V](() => value.getOrElse(null.asInstanceOf[V]), m)
                 }
@@ -91,7 +91,7 @@ trait StatementValueContext extends ValueContext {
 
 abstract class StatementEntityValue[V]() extends StatementSelectValue
 
-case class StatementEntityInstanceValue[E <: Entity](val fEntity: () => E) extends StatementEntityValue[E] {
+case class StatementEntityInstanceValue[E <: BaseEntity](val fEntity: () => E) extends StatementEntityValue[E] {
     def entity = fEntity()
     def entityId = entity.id
     def storageValue = Marshaller.marshalling(entityValue)
@@ -130,7 +130,7 @@ class StatementEntitySourceValue[V](val entitySource: EntitySource, val eager: B
 
 class StatementEntitySourcePropertyValue(override val entitySource: EntitySource, val propertyPathVars: List[Var[_]], pEager: Boolean = EagerQueryContext.isEager)
         extends StatementEntitySourceValue(entitySource, pEager) {
-    override def entityClass = propertyPathVars.last.valueClass.asInstanceOf[Class[Entity]]
+    override def entityClass = propertyPathVars.last.valueClass.asInstanceOf[Class[BaseEntity]]
     def lastVar = propertyPathVars.last
     def propertyPathNames =
         for (prop <- propertyPathVars)

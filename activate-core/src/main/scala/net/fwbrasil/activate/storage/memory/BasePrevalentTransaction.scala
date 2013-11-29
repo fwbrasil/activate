@@ -3,13 +3,13 @@ package net.fwbrasil.activate.storage.memory
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.marshalling.Marshaller
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 
 class BasePrevalentTransaction(
     val context: ActivateContext,
-    val insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-    val updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-    val deleteList: Array[(Entity#ID, Class[Entity])])
+    val insertList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+    val updateList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+    val deleteList: Array[(BaseEntity#ID, Class[BaseEntity])])
         extends Serializable {
 
     def execute(system: BasePrevalentStorageSystem) = {
@@ -40,7 +40,7 @@ class BasePrevalentTransaction(
         }
     }
 
-    private def materialize(entityId: Entity#ID, entityClass: Class[Entity]) = {
+    private def materialize(entityId: BaseEntity#ID, entityClass: Class[BaseEntity]) = {
         val entity = context.liveCache.materializeEntity(entityId, entityClass)
         entity.setInitialized
         entity

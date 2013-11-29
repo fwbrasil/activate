@@ -1,6 +1,6 @@
 package net.fwbrasil.activate.sequence
 
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.ActivateContext
 

@@ -11,7 +11,7 @@ import net.fwbrasil.radon.transaction.TransactionContext
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.entity.Var
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.IdVar
 import net.fwbrasil.activate.util.uuid.UUIDUtil
@@ -22,9 +22,9 @@ import net.fwbrasil.activate.entity.EntityPropertyMetadata
 
 object StatementMocks {
 
-    val entityMockCache = MutableMap[Class[_ <: Entity], Entity]()
+    val entityMockCache = MutableMap[Class[_ <: BaseEntity], BaseEntity]()
     
-    def funcToVarName[E <: Entity: Manifest](func: E => _) = {
+    def funcToVarName[E <: BaseEntity: Manifest](func: E => _) = {
         func(StatementMocks.mockEntity(erasureOf[E]))
         StatementMocks.lastFakeVarCalled.get.name
     }
@@ -49,15 +49,15 @@ object StatementMocks {
     def clearFakeVarCalled =
         _lastFakeVarCalled.set(Stack())
 
-    class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: Entity, val _outerEntityClass: Class[Entity], val originVar: FakeVar[_])
+    class FakeVar[P](metadata: EntityPropertyMetadata, outerEntity: BaseEntity, val _outerEntityClass: Class[BaseEntity], val originVar: FakeVar[_])
             extends Var[P](metadata, outerEntity, false) {
 
         override def outerEntityClass = _outerEntityClass
 
         override def get: Option[P] = {
             val value =
-                if (classOf[Entity].isAssignableFrom(valueClass))
-                    mockEntity(valueClass.asInstanceOf[Class[Entity]], this)
+                if (classOf[BaseEntity].isAssignableFrom(valueClass))
+                    mockEntity(valueClass.asInstanceOf[Class[BaseEntity]], this)
                 else
                     mock(valueClass)
             _lastFakeVarCalled.get.push(this)
@@ -86,13 +86,13 @@ object StatementMocks {
         }
     }
 
-    def mockEntity[E <: Entity](clazz: Class[E]): E =
+    def mockEntity[E <: BaseEntity](clazz: Class[E]): E =
         entityMockCache.getOrElseUpdate(clazz, mockEntityWithoutCache[E](clazz)).asInstanceOf[E]
 
-    def mockEntityWithoutCache[E <: Entity](clazz: Class[E]): E =
+    def mockEntityWithoutCache[E <: BaseEntity](clazz: Class[E]): E =
         mockEntity[E](clazz, null).asInstanceOf[E]
 
-    def mockEntity[E <: Entity](entityClass: Class[E], originVar: FakeVar[_]): E = {
+    def mockEntity[E <: BaseEntity](entityClass: Class[E], originVar: FakeVar[_]): E = {
         val concreteClass = EntityHelper.concreteClasses(entityClass).headOption.getOrElse {
             throw new IllegalStateException(
                 "Can't find a concrete class for " + entityClass + ".\n" +
@@ -106,7 +106,7 @@ object StatementMocks {
         val context = ActivateContext.contextFor(entityClass)
         for (propertyMetadata <- entityMetadata.propertiesMetadata)
             context.transactional(context.transient) {
-                val ref = new FakeVar[Any](propertyMetadata, entity, entityClass.asInstanceOf[Class[Entity]], originVar)
+                val ref = new FakeVar[Any](propertyMetadata, entity, entityClass.asInstanceOf[Class[BaseEntity]], originVar)
                 val field = propertyMetadata.varField
                 field.set(entity, ref)
             }

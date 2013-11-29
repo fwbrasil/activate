@@ -12,7 +12,7 @@ import net.fwbrasil.activate.statement.mass.MassUpdateContext
 import net.fwbrasil.activate.statement.query.QueryNormalizer
 import net.fwbrasil.activate.migration.StorageAction
 import net.fwbrasil.activate.migration.Migration
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.serialization.NamedSingletonSerializable
@@ -30,13 +30,7 @@ import net.fwbrasil.activate.index.MemoryIndexContext
 import net.fwbrasil.activate.index.ActivateIndexContext
 import net.fwbrasil.activate.entity.id.CustomID
 import net.fwbrasil.activate.entity.id.UUID
-
-trait UUIDByDefault {
-    this: ActivateContext =>
-      
-    trait Entity extends net.fwbrasil.activate.entity.Entity with UUID
-    trait EntityWithCustomID[ID <: AnyRef] extends net.fwbrasil.activate.entity.Entity with CustomID[ID]
-}
+import net.fwbrasil.activate.entity.BaseEntity
 
 trait ActivateContext
         extends EntityContext
@@ -70,13 +64,13 @@ trait ActivateContext
 
     private[activate] def storageFor(entityClass: Class[_]): Storage[Any] =
         additionalStoragesByEntityClasses.getOrElse(
-            entityClass.asInstanceOf[Class[Entity]],
+            entityClass.asInstanceOf[Class[BaseEntity]],
             storage.asInstanceOf[Storage[Any]])
 
     private val additionalStoragesByEntityClasses =
-        unsafeLazy((for ((storage, classes) <- additionalStorages.asInstanceOf[Map[Storage[Any], Set[Class[Entity]]]]) yield classes.map((_, storage))).flatten.toMap)
+        unsafeLazy((for ((storage, classes) <- additionalStorages.asInstanceOf[Map[Storage[Any], Set[Class[BaseEntity]]]]) yield classes.map((_, storage))).flatten.toMap)
 
-    def additionalStorages = Map[Storage[_], Set[Class[_ <: Entity]]]()
+    def additionalStorages = Map[Storage[_], Set[Class[_ <: BaseEntity]]]()
 
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
@@ -98,7 +92,7 @@ trait ActivateContext
     def acceptEntity(entityClass: Class[_]) =
         contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
-    protected val contextEntities: Option[List[Class[_ <: Entity]]] = None
+    protected val contextEntities: Option[List[Class[_ <: BaseEntity]]] = None
     
     override def toString = "ActivateContext: " + name
 
@@ -119,14 +113,14 @@ object ActivateContext {
 
     private[activate] def classLoaderFor(className: String) =
         if (className.startsWith("net.fwbrasil.activate"))
-            classOf[Entity].getClassLoader()
+            classOf[BaseEntity].getClassLoader()
         else
             currentClassLoader
             
     private[activate] val contextCache =
         new ConcurrentHashMap[Class[_], ActivateContext]()
 
-    private[activate] def contextFor[E <: Entity](entityClass: Class[E]) = {
+    private[activate] def contextFor[E <: BaseEntity](entityClass: Class[E]) = {
         var context = contextCache.get(entityClass)
         if (context == null) {
             context = this.context(entityClass)
@@ -148,7 +142,7 @@ object ActivateContext {
         }
     }
 
-    private def context[E <: Entity](entityClass: Class[E]) =
+    private def context[E <: BaseEntity](entityClass: Class[E]) =
         instancesOf[ActivateContext]
             .filter(_.acceptEntity(entityClass))
             .onlyOne(iterable => "\nThere should be one and only one context that accepts " + entityClass + ".\n" +

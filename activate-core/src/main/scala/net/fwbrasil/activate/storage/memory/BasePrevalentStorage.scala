@@ -5,12 +5,13 @@ import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.storage.marshalling.MarshalStorage
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
 import net.fwbrasil.activate.storage.TransactionHandle
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.query.Query
 import java.io.File
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
+import net.fwbrasil.activate.entity.BaseEntity
 
 trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
         extends MarshalStorage[D]{
@@ -26,18 +27,18 @@ trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
 
     def snapshot: Unit =
         try {
-            Entity.serializeUsingEvelope = false
+            BaseEntity.serializeUsingEvelope = false
             snapshot(system)
         } finally {
-            Entity.serializeUsingEvelope = true
+            BaseEntity.serializeUsingEvelope = true
         }
 
     protected def snapshot(system: S): Unit
     protected def recover: S
     protected def logTransaction(
-        insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        deleteList: Array[(Entity#ID, Class[Entity])])
+        insertList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        updateList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        deleteList: Array[(BaseEntity#ID, Class[BaseEntity])])
 
     override protected[activate] def reinitialize = {
         system = recover
@@ -46,11 +47,11 @@ trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
     }
 
     override protected[activate] def store(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
         logTransaction(
             insertList.map(tuple => ((tuple._1.id, tuple._1.niceClass), tuple._2)).toArray,
@@ -62,8 +63,8 @@ trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
     }
 
     private def updateSystem(
-        insertList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]) = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]) = {
         for ((entity, properties) <- insertList)
             system.add(entity)
         for ((entity, properties) <- deleteList)
@@ -73,7 +74,7 @@ trait BasePrevalentStorage[S <: BasePrevalentStorageSystem, D]
     protected[activate] def query(
         query: Query[_],
         expectedTypes: List[StorageValue],
-        entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
+        entitiesReadFromCache: List[List[BaseEntity]]): List[List[StorageValue]] =
         List()
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =

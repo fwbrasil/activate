@@ -4,7 +4,7 @@ import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.StatementSelectValue
 import net.fwbrasil.activate.statement.query.Query
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.StatementValue
 import net.fwbrasil.activate.statement.Where
 import net.fwbrasil.activate.util.RichList._
@@ -18,11 +18,11 @@ trait MassDeleteContext extends StatementContext {
     implicit def toDelete(where: Where) =
         MassDeleteStatement(From.from, where)
     import From._
-    def produceDelete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): MassDeleteStatement =
+    def produceDelete[S, E1 <: BaseEntity: Manifest](f: (E1) => MassDeleteStatement): MassDeleteStatement =
         runAndClearFrom {
             f(mockEntity[E1])
         }
-    def delete[S, E1 <: Entity: Manifest](f: (E1) => MassDeleteStatement): Unit =
+    def delete[S, E1 <: BaseEntity: Manifest](f: (E1) => MassDeleteStatement): Unit =
         executeStatementWithParseCache[MassDeleteStatement, Unit](f, () => produceDelete(f), (delete: MassDeleteStatement) => delete.execute)
 
 }

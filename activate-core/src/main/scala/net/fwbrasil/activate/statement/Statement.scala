@@ -4,7 +4,7 @@ import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.ActivateContext
 import From.runAndClearFrom
 import net.fwbrasil.activate.cache.LiveCache
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.util.ManifestUtil.erasureOf
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.statement.query.Query
@@ -63,12 +63,12 @@ trait StatementContext extends StatementValueContext with OperatorContext {
             stack.offer((function, statement))
     }
 
-    protected def mockEntity[E <: Entity: Manifest]: E =
+    protected def mockEntity[E <: BaseEntity: Manifest]: E =
         mockEntity[E]()
 
     import language.existentials
 
-    protected def mockEntity[E <: Entity: Manifest](otherEntitySources: T forSome { type T <: Entity }*): E = {
+    protected def mockEntity[E <: BaseEntity: Manifest](otherEntitySources: T forSome { type T <: BaseEntity }*): E = {
         var mockEntity = StatementMocks.mockEntity(erasureOf[E])
         if (otherEntitySources.toSet.contains(mockEntity))
             mockEntity = StatementMocks.mockEntityWithoutCache(erasureOf[E])

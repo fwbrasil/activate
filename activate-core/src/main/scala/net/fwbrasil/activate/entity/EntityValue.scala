@@ -88,18 +88,18 @@ case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
     def emptyValue = null
 }
 
-case class EntityInstanceEntityValue[E <: Entity: Manifest](override val value: Option[E])
+case class EntityInstanceEntityValue[E <: BaseEntity: Manifest](override val value: Option[E])
         extends EntityValue[E](value) {
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
     def emptyValue = null.asInstanceOf[E]
 }
 
-case class EntityInstanceReferenceValue[E <: Entity: Manifest](override val value: Option[Entity#ID])
-        extends EntityValue[Entity#ID](value) {
+case class EntityInstanceReferenceValue[E <: BaseEntity: Manifest](override val value: Option[BaseEntity#ID])
+        extends EntityValue[BaseEntity#ID](value) {
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
-    def emptyValue = null.asInstanceOf[Entity#ID]
+    def emptyValue = null.asInstanceOf[BaseEntity#ID]
 }
 
 case class ListEntityValue[V](override val value: Option[List[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
@@ -110,7 +110,7 @@ case class ListEntityValue[V](override val value: Option[List[V]])(implicit val 
     def emptyValue = List[V]()
 }
 
-case class LazyListEntityValue[V <: Entity](override val value: Option[LazyList[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
+case class LazyListEntityValue[V <: BaseEntity](override val value: Option[LazyList[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
         extends EntityValue[LazyList[V]](value) {
     def entityClass = erasureOf[V]
     def emptyValueEntityValue = tval(None)
@@ -126,8 +126,8 @@ case class SetEntityValue[V](override val value: Option[Set[V]])(implicit val m:
     def emptyValue = Set[V]()
 }
 
-case class ReferenceListEntityValue[V](override val value: Option[List[Option[Entity#ID]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[List[Option[Entity#ID]]](value) {
+case class ReferenceListEntityValue[V](override val value: Option[List[Option[BaseEntity#ID]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
+        extends EntityValue[List[Option[BaseEntity#ID]]](value) {
     def emptyValue = List()
 }
 
@@ -184,12 +184,12 @@ object EntityValue extends ValueContext {
                 (value: Option[Calendar]) => toCalendarEntityValueOption(value)
             else if (clazz == classOf[Array[Byte]])
                 (value: Option[Array[Byte]]) => toByteArrayEntityValueOption(value)
-            else if (classOf[Entity].isAssignableFrom(clazz))
-                ((value: Option[Entity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
+            else if (classOf[BaseEntity].isAssignableFrom(clazz))
+                ((value: Option[BaseEntity]) => toEntityInstanceEntityValueOption(value)(manifestClass(clazz)))
             else if (classOf[List[_]].isAssignableFrom(clazz))
                 (value: Option[List[Any]]) => toListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
             else if (classOf[LazyList[_]] == clazz)
-                (value: Option[LazyList[Entity]]) => toLazyListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
+                (value: Option[LazyList[BaseEntity]]) => toLazyListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
             else if (classOf[Serializable].isAssignableFrom(clazz) || clazz.isArray)
                 (value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
             else
@@ -230,11 +230,11 @@ trait ValueContext {
         toCalendarEntityValueOption(Option(value))
     implicit def toByteArrayEntityValue(value: Array[Byte]) =
         toByteArrayEntityValueOption(Option(value))
-    implicit def toEntityInstanceEntityValue[E <: Entity: Manifest](value: E) =
+    implicit def toEntityInstanceEntityValue[E <: BaseEntity: Manifest](value: E) =
         toEntityInstanceEntityValueOption(Option(value))
     def toListEntityValue[V](value: List[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
         toListEntityValueOption(Option(value))
-    def toLazyListEntityValue[V <: Entity](value: LazyList[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
+    def toLazyListEntityValue[V <: BaseEntity](value: LazyList[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
         toLazyListEntityValueOption(Option(value))
     implicit def toSerializableEntityValue[S <: Serializable: Manifest](value: S): SerializableEntityValue[S] =
         toSerializableEntityValueOption(Option(value))
@@ -265,11 +265,11 @@ trait ValueContext {
         CalendarEntityValue(value)
     implicit def toByteArrayEntityValueOption(value: Option[Array[Byte]]) =
         ByteArrayEntityValue(value)
-    implicit def toEntityInstanceEntityValueOption[E <: Entity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] =
+    implicit def toEntityInstanceEntityValueOption[E <: BaseEntity: Manifest](value: Option[E]): EntityInstanceEntityValue[E] =
         EntityInstanceEntityValue(value)
     def toListEntityValueOption[V](value: Option[List[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): ListEntityValue[V] =
         ListEntityValue[V](value)
-    def toLazyListEntityValueOption[V <: Entity](value: Option[LazyList[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
+    def toLazyListEntityValueOption[V <: BaseEntity](value: Option[LazyList[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
         LazyListEntityValue[V](value)
     implicit def toSerializableEntityValueOption[S <: Serializable: Manifest](value: Option[S]): SerializableEntityValue[S] =
         SerializableEntityValue[S](value)

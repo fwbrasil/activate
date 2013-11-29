@@ -29,7 +29,7 @@ import net.fwbrasil.activate.statement.StatementEntityInstanceValue
 import net.fwbrasil.activate.entity.BigDecimalEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.CalendarEntityValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.SerializableEntityValue
 import net.fwbrasil.activate.entity.ListEntityValue
@@ -92,7 +92,7 @@ object Marshaller {
             case (storageValue: ByteArrayStorageValue, entityValue: ByteArrayEntityValue) =>
                 ByteArrayEntityValue(storageValue.value)
             case (storageValue: ReferenceStorageValue, entityValue: EntityInstanceEntityValue[_]) =>
-                val id = storageValue.value.value.asInstanceOf[Option[Entity#ID]]
+                val id = storageValue.value.value.asInstanceOf[Option[BaseEntity#ID]]
                 EntityInstanceReferenceValue(id)(entityValue.entityManifest)
             case (stringValue: StringStorageValue, enumerationValue: EnumerationEntityValue[_]) => {
                 val value = if (stringValue.value.isDefined) {
@@ -112,7 +112,7 @@ object Marshaller {
                     unmarshalling(e, entityValue.emptyValueEntityValue).value
                 }))
                 if (entityValue.emptyValueEntityValue.isInstanceOf[EntityInstanceEntityValue[_]])
-                    ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[Entity#ID]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
+                    ReferenceListEntityValue[Any](v.asInstanceOf[Option[List[Option[BaseEntity#ID]]]])(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
                 else
                     ListEntityValue[Any](v.map(_.map(_.orNull)))(entityValue.valueManifest.asInstanceOf[Manifest[Any]], entityValue.tval.asInstanceOf[Option[Any] => EntityValue[Any]])
             case (storageValue: ListStorageValue, entityValue: LazyListEntityValue[_]) =>
@@ -122,7 +122,7 @@ object Marshaller {
                     case e: StringStorageValue =>
                         e.value.get
                 }).map { ids =>
-                    new LazyList[Entity](ids.asInstanceOf[List[Entity#ID]])(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
+                    new LazyList[BaseEntity](ids.asInstanceOf[List[BaseEntity#ID]])(entityValue.valueManifest.asInstanceOf[Manifest[BaseEntity]])
                 }
                 LazyListEntityValue(v)
             case (storageValue: StorageValue, entityValue: EncoderEntityValue[_, _]) =>
@@ -212,9 +212,9 @@ object Marshaller {
     def marshalling(column: Column[_]): StorageColumn =
         StorageColumn(column.name, marshalling(column.emptyEntityValue), column.specificTypeOption)
         
-    def idMarshalling(entityId: Option[Entity#ID], entityClass: Class[_]): ReferenceStorageValue = {
+    def idMarshalling(entityId: Option[BaseEntity#ID], entityClass: Class[_]): ReferenceStorageValue = {
         val idClass = EntityId.idClassFor(entityClass)
-        val tval = EntityValue.tvalFunction[Entity#ID](idClass, classOf[Object])
+        val tval = EntityValue.tvalFunction[BaseEntity#ID](idClass, classOf[Object])
         val entityValue = tval(entityId)
         val value = marshalling(entityValue).asInstanceOf[StorageOptionalValue]
         ReferenceStorageValue(value)

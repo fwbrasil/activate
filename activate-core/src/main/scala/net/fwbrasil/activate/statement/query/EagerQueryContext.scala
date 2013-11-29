@@ -5,7 +5,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.statement.StatementEntitySourcePropertyValue
 import net.fwbrasil.activate.statement.StatementEntitySourceValue
 import net.fwbrasil.activate.statement.StatementSelectValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 
 object EagerQueryContext {
     
@@ -25,7 +25,7 @@ object EagerQueryContext {
 trait EagerQueryContext {
     this: ActivateContext =>
 
-    implicit class EagerEntity[E <: Entity: Manifest](entity: => E)(implicit tval: (=> E) => StatementSelectValue) {
+    implicit class EagerEntity[E <: BaseEntity: Manifest](entity: => E)(implicit tval: (=> E) => StatementSelectValue) {
         def eager = {
             tval(entity) match {
                 case value: StatementEntitySourceValue[_] =>

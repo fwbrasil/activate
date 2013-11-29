@@ -43,7 +43,7 @@ case class PostCond[R](f: () => R) {
             throw new PostCondidionViolationException(name)
 }
 
-case class Invariant[E <: Entity: Manifest](
+case class Invariant[E <: BaseEntity: Manifest](
     f: () => Boolean,
     errorParams: () => List[Any],
     properties: () => List[String],
@@ -70,7 +70,7 @@ object EntityValidationOption extends Enumeration {
 import EntityValidationOption._
 
 trait EntityValidation {
-    this: Entity =>
+    this: BaseEntity =>
 
     @transient
     private var _invariants: List[(String, Invariant[_])] = null
@@ -98,7 +98,7 @@ trait EntityValidation {
             if (metadata.invariantMethods.nonEmpty) {
                 initializeListener
                 _invariants = for (method <- metadata.invariantMethods)
-                    yield (method.getName, method.invoke(this).asInstanceOf[Invariant[Entity]])
+                    yield (method.getName, method.invoke(this).asInstanceOf[Invariant[BaseEntity]])
             } else
                 _invariants = List()
         }
@@ -292,7 +292,7 @@ object EntityValidation {
     def getThreadOptions: Option[Set[EntityValidationOption]] =
         threadOptionsThreadLocal.get
 
-    private def optionsFor(obj: Entity): Set[EntityValidationOption] =
+    private def optionsFor(obj: BaseEntity): Set[EntityValidationOption] =
         optionsFor(obj, obj.context.currentTransaction)
 
     private def transactionOptions(transaction: Transaction): Option[Set[EntityValidationOption]] = {
@@ -304,7 +304,7 @@ object EntityValidation {
         }
     }
 
-    private def optionsFor(obj: Entity, transaction: Transaction): Set[EntityValidationOption] =
+    private def optionsFor(obj: BaseEntity, transaction: Transaction): Set[EntityValidationOption] =
         obj.validationOptions.getOrElse {
             transactionOptions(transaction).getOrElse {
                 threadOptionsThreadLocal.get.getOrElse {
@@ -314,20 +314,20 @@ object EntityValidation {
             }
         }
 
-    private def validateIfHasOption(obj: Entity, option: EntityValidationOption) =
+    private def validateIfHasOption(obj: BaseEntity, option: EntityValidationOption) =
         if (obj.isValidable && optionsFor(obj).contains(option))
             obj.validate
 
-    private[activate] def validateOnWrite(obj: Entity) =
+    private[activate] def validateOnWrite(obj: BaseEntity) =
         validateIfHasOption(obj, onWrite)
 
-    private[activate] def validateOnRead(obj: Entity) =
+    private[activate] def validateOnRead(obj: BaseEntity) =
         validateIfHasOption(obj, onRead)
 
-    private[activate] def validateOnCreate(obj: Entity) =
+    private[activate] def validateOnCreate(obj: BaseEntity) =
         validateIfHasOption(obj, onCreate)
 
-    private[activate] def validatesOnTransactionEnd(obj: Entity, transaction: Transaction) =
+    private[activate] def validatesOnTransactionEnd(obj: BaseEntity, transaction: Transaction) =
         obj.isValidable && optionsFor(obj, transaction).contains(onTransactionEnd)
 
 }

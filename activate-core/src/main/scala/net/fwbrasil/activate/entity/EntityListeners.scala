@@ -7,7 +7,7 @@ import net.fwbrasil.radon.ref.Ref
 import scala.collection.mutable.ListBuffer
 
 trait EntityListeners {
-    this: Entity =>
+    this: BaseEntity =>
 
     @transient
     private var listeners: List[Any] = null
