@@ -159,6 +159,14 @@ trait EntityMapBase[E <: Entity, T <: EntityMapBase[E, T]] {
 
 }
 
+trait EntityMapContext {
+    this: ActivateContext =>
+    implicit class EntityToMap[E <: Entity: Manifest](entity: E) {
+        def toMap = new EntityMap(entity)
+        def toMutableMap = new MutableEntityMap(entity)
+    }
+}
+
 object EntityMapBase {
 
     private[activate] def varToValue(ref: Var[Any]) =

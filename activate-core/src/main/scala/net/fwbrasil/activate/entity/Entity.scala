@@ -24,6 +24,7 @@ import net.fwbrasil.activate.statement.StatementMocks
 import net.fwbrasil.activate.entity.id.EntityId
 import net.fwbrasil.activate.entity.id.EntityIdContext
 import scala.concurrent.duration.Duration
+import net.fwbrasil.activate.entity.map.EntityMapContext
 
 trait Entity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
@@ -113,9 +114,6 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
                     criteria
                 }.filter(!_.isDeleted)
         }
-
-    def toMap =
-        new EntityMap[this.type](this.asInstanceOf[this.type])(manifest[this.type], context)
 
     private[activate] def deleteWithoutInitilize = {
         baseVar.destroyWithoutInitilize
@@ -259,7 +257,7 @@ trait Entity extends Serializable with EntityValidation with EntityListeners wit
 }
 
 object Entity {
-    
+
     private[activate] def deferReadValidationFor(duration: Duration, entity: Entity) =
         if (duration.isFinite)
             !entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
@@ -310,7 +308,8 @@ trait EntityContext
         extends ValueContext
         with TransactionContext
         with LazyListContext
-        with EntityIdContext {
+        with EntityIdContext
+        with EntityMapContext {
     this: ActivateContext =>
 
     type Alias = net.fwbrasil.activate.entity.InternalAlias @scala.annotation.meta.field

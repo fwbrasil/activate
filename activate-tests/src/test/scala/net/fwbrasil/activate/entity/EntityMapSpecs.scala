@@ -51,6 +51,20 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        "be created by the entity.toMap"  in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            val map: EntityMap[ActivateTestEntity] = newFullActivateTestEntity.toMap
+                            map.createEntity.id
+                        }
+                    step {
+                        validateFullTestEntity(entity(entityId))
+                    }
+                })
+        }
         "create entity with partial values" in {
             activateTest(
                 (step: StepExecutor) => {
