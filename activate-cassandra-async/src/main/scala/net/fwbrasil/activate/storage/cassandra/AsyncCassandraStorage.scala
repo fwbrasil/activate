@@ -11,7 +11,7 @@
 //import org.jboss.netty.util.CharsetUtil
 //import org.joda.time.DateTime
 //import net.fwbrasil.activate.ActivateContext
-//import net.fwbrasil.activate.entity.Entity
+//import net.fwbrasil.activate.entity.BaseEntity
 //import net.fwbrasil.activate.statement.query.Query
 //import net.fwbrasil.activate.storage.Storage
 //import net.fwbrasil.activate.storage.StorageFactory
@@ -90,7 +90,7 @@
 //    override protected[activate] def query(
 //        query: Query[_],
 //        expectedTypes: List[StorageValue],
-//        entitiesReadFromCache: List[List[Entity]]) = {
+//        entitiesReadFromCache: List[List[BaseEntity]]) = {
 //        val boundStatement = toBoundStatement(query, entitiesReadFromCache)
 //        val resultSet = session.execute(boundStatement)
 //        resultSetToValues(resultSet, expectedTypes)
@@ -99,7 +99,7 @@
 //    override def queryAsync(
 //        query: Query[_],
 //        expectedTypes: List[StorageValue],
-//        entitiesReadFromCache: List[List[Entity]])(
+//        entitiesReadFromCache: List[List[BaseEntity]])(
 //            implicit context: TransactionalExecutionContext) = {
 //        val boundStatement = toBoundStatement(query, entitiesReadFromCache)
 //        toScalaFuture(session.executeAsync(boundStatement))
@@ -107,7 +107,7 @@
 //    }
 //
 //    override protected[activate] def executeStatements(
-//        reads: Map[Class[Entity], List[(String, Long)]], 
+//        reads: Map[Class[BaseEntity], List[(String, Long)]], 
 //        storageStatements: List[StorageStatement]) = {
 //        val statements = storageStatements.map(s => dialect.toSqlStatement(s).map((_, s))).flatten
 //        for ((statement, storageStatement) <- statements) {
@@ -118,7 +118,7 @@
 //    }
 //
 //    override protected[activate] def executeStatementsAsync(
-//        reads: Map[Class[Entity], List[(String, Long)]], 
+//        reads: Map[Class[BaseEntity], List[(String, Long)]], 
 //        storageStatements: List[StorageStatement])(implicit context: ExecutionContext) = {
 //        val statements = storageStatements.map(s => dialect.toSqlStatement(s).map((_, s))).flatten
 //        statements.foldLeft(Future[Unit]())((future, tuple) => {
@@ -280,7 +280,7 @@
 //
 //    private def toBoundStatement(
 //        query: Query[_],
-//        entitiesReadFromCache: List[List[Entity]]): BoundStatement =
+//        entitiesReadFromCache: List[List[BaseEntity]]): BoundStatement =
 //        toBoundStatement(dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache)))
 //
 //    private def toBoundStatement(statement: NormalQlStatement): BoundStatement = {

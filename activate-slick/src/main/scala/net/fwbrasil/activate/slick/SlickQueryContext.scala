@@ -25,7 +25,7 @@ import scala.slick.jdbc.JdbcBackend
 import scala.slick.direct.AnnotationMapper.column
 import scala.slick.ast.TypedType
 import scala.reflect.ClassTag
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import scala.slick.jdbc.JdbcType
 import scala.reflect._
 import net.fwbrasil.activate.entity.id.EntityId
@@ -60,7 +60,7 @@ trait SlickQueryContext {
 
     import driver.simple._
     
-    implicit def entityIdColumnType[E <: Entity: ClassTag] = {
+    implicit def entityIdColumnType[E <: BaseEntity: ClassTag] = {
         val entityValue = EntityId.idTvalFunctionFor(classTag[E].erasure)(None).asInstanceOf[EntityValue[_]]
         entityValue match {
             case value: StringEntityValue =>
@@ -72,9 +72,9 @@ trait SlickQueryContext {
         }
     }.asInstanceOf[JdbcType[E#ID]]
     
-    implicit def EntityMappedColumnType[E <: Entity: ClassTag] = MappedColumnType.base[E, E#ID](_.id, byId[E](_)(manifestClass(classTag[E].erasure)).get)
+    implicit def EntityMappedColumnType[E <: BaseEntity: ClassTag] = MappedColumnType.base[E, E#ID](_.id, byId[E](_)(manifestClass(classTag[E].erasure)).get)
     
-    class EntityTable[E <: Entity: Manifest](tag: Tag)
+    class EntityTable[E <: BaseEntity: Manifest](tag: Tag)
             extends Table[E](
                 tag, EntityHelper.getEntityName(erasureOf[E])) {
         def mock = StatementMocks.mockEntity(erasureOf[E])
@@ -91,23 +91,23 @@ trait SlickQueryContext {
             def createConnection() = storage.directAccess.asInstanceOf[Connection]
         }
 
-    def SlickQuery[E <: Entity: Manifest] =
+    def SlickQuery[E <: BaseEntity: Manifest] =
         TableQuery[EntityTable[E]]
 
     val tableThreadLocal = new ThreadLocal[EntityTable[_]]
 
-    implicit def tableToEntity[E <: Entity](table: EntityTable[E]) = {
+    implicit def tableToEntity[E <: BaseEntity](table: EntityTable[E]) = {
         tableThreadLocal.set(table)
         table.mock
     }
     
-    implicit def EntityColumnToFK[E <: Entity: Manifest](column: Column[E]) = {
+    implicit def EntityColumnToFK[E <: BaseEntity: Manifest](column: Column[E]) = {
         val table = tableThreadLocal.get
         val otherTable = TableQuery[EntityTable[E]]
         table.foreignKey("IGNORE", column, otherTable)(_.idColumn.asInstanceOf[Column[E]])
     }
 
-    implicit class EntityInstance[E <: Entity](table: EntityTable[E])(implicit tm: TypedType[E]) {
+    implicit class EntityInstance[E <: BaseEntity](table: EntityTable[E])(implicit tm: TypedType[E]) {
         def instance =
             table.column[E]("id")
         def col = instance

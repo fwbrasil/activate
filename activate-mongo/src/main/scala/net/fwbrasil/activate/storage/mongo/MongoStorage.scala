@@ -13,7 +13,7 @@ import com.mongodb.DBObject
 import com.mongodb.Mongo
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity._
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper.getEntityName
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.Var
@@ -100,11 +100,11 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     def supportsQueryJoin = false
 
     override def store(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
         preVerifyStaleData(
             readList ++
@@ -143,18 +143,18 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     }
 
     private def preVerifyStaleData(
-        data: List[(Entity, Long)]) = {
+        data: List[(BaseEntity, Long)]) = {
         val queries = mongoIdiom.findStaleDataQueries(data)
         val stale =
             (for ((entity, query, select) <- queries) yield {
                 coll(entity).find(dbObject(query), dbObject(select)).toArray.toList
-                    .map(_.get("_id").asInstanceOf[Entity#ID]).map(id => (id, entity.niceClass))
+                    .map(_.get("_id").asInstanceOf[BaseEntity#ID]).map(id => (id, entity.niceClass))
             }).flatten
         if (stale.nonEmpty)
             staleDataException(stale.toSet)
     }
 
-    private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])]) =
+    private def storeDeletes(deleteList: List[(BaseEntity, Map[String, StorageValue])]) =
         for ((entity, properties) <- deleteList) {
             val query = mongoIdiom.toDelete(entity, properties)
             val result = coll(entity).remove(dbObject(query))
@@ -162,7 +162,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 staleDataException(Set((entity.id, entity.niceClass)))
         }
 
-    private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])]) =
+    private def storeUpdates(updateList: List[(BaseEntity, Map[String, StorageValue])]) =
         for ((entity, properties) <- updateList) {
             val (query, set) = mongoIdiom.toUpdate(entity, properties)
             val result = coll(entity).update(dbObject(query), dbObject(set))
@@ -170,7 +170,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 staleDataException(Set((entity.id, entity.niceClass)))
         }
 
-    private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])]) = {
+    private def storeInserts(insertList: List[(BaseEntity, Map[String, StorageValue])]) = {
         val insertMap = mongoIdiom.toInsertMap(insertList)
         for (entityClass <- insertMap.keys)
             coll(entityClass).insert(
@@ -193,7 +193,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private[this] def coll(from: From): DBCollection =
         coll(mongoIdiom.collectionClass(from))
 
-    private[this] def coll(entity: Entity): DBCollection =
+    private[this] def coll(entity: BaseEntity): DBCollection =
         coll(entity.getClass)
 
     private[this] def coll(entityClass: Class[_]): DBCollection =
@@ -202,7 +202,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     private[this] def coll(entityName: String): DBCollection =
         mongoDB.getCollection(entityName)
 
-    override def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
+    override def query(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]]): List[List[StorageValue]] = {
 
         val (where, select) = mongoIdiom.toQuery(query, entitiesReadFromCache)
         val ret = coll(query.from).find(dbObject(where), dbObject(select))

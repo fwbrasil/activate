@@ -32,7 +32,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.statement.query.Query
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
@@ -89,7 +89,7 @@ class oracleDialect(pEscape: String => String, pNormalize: String => String) ext
             fromSuper
     }
 
-    override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[Entity]])(implicit binds: MutableMap[StorageValue, String]) =
+    override def toSqlDmlQueryString(query: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(implicit binds: MutableMap[StorageValue, String]) =
         query match {
             case query: LimitedOrderedQuery[_] =>
                 "SELECT * FROM (" + super.toSqlDmlQueryString(query, entitiesReadFromCache) + ") WHERE ROWNUM<=" + query.limit

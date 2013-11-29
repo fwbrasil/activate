@@ -30,7 +30,7 @@
 //import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
 //import net.fwbrasil.activate.statement.Operator
 //import net.fwbrasil.activate.statement.Or
-//import net.fwbrasil.activate.entity.Entity
+//import net.fwbrasil.activate.entity.BaseEntity
 //import net.fwbrasil.activate.statement.query.Query
 //import net.fwbrasil.activate.storage.relational.NormalQlStatement
 //import net.fwbrasil.activate.storage.relational.NormalQlStatement
@@ -150,7 +150,7 @@
 //    }
 //
 //    override def toSqlDmlRemoveEntitiesReadFromCache(
-//        query: Query[_], entitiesReadFromCache: List[List[Entity]])(
+//        query: Query[_], entitiesReadFromCache: List[List[BaseEntity]])(
 //            implicit binds: MutableMap[StorageValue, String]) =
 //        ""
 //

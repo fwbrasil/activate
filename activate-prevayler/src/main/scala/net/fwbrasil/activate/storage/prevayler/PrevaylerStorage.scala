@@ -12,7 +12,7 @@ import org.prevayler.implementation.publishing.AbstractPublisher
 import org.prevayler.implementation.publishing.TransactionSubscriber
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.marshalling.StorageValue
@@ -66,9 +66,9 @@ class PrevaylerStorage(
     }
 
     override protected def logTransaction(
-        insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        deleteList: Array[(Entity#ID, Class[Entity])]) = {
+        insertList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        updateList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        deleteList: Array[(BaseEntity#ID, Class[BaseEntity])]) = {
         val transaction =
             new PrevaylerTransaction(
                 context,

@@ -3,7 +3,7 @@
 //import net.fwbrasil.activate.ActivateContext
 //import com.fasterxml.jackson.databind.{JsonNode, DeserializationFeature, SerializationFeature, ObjectMapper}
 //import java.io.StringWriter
-//import net.fwbrasil.activate.entity.Entity
+//import net.fwbrasil.activate.entity.BaseEntity
 //import net.fwbrasil.activate.json.JsonContext
 //
 //trait JacksonJsonContext extends JsonContext[String] {
@@ -31,19 +31,19 @@
 //    writer.toString
 //  }
 //
-//  def createEntityFromJson[E <: Entity : Manifest](json: String): E = {
+//  def createEntityFromJson[E <: BaseEntity : Manifest](json: String): E = {
 //    parse[E](json)
 //  }
 //
-//  def updateEntityFromJson[E <: Entity : Manifest](json: String, entity: E): E = {
+//  def updateEntityFromJson[E <: BaseEntity : Manifest](json: String, entity: E): E = {
 //    parse[E](json, entity)
 //  }
 //
-//  def createJsonFromEntity[E <: Entity : Manifest](entity: E) = {
+//  def createJsonFromEntity[E <: BaseEntity : Manifest](entity: E) = {
 //    json(entity)
 //  }
 //
-//  def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E = {
+//  def createOrUpdateEntityFromJson[E <: BaseEntity : Manifest](json: String): E = {
 //    mapper.readTree(json).get("id") match {
 //      case id: JsonNode =>
 //        val entity = context.byId[E](id.asText()).get

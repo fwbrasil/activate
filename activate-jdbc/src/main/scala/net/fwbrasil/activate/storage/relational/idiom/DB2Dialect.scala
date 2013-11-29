@@ -41,7 +41,7 @@ import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import java.util.Date
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 
 object db2Dialect extends db2Dialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
@@ -93,10 +93,10 @@ class db2Dialect(pEscape: String => String, pNormalize: String => String) extend
                     fromSuper,
                     new NormalQlStatement(
                         statement = "COMMIT",
-                        entityClass = classOf[Entity]),
+                        entityClass = classOf[BaseEntity]),
                     new NormalQlStatement(
                         statement = s"Call Sysproc.admin_cmd ('reorg Table ${removeColumn.tableName}')",
-                        entityClass = classOf[Entity],
+                        entityClass = classOf[BaseEntity],
                         restrictionQuery = ifExistsRestriction(findTableStatement(removeColumn.tableName), true)))
             case other => super.toSqlDdlAction(other)
         }

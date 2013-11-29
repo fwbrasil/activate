@@ -19,7 +19,7 @@ import net.fwbrasil.activate.entity.BigDecimalEntityValue
 import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.CalendarEntityValue
 import net.fwbrasil.activate.entity.EntityValue
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import java.util.Date
 import java.util.Calendar
 import net.fwbrasil.activate.entity.IdVar
@@ -91,9 +91,9 @@ trait SprayJsonContext extends JsonContext[JsObject] {
             case (JsArray(value), entityValue: ListEntityValue[_]) =>
                 value.toList.map(fromJsValue(_, entityValue.emptyValueEntityValue))
             case (JsArray(value), entityValue: LazyListEntityValue[_]) =>
-                new LazyList[Entity](value.toList.map {
+                new LazyList[BaseEntity](value.toList.map {
                     value => entityId(value, entityValue.entityClass)
-                })(entityValue.valueManifest.asInstanceOf[Manifest[Entity]])
+                })(entityValue.valueManifest.asInstanceOf[Manifest[BaseEntity]])
             case (JsString(value), entityValue: SerializableEntityValue[_]) =>
                 entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
             case (jsValue, entityValue) =>
@@ -104,15 +104,15 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         EntityId.idTvalFunctionFor(entityClass)
 
     private def entityId(value: JsValue, entityClass: Class[_]) =
-        fromJsValue(value, entityIdTval(entityClass)(None)).asInstanceOf[Entity#ID]
+        fromJsValue(value, entityIdTval(entityClass)(None)).asInstanceOf[BaseEntity#ID]
 
     private def entity(value: JsValue, entityClass: Class[_]) = {
         val id = entityId(value, entityClass)
-        context.byId[Entity](id, entityClass.asInstanceOf[Class[Entity]])
+        context.byId[BaseEntity](id, entityClass.asInstanceOf[Class[BaseEntity]])
             .getOrElse(throw new IllegalStateException("Invalid id " + value))
     }
 
-    private def toJsValue[T](entityValue: EntityValue[T], depth: Int, seenEntities: Set[Entity] = Set()): JsValue =
+    private def toJsValue[T](entityValue: EntityValue[T], depth: Int, seenEntities: Set[BaseEntity] = Set()): JsValue =
         entityValue match {
             case value: IntEntityValue =>
                 jsValue[Int](value, JsNumber(_))
@@ -139,12 +139,12 @@ trait SprayJsonContext extends JsonContext[JsObject] {
             case value: ByteArrayEntityValue =>
                 jsValue[Array[Byte]](value, b => JsString(new String(b)))
             case value: EntityInstanceEntityValue[_] if (depth <= 0) =>
-                jsValue[Entity](value.asInstanceOf[EntityInstanceEntityValue[Entity]],
+                jsValue[BaseEntity](value.asInstanceOf[EntityInstanceEntityValue[BaseEntity]],
                     {
                         entity => toJsValue(entityIdTval(value.entityClass)(Some(entity.id)), depth, seenEntities)
                     })
             case value: EntityInstanceEntityValue[_] =>
-                value.asInstanceOf[EntityInstanceEntityValue[Entity]].value.map {
+                value.asInstanceOf[EntityInstanceEntityValue[BaseEntity]].value.map {
                     entity =>
                         _createJsonFromEntity(entity, depth - 1, seenEntities)
                 }.getOrElse(JsNull)
@@ -166,18 +166,18 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                     .getOrElse(JsNull)
         }
 
-    def updateEntityFromJson[E <: Entity: Manifest](jsObject: JsObject, id: E#ID): E = {
+    def updateEntityFromJson[E <: BaseEntity: Manifest](jsObject: JsObject, id: E#ID): E = {
         val entity = context.byId[E](id).getOrElse(throw new IllegalStateException("Invalid id " + id))
         updateEntityFromJson(jsObject, entity)
         entity
     }
 
-    def updateEntityFromJson[E <: Entity: Manifest](json: String, entity: E) = {
+    def updateEntityFromJson[E <: BaseEntity: Manifest](json: String, entity: E) = {
         updateEntityFromJson(json.asJson.asJsObject, entity)
         entity
     }
 
-    def updateEntityFromJson[E <: Entity: Manifest](jsObject: JsObject, entity: E) = {
+    def updateEntityFromJson[E <: BaseEntity: Manifest](jsObject: JsObject, entity: E) = {
         val fields = jsObject.fields
         val entityClass = entity.getClass
         val entityMetadata =
@@ -198,10 +198,10 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         entity
     }
 
-    def createEntityFromJson[E <: Entity: Manifest](json: String): E =
+    def createEntityFromJson[E <: BaseEntity: Manifest](json: String): E =
         createEntityFromJson[E](json.asJson.asJsObject)
 
-    def createEntityFromJson[E <: Entity: Manifest](json: JsObject): E = {
+    def createEntityFromJson[E <: BaseEntity: Manifest](json: JsObject): E = {
         val entityClass = erasureOf[E]
         val id = context.nextIdFor(entityClass)
         val entity = context.liveCache.createLazyEntity(entityClass, id)
@@ -214,10 +214,10 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         entity
     }
 
-    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: String): E =
+    def createOrUpdateEntityFromJson[E <: BaseEntity: Manifest](json: String): E =
         createOrUpdateEntityFromJson[E](json.asJson.asJsObject)
 
-    def createOrUpdateEntityFromJson[E <: Entity: Manifest](json: JsObject) = {
+    def createOrUpdateEntityFromJson[E <: BaseEntity: Manifest](json: JsObject) = {
         json.fields.collect {
             case ("id", value) =>
                 val id = entityId(value, erasureOf[E]).asInstanceOf[E#ID]
@@ -227,13 +227,13 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         }
     }
 
-    def updateEntityFromJson[E <: Entity: Manifest](json: String, id: E#ID): E =
+    def updateEntityFromJson[E <: BaseEntity: Manifest](json: String, id: E#ID): E =
         updateEntityFromJson[E](json.asJson.asJsObject, id)
 
-    def updateEntityFromJson[E <: Entity: Manifest](json: String): E =
+    def updateEntityFromJson[E <: BaseEntity: Manifest](json: String): E =
         updateEntityFromJson[E](json.asJson.asJsObject)
 
-    def updateEntityFromJson[E <: Entity: Manifest](jsValue: JsObject) = {
+    def updateEntityFromJson[E <: BaseEntity: Manifest](jsValue: JsObject) = {
         jsValue.fields.collect {
             case ("id", value) =>
                 val id = entityId(value, erasureOf[E]).asInstanceOf[E#ID]
@@ -243,10 +243,10 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         }
     }
 
-    def createJsonFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0): JsObject =
+    def createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0): JsObject =
         _createJsonFromEntity(entity, depth, Set()).asJsObject
 
-    private def _createJsonFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0, pSeenEntities: Set[Entity]) = {
+    private def _createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, pSeenEntities: Set[BaseEntity]) = {
         if (pSeenEntities.contains(entity))
             toJsValue(entityIdTval(entity.getClass)(Some(entity.id)), depth, pSeenEntities)
         else {
@@ -258,10 +258,10 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         }
     }
 
-    def createJsonStringFromEntity[E <: Entity: Manifest](entity: E, depth: Int = 0) =
+    def createJsonStringFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0) =
         createJsonFromEntity(entity, depth).compactPrint
 
-    implicit def entityJsonFormat[E <: Entity: Manifest] =
+    implicit def entityJsonFormat[E <: BaseEntity: Manifest] =
         new RootJsonFormat[E] {
             def write(entity: E) =
                 createJsonFromEntity[E](entity)

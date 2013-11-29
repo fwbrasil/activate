@@ -47,7 +47,7 @@ object EntityId {
 
     def idTvalFunctionFor(entityClass: Class[_]) = {
         val idClass = EntityId.idClassFor(entityClass)
-        EntityValue.tvalFunction[BaseEntity](idClass, classOf[Object])
+        EntityValue.tvalFunction[BaseEntity#ID](idClass, classOf[Object])
     }
 }
 

@@ -14,7 +14,7 @@
 //import net.fwbrasil.activate.util.RichList._
 //import net.fwbrasil.activate.ActivateContext
 //import play.api.data.validation.Constraint
-//import net.fwbrasil.activate.entity.Entity
+//import net.fwbrasil.activate.entity.BaseEntity
 //import net.fwbrasil.activate.util.uuid.UUIDUtil
 //import net.fwbrasil.activate.entity.IdVar
 //import play.api.data.format.Formatter
@@ -27,7 +27,7 @@
 //import net.fwbrasil.activate.entity.map.EntityMapBase
 //
 //@implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
-//class EntityForm[T <: Entity](
+//class EntityForm[T <: BaseEntity](
 //    mapping: EntityMapping[T],
 //    data: Map[String, String] = Map.empty,
 //    errors: Seq[FormError] = Nil,
@@ -49,19 +49,19 @@
 //
 //    import language.implicitConversions
 //
-//    implicit def entityMap[T <: Entity](entity: T)(implicit context: ActivateContext, m: Manifest[T]): MutableEntityMap[T] =
+//    implicit def entityMap[T <: BaseEntity](entity: T)(implicit context: ActivateContext, m: Manifest[T]): MutableEntityMap[T] =
 //        new MutableEntityMap(entity)
 //
-//    def entity[T <: Entity](implicit context: ActivateContext, m: Manifest[T]) =
+//    def entity[T <: BaseEntity](implicit context: ActivateContext, m: Manifest[T]) =
 //        of[T](new EntityFormatter[T])
 //
-//    def apply[T <: Entity](
+//    def apply[T <: BaseEntity](
 //        mappings: ((T) => (_, Mapping[_]))*)(
 //            implicit context: ActivateContext,
 //            m: Manifest[T]): EntityForm[T] =
 //        build(mappings.toList)
 //
-//    private def build[T <: Entity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
+//    private def build[T <: BaseEntity](mappings: List[(T) => (_, Mapping[_])])(implicit context: ActivateContext, m: Manifest[T]): EntityForm[T] = {
 //        val mock = StatementMocks.mockEntity(erasureOf[T])
 //        val map = mappings.map(_(mock)).toList.asInstanceOf[List[(Any, Mapping[Any])]]
 //        val stack = StatementMocks.fakeVarCalledStack.reverse.distinct
@@ -78,7 +78,7 @@
 //    }
 //}
 //
-//case class EntityMapping[T <: Entity](
+//case class EntityMapping[T <: BaseEntity](
 //    val properties: List[Mapping[_]],
 //    val key: String = "",
 //    val constraints: Seq[Constraint[MutableEntityMap[T]]] = Nil)(
@@ -123,7 +123,7 @@
 //
 //}
 //
-//class EntityFormatter[T <: Entity](
+//class EntityFormatter[T <: BaseEntity](
 //    implicit context: ActivateContext,
 //    m: Manifest[T])
 //        extends Formatter[T] {

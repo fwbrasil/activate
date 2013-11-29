@@ -20,7 +20,7 @@ import com.jolbox.bonecp.BoneCPConfig
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.ActivateConcurrentTransactionException
 import java.sql.PreparedStatement
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
@@ -84,7 +84,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
     def supportsQueryJoin = true
 
     override protected[activate] def executeStatements(
-        reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]],
+        reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]],
         storageStatements: List[StorageStatement]): Option[TransactionHandle] = {
         verifyReads(reads)
         if (storageStatements.isEmpty)
@@ -106,13 +106,13 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
         }
     }
 
-    private def verifyReads(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]]) = {
+    private def verifyReads(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]]) = {
         val inconsistentVersions =
             (for ((stmt, referenceStorageValue, clazz) <- dialect.versionVerifyQueries(reads, queryLimit)) yield {
                 executeQuery(stmt, List(referenceStorageValue)).map {
                     _ match {
                         case List(ReferenceStorageValue(storageValue)) =>
-                            (storageValue.value.get.asInstanceOf[Entity#ID], clazz)
+                            (storageValue.value.get.asInstanceOf[BaseEntity#ID], clazz)
                         case other =>
                             throw new IllegalStateException("Invalid version information")
                     }
@@ -165,7 +165,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                 throw JdbcStatementException(jdbcStatement, other, other)
         }
 
-    protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] =
+    protected[activate] def query(queryInstance: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]]): List[List[StorageValue]] =
         executeQuery(dialect.toSqlDml(QueryStorageStatement(queryInstance, entitiesReadFromCache)), expectedTypes)
 
     protected[activate] def executeQuery(sqlStatement: NormalQlStatement, expectedTypes: List[StorageValue]): List[List[StorageValue]] = {
@@ -303,7 +303,7 @@ trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
                         (value.value.get, jdbcStatement.entityClass)
                 }
         if (invalidIds.nonEmpty)
-            staleDataException(invalidIds.toSet.asInstanceOf[Set[(Entity#ID, Class[Entity])]])
+            staleDataException(invalidIds.toSet.asInstanceOf[Set[(BaseEntity#ID, Class[BaseEntity])]])
     }
 
 }

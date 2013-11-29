@@ -89,7 +89,7 @@ import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.statement.query.OrderedQuery
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.LazyListEntityValue
 import net.fwbrasil.activate.storage.marshalling.StringStorageValue
 import net.fwbrasil.activate.statement.FunctionApply
@@ -233,72 +233,72 @@ trait SqlIdiom extends QlIdiom {
             case action: StorageCreateListTable =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
                     toSqlDdlAction(action.addOwnerIndexAction)
             case action: StorageRemoveListTable =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.listTableName), action.ifExists)))
             case action: StorageCreateTable =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.tableName), action.ifNotExists)))
             case action: StorageRenameTable =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.oldName), action.ifExists)))
             case action: StorageRemoveTable =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableStatement(action.name), action.ifExists)))
             case action: StorageAddColumn =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifNotExists)))
             case action: StorageRenameColumn =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.oldName), action.ifExists)))
             case action: StorageModifyColumnType =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.column.name), action.ifExists)))
             case action: StorageRemoveColumn =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findTableColumnStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddIndex =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findIndexStatement(action.tableName, action.indexName), action.ifNotExists)))
             case action: StorageRemoveIndex =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findIndexStatement(action.tableName, action.name), action.ifExists)))
             case action: StorageAddReference =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifNotExists)))
             case action: StorageRemoveReference =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
-                    entityClass = classOf[Entity],
+                    entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
         }
 
-    def versionVerifyQueries(reads: Map[Class[Entity], List[(ReferenceStorageValue, Long)]], queryLimit: Int) =
+    def versionVerifyQueries(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]], queryLimit: Int) =
         (for ((clazz, versions) <- reads if (versions.nonEmpty)) yield {
             val baseReferenceStorageValue = versions.head._1
             val conditions =

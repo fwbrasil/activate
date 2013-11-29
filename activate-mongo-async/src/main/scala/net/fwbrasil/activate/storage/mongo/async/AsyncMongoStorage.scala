@@ -6,7 +6,7 @@ import net.fwbrasil.activate.storage.marshalling.MarshalStorage
 import net.fwbrasil.activate.entity.EntityHelper.getEntityName
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.storage.marshalling.StorageValue
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import reactivemongo.bson.BSONArray
@@ -86,11 +86,11 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     override def supportsAsync = true
 
     override def store(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])]): Option[TransactionHandle] = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])]): Option[TransactionHandle] = {
 
         await(
             storeAsync(
@@ -103,11 +103,11 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     }
 
     override def storeAsync(
-        readList: List[(Entity, Long)],
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
-        insertList: List[(Entity, Map[String, StorageValue])],
-        updateList: List[(Entity, Map[String, StorageValue])],
-        deleteList: List[(Entity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] = {
+        insertList: List[(BaseEntity, Map[String, StorageValue])],
+        updateList: List[(BaseEntity, Map[String, StorageValue])],
+        deleteList: List[(BaseEntity, Map[String, StorageValue])])(implicit ecxt: ExecutionContext): Future[Unit] = {
 
         preVerifyStaleData(readList ++ mongoIdiom.expectedVersions(updateList) ++ mongoIdiom.expectedVersions(deleteList))
             .flatMap { _ =>
@@ -124,14 +124,14 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     override def query(
         query: Query[_],
         expectedTypes: List[StorageValue],
-        entitiesReadFromCache: List[List[Entity]]): List[List[StorageValue]] = {
+        entitiesReadFromCache: List[List[BaseEntity]]): List[List[StorageValue]] = {
         val (where, select) = mongoIdiom.toQuery(query, entitiesReadFromCache)
         val order = mongoIdiom.toQueryOrder(query)
         await(queryAsync(query, where, select, order, expectedTypes, entitiesReadFromCache))
     }
 
     override protected[activate] def queryAsync(
-        query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
+        query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
         Future(mongoIdiom.toQuery(query, entitiesReadFromCache)).flatMap { tuple =>
             val (where, select) = tuple
             val order = mongoIdiom.toQueryOrder(query)
@@ -150,7 +150,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         where: Map[String, Any],
         select: Map[String, Any],
         order: Map[String, Any],
-        expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[Entity]]): Future[List[List[StorageValue]]] = {
+        expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]]): Future[List[List[StorageValue]]] = {
 
         implicit val ctx = executionContext
 
@@ -250,7 +250,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             }
         }
 
-    private def storeInserts(insertList: List[(Entity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) =
+    private def storeInserts(insertList: List[(BaseEntity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) =
         Future(mongoIdiom.toInsertMap(insertList)).flatMap { insertMap =>
             insertMap.keys.toList.foldLeft(Future()) { (future, entityClass) =>
                 future.flatMap { _ =>
@@ -266,7 +266,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             }
         }
 
-    private def storeUpdates(updateList: List[(Entity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) = {
+    private def storeUpdates(updateList: List[(BaseEntity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) = {
         updateList.foldLeft(Future()) { (future, tuple) =>
             future.flatMap { _ =>
                 val (entity, properties) = tuple
@@ -280,7 +280,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         }
     }
 
-    private def storeDeletes(deleteList: List[(Entity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) = {
+    private def storeDeletes(deleteList: List[(BaseEntity, Map[String, StorageValue])])(implicit ctx: ExecutionContext) = {
         deleteList.foldLeft(Future()) { (future, tuple) =>
             future.flatMap { _ =>
                 val (entity, properties) = tuple
@@ -351,16 +351,16 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         BSONDocument(map.map(tuple => tuple._1 -> dbValue(tuple._2)))
 
     private def preVerifyStaleData(
-        data: List[(Entity, Long)])(implicit ctx: ExecutionContext) =
+        data: List[(BaseEntity, Long)])(implicit ctx: ExecutionContext) =
         Future {
             mongoIdiom.findStaleDataQueries(data)
         }.flatMap { queries =>
-            queries.foldLeft(Future(List[(Entity#ID, Class[Entity])]())) { (future, query) =>
+            queries.foldLeft(Future(List[(BaseEntity#ID, Class[BaseEntity])]())) { (future, query) =>
                 future.flatMap { list =>
                     val (entity, where, select) = query
                     val cursor = coll(entity).find(dbObject(where), dbObject(select)).cursor[BSONDocument]
                     try cursor.toList
-                        .map(_.map(_.get("_id").map(storageValue(_).asInstanceOf[Entity#ID]))
+                        .map(_.map(_.get("_id").map(storageValue(_).asInstanceOf[BaseEntity#ID]))
                             .flatten.map(id => (id, entity.niceClass)) ++ list)
                     finally cursor.close
                 }
@@ -373,7 +373,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     private[this] def coll(from: From): BSONCollection =
         coll(mongoIdiom.collectionClass(from))
 
-    private[this] def coll(entity: Entity): BSONCollection =
+    private[this] def coll(entity: BaseEntity): BSONCollection =
         coll(entity.getClass)
 
     private[this] def coll(entityClass: Class[_]): BSONCollection =

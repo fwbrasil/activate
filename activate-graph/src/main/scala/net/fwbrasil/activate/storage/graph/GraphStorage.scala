@@ -7,7 +7,7 @@
 //import com.tinkerpop.blueprints.{ Vertex => BPVertex }
 //import com.tinkerpop.blueprints.util.wrappers.id.IdGraph
 //import net.fwbrasil.activate.ActivateContext
-//import net.fwbrasil.activate.entity.Entity
+//import net.fwbrasil.activate.entity.BaseEntity
 //import net.fwbrasil.activate.entity.EntityHelper
 //import net.fwbrasil.activate.statement.mass.MassModificationStatement
 //import net.fwbrasil.activate.statement.query.Query
@@ -38,13 +38,13 @@
 //    override def toString = base.map(_.toString + ".").getOrElse("") + "out[" + EntityHelper.getEntityName(manifest[E].runtimeClass) + "]"
 //}
 //
-//trait Vertex extends Entity {
+//trait Vertex extends BaseEntity {
 //    def out[E <: Edge { type A <: Vertex; type B <: Vertex }: Manifest] = {
 //        val fakeInstance = null.asInstanceOf[E]
 //        OutQuery[fakeInstance.A, fakeInstance.B, E](Some(this))
 //    }
 //}
-//trait Edge extends Entity {
+//trait Edge extends BaseEntity {
 //    type A <: Vertex
 //    type B <: Vertex
 //    val from: A
@@ -79,9 +79,9 @@
 //
 //    override def store(
 //        statements: List[MassModificationStatement],
-//        insertList: Map[Entity, Map[String, StorageValue]],
-//        updateList: Map[Entity, Map[String, StorageValue]],
-//        deleteList: Map[Entity, Map[String, StorageValue]]): Unit = {
+//        insertList: Map[BaseEntity, Map[String, StorageValue]],
+//        updateList: Map[BaseEntity, Map[String, StorageValue]],
+//        deleteList: Map[BaseEntity, Map[String, StorageValue]]): Unit = {
 //
 //        store(vertexFirst(insertList),
 //            vertex => createGraphVertex(vertex),
@@ -118,14 +118,14 @@
 //    private def superNode =
 //        Option(graph.getVertex(activateSuperNodeId)).getOrElse(graph.addVertex(activateSuperNodeId))
 //
-//    private def vertexFirst(list: List[(Entity, Map[String, StorageValue])]) =
+//    private def vertexFirst(list: List[(BaseEntity, Map[String, StorageValue])]) =
 //        list.sortBy(each => if (classOf[Vertex].isAssignableFrom(each._1.getClass)) 0 else 1)
 //
-//    private def edgeFirst(list: List[(Entity, Map[String, StorageValue])]) =
+//    private def edgeFirst(list: List[(BaseEntity, Map[String, StorageValue])]) =
 //        vertexFirst(list).reverse
 //
 //    private def store(
-//        list: List[(Entity, Map[String, StorageValue])],
+//        list: List[(BaseEntity, Map[String, StorageValue])],
 //        vertexProducer: (Vertex) => BPVertex,
 //        edgeProducer: (Edge, Map[String, StorageValue]) => BPEdge) =
 //        for ((entity, properties) <- list)

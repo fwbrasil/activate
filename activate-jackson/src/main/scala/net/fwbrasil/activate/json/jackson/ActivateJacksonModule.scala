@@ -3,7 +3,7 @@ package net.fwbrasil.activate.json.jackson
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.core.{ JsonParser, Version }
 import com.fasterxml.jackson.databind._
-import net.fwbrasil.activate.entity.{ Entity, Var }
+import net.fwbrasil.activate.entity.{ BaseEntity, Var }
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.JsonGenerator
 
@@ -32,5 +32,5 @@ object ActivateJacksonModule extends SimpleModule("ActivateJacksonModule", new V
     addSerializer(classOf[Enumeration#Value], EnumerationSerializer)
     addDeserializer(classOf[Enumeration#Value], EnumerationDeserializer)
     addDeserializer(classOf[Var[_]], new VarDeserializer)
-    setMixInAnnotation(classOf[Entity], classOf[EntityMixin])
+    setMixInAnnotation(classOf[BaseEntity], classOf[EntityMixin])
 }

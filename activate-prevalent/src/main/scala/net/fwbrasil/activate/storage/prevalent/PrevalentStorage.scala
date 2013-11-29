@@ -3,7 +3,7 @@ package net.fwbrasil.activate.storage.prevalent
 import java.io.File
 
 import net.fwbrasil.activate.ActivateContext
-import net.fwbrasil.activate.entity.Entity
+import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.serialization.Serializer
 import net.fwbrasil.activate.storage.Storage
 import net.fwbrasil.activate.storage.StorageFactory
@@ -37,9 +37,9 @@ class PrevalentStorage(
     }
 
     override protected def logTransaction(
-        insertList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        updateList: Array[((Entity#ID, Class[Entity]), Map[String, StorageValue])],
-        deleteList: Array[(Entity#ID, Class[Entity])]) = {
+        insertList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        updateList: Array[((BaseEntity#ID, Class[BaseEntity]), Map[String, StorageValue])],
+        deleteList: Array[(BaseEntity#ID, Class[BaseEntity])]) = {
         val transaction = new BasePrevalentTransaction(context, insertList, updateList, deleteList)
         journal.add(transaction)
     }
