@@ -35,7 +35,7 @@ object EntityEnhancer extends Logging {
     val entityClassName = classOf[BaseEntity].getName
     val entityClassFieldPrefix = entityClassName.replace(".", "$")
     val scalaVariablesPrefixes = Array("$outer", "bitmap$init$")
-    val entityValidationFields = Array("listeners", "invariants", "listener")
+    val entityValidationFields = Array("listeners", "_invariants", "_listener")
     val transientBitmapFlagName = "bitmap$"
 
     def isEntityClass(clazz: CtClass, classPool: ClassPool): Boolean =
@@ -55,8 +55,10 @@ object EntityEnhancer extends Logging {
     def isScalaVariable(field: CtField) =
         scalaVariablesPrefixes.filter((name: String) => field.getName.startsWith(name)).nonEmpty
 
-    def isValidationEntityField(field: CtField) =
-        entityValidationFields.filter((name: String) => field.getName.split("$").last == name).nonEmpty
+    def isValidationEntityField(field: CtField) = {
+        val fieldName = field.getName.split('$').last
+        entityValidationFields.filter((name: String) => fieldName == name).nonEmpty
+    }
 
     def isStatic(field: CtField) =
         Modifier.isStatic(field.getModifiers)
@@ -89,7 +91,7 @@ object EntityEnhancer extends Logging {
         if (!isLoaded(clazz.getName) && !clazz.isInterface() && !clazz.isFrozen() && isEntityClass(clazz, classPool)) {
             try {
                 val allFields = clazz.getDeclaredFields
-                val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate))
+                val fieldsToEnhance = removeLazyValueValue(allFields.filter(isCandidate(_)))
                 val enhancedFieldsMap =
                     (for (originalField <- fieldsToEnhance) yield {
                         enhanceField(clazz, classPool, originalField)
