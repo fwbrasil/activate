@@ -18,6 +18,7 @@ import net.fwbrasil.activate.h2Context
 import net.fwbrasil.activate.storage.relational.JdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.async.AsyncPostgreSQLStorage
 import net.fwbrasil.activate.entity.id.UUID
+import net.fwbrasil.activate.entity.Entity
 
 class Event(
     val name: String,
@@ -26,11 +27,11 @@ class Event(
     val internalId: String,
     val singleTerms: List[String],
     val compoundTerms: List[String],
-    var boundingBoxes: List[BoundingBox]) extends BaseEntity with UUID
+    var boundingBoxes: List[BoundingBox]) extends Entity
 
-class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends BaseEntity with UUID
+class BoundingBox(val swCorner: GeoData, val neCorner: GeoData) extends Entity
 
-case class GeoData(latitude: Float, longitude: Float) extends BaseEntity with UUID
+case class GeoData(latitude: Float, longitude: Float) extends Entity
 
 @RunWith(classOf[JUnitRunner])
 class SprayJsonSpecs extends ActivateTest {

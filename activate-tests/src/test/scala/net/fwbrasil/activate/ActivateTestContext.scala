@@ -692,7 +692,7 @@ trait ActivateTestContext
         var userStatus: UserStatus = NormalUser
     }
 
-    abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity with UUID
+    abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity
 
     // Relational reserved words
     class Order(var key: String) extends Entity

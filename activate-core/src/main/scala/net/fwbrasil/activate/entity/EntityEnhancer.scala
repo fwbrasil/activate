@@ -55,7 +55,7 @@ object EntityEnhancer extends Logging {
     def isScalaVariable(field: CtField) =
         scalaVariablesPrefixes.filter((name: String) => field.getName.startsWith(name)).nonEmpty
 
-    def isValidEntityField(field: CtField) =
+    def isValidationEntityField(field: CtField) =
         entityValidationFields.filter((name: String) => field.getName.split("$").last == name).nonEmpty
 
     def isStatic(field: CtField) =
@@ -66,7 +66,7 @@ object EntityEnhancer extends Logging {
             !isEntityTraitField(field) &&
             !isVarField(field) &&
             !isScalaVariable(field) &&
-            !isValidEntityField(field) &&
+            !isValidationEntityField(field) &&
             !isStatic(field) &&
             field.getName != "_varsMap" &&
             field.getName != "lastVersionValidation"

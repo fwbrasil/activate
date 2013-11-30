@@ -2,13 +2,13 @@ package net.fwbrasil.activate.entity
 
 import org.specs2.mutable._
 import org.junit.runner._
-import org.specs2.runner._
+import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.entity.EntityValidationOption._
 import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.entity.id.UUID
 
-class EntityValidationPrePostConditionsSpecsEntity extends BaseEntity with UUID {
+class EntityValidationPrePostConditionsSpecsEntity extends Entity {
     var string = "s"
     def methodWithPreCondition(f: => Unit) =
         preCondition(string == "s") {

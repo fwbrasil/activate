@@ -28,7 +28,7 @@ object readValidationContext extends ActivateContext {
     versionMigration.execute
 }
 
-class ReadValidationEntity(var intValue: Int) extends BaseEntity with UUID {
+class ReadValidationEntity(var intValue: Int) extends Entity {
     override def shouldValidateRead = ReadValidationEntity.shouldValidateRead()
 }
 

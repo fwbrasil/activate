@@ -1,10 +1,10 @@
 package customPackage
 
-import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.ActivateTest
+import net.fwbrasil.activate.entity.Entity
 
-class CustomPackageEntity(val string: String) extends BaseEntity with UUID
+class CustomPackageEntity(val string: String) extends Entity
 
 class CustomPackageSpecs extends ActivateTest {
 
