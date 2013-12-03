@@ -25,6 +25,7 @@ trait EntityContext
     type MutableEntityMap[E <: BaseEntity] = net.fwbrasil.activate.entity.map.MutableEntityMap[E]
     type Encoder[A, B] = net.fwbrasil.activate.entity.Encoder[A, B]
 
+    type BaseEntity = net.fwbrasil.activate.entity.BaseEntity
     type Entity = net.fwbrasil.activate.entity.Entity
     type EntityWithCustomID[ID] = net.fwbrasil.activate.entity.EntityWithCustomID[ID]
 

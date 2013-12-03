@@ -72,6 +72,7 @@ import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.statement.In
 import net.fwbrasil.activate.statement.ListValue
 import net.fwbrasil.activate.statement.NotIn
+import org.joda.time.DateTime
 
 class LiveCache(
         val context: ActivateContext,
@@ -330,6 +331,7 @@ class LiveCache(
                 entity.deleteWithoutInitilize
             }
         }
+        entity.lastVersionValidation = DateTime.now
     }
 
     def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {
