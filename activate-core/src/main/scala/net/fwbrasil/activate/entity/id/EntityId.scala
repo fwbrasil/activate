@@ -20,6 +20,19 @@ import scala.util.Try
 import java.lang.reflect.InvocationTargetException
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.BaseEntity
+import net.fwbrasil.activate.entity.IntEntityValue
+import net.fwbrasil.activate.entity.LongEntityValue
+import java.lang.Long
+import net.fwbrasil.activate.entity.BooleanEntityValue
+import java.lang.Boolean
+import net.fwbrasil.activate.entity.CharEntityValue
+import net.fwbrasil.activate.entity.StringEntityValue
+import net.fwbrasil.activate.entity.FloatEntityValue
+import java.lang.Float
+import net.fwbrasil.activate.entity.DoubleEntityValue
+import java.lang.Double
+import net.fwbrasil.activate.entity.BigDecimalEntityValue
+import java.math.BigDecimal
 
 trait EntityId {
     this: BaseEntity =>
@@ -49,6 +62,33 @@ object EntityId {
         val idClass = EntityId.idClassFor(entityClass)
         EntityValue.tvalFunction[BaseEntity#ID](idClass, classOf[Object])
     }
+
+    def idToString[ID <: BaseEntity#ID](entityClass: Class[_], id: ID): String =
+        id.toString
+
+    def stringToId[ID <: BaseEntity#ID](entityClass: Class[_], idString: String): ID = {
+        val entityIdValue = idTvalFunctionFor(entityClass)(None).asInstanceOf[EntityValue[_]]
+        val id =
+            entityIdValue match {
+                case value: IntEntityValue =>
+                    Integer.parseInt(idString)
+                case value: LongEntityValue =>
+                    Long.parseLong(idString)
+                case value: BooleanEntityValue =>
+                    Boolean.parseBoolean(idString)
+                case vale: CharEntityValue =>
+                    idString.head
+                case value: StringEntityValue =>
+                    idString
+                case value: FloatEntityValue =>
+                    Float.parseFloat(idString)
+                case value: DoubleEntityValue =>
+                    Double.parseDouble(idString)
+                case value: BigDecimalEntityValue =>
+                    BigDecimal.valueOf(Double.parseDouble(idString))
+            }
+        id.asInstanceOf[ID]
+    }
 }
 
 trait EntityIdContext {
@@ -65,9 +105,9 @@ trait EntityIdContext {
     private var generatorsByConcreteEntityClass: UnsafeLazyItem[Map[Class[BaseEntity], IdGenerator[BaseEntity]]] = _
 
     reload
-    
+
     private def classpathHints = List[Any](this.getClass) ++ entitiesPackages
-    
+
     protected def entitiesPackages = List[String]()
 
     private def reload =
