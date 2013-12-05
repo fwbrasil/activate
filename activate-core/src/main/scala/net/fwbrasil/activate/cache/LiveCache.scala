@@ -331,7 +331,7 @@ class LiveCache(
                 entity.deleteWithoutInitilize
             }
         }
-        entity.lastVersionValidation = DateTime.now
+        entity.lastVersionValidation = System.currentTimeMillis
     }
 
     def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {

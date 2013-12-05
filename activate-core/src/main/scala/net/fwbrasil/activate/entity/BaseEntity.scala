@@ -218,7 +218,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
         varNamed(name).getOriginalValue.getOrElse(null).asInstanceOf[T]
     }
 
-    var lastVersionValidation = DateTime.now
+    var lastVersionValidation = System.currentTimeMillis
 
     protected def deferFor(duration: Duration) =
         BaseEntity.deferReadValidationFor(duration, this)
@@ -260,7 +260,7 @@ object BaseEntity {
 
     private[activate] def deferReadValidationFor(duration: Duration, entity: BaseEntity) =
         if (duration.isFinite)
-            !entity.lastVersionValidation.plusMillis(duration.toMillis.toInt).isAfter(DateTime.now)
+            !(entity.lastVersionValidation + duration.toMillis < System.currentTimeMillis)
         else
             false
 
