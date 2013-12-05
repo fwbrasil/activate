@@ -46,7 +46,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
     }
 
     private[activate] def putVar(name: String, ref: Var[Any]) =
-        _varsMap.put(name.split('$').last, ref)
+        _varsMap.put(name, ref)
 
     def vars = {
         if (_vars == null) {

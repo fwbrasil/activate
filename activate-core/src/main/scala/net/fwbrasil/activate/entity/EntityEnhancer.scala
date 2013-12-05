@@ -137,7 +137,7 @@ object EntityEnhancer extends Logging {
                     ann.value
                 else
                     field.getName
-            "this.putVar(\"" + fieldName + "\", this." + field.getName() + ");"
+            "this.putVar(\"" + fieldName.split("$").last + "\", this." + field.getName() + ");"
         }).mkString("\n")
         val method =
             clazz.getDeclaredMethods.find(_.getName.contains("buildVarsMap")).getOrElse {

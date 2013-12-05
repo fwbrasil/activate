@@ -13,9 +13,14 @@ abstract class IdGenerator[E <: BaseEntity: Manifest] {
 }
 
 abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
-    val sequence: Sequence[E#ID])(
-        implicit n: Numeric[E#ID])
+    fSequence: => Sequence[E#ID])(
+        implicit n: Numeric[E#ID],
+        ctx: ActivateContext)
         extends IdGenerator[E] {
+    
+    import ctx._
+    
+    private val sequence = transactional(requiresNew)(fSequence)
 
     private val segmentSize = sequence.step
     private var hi = sequence.nextValue(1)

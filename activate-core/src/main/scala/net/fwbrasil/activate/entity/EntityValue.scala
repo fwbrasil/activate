@@ -190,8 +190,8 @@ object EntityValue extends ValueContext {
                 (value: Option[List[Any]]) => toListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
             else if (classOf[LazyList[_]] == clazz)
                 (value: Option[LazyList[BaseEntity]]) => toLazyListEntityValueOption(value)(manifestClass(genericParameter), tvalFunction(genericParameter, classOf[Object]))
-            else if (classOf[Serializable].isAssignableFrom(clazz) || clazz.isArray)
-                (value: Option[Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
+            else if (classOf[java.io.Serializable].isAssignableFrom(clazz) || clazz.isArray)
+                (value: Option[java.io.Serializable]) => toSerializableEntityValueOption(value)(manifestClass(clazz))
             else
                 null).asInstanceOf[(Option[T]) => EntityValue[T]])
 
@@ -236,7 +236,7 @@ trait ValueContext {
         toListEntityValueOption(Option(value))
     def toLazyListEntityValue[V <: BaseEntity](value: LazyList[V])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
         toLazyListEntityValueOption(Option(value))
-    implicit def toSerializableEntityValue[S <: Serializable: Manifest](value: S): SerializableEntityValue[S] =
+    implicit def toSerializableEntityValue[S <: java.io.Serializable: Manifest](value: S): SerializableEntityValue[S] =
         toSerializableEntityValueOption(Option(value))
 
     implicit def toIntEntityValueOption(value: Option[Int]) =
@@ -271,7 +271,7 @@ trait ValueContext {
         ListEntityValue[V](value)
     def toLazyListEntityValueOption[V <: BaseEntity](value: Option[LazyList[V]])(implicit m: Manifest[V], tval: Option[V] => EntityValue[V]): LazyListEntityValue[V] =
         LazyListEntityValue[V](value)
-    implicit def toSerializableEntityValueOption[S <: Serializable: Manifest](value: Option[S]): SerializableEntityValue[S] =
+    implicit def toSerializableEntityValueOption[S <: java.io.Serializable: Manifest](value: Option[S]): SerializableEntityValue[S] =
         SerializableEntityValue[S](value)
 
 }
