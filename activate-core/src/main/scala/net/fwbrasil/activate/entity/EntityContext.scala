@@ -28,6 +28,7 @@ trait EntityContext
     type BaseEntity = net.fwbrasil.activate.entity.BaseEntity
     type Entity = net.fwbrasil.activate.entity.Entity
     type EntityWithCustomID[ID] = net.fwbrasil.activate.entity.EntityWithCustomID[ID]
+    type EntityWithGeneratedID[ID] = net.fwbrasil.activate.entity.EntityWithGeneratedID[ID]
 
     protected def liveCacheType = CacheType.softReferences
 

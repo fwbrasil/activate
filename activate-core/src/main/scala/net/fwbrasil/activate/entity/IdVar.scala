@@ -2,21 +2,32 @@ package net.fwbrasil.activate.entity
 
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class IdVar(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, val entityId: BaseEntity#ID)
+class IdVar private (metadata: EntityPropertyMetadata, outerEntity: BaseEntity, var entityIdOption: Option[BaseEntity#ID])
         extends Var[BaseEntity#ID](metadata, outerEntity, false) {
 
     def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity) =
-        this(metadata, outerEntity, outerEntity.context.nextIdFor(outerEntity.getClass))
+        this(metadata, outerEntity, None)
 
-    super.put(Option(entityId))
+    def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, entityId: BaseEntity#ID) =
+        this(metadata, outerEntity, Some(entityId))
+
+    if (entityIdOption.isDefined)
+        super.put(entityIdOption)
 
     override def getValue() =
-        entityId
+        entityIdOption.getOrElse(null).asInstanceOf[BaseEntity#ID]
 
     override def get =
-        Some(entityId)
+        entityIdOption
 
-    override def put(value: Option[BaseEntity#ID]) = {}
+    override def put(value: Option[BaseEntity#ID]) =
+        putWithoutInitialize(value)
+    
+    override def putWithoutInitialize(value: Option[BaseEntity#ID]) =
+        if (value.isDefined) {
+            entityIdOption = value
+            super.putWithoutInitialize(value)
+        }
 
     override protected def doInitialized[A](forWrite: Boolean)(f: => A): A =
         f
@@ -26,5 +37,5 @@ class IdVar(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, val entit
         super.isDestroyed
     }
 
-    override def toString = "id -> " + entityId
+    override def toString = "id -> " + getValue
 }

@@ -11,14 +11,14 @@ trait UUID {
 
     type ID = String
 
-    final val id: String = null
+    final val id: String = uuidGenerator.nextId(getClass)
 
     def creationTimestamp = UUIDUtil timestamp id.substring(0, 35)
     def creationDate = new Date(creationTimestamp)
     def creationDateTime = new DateTime(creationTimestamp)
 }
 
-object uuidGenerator extends IdGenerator[BaseEntity with UUID] { 
+object uuidGenerator {
     def nextId(entityClass: Class[_]) = {
         val uuid = UUIDUtil.generateUUID
         val classId = EntityHelper.getEntityClassHashId(entityClass)

@@ -75,7 +75,6 @@ trait ActivateContext
     def reinitializeContext =
         logInfo("reinitializing context " + contextName) {
             clearCachedQueries
-            reinitializeIdGenerators
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
             unloadIndexes

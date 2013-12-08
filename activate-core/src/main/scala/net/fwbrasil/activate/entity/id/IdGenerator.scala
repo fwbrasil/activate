@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 
 abstract class IdGenerator[E <: BaseEntity: Manifest] {
     def entityClass = erasureOf[E]
-    def nextId(entityClass: Class[_]): E#ID
+    def nextId: E#ID
 }
 
 abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
@@ -17,9 +17,9 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
         implicit n: Numeric[E#ID],
         ctx: ActivateContext)
         extends IdGenerator[E] {
-    
+
     import ctx._
-    
+
     private val sequence = transactional(requiresNew)(fSequence)
 
     private val segmentSize = sequence.step
@@ -30,20 +30,21 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
         "The sequence step must be greater than one. " +
             "The step is used as the segment size for the id generation.")
 
-    @tailrec final def nextId(entityClass: Class[_]): E#ID =
+    @tailrec final def nextId: E#ID =
         synchronized {
             if (n.lteq(low, n.fromInt(segmentSize)))
                 n.plus(hi, low)
             else {
                 hi = sequence.nextValue(segmentSize)
-                nextId(entityClass)
+                nextId
             }
         }
 
 }
 
-case class SequencedIdGenerator[T](
-        sequence: Sequence[T]) {
-    def nextId(entityClass: Class[_]) =
+abstract class SequencedIdGenerator[E <: BaseEntity: Manifest](
+    val sequence: Sequence[E#ID])
+        extends IdGenerator[E] {
+    def nextId =
         sequence.nextValue(1)
 }

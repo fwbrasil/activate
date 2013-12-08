@@ -98,6 +98,7 @@ trait EntityIdContext {
 
     type UUID = net.fwbrasil.activate.entity.id.UUID
     type CustomID[ID] = net.fwbrasil.activate.entity.id.CustomID[ID]
+    type GeneratedID[ID] = net.fwbrasil.activate.entity.id.GeneratedID[ID]
 
     protected def reinitializeIdGenerators =
         reload
@@ -146,28 +147,25 @@ trait EntityIdContext {
                         val candidates =
                             generatorsByBaseEntityClass
                                 .filterKeys(_.isAssignableFrom(entityClass))
-                        val mostSpecific =
-                            candidates.keys.toList
-                                .sortWith((c1, c2) => c1.isAssignableFrom(c2)).lastOption.getOrElse {
-                                    throw new IllegalStateException("Can't find a generator for entity class " + entityClass)
-                                }
-                        entityClass -> candidates(mostSpecific)
+                        candidates.keys.toList
+                            .sortWith((c1, c2) => c1.isAssignableFrom(c2)).lastOption.map {
+                                mostSpecific =>
+                                    entityClass -> candidates(mostSpecific)
+                            }
                     }
 
-                values.toMap
+                values.flatten.toMap
             }
 
-    def nextIdFor[E <: BaseEntity](entityClass: Class[E]) =
-        idGeneratorFor(entityClass).nextId(entityClass).asInstanceOf[BaseEntity#ID]
+    def nextIdOptionFor[E <: BaseEntity](entityClass: Class[E]) =
+        idGeneratorFor(entityClass).map(_.nextId.asInstanceOf[BaseEntity#ID])
 
-    def idGeneratorFor[E <: BaseEntity](entityClass: Class[E]): IdGenerator[E] = {
-        val generator =
-            if (classOf[UUID].isAssignableFrom(entityClass))
-                uuidGenerator
-            else
-                generatorsByConcreteEntityClass(entityClass.asInstanceOf[Class[BaseEntity]])
-        generator.asInstanceOf[IdGenerator[E]]
-    }
+    def nextIdFor[E <: BaseEntity](entityClass: Class[E]) =
+        nextIdOptionFor(entityClass)
+            .getOrElse(throw new IllegalStateException(s"Can't find a id generator for $entityClass."))
+
+    def idGeneratorFor[E <: BaseEntity](entityClass: Class[E]) =
+        generatorsByConcreteEntityClass.get.get(entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[Option[IdGenerator[E]]]
 
 }
 
@@ -176,5 +174,15 @@ trait CustomID[T] {
 
     type ID = T
 
-    final val id = null.asInstanceOf[T]
+    val id: T
+}
+
+trait GeneratedID[T] extends CustomID[T] {
+    this: BaseEntity =>
+        
+    val id =
+        context
+            .nextIdOptionFor(getClass)
+            .getOrElse(null)
+            .asInstanceOf[T]
 }
