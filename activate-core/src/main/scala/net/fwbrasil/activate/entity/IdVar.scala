@@ -2,8 +2,8 @@ package net.fwbrasil.activate.entity
 
 import net.fwbrasil.activate.util.uuid.UUIDUtil
 
-class IdVar private (metadata: EntityPropertyMetadata, outerEntity: BaseEntity, var entityIdOption: Option[BaseEntity#ID])
-        extends Var[BaseEntity#ID](metadata, outerEntity, false) {
+class IdVar private (metadata: EntityPropertyMetadata, pOuterEntity: BaseEntity, var entityIdOption: Option[BaseEntity#ID])
+        extends Var[BaseEntity#ID](metadata, pOuterEntity, false) {
 
     def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity) =
         this(metadata, outerEntity, None)

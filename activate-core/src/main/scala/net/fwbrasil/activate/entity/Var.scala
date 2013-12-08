@@ -9,14 +9,8 @@ import net.fwbrasil.activate.util.uuid.UUIDUtil
 import net.fwbrasil.activate.serialization.SerializationContext
 
 class Var[T](
-    val name: String,
-    val isTransient: Boolean,
-    val baseTVal: Option[Any] => EntityValue[Any],
-    val valueClass: Class[_],
-    val isLazyFlag: Boolean,
+    val metadata: EntityPropertyMetadata,
     val outerEntity: BaseEntity,
-    val isOptionalValue: Boolean,
-    val isMutable: Boolean,
     initialize: Boolean,
     valueOption: Option[T])
         extends Ref[T](valueOption, initialize)(outerEntity.context)
@@ -24,20 +18,22 @@ class Var[T](
 
     def this(metadata: EntityPropertyMetadata, outerEntity: BaseEntity, initialize: Boolean) =
         this(
-            metadata.name,
-            metadata.isTransient,
-            metadata.tval,
-            metadata.propertyType,
-            metadata.isLazyFlag,
+            metadata,
             outerEntity,
-            metadata.isOption,
-            metadata.isMutable,
             initialize || metadata.isLazyFlag,
             if (metadata.isLazyFlag)
                 Some(false.asInstanceOf[T])
             else
                 None)
-
+                
+   def name = metadata.name
+   def isTransient = metadata.isTransient
+   def baseTVal = metadata.tval
+   def valueClass = metadata.propertyType
+   def isLazyFlag = metadata.isLazyFlag
+   def isOptionalValue = metadata.isOption
+   def isMutable = metadata.isMutable
+                
     val tval = {
         if (baseTVal == null)
             null
@@ -54,8 +50,6 @@ class Var[T](
             }).asInstanceOf[Option[T] => EntityValue[T]]
         }
     }
-
-    var initialized = false
 
     def toEntityPropertyValue(value: T) = tval(Option(value))
     def outerEntityClass = outerEntity.niceClass
