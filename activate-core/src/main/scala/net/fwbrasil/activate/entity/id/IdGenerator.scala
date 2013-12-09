@@ -32,7 +32,8 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
 
     @tailrec final def nextId: E#ID =
         synchronized {
-            if (n.lteq(low, n.fromInt(segmentSize)))
+            low = n.plus(low, n.fromInt(1))
+            if (n.lteq(low, n.fromInt(segmentSize))) 
                 n.plus(hi, low)
             else {
                 hi = sequence.nextValue(segmentSize)
