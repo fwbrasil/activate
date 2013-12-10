@@ -115,6 +115,7 @@ class LiveCache(
     def toCache[E <: BaseEntity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
+        customCaches.foreach(_.add(entity)(context))
         entity
     }
 
@@ -243,6 +244,7 @@ class LiveCache(
                 if (entity == null) {
                     val entity = createLazyEntity(entityClass, entityId)
                     map.put(entityId, entity)
+                    customCaches.foreach(_.add(entity)(context))
                     entity
                 } else
                     entity
