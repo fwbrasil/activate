@@ -63,7 +63,6 @@ import net.fwbrasil.activate.statement.FunctionApply
 import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.entity.StringEntityValue
 import net.fwbrasil.activate.statement.ToLowerCase
-import scala.collection.concurrent.TrieMap
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
 import CacheType._

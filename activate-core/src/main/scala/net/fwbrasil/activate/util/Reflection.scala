@@ -22,7 +22,7 @@ object Reflection {
 
     import language.implicitConversions
 
-    val objenesis = new ObjenesisStd(false);
+    val objenesis = new ObjenesisStd(true)
 
     implicit class NiceObject[T](val x: T) extends AnyVal {
         def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]

@@ -142,8 +142,6 @@ trait EntityIdContext {
 
                 val values =
                     for (entityClass <- customIdClasses) yield {
-                        if (entityClass.getName.endsWith("ValidationEntity"))
-                            println(1)
                         val candidates =
                             generatorsByBaseEntityClass
                                 .filterKeys(_.isAssignableFrom(entityClass))

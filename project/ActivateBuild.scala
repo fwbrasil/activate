@@ -8,7 +8,7 @@ object ActivateBuild extends Build {
 	val radonStm = "net.fwbrasil" %% "radon-stm" % "1.5-M1"
 	val smirror = "net.fwbrasil" %% "smirror" % "0.7-SNAPSHOT"
 	val guava = "com.google.guava" % "guava" % "15.0"
-	val objenesis = "org.objenesis" % "objenesis" % "2.0"
+	val objenesis = "org.objenesis" % "objenesis" % "2.1"
 	val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
 	val reflections = "org.reflections" % "reflections" % "0.9.8" exclude("javassist", "javassist") exclude("dom4j", "dom4j")
 	val grizzled = "org.clapper" %% "grizzled-slf4j" % "1.0.1"

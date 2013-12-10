@@ -25,9 +25,9 @@ import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.util.ManifestUtil
 
 trait QueryContext extends StatementContext
-        with OrderedQueryContext
-        with CachedQueryContext
-        with EagerQueryContext {
+    with OrderedQueryContext
+    with CachedQueryContext
+    with EagerQueryContext {
     this: ActivateContext =>
 
     def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[S] = {
@@ -304,10 +304,29 @@ trait QueryContext extends StatementContext
 
     def asyncSelect[E <: BaseEntity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncById[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
-
-        Future.successful(byId[T](id))
+    def asyncByIdInitialized[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
+        val entity = byId[T](id).get
+        if (!entity.isInitialized)
+            entity.synchronized {
+                asyncQuery {
+                    (e: T) => where(e.id :== id) select (e.eager)
+                }.map { result =>
+                    val fromDatabase = result.headOption
+                    fromDatabase.orElse {
+                        transactional(transient) {
+                            entity.deleteWithoutInitilize
+                        }
+                        entity.setInitialized
+                        Some(entity)
+                    }
+                }(texctx)
+            }
+        else
+            Future.successful(Some(entity))
     }
+
+    def asyncById[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
+        Future.successful(byId[T](id))
 
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
