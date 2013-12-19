@@ -306,23 +306,25 @@ trait QueryContext extends StatementContext
 
     def asyncByIdInitialized[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
         val entity = byId[T](id).get
-        if (!entity.isInitialized)
-            entity.synchronized {
+        entity.synchronized {
+            if (!entity.isInitialized) {
+                entity.setInitializing
                 asyncQuery {
-                    (e: T) => where(e.id :== id) select (e.eager)
+                    (e: T) => where(e.id :== id) select (e)
                 }.map { result =>
                     val fromDatabase = result.headOption
                     fromDatabase.orElse {
                         transactional(transient) {
-                            entity.deleteWithoutInitilize
+                            if (!entity.isDeleted)
+                                entity.deleteWithoutInitilize
                         }
                         entity.setInitialized
                         Some(entity)
                     }
                 }(texctx)
-            }
-        else
-            Future.successful(Some(entity))
+            } else
+                Future.successful(Some(entity))
+        }
     }
 
     def asyncById[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =

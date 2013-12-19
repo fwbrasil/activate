@@ -74,9 +74,9 @@ import net.fwbrasil.activate.statement.NotIn
 import org.joda.time.DateTime
 
 class LiveCache(
-        val context: ActivateContext,
-        cacheType: CacheType,
-        customCaches: List[CustomCache[BaseEntity]]) extends Logging {
+    val context: ActivateContext,
+    cacheType: CacheType,
+    customCaches: List[CustomCache[BaseEntity]]) extends Logging {
 
     info("Initializing live cache for context " + context.contextName)
 
@@ -257,6 +257,8 @@ class LiveCache(
         entityId match {
             case entityId: String =>
                 entityId.intern.synchronized(f)
+            case entityId: Long =>
+                entityId.toString.intern.synchronized(f)
             case entityId =>
                 entityId.synchronized(f)
         }
