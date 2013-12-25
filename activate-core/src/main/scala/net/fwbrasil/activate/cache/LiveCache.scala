@@ -325,16 +325,24 @@ class LiveCache(
         entity
     }
 
-    def loadFromDatabase(entity: BaseEntity): Unit = {
-        loadRowFromDatabase(entity).map {
+    def loadFromDatabase(entity: BaseEntity): Unit =
+        initializeEntity(loadRowFromDatabase(entity), entity)
+
+    def asyncLoadFromDatabase(entity: BaseEntity)(implicit tctx: TransactionalExecutionContext) =
+        asyncLoadRowFromDatabase(entity, tctx).map(initializeEntity(_, entity))(tctx)
+
+    private def initializeEntity(rowOption: Option[List[Any]], entity: BaseEntity) = {
+        entity.lastVersionValidation = System.currentTimeMillis
+        rowOption.map { row => 
             val vars = entity.vars.toList.filter(p => !p.isTransient)
-            row => setEntityValues(entity, vars.zip(row).toMap)
+            setEntityValues(entity, vars.zip(row).toMap)
+            Some(entity)
         }.getOrElse {
             transactional(transient) {
                 entity.deleteWithoutInitilize
             }
+            None
         }
-        entity.lastVersionValidation = System.currentTimeMillis
     }
 
     def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {
@@ -596,13 +604,17 @@ class LiveCache(
         for (entitySource <- entitySources)
             yield fromCache(entitySource.entityClass)
 
-    private def loadRowFromDatabase(entity: BaseEntity) = {
-        val query = produceQuery[Product, BaseEntity, Query[Product]]({ (e: BaseEntity) =>
+    private def loadRowFromDatabase(entity: BaseEntity) =
+        entitiesFromStorage(loadRowQuery(entity), List()).headOption
+
+    private def asyncLoadRowFromDatabase(entity: BaseEntity, tcxt: TransactionalExecutionContext) =
+        entitiesFromStorageAsync(loadRowQuery(entity), List())(tcxt).map(_.headOption)(tcxt)
+
+    private def loadRowQuery(entity: BaseEntity) =
+        produceQuery[Product, BaseEntity, Query[Product]]({ (e: BaseEntity) =>
             where(e :== entity.id)
                 .selectList(e.vars.filter(p => !p.isTransient).map(toStatementValueRef).toList)
         })(manifestClass(entity.getClass))
-        entitiesFromStorage(query, List()).headOption
-    }
 
     private def materializeLines(lines: List[List[net.fwbrasil.activate.entity.EntityValue[_]]]): List[List[Any]] =
         for (line <- lines)
