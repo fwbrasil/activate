@@ -44,13 +44,13 @@ import net.fwbrasil.activate.ActivateConcurrentTransactionException
 trait AsyncPostgreSQLStorage extends RelationalStorage[Future[PostgreSQLConnection]] {
 
     val defaultTimeout: Duration = Duration.Inf
-    val executionContext = scala.concurrent.ExecutionContext.Implicits.global
+    lazy val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     val objectFactory: ObjectFactory[PostgreSQLConnection]
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
 
-    private val pool = new ConnectionPool(objectFactory, poolConfiguration)
+    private lazy val pool = new ConnectionPool(objectFactory, poolConfiguration, executionContext = executionContext)
 
     val queryLimit = 1000
     val dialect: postgresqlDialect = postgresqlDialect
