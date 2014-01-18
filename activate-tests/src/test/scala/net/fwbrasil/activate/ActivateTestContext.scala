@@ -54,6 +54,8 @@ import scala.collection.immutable.HashSet
 import net.fwbrasil.activate.entity.id._
 import net.fwbrasil.activate.entity.TestValidationEntity
 import net.fwbrasil.activate.slick.SlickQueryContext
+import net.fwbrasil.activate.storage.relational.async.AsyncMySQLStorage
+import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
 
 case class DummySeriablizable(val string: String)
 
@@ -70,7 +72,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == derbyContext || ctx == sqlServerContext || ctx == polyglotContext)
+        if (ctx == mysqlContext || ctx == asyncMysqlContext || ctx == derbyContext || ctx == sqlServerContext || ctx == polyglotContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -179,23 +181,22 @@ class AsyncPostgresqlActivateTestMigrationCustomColumnType extends ActivateTestM
     override def bigStringType = "TEXT"
 }
 
-//object asyncMysqlContext extends ActivateTestContext {
-//    lazy val storage = new AsyncJdbcRelationalStorage[MySQLConnection] {
-//        def configuration =
-//            new Configuration(
-//                username = "root",
-//                host = "localhost",
-//                port = 3306,
-//                password = Some("root"),
-//                database = Some("activate_test_async"))
-//        lazy val objectFactory = new MySQLConnectionFactory(configuration)
-//        val dialect = mySqlDialect
-//    }
-//}
-//class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
-//class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
-//    override def bigStringType = "TEXT"
-//}
+object asyncMysqlContext extends ActivateTestContext {
+    lazy val storage = new AsyncMySQLStorage {
+        def configuration =
+            new Configuration(
+                username = "root",
+                host = "localhost",
+                port = 3306,
+                password = Some("root"),
+                database = Some("activate_test_async"))
+        lazy val objectFactory = new MySQLConnectionFactory(configuration)
+    }
+}
+class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
+class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
+    override def bigStringType = "TEXT"
+}
 
 object h2Context extends ActivateTestContext {
     lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {

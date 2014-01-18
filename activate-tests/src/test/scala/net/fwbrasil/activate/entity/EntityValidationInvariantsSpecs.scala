@@ -15,10 +15,11 @@ import net.fwbrasil.activate.entity.id.IdGenerator
 import java.util.concurrent.atomic.AtomicInteger
 import net.fwbrasil.activate.entity.id.SegmentedIdGenerator
 import net.fwbrasil.activate.sequence._
+import net.fwbrasil.activate.entity.id.GeneratedID
 
 class String1MustNotBeEmpty extends Exception
 
-class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends BaseEntity with CustomID[Int] {
+class TestValidationEntity(var string1: String, var option: Option[Int] = None) extends BaseEntity with GeneratedID[Int] {
     var string2 = "s2"
     def string1MustNotBeEmpty =
         invariant(new String1MustNotBeEmpty) {

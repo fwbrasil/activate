@@ -143,7 +143,7 @@ class mySqlDialect(pEscape: String => String, pNormalize: String => String) exte
             case value: FloatStorageValue =>
                 "DOUBLE"
             case value: DateStorageValue =>
-                "LONG"
+                "BIGINT"
             case value: DoubleStorageValue =>
                 "DOUBLE"
             case value: BigDecimalStorageValue =>
