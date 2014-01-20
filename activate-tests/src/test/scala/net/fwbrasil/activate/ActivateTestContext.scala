@@ -65,7 +65,7 @@ object ActivateTestMigration {
 
 abstract class ActivateTestMigration(
     implicit val ctx: ActivateTestContext)
-        extends Migration {
+    extends Migration {
 
     val timestamp = ActivateTestMigration.timestamp
 
@@ -99,7 +99,7 @@ abstract class ActivateTestMigration(
 
 abstract class ActivateTestMigrationCustomColumnType(recreate: Boolean = false)(
     implicit val ctx: ActivateTestContext)
-        extends Migration {
+    extends Migration {
 
     val timestamp = ActivateTestMigration.timestamp + 1
 
@@ -191,6 +191,7 @@ object asyncMysqlContext extends ActivateTestContext {
                 password = Some("root"),
                 database = Some("activate_test_async"))
         lazy val objectFactory = new MySQLConnectionFactory(configuration)
+        override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)
     }
 }
 class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
@@ -425,7 +426,7 @@ object BigStringGenerator {
 }
 
 trait ActivateTestContext
-        extends StoppableActivateContext {
+    extends StoppableActivateContext {
 
     override val milisToWaitBeforeRetry = 1
 
@@ -446,10 +447,10 @@ trait ActivateTestContext
             CustomCache[Box](
                 cacheType = CacheType.softReferences,
                 condition = _.id.charAt(0).toInt < 40),
-            CustomCache[ActivateTestDummyEntity](
+            CustomCache[CaseClassEntity](
                 cacheType = CacheType.weakReferences,
                 transactionalCondition = true,
-                condition = _.dummy == true))
+                condition = _.stringValue == fullStringValue))
 
     override protected def entitiesPackages = List("customPackage")
 
@@ -660,12 +661,12 @@ trait ActivateTestContext
     }
 
     abstract class Page(var title: String, parent: Option[Page])
-            extends Entity {
+        extends Entity {
         def toXHtml: Elem
     }
 
     class BasicPage(pTitle: String, var content: String, parent: Option[Page] = None)
-            extends Page(pTitle, parent) {
+        extends Page(pTitle, parent) {
         def toXHtml = <div class="row">
                           <div class="col-md-12">
                               <span class="label label-info">{ title }</span>
@@ -686,9 +687,9 @@ trait ActivateTestContext
     }
 
     case class CaseClassEntity(
-            var stringValue: String,
-            var entityValue: ActivateTestEntity,
-            var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
+        var stringValue: String,
+        var entityValue: ActivateTestEntity,
+        var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
         var customEncodedEntityValue = new CustomEncodedEntityValue(1)
         var userStatus: UserStatus = NormalUser
     }
@@ -737,31 +738,31 @@ trait ActivateTestContext
     }
 
     class ActivateTestEntity(
-            var intValue: Int,
-            var longValue: Long,
-            var booleanValue: Boolean,
-            var charValue: Char,
-            var stringValue: String,
-            var floatValue: Float,
-            var doubleValue: Double,
-            var bigDecimalValue: BigDecimal,
-            var dateValue: java.util.Date,
-            var jodaInstantValue: DateTime,
-            var calendarValue: java.util.Calendar,
-            var byteArrayValue: Array[Byte],
-            var entityValue: ActivateTestEntity,
-            var traitValue1: TraitAttribute,
-            var traitValue2: TraitAttribute,
-            var enumerationValue: EnumerationValue,
-            lazyValueValue: String,
-            var optionValue: Option[String],
-            var optionWithPrimitiveValue: Option[Int],
-            var entityWithoutAttributeValue: EntityWithoutAttribute,
-            var caseClassEntityValue: CaseClassEntity,
-            var serializableEntityValue: DummySeriablizable,
-            @Alias("ATEListEntityValue") var listEntityValue: LazyList[ActivateTestEntity],
-            var tupleOptionValue: Option[(Int, Int)],
-            @Alias("customNameConst") var customNamedConstructorProperty: String) extends ActivateTestDummyEntity(false) {
+        var intValue: Int,
+        var longValue: Long,
+        var booleanValue: Boolean,
+        var charValue: Char,
+        var stringValue: String,
+        var floatValue: Float,
+        var doubleValue: Double,
+        var bigDecimalValue: BigDecimal,
+        var dateValue: java.util.Date,
+        var jodaInstantValue: DateTime,
+        var calendarValue: java.util.Calendar,
+        var byteArrayValue: Array[Byte],
+        var entityValue: ActivateTestEntity,
+        var traitValue1: TraitAttribute,
+        var traitValue2: TraitAttribute,
+        var enumerationValue: EnumerationValue,
+        lazyValueValue: String,
+        var optionValue: Option[String],
+        var optionWithPrimitiveValue: Option[Int],
+        var entityWithoutAttributeValue: EntityWithoutAttribute,
+        var caseClassEntityValue: CaseClassEntity,
+        var serializableEntityValue: DummySeriablizable,
+        @Alias("ATEListEntityValue") var listEntityValue: LazyList[ActivateTestEntity],
+        var tupleOptionValue: Option[(Int, Int)],
+        @Alias("customNameConst") var customNamedConstructorProperty: String) extends ActivateTestDummyEntity(false) {
 
         def this(intValue: Int) = this(
             intValue * 2,

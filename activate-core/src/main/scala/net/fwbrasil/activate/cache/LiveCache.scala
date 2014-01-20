@@ -283,7 +283,7 @@ class LiveCache(
     }
 
     private def initalizeLazyEntity[E <: BaseEntity](entity: E, entityMetadata: EntityMetadata, entityId: BaseEntity#ID) =
-        transactional(transient) {
+        transactional(shadow) {
             initializeLazyEntityProperties(entity, entityMetadata)
             initalizeLazyEntityId(entity, entityMetadata, entityId)
             entity.setPersisted
@@ -332,7 +332,7 @@ class LiveCache(
         asyncLoadRowFromDatabase(entity, tctx).map(initializeEntity(_, entity))(tctx)
 
     private def initializeEntity(rowOption: Option[List[Any]], entity: BaseEntity) = {
-        entity.lastVersionValidation = System.currentTimeMillis
+        entity.lastVersionValidation = DateTime.now.getMillis
         rowOption.map { row => 
             val vars = entity.vars.toList.filter(p => !p.isTransient)
             setEntityValues(entity, vars.zip(row).toMap)
@@ -346,7 +346,7 @@ class LiveCache(
     }
 
     def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {
-        transactional(transient) {
+        transactional(shadow) {
             for ((ref, value) <- values)
                 ref.putValueWithoutInitialize(value)
         }

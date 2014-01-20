@@ -7,12 +7,10 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.language.postfixOps
-
 import com.github.mauricio.async.db.Connection
 import com.github.mauricio.async.db.pool.ConnectionPool
 import com.github.mauricio.async.db.pool.ObjectFactory
 import com.github.mauricio.async.db.pool.PoolConfiguration
-
 import io.netty.util.CharsetUtil
 import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.statement.query.Query
@@ -31,6 +29,7 @@ import net.fwbrasil.activate.storage.relational.RelationalStorage
 import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
@@ -98,7 +97,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
     private def loadList(rs: JdbcRelationalAsyncResultSet, i: Int, expectedType: ListStorageValue)(implicit context: ExecutionContext) = {
         // TODO review. It should be async too!
-        val split = rs.getString(i).get.split('|')
+        val split = rs.getString(i).getOrElse("0").split('|')
         val notEmptyFlag = split.head
         val listOption =
             if (notEmptyFlag != "1")
@@ -179,8 +178,6 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
     def execute(jdbcStatement: QlStatement, connection: Connection, isDdl: Boolean) = {
         implicit val ectx = executionContext
-        if (jdbcStatement.toString.startsWith("CREATE TABLE `ActivateTestEntity`("))
-            println(jdbcStatement)
         satisfyRestriction(jdbcStatement).flatMap { satisfy =>
             if (satisfy)
                 jdbcStatement match {
@@ -192,9 +189,10 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
                                 sendPreparedStatement(jdbcStatement, connection)
                         future.map {
                             queryResult =>
-                                verifyStaleData(
-                                    jdbcStatement,
-                                    Array(queryResult.rowsAffected))
+                                if (OptimisticOfflineLocking.isEnabled)
+                                    verifyStaleData(
+                                        jdbcStatement,
+                                        Array(queryResult.rowsAffected))
                         }
                     case batch: BatchQlStatement =>
                         throw new UnsupportedOperationException()
@@ -276,18 +274,5 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     private def sendPreparedStatement(jdbcStatement: QlStatement, connection: Connection) =
         connection.sendPreparedStatement(
             jdbcStatement.indexedStatement,
-            jdbcStatement.valuesList.head.map(toValue))
-
-    private def toValue(storageValue: StorageValue): Any =
-        storageValue match {
-            case value: ListStorageValue =>
-                if (value.value.isDefined)
-                    "1"
-                else
-                    "0"
-            case value: StorageOptionalValue =>
-                value.value.getOrElse(null)
-            case value: ReferenceStorageValue =>
-                toValue(value.value)
-        }
+            jdbcStatement.valuesList.head.map(dialect.toValue))
 }

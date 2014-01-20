@@ -4,9 +4,10 @@ import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
 import com.github.mauricio.async.db.RowData
 import java.sql.Timestamp
 import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 
 case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
-        extends ActivateResultSet {
+    extends ActivateResultSet {
 
     def getString(i: Int) =
         value[String](i)
@@ -18,7 +19,12 @@ case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
                 n.toString.toInt
         }
     def getBoolean(i: Int) =
-        value[Boolean](i)
+        valueCase[Boolean](i) {
+            case boolean: Boolean =>
+                boolean
+            case byte: Byte =>
+                byte == (1: Byte)
+        }
     def getFloat(i: Int) =
         valueCase[Float](i) {
             case n =>
@@ -31,6 +37,8 @@ case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
         }
     def getTimestamp(i: Int) =
         valueCase[Timestamp](i) {
+            case localDateTime: LocalDateTime =>
+                new Timestamp(localDateTime.toDateTime.getMillis)
             case dateTime: DateTime =>
                 new Timestamp(dateTime.getMillis)
         }

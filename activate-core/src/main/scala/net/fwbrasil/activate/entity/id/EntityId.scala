@@ -159,8 +159,11 @@ trait EntityIdContext {
         idGeneratorFor(entityClass).map(_.nextId.asInstanceOf[BaseEntity#ID])
 
     def nextIdFor[E <: BaseEntity](entityClass: Class[E]) =
-        nextIdOptionFor(entityClass)
-            .getOrElse(throw new IllegalStateException(s"Can't find a id generator for $entityClass."))
+        if (classOf[UUID].isAssignableFrom(entityClass))
+            uuidGenerator.nextId(entityClass).asInstanceOf[E#ID]
+        else
+            nextIdOptionFor(entityClass)
+                .getOrElse(throw new IllegalStateException(s"Can't find a id generator for $entityClass."))
 
     def idGeneratorFor[E <: BaseEntity](entityClass: Class[E]) =
         generatorsByConcreteEntityClass.get.get(entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[Option[IdGenerator[E]]]
@@ -177,7 +180,7 @@ trait CustomID[T] {
 
 trait GeneratedID[T] extends CustomID[T] {
     this: BaseEntity =>
-        
+
     val id =
         context
             .nextIdOptionFor(getClass)

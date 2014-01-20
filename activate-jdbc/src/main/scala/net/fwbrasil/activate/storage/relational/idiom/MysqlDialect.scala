@@ -33,12 +33,12 @@ import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object mySqlDialect extends mySqlDialect(pEscape = string => "`" + string + "`", pNormalize = string => string) {
-    def apply(escape: String => String = string => "`" + string + "`", normalize: String => String = string => string) = 
+    def apply(escape: String => String = string => "`" + string + "`", normalize: String => String = string => string) =
         new postgresqlDialect(escape, normalize)
 }
 
 class mySqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
-    
+
     override def escape(string: String) =
         pEscape(pNormalize(string))
 
@@ -59,6 +59,14 @@ class mySqlDialect(pEscape: String => String, pNormalize: String => String) exte
                 super.setValue(ps, i, storageValue)
         }
     }
+
+    override def toValue(storageValue: StorageValue): Any =
+        storageValue match {
+            case value: DateStorageValue =>
+                value.value.map(_.getTime).orNull
+            case other =>
+                super.toValue(storageValue)
+        }
 
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " REGEXP " + regex

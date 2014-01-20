@@ -37,6 +37,7 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
                 n.plus(hi, low)
             else {
                 hi = sequence.nextValue(segmentSize)
+                low = n.zero
                 nextId
             }
         }

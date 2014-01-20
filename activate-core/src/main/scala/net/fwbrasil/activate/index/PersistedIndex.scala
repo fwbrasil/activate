@@ -23,7 +23,7 @@ class PersistedIndex[E <: BaseEntity: Manifest, P <: PersistedIndexEntry[K, E]: 
     override protected def reload: Unit =
         if (preloadEntries) {
             val entries =
-                transactional(transient) {
+                transactional(shadow) {
                     for (
                         entry <- all[P];
                         id <- entry.ids

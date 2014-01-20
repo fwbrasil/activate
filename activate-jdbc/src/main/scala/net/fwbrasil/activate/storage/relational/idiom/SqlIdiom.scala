@@ -131,7 +131,7 @@ trait ActivateResultSet {
 }
 
 case class JdbcActivateResultSet(rs: ResultSet)
-        extends ActivateResultSet {
+    extends ActivateResultSet {
 
     private def getValue[T](f: => T) =
         Some(f).filter(_ => !rs.wasNull)
@@ -329,6 +329,19 @@ trait SqlIdiom extends QlIdiom {
             Option(statement, 0)
         else
             None
+
+    def toValue(storageValue: StorageValue): Any =
+        storageValue match {
+            case value: ListStorageValue =>
+                if (value.value.isDefined)
+                    "1"
+                else
+                    "0"
+            case value: StorageOptionalValue =>
+                value.value.getOrElse(null)
+            case value: ReferenceStorageValue =>
+                toValue(value.value)
+        }
 
 }
 

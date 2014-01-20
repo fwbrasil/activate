@@ -83,7 +83,7 @@ case class MemoryIndex[E <: BaseEntity: Manifest, T] private[index] (
 
     override protected def reload: Unit =
         doWithWriteLock {
-            transactional(transient) {
+            transactional(shadow) {
                 val entities =
                     query {
                         (e: E) => where() select (e)

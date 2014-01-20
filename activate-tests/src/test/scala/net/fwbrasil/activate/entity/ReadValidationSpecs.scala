@@ -66,7 +66,7 @@ class ReadValidationSpecs extends ActivateTest {
             "on create" in test {
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
-                require(entity.lastVersionValidation.equals(DateTime.now))
+                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
             }
 
             "on update" in test {
@@ -74,7 +74,7 @@ class ReadValidationSpecs extends ActivateTest {
                 val entity = transactional(new ReadValidationEntity(0))
                 setTime(2)
                 transactional(entity.intValue = 2)
-                require(entity.lastVersionValidation.equals(DateTime.now))
+                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
             }
 
             "on delete" in test {
@@ -82,7 +82,7 @@ class ReadValidationSpecs extends ActivateTest {
                 val entity = transactional(new ReadValidationEntity(0))
                 setTime(2)
                 transactional(entity.delete)
-                require(entity.lastVersionValidation.equals(DateTime.now))
+                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
             }
 
             "on read validation" in test {
@@ -91,7 +91,7 @@ class ReadValidationSpecs extends ActivateTest {
                 setTime(2)
                 ReadValidationEntity.shouldValidateRead = () => true
                 transactional(entity.intValue)
-                require(entity.lastVersionValidation.equals(DateTime.now))
+                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
             }
         }
 
@@ -102,6 +102,7 @@ class ReadValidationSpecs extends ActivateTest {
             require(!entity.shouldValidateRead)
             setTime(2)
             require(entity.shouldValidateRead)
+            ok
         }
 
         "defer read validation for the infinite" in test {

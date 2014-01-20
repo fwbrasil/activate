@@ -103,7 +103,7 @@ trait DurableContext {
             validateTransactionEnd(transaction, entities)
             val entitiesReadOnly = entitiesRead -- entities
             store(statements.toList, inserts, updates, deletes, entitiesReadOnly)
-            (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = System.currentTimeMillis)
+            (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = DateTime.now.getMillis)
             setPersisted(inserts.keys)
             deleteFromLiveCache(deletesUnfiltered.keys)
             updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)
@@ -139,7 +139,7 @@ trait DurableContext {
             Future(validateTransactionEnd(transaction, entities)).flatMap { _ =>
                 val entitiesReadOnly = entitiesRead -- entities
                 storeAsync(statements.toList, inserts, updates, deletes, entitiesReadOnly).map { _ =>
-                    (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = System.currentTimeMillis)
+                    (entities ++ entitiesReadOnly.keys).foreach(_.lastVersionValidation = DateTime.now.getMillis)
                     setPersisted(inserts.keys)
                     deleteFromLiveCache(deletesUnfiltered.keys)
                     updateCachedQueries(transaction, insertsEntities, updatesEntities, deletesEntities)

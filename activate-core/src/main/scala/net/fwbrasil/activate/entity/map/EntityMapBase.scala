@@ -91,7 +91,7 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
         context.transactional(context.nested) {
             try {
                 EntityValidation.setThreadOptions(Set())
-                for ((property, value) <- values) {
+                for ((property, value) <- values if (property != "id")) {
                     val ref = entity.varNamed(property)
                     if (ref == null)
                         throw new NullPointerException(s"Invalid property name $property for class ${m.runtimeClass}.")

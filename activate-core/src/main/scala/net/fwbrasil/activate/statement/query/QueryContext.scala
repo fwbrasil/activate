@@ -31,7 +31,7 @@ trait QueryContext extends StatementContext
     this: ActivateContext =>
 
     def executeQuery[S](query: Query[S], onlyInMemory: Boolean = false): List[S] = {
-        transactionManager.getRequiredActiveTransaction.startIfNotStarted
+        startTransaction
         val normalizedQueries = QueryNormalizer.normalize[Query[S]](query)
         val results =
             (for (normalized <- normalizedQueries) yield {
@@ -275,6 +275,7 @@ trait QueryContext extends StatementContext
         byId(id, erasureOf[T])
 
     def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T]) = {
+        startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic) {
@@ -382,5 +383,8 @@ trait QueryContext extends StatementContext
                 tuples
         }
     }
+    
+    private def startTransaction =
+        transactionManager.getRequiredActiveTransaction.startIfNotStarted
 
 }

@@ -38,9 +38,8 @@ class EntityListenersSpecs extends ActivateTest {
                                 "beforeConstruct", "insideConstructor", "afterConstruct",
                                 "beforeInsertOrUpdate", "beforeInsert", "beforeInitialize",
                                 "afterInitialize", "beforeInsertOrUpdate", "beforeUpdate",
-                                "beforeInsertOrUpdate", "beforeUpdate", "beforeDelete",
-                                "beforeInitialize", "afterInitialize", "afterDelete",
-                                "beforeDelete", "afterDelete"
+                                "beforeDelete", "beforeInitialize", "afterInitialize",
+                                "afterDelete"
                             )) must beTrue
                         }
                     }
