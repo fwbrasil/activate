@@ -8,6 +8,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.entity.EntityValue
 import scala.util.Random
 import net.fwbrasil.activate.multipleVms._
+import net.fwbrasil.activate.entity.BaseEntity
 
 @RunWith(classOf[JUnitRunner])
 class CRUDSpecs extends ActivateTest {
@@ -87,10 +88,10 @@ class CRUDSpecs extends ActivateTest {
                             byId[ActivateTestEntity](emptyId).get.delete
                         }
                         step {
-                            byId[ActivateTestEntity](fullId).get.isDeleted
+                            empryOrDeleted(byId[ActivateTestEntity](fullId))
                         } must beTrue
                         step {
-                            byId[ActivateTestEntity](emptyId).get.isDeleted
+                            empryOrDeleted(byId[ActivateTestEntity](emptyId))
                         } must beTrue
                     })
             }
@@ -106,7 +107,7 @@ class CRUDSpecs extends ActivateTest {
                             byId[EntityWithoutAttribute](entityId).get.delete
                         }
                         step {
-                            byId[EntityWithoutAttribute](entityId).get.isDeleted
+                            empryOrDeleted(byId[EntityWithoutAttribute](entityId))
                         } must beTrue
                     })
             }
@@ -129,7 +130,7 @@ class CRUDSpecs extends ActivateTest {
                             byId[EntityWithUninitializedValue](entityId).get.delete
                         }
                         step {
-                            byId[EntityWithUninitializedValue](entityId).get.isDeleted
+                            empryOrDeleted(byId[EntityWithUninitializedValue](entityId))
                         } must beTrue
                     })
             }
@@ -146,7 +147,7 @@ class CRUDSpecs extends ActivateTest {
                             byId[CaseClassEntity](entityId).get.delete
                         }
                         step {
-                            byId[CaseClassEntity](entityId).get.isDeleted
+                            empryOrDeleted(byId[CaseClassEntity](entityId))
                         } must beTrue
                     })
             }
@@ -227,8 +228,9 @@ class CRUDSpecs extends ActivateTest {
                         } must beEqualTo(fullIntValue)
                     })
             }
-
         }
     }
-
+    
+    private def empryOrDeleted[T <: BaseEntity](entity: Option[T]) =
+        entity == None || entity.get.isDeleted
 }

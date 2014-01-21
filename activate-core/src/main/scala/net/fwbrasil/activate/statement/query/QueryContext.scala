@@ -271,21 +271,20 @@ trait QueryContext extends StatementContext
 
     def select[E <: BaseEntity: Manifest] = new SelectEntity[E]
 
-    def byId[T <: BaseEntity: Manifest](id: => T#ID): Option[T] =
-        byId(id, erasureOf[T])
+    def byId[T <: BaseEntity: Manifest](id: => T#ID, initialized: Boolean = true): Option[T] =
+        byId(id, erasureOf[T], initialized)
 
-    def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T]) = {
+    def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true) = {
         startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
-        if (isPolymorfic) {
-            val result =
-                dynamicQuery {
-                    (e: BaseEntity) => where(e.id :== id) select (e)
-                }(manifest)
-            result.headOption.asInstanceOf[Option[T]]
-        } else
+        if (isPolymorfic)
+            dynamicQuery {
+                (e: BaseEntity) => where(e.id :== id) select (e)
+            }(manifest).headOption.asInstanceOf[Option[T]]
+        else
             Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[T])
+                .filter(entity => !initialized || entity.isInitialized || !entity.isDeleted)
     }
 
     //ASYNC
@@ -305,33 +304,32 @@ trait QueryContext extends StatementContext
 
     def asyncSelect[E <: BaseEntity: Manifest] = new AsyncSelectEntity[E]
 
-    def asyncByIdInitialized[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
-        val entity = byId[T](id).get
-        val isDeleted = transactional(texctx.transaction)(entity.isDeleted)
+    private def asyncInitialize[T <: BaseEntity](entity: T)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
         entity.synchronized {
-            if (!entity.isInitialized && !isDeleted) {
+            if (!entity.isInitialized) {
                 entity.setInitializing
                 liveCache.asyncLoadFromDatabase(entity).asInstanceOf[Future[Option[T]]]
             } else
                 Future(Some(entity).filter(!_.isDeleted))(texctx)
         }
-    }
 
-    def asyncById[T <: BaseEntity: Manifest](id: => T#ID)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
-        Future.successful(byId[T](id))
+    def asyncById[T <: BaseEntity: Manifest](id: => T#ID, initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
+        asyncById[T](id, erasureOf[T], initialized)
 
-    def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T])(implicit texctx: TransactionalExecutionContext) = {
+    def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
-        val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
-        val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
-        if (isPolymorfic) {
-            asyncQuery {
-                (e: BaseEntity) => where(e.id :== id) select (e)
-            }(manifest, texctx).map {
-                _.headOption.asInstanceOf[Option[T]]
-            }
-        } else
-            Future.successful(Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[T]))
+        byId(id, entityClass, initialized = false).map { entity =>
+            if (initialized)
+                entity.synchronized {
+                    if (!entity.isInitialized) {
+                        entity.setInitializing
+                        liveCache.asyncLoadFromDatabase(entity).asInstanceOf[Future[Option[T]]]
+                    } else
+                        Future.successful(Some(entity).filter(!_.isDeleted))
+                }
+            else
+                Future.successful(Some(entity))
+        }.getOrElse(Future.successful(None))
     }
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {
@@ -383,7 +381,7 @@ trait QueryContext extends StatementContext
                 tuples
         }
     }
-    
+
     private def startTransaction =
         transactionManager.getRequiredActiveTransaction.startIfNotStarted
 

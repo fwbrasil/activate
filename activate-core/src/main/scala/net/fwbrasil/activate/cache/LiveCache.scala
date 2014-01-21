@@ -183,9 +183,9 @@ class LiveCache(
     def materialize(value: EntityValue[_]) =
         value match {
             case value: ReferenceListEntityValue[_] =>
-                value.value.map(_.map(_.flatMap(id => context.byId(id)(value.m.asInstanceOf[Manifest[BaseEntity]])).orNull)).orNull
+                value.value.map(_.map(_.flatMap(id => context.byId(id, initialized = false)(value.m.asInstanceOf[Manifest[BaseEntity]])).orNull)).orNull
             case value: EntityInstanceReferenceValue[_] =>
-                value.value.flatMap(id => context.byId(id, value.entityClass.asInstanceOf[Class[BaseEntity]])).orNull
+                value.value.flatMap(id => context.byId(id, value.entityClass.asInstanceOf[Class[BaseEntity]], initialized = false)).orNull
             case other: EntityValue[_] =>
                 other.value.getOrElse(null)
         }
