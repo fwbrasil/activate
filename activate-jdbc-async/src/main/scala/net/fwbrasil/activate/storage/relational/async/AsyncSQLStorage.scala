@@ -68,7 +68,6 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
                 case Some(resultSet) =>
                     resultSet.map {
                         row =>
-                            println(query)
                             val rs = JdbcRelationalAsyncResultSet(row, charset.name)
                             var i = 0
                             val list = ListBuffer[StorageValue]()

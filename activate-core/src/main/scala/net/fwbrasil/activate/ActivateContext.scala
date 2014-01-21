@@ -77,6 +77,7 @@ trait ActivateContext
             clearCachedQueries
             liveCache.reinitialize
             storages.foreach(_.reinitialize)
+            reinitializeIdGenerators
             unloadIndexes
         }
 
