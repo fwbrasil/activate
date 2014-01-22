@@ -104,7 +104,8 @@ class LiveCache(
         delete(entity.id)
 
     def delete(entityId: BaseEntity#ID) =
-        customCaches.foreach(_.remove(entityId))
+        if (!storage.isMemoryStorage)
+            customCaches.foreach(_.remove(entityId))
 
     def remove(entity: BaseEntity): Unit =
         entityInstacesMap(entity.niceClass).remove(entity.id)
@@ -115,7 +116,7 @@ class LiveCache(
     def toCache[E <: BaseEntity](entityClass: Class[E], entity: E): E = {
         val map = entityInstacesMap(entityClass)
         map.put(entity.id, entity)
-        customCaches.foreach(_.add(entity)(context))
+
         entity
     }
 
@@ -244,7 +245,7 @@ class LiveCache(
                 if (entity == null) {
                     val entity = createLazyEntity(entityClass, entityId)
                     map.put(entityId, entity)
-                    customCaches.foreach(_.add(entity)(context))
+                    addToCache(entity)
                     entity
                 } else
                     entity
@@ -333,7 +334,7 @@ class LiveCache(
 
     private def initializeEntity(rowOption: Option[List[Any]], entity: BaseEntity) = {
         entity.lastVersionValidation = DateTime.now.getMillis
-        rowOption.map { row => 
+        rowOption.map { row =>
             val vars = entity.vars.toList.filter(p => !p.isTransient)
             setEntityValues(entity, vars.zip(row).toMap)
             Some(entity)
@@ -621,4 +622,7 @@ class LiveCache(
             yield for (column <- line)
             yield materialize(column)
 
+    private def addToCache(entity: BaseEntity) =
+        if (!storage.isMemoryStorage)
+            customCaches.foreach(_.add(entity)(context))
 }
