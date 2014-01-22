@@ -238,7 +238,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
         implicit val ectx = executionContext
         pool.take.flatMap {
             connection =>
-                connection.inTransaction { _ =>
+                connection.sendQuery("BEGIN").flatMap { _ =>
                     val res =
                         f(connection).map { _ =>
                             new TransactionHandle(

@@ -623,6 +623,6 @@ class LiveCache(
             yield materialize(column)
 
     private def addToCache(entity: BaseEntity) =
-        if (!storage.isMemoryStorage)
+        if (customCaches.nonEmpty && !context.storageFor(entity.getClass).isMemoryStorage)
             customCaches.foreach(_.add(entity)(context))
 }
