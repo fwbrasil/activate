@@ -61,7 +61,7 @@ class EntityTransientValueSpecs extends ActivateTest {
                         entity.transientLazyValue must not beNull
                     }
                     transactional(transaction2) {
-                        entity.transientLazyValue must not beNull // ERROR
+                        entity.transientLazyValue must not beNull
                     }
                     transaction1.commit
                     transaction2.rollback

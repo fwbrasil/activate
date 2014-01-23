@@ -203,7 +203,7 @@ class EntityMapSpecs extends ActivateTest {
                     step {
                         newEmptyActivateTestEntity
                         val map = new EntityMap[ActivateTestEntity](_.entityValue -> ActivateTestEntity.all.head)
-                        map.get(_.entityValue).get === ActivateTestEntity.all.head // throws a ClassCast before the fix
+                        map.get(_.entityValue).get === ActivateTestEntity.all.head
                     }
                 })
         }

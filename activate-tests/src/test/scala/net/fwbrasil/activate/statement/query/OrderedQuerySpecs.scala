@@ -11,6 +11,7 @@ import scala.util.Random.nextDouble
 import scala.util.Random.nextFloat
 import scala.util.Random.nextInt
 import scala.util.Random.nextLong
+import org.joda.time.base.AbstractInstant
 
 @RunWith(classOf[JUnitRunner])
 class OrderedQuerySpecs extends ActivateTest {
@@ -66,10 +67,10 @@ class OrderedQuerySpecs extends ActivateTest {
                                 where() select (entity) orderBy (entity.dateValue)
                         } must beEqualTo(entities.sortBy(_.dateValue))
 
-//                        query {
-//                            (entity: ActivateTestEntity) =>
-//                                where() select (entity) orderBy (entity.jodaInstantValue)
-//                        } must beEqualTo(entities.sortBy(_.jodaInstantValue))
+                        query {
+                            (entity: ActivateTestEntity) =>
+                                where() select (entity) orderBy (entity.jodaInstantValue)
+                        } must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
@@ -109,10 +110,10 @@ class OrderedQuerySpecs extends ActivateTest {
                                 where() select (entity) orderBy (entity.dateValue asc)
                         } must beEqualTo(entities.sortBy(_.dateValue))
 
-//                        query {
-//                            (entity: ActivateTestEntity) =>
-//                                where() select (entity) orderBy (entity.jodaInstantValue asc)
-//                        } must beEqualTo(entities.sortBy(_.jodaInstantValue))
+                        query {
+                            (entity: ActivateTestEntity) =>
+                                where() select (entity) orderBy (entity.jodaInstantValue asc)
+                        } must beEqualTo(entities.sortBy(_.jodaInstantValue))
 
                         query {
                             (entity: ActivateTestEntity) =>
@@ -157,10 +158,10 @@ class OrderedQuerySpecs extends ActivateTest {
                                 where() select (entity) orderBy (entity.dateValue desc)
                         } must beEqualTo(entities.sortBy(_.dateValue).reverse)
 
-//                        query {
-//                            (entity: ActivateTestEntity) =>
-//                                where() select (entity) orderBy (entity.jodaInstantValue desc)
-//                        } must beEqualTo(entities.sortBy(_.jodaInstantValue).reverse)
+                        query {
+                            (entity: ActivateTestEntity) =>
+                                where() select (entity) orderBy (entity.jodaInstantValue desc)
+                        } must beEqualTo(entities.sortBy(_.jodaInstantValue).reverse)
 
                         query {
                             (entity: ActivateTestEntity) =>

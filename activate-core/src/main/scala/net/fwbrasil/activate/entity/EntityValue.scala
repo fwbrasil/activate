@@ -12,38 +12,41 @@ import net.fwbrasil.activate.serialization.javaSerializer
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.util.Reflection
 import net.fwbrasil.activate.entity.id.EntityId
+import org.joda.time.Instant
+import org.joda.time.DateMidnight
+import org.joda.time.DateTime
 
 abstract class EntityValue[V](val value: Option[V]) extends Serializable {
     def emptyValue: V
 }
 
 case class IntEntityValue(override val value: Option[Int])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = 0
 }
 
 case class LongEntityValue(override val value: Option[Long])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = 0l
 }
 
 case class BooleanEntityValue(override val value: Option[Boolean])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = false
 }
 
 case class CharEntityValue(override val value: Option[Char])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = ' '
 }
 
 case class StringEntityValue(override val value: Option[String])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = ""
 }
 
 case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val value: Option[E])
-        extends EntityValue[E](value) {
+    extends EntityValue[E](value) {
     def enumerationManifest = manifest[E]
     def enumerationClass = erasureOf[E]
     def enumerationObjectClass = ActivateContext.loadClass(enumerationClass.getName + "$")
@@ -53,57 +56,57 @@ case class EnumerationEntityValue[E <: Enumeration#Value: Manifest](override val
 }
 
 case class FloatEntityValue(override val value: Option[Float])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = 0f
 }
 
 case class DoubleEntityValue(override val value: Option[Double])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = 0d
 }
 
 case class BigDecimalEntityValue(override val value: Option[BigDecimal])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = null
 }
 
 case class DateEntityValue(override val value: Option[java.util.Date])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = null
 }
 
 case class CalendarEntityValue(override val value: Option[java.util.Calendar])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = null
 }
 
 case class JodaInstantEntityValue[I <: AbstractInstant: Manifest](override val value: Option[I])
-        extends EntityValue[I](value) {
+    extends EntityValue[I](value) {
     def instantClass = erasureOf[I]
     def emptyValue = null.asInstanceOf[I]
 }
 
 case class ByteArrayEntityValue(override val value: Option[Array[Byte]])
-        extends EntityValue(value) {
+    extends EntityValue(value) {
     def emptyValue = null
 }
 
 case class EntityInstanceEntityValue[E <: BaseEntity: Manifest](override val value: Option[E])
-        extends EntityValue[E](value) {
+    extends EntityValue[E](value) {
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
     def emptyValue = null.asInstanceOf[E]
 }
 
 case class EntityInstanceReferenceValue[E <: BaseEntity: Manifest](override val value: Option[BaseEntity#ID])
-        extends EntityValue[BaseEntity#ID](value) {
+    extends EntityValue[BaseEntity#ID](value) {
     def entityManifest = manifest[E]
     def entityClass = erasureOf[E]
     def emptyValue = null.asInstanceOf[BaseEntity#ID]
 }
 
 case class ListEntityValue[V](override val value: Option[List[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[List[V]](value) {
+    extends EntityValue[List[V]](value) {
     def valueManifest = manifest[V]
     def emptyValueEntityValue = tval(None)
     def valueEntityValue(value: V) = tval(Option(value))
@@ -111,7 +114,7 @@ case class ListEntityValue[V](override val value: Option[List[V]])(implicit val 
 }
 
 case class LazyListEntityValue[V <: BaseEntity](override val value: Option[LazyList[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[LazyList[V]](value) {
+    extends EntityValue[LazyList[V]](value) {
     def entityClass = erasureOf[V]
     def emptyValueEntityValue = tval(None)
     def valueManifest = manifest[V]
@@ -119,7 +122,7 @@ case class LazyListEntityValue[V <: BaseEntity](override val value: Option[LazyL
 }
 
 case class SetEntityValue[V](override val value: Option[Set[V]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[Set[V]](value) {
+    extends EntityValue[Set[V]](value) {
     def valueManifest = manifest[V]
     def emptyValueEntityValue = tval(None)
     def valueEntityValue(value: V) = tval(Option(value))
@@ -127,12 +130,12 @@ case class SetEntityValue[V](override val value: Option[Set[V]])(implicit val m:
 }
 
 case class ReferenceListEntityValue[V](override val value: Option[List[Option[BaseEntity#ID]]])(implicit val m: Manifest[V], val tval: Option[V] => EntityValue[V])
-        extends EntityValue[List[Option[BaseEntity#ID]]](value) {
+    extends EntityValue[List[Option[BaseEntity#ID]]](value) {
     def emptyValue = List()
 }
 
 case class SerializableEntityValue[S: Manifest](override val value: Option[S], val serializatorOption: () => Option[Serializer] = () => None)
-        extends EntityValue[S](value) {
+    extends EntityValue[S](value) {
     def typeManifest = manifest[S]
     def emptyValue = null.asInstanceOf[S]
     def forSerializator(s: => Serializer) = this.copy(serializatorOption = () => Some(s))
@@ -156,7 +159,7 @@ object EntityValue extends ValueContext {
 
     def tvalFunctionOption[T](clazz: Class[_], genericParameter: Class[_]): Option[Option[T] => EntityValue[T]] =
         Option((
-            if(encoders.contains(clazz))
+            if (encoders.contains(clazz))
                 (value: Option[Any]) => encoders(clazz).entityValue(value)
             else if (clazz == classOf[String])
                 (value: Option[String]) => toStringEntityValueOption(value)
@@ -179,7 +182,7 @@ object EntityValue extends ValueContext {
             else if (clazz == classOf[java.util.Date])
                 (value: Option[Date]) => toDateEntityValueOption(value)
             else if (classOf[AbstractInstant].isAssignableFrom(clazz))
-                (value: Option[AbstractInstant]) => toJodaInstantEntityValueOption(value)(manifestClass(clazz))
+                (value: Option[AbstractInstant]) => JodaInstantEntityValue(value)(manifestClass(clazz))
             else if (clazz == classOf[java.util.Calendar])
                 (value: Option[Calendar]) => toCalendarEntityValueOption(value)
             else if (clazz == classOf[Array[Byte]])
@@ -224,9 +227,13 @@ trait ValueContext {
         toBigDecimalEntityValueOption(Option(value))
     implicit def toDateEntityValue(value: java.util.Date) =
         toDateEntityValueOption(Option(value))
-    implicit def toJodaInstantEntityValue[I <: AbstractInstant: Manifest](value: I): JodaInstantEntityValue[I] =
+    implicit def toJodaInstantEntityValue(value: Instant) =
         toJodaInstantEntityValueOption(Option(value))
-    implicit def JodaInstant(value: java.util.Calendar) =
+    implicit def toJodaDateMidnightEntityValue(value: DateMidnight) =
+        toJodaDateMidnightEntityValueOption(Option(value))
+    implicit def toJodaDateTimeEntityValue(value: DateTime) =
+        toJodaDateTimeEntityValueOption(Option(value))
+    implicit def toCalendarEntityValue(value: java.util.Calendar) =
         toCalendarEntityValueOption(Option(value))
     implicit def toByteArrayEntityValue(value: Array[Byte]) =
         toByteArrayEntityValueOption(Option(value))
@@ -259,7 +266,11 @@ trait ValueContext {
         BigDecimalEntityValue(value)
     implicit def toDateEntityValueOption(value: Option[java.util.Date]) =
         DateEntityValue(value)
-    implicit def toJodaInstantEntityValueOption[I <: AbstractInstant: Manifest](value: Option[I]) =
+    implicit def toJodaInstantEntityValueOption(value: Option[Instant]): JodaInstantEntityValue[Instant] =
+        JodaInstantEntityValue(value)
+    implicit def toJodaDateMidnightEntityValueOption(value: Option[DateMidnight]): JodaInstantEntityValue[DateMidnight] =
+        JodaInstantEntityValue(value)
+    implicit def toJodaDateTimeEntityValueOption(value: Option[DateTime]): JodaInstantEntityValue[DateTime] =
         JodaInstantEntityValue(value)
     implicit def toCalendarEntityValueOption(value: Option[java.util.Calendar]) =
         CalendarEntityValue(value)
