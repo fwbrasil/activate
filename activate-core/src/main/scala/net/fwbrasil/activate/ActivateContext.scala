@@ -138,7 +138,7 @@ object ActivateContext {
             net.fwbrasil.smirror.clearCache
             Migration.migrationsCache.clear
             EntityHelper.clearMetadatas
-            Reflection.reflectionsCache.clear
+            Reflection.clearCaches
         }
     }
 

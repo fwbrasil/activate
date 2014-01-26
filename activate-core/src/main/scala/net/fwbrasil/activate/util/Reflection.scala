@@ -22,7 +22,12 @@ object Reflection {
 
     import language.implicitConversions
 
-    val objenesis = new ObjenesisStd(true)
+    private var objenesis = new ObjenesisStd(true)
+
+    def clearCaches = {
+        objenesis = new ObjenesisStd(true)
+        reflectionsCache.clear
+    }
 
     implicit class NiceObject[T](val x: T) extends AnyVal {
         def niceClass: Class[T] = x.getClass.asInstanceOf[Class[T]]
@@ -94,12 +99,12 @@ object Reflection {
         method.invoke(obj, params: _*)
     }
 
-    val reflectionsCache = MutableHashMap[Set[Object], Reflections]()
+    private val reflectionsCache = MutableHashMap[Set[Object], Reflections]()
 
     private def reflectionsHints(classpathHints: List[Any]) =
         (classpathHints.map {
             _ match {
-                case clazz: Class[_] if(clazz.getPackage == null) =>
+                case clazz: Class[_] if (clazz.getPackage == null) =>
                     clazz.getClassLoader
                 case clazz: Class[_] =>
                     clazz.getPackage.getName
@@ -172,11 +177,11 @@ object Reflection {
     def getObject[T](clazz: Class[_]) = {
         clazz.getField("MODULE$").get(clazz).asInstanceOf[T]
     }
-    
+
     def getObjectOption[T](clazz: Class[_]) = {
         clazz.getFields.find(_.getName == "MODULE$").map(_.get(clazz)).asInstanceOf[Option[T]]
     }
-    
+
     def getCompanionObject[T](clazz: Class[_]) = {
         val companionClassOption =
             try {
@@ -212,13 +217,13 @@ object Reflection {
 
     private val uninitializedBitmapValuesMap =
         Map[Class[_], Any](classOf[Boolean] -> false, classOf[Int] -> 0, classOf[Byte] -> 0.toByte)
-        
+
     private def initializedByte =
         (0.toByte | 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20 | 0x40 | 0x80).toByte
-        
+
     private def initializedInt = {
         var int = 0
-        for(i <- 0 to 31)
+        for (i <- 0 to 31)
             int = int | Math.pow(2, i).intValue
         int
     }
@@ -230,7 +235,7 @@ object Reflection {
                 clazz,
                 getDeclaredFieldsIncludingSuperClasses(res.getClass)
                     .filter(field => !Modifier.isTransient(field.getModifiers) &&
-                        field.getName.startsWith("bitmap$") && 
+                        field.getName.startsWith("bitmap$") &&
                         valuesMap.contains(field.getType)))
         for (field <- fields) {
             field.setAccessible(true)
