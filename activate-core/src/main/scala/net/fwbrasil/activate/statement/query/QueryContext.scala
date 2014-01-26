@@ -318,14 +318,19 @@ trait QueryContext extends StatementContext
 
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
-        byId(id, entityClass, initialized = false).map { entity =>
+        texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
             if (initialized)
                 entity.synchronized {
                     if (!entity.isInitialized) {
                         entity.setInitializing
-                        liveCache.asyncLoadFromDatabase(entity).asInstanceOf[Future[Option[T]]]
+                        liveCache.asyncLoadFromDatabase(entity)
+                            .asInstanceOf[Future[Option[T]]]
+                            .map(_.map { entity =>
+                                entity.setInitialized
+                                entity
+                            })
                     } else
-                        Future.successful(Some(entity).filter(!_.isDeleted))
+                        Future(Some(entity).filter(!_.isDeleted))
                 }
             else
                 Future.successful(Some(entity))
