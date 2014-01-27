@@ -1,11 +1,10 @@
 package net.fwbrasil.activate.entity
 
 import java.util.concurrent.ConcurrentHashMap
-
 import scala.collection.mutable.{ Map => MutableMap }
-
 import net.fwbrasil.activate.util.Reflection.toRichClass
 import net.fwbrasil.activate.util.uuid.UUIDUtil
+import net.fwbrasil.activate.migration.StorageVersion
 
 object EntityHelper {
 
@@ -29,12 +28,13 @@ object EntityHelper {
     }
 
     def concreteClasses[E <: BaseEntity](clazz: Class[E]) =
-        concreteEntityClasses.getOrElseUpdate(clazz, {
-            for (
-                (hash, metadata) <- entitiesMetadatas;
-                if ((clazz == metadata.entityClass || clazz.isAssignableFrom(metadata.entityClass)) && metadata.entityClass.isConcreteClass)
-            ) yield metadata.entityClass
-        }.toList.asInstanceOf[List[Class[BaseEntity]]])
+        concreteEntityClasses.getOrElseUpdate(clazz,
+            entitiesMetadatas.map(_._2.entityClass)
+                .filter(_.isConcreteClass)
+                .filter(clazz.isAssignableFrom)
+                .filter(_ != classOf[StorageVersion] || clazz == classOf[StorageVersion])
+                .toList.asInstanceOf[List[Class[BaseEntity]]]
+        )
 
     def initialize(classpathHints: List[Any]): Unit =
         synchronized {

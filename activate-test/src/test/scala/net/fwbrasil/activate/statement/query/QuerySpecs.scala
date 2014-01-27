@@ -10,6 +10,7 @@ import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.asyncMongoContext
+import net.fwbrasil.activate.migration.StorageVersion
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -100,8 +101,8 @@ class QuerySpecs extends ActivateTest {
                         select[ActivateTestEntity].where(
                             _.entityValue isNull,
                             _.charValue :== 'A' //, 
-                            //							_.enumerationValue isNull
-                            ).headOption must beNone
+                        //							_.enumerationValue isNull
+                        ).headOption must beNone
                     }
                 })
         }
@@ -643,7 +644,7 @@ class QuerySpecs extends ActivateTest {
                         def test(intValue: Int) = {
                             val result =
                                 query {
-                                    (e: ActivateTestEntity) => where(e.intValue.in(List(intValue))) select(e)
+                                    (e: ActivateTestEntity) => where(e.intValue.in(List(intValue))) select (e)
                                 }.head
                             result === select[ActivateTestEntity].where(_.intValue :== intValue).head
                         }
@@ -669,7 +670,7 @@ class QuerySpecs extends ActivateTest {
                         def test(intValue: Int) = {
                             val result =
                                 query {
-                                    (e: ActivateTestEntity) => where(e.intValue.notIn(List(intValue))) select(e)
+                                    (e: ActivateTestEntity) => where(e.intValue.notIn(List(intValue))) select (e)
                                 }.toSet
                             result === select[ActivateTestEntity].where(_.intValue :!= intValue).toSet
                         }
@@ -679,6 +680,23 @@ class QuerySpecs extends ActivateTest {
                     step {
                         val result = select[ActivateTestEntity].where(_.intValue notIn List(fullIntValue, emptyIntValue))
                         result.isEmpty must beTrue
+                    }
+                })
+        }
+
+        "not return StorageVersion instances for Entity queries" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newFullActivateTestEntity
+                    }
+                    step {
+                        def test(list: List[BaseEntity]) =
+                            list.find(_.isInstanceOf[StorageVersion]) must beEmpty
+                        test(all[BaseEntity])
+                        test(select[BaseEntity].where(_.id isNotNull))
+                        test(query { (e: BaseEntity) => where(e.id isNotNull) select(e) })
                     }
                 })
         }

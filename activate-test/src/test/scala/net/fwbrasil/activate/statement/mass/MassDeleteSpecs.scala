@@ -4,6 +4,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
+import net.fwbrasil.activate.migration.StorageVersion
 
 @RunWith(classOf[JUnitRunner])
 class MassDeleteSpecs extends ActivateTest {
@@ -156,6 +157,20 @@ class MassDeleteSpecs extends ActivateTest {
                     }
                     step {
                         all[TraitAttribute].isEmpty must beTrue
+                    }
+                })
+        }
+        "ignore the StorageVersion for delete[Entity]" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        delete {
+                            (e: BaseEntity) => where()
+                        }
+                    }
+                    step {
+                        all[StorageVersion] must not beEmpty
                     }
                 })
         }
