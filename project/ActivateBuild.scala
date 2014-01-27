@@ -56,7 +56,7 @@ object ActivateBuild extends Build {
     		id = "activate",
     		base = file("."),
     		aggregate = Seq(activateCore, activatePrevayler, 
-    		    activateJdbc, activateMongo, activateTests, activatePlay,
+    		    activateJdbc, activateMongo, activateTest, activatePlay,
     		    activateGraph, activateSprayJson, activateJdbcAsync,
     		    activateSlick, activateMongoAsync, activatePrevalent,
     		    activateCassandraAsync, activateLift),
@@ -233,9 +233,9 @@ object ActivateBuild extends Build {
       )
     )
 
-    lazy val activateTests = 
-		Project(id = "activate-tests",
-			base = file("activate-tests"),
+    lazy val activateTest = 
+		Project(id = "activate-test",
+			base = file("activate-test"),
 			dependencies = Seq(activateCore, activatePrevayler, activateJdbc, 
 			    activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
 			    activateSlick, activateMongoAsync, activatePrevalent, activateCassandraAsync, activateLift),
