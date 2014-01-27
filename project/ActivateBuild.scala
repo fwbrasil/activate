@@ -116,7 +116,7 @@ object ActivateBuild extends Build {
 		    )
     	)
 
-    val slick = "com.typesafe.slick" % "slick_2.10" % "2.0.0-M2"
+    val slick = "com.typesafe.slick" % "slick_2.10" % "2.0.0"
     val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.10.1"
 
     lazy val activateSlick = 

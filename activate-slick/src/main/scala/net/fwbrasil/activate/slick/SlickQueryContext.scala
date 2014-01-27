@@ -26,7 +26,6 @@ import scala.slick.direct.AnnotationMapper.column
 import scala.slick.ast.TypedType
 import scala.reflect.ClassTag
 import net.fwbrasil.activate.entity.BaseEntity
-import scala.slick.jdbc.JdbcType
 import scala.reflect._
 import net.fwbrasil.activate.entity.id.EntityId
 import net.fwbrasil.activate.entity.StringEntityValue
@@ -70,7 +69,7 @@ trait SlickQueryContext {
             case value: LongEntityValue =>
                 driver.columnTypes.longJdbcType
         }
-    }.asInstanceOf[JdbcType[E#ID]]
+    }.asInstanceOf[driver.BaseColumnType[E#ID]]
     
     implicit def EntityMappedColumnType[E <: BaseEntity: ClassTag] = MappedColumnType.base[E, E#ID](_.id, byId[E](_)(manifestClass(classTag[E].erasure)).get)
     
