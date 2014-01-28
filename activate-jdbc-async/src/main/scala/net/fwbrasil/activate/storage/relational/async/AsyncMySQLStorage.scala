@@ -14,17 +14,17 @@ trait AsyncMySQLStorage extends AsyncSQLStorage[MySQLConnection] {
 }
 
 object AsyncMySQLStorageFactory extends StorageFactory {
-    class AsyncMySQLStorageFromFactory(val properties: Map[String, String]) extends AsyncMySQLStorage {
+    class AsyncMySQLStorageFromFactory(val getProperty: String => Option[String]) extends AsyncMySQLStorage {
 
         def configuration =
             new Configuration(
-                username = properties("user"),
-                host = properties("host"),
-                password = Some(properties("password")),
-                database = Some(properties("database")))
+                username = getProperty("user").get,
+                host = getProperty("host").get,
+                password = getProperty("password"),
+                database = getProperty("database"))
 
         lazy val objectFactory = new MySQLConnectionFactory(configuration)
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new AsyncMySQLStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new AsyncMySQLStorageFromFactory(getProperty)
 }

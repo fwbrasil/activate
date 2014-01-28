@@ -81,7 +81,7 @@ trait Storage[T] extends Logging {
 }
 
 trait StorageFactory {
-    def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_]
+    def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_]
 }
 
 object StorageFactory {
@@ -89,11 +89,11 @@ object StorageFactory {
     def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
         import scala.collection.JavaConversions._
         val properties =
-            new ActivateProperties(Option(context.properties), "storage")
+            new ActivateProperties(Option(context.properties), s"storage.$name")
         val factoryClassName =
-            properties.getProperty(name, "factory")
+            properties.getRequiredProperty("factory")
         val storageFactory =
             Reflection.getCompanionObject[StorageFactory](ActivateContext.loadClass(factoryClassName)).get
-        storageFactory.buildStorage(properties.childProperties(name))
+        storageFactory.buildStorage(properties.getProperty(_))
     }
 }

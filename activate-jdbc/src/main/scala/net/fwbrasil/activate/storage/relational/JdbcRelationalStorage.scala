@@ -31,12 +31,12 @@ case class JdbcStatementException(
     statement: QlStatement,
     exception: Exception,
     nextException: Exception)
-        extends Exception(
-            "Statement exception: " +
-                statement +
-                ". Next exception: " +
-                Option(nextException).map(_.getMessage),
-            exception)
+    extends Exception(
+        "Statement exception: " +
+            statement +
+            ". Next exception: " +
+            Option(nextException).map(_.getMessage),
+        exception)
 
 trait JdbcRelationalStorage extends RelationalStorage[Connection] with Logging {
 
@@ -383,34 +383,34 @@ trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 }
 
 object PooledJdbcRelationalStorageFactory extends StorageFactory {
-    class PooledJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends PooledJdbcRelationalStorage {
-        val jdbcDriver = properties("jdbcDriver")
-        val url = properties("url")
-        val user = properties("user")
-        val password = properties("password")
-        val dialect = SqlIdiom.dialect(properties("dialect"))
+    class PooledJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends PooledJdbcRelationalStorage {
+        val jdbcDriver = getProperty("jdbcDriver").get
+        val url = getProperty("url").get
+        val user = getProperty("user").get
+        val password = getProperty("password").get
+        val dialect = SqlIdiom.dialect(getProperty("dialect").get)
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new PooledJdbcRelationalStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new PooledJdbcRelationalStorageFromFactory(getProperty)
 }
 
 object SimpleJdbcRelationalStorageFactory extends StorageFactory {
-    class SimpleJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends SimpleJdbcRelationalStorage {
-        val jdbcDriver = properties("jdbcDriver")
-        val url = properties("url")
-        val user = properties("user")
-        val password = properties("password")
-        val dialect = SqlIdiom.dialect(properties("dialect"))
+    class SimpleJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends SimpleJdbcRelationalStorage {
+        val jdbcDriver = getProperty("jdbcDriver").get
+        val url = getProperty("url").get
+        val user = getProperty("user").get
+        val password = getProperty("password").get
+        val dialect = SqlIdiom.dialect(getProperty("dialect").get)
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new SimpleJdbcRelationalStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new SimpleJdbcRelationalStorageFromFactory(getProperty)
 }
 
 object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
-    class DataSourceJdbcRelationalStorageFromFactory(val properties: Map[String, String]) extends DataSourceJdbcRelationalStorage {
-        val dataSourceName = properties("dataSourceName")
-        val dialect = SqlIdiom.dialect(properties("dialect"))
+    class DataSourceJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends DataSourceJdbcRelationalStorage {
+        val dataSourceName = getProperty("dataSourceName").get
+        val dialect = SqlIdiom.dialect(getProperty("dialect").get)
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new DataSourceJdbcRelationalStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new DataSourceJdbcRelationalStorageFromFactory(getProperty)
 }

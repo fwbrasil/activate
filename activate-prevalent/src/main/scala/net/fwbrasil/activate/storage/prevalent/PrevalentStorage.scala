@@ -47,6 +47,6 @@ class PrevalentStorage(
 }
 
 object PrevalentStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new PrevalentStorage(properties("directory"))
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new PrevalentStorage(getProperty("directory").get)
 }

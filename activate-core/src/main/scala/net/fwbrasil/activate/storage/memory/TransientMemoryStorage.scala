@@ -63,6 +63,6 @@ class TransientMemoryStorage extends Storage[MutableHashMap[Class[_ <: BaseEntit
 }
 
 object TransientMemoryStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new TransientMemoryStorage
 }

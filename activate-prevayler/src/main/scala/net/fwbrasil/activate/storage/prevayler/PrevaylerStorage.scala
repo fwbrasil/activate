@@ -81,6 +81,6 @@ class PrevaylerStorage(
 }
 
 object PrevaylerMemoryStorageFactory extends StorageFactory {
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        properties.get("prevalenceDirectory").map(new PrevaylerStorage(_)).getOrElse(new PrevaylerStorage())
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        getProperty("prevalenceDirectory").map(new PrevaylerStorage(_)).getOrElse(new PrevaylerStorage())
 }

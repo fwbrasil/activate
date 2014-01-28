@@ -388,13 +388,13 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 }
 
 object AsyncMongoStorageFactory extends StorageFactory {
-    class AsyncMongoStorageFromFactory(properties: Map[String, String]) extends AsyncMongoStorage {
-        override val host = properties("host")
-        override val port = Integer.parseInt(properties("port"))
-        override val db = properties("db")
+    class AsyncMongoStorageFromFactory(getProperty: String => Option[String]) extends AsyncMongoStorage {
+        override val host = getProperty("host").get
+        override val port = Integer.parseInt(getProperty("port").get)
+        override val db = getProperty("db").get
         override val authentication =
-            properties.get("user").map(user => (user, properties("password")))
+            getProperty("user").map(user => (user, getProperty("password").get))
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new AsyncMongoStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new AsyncMongoStorageFromFactory(getProperty)
 }

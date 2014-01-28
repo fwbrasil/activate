@@ -13,17 +13,17 @@ trait AsyncPostgreSQLStorage extends AsyncSQLStorage[PostgreSQLConnection] {
 }
 
 object AsyncPostgreSQLStorageFactory extends StorageFactory {
-    class AsyncPostgreSQLStorageFromFactory(val properties: Map[String, String]) extends AsyncPostgreSQLStorage {
+    class AsyncPostgreSQLStorageFromFactory(val getProperty: String => Option[String]) extends AsyncPostgreSQLStorage {
 
         def configuration =
             new Configuration(
-                username = properties("user"),
-                host = properties("host"),
-                password = Some(properties("password")),
-                database = Some(properties("database")))
+                username = getProperty("user").get,
+                host = getProperty("host").get,
+                password = getProperty("password"),
+                database = getProperty("database"))
 
         lazy val objectFactory = new PostgreSQLConnectionFactory(configuration)
     }
-    override def buildStorage(properties: Map[String, String])(implicit context: ActivateContext): Storage[_] =
-        new AsyncPostgreSQLStorageFromFactory(properties)
+    override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
+        new AsyncPostgreSQLStorageFromFactory(getProperty)
 }
