@@ -147,8 +147,8 @@ class MysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCu
 object postgresqlContext extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
-        val user = "postgres"
-        val password = "postgres"
+        val user = Some("postgres")
+        val password = Some("postgres")
         val url = "jdbc:postgresql://127.0.0.1/activate_test"
         def normalize(string: String) =
             string.toLowerCase match {
@@ -239,8 +239,8 @@ object derbyContext extends ActivateTestContext {
     System.setProperty("derby.locks.deadlockTrace", "true")
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
-        val user = ""
-        val password = ""
+        val user = None
+        val password = None
         val url = "jdbc:derby:memory:activate_test_derby;create=true"
         val dialect = derbyDialect
     }
@@ -279,8 +279,8 @@ class AsyncMongoActivateTestMigration extends ActivateTestMigration()(asyncMongo
 object oracleContext extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "oracle.jdbc.driver.OracleDriver"
-        val user = "activate_test"
-        val password = "activate_test"
+        val user = Some("activate_test")
+        val password = Some("activate_test")
         val url = "jdbc:oracle:thin:@192.168.0.114:1521:orcl"
         val dialect = oracleDialect
         // Some oracle versions does not return the number of updated rows
@@ -320,8 +320,8 @@ class OracleActivateTestMigrationCustomColumnType extends ActivateTestMigrationC
 object db2Context extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.ibm.db2.jcc.DB2Driver"
-        val user = "db2admin"
-        val password = "db2admin"
+        val user = Some("db2admin")
+        val password = Some("db2admin")
         val url = "jdbc:db2://192.168.0.114:50000/SAMPLE"
         val dialect = db2Dialect
     }
@@ -334,8 +334,8 @@ class Db2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCust
 object sqlServerContext extends ActivateTestContext {
     lazy val storage = new PooledJdbcRelationalStorage {
         val jdbcDriver = "net.sourceforge.jtds.jdbc.Driver"
-        val user = "activate"
-        val password = "activate"
+        val user = Some("activate")
+        val password = Some("activate")
         val url = "jdbc:jtds:sqlserver://192.168.0.114:49503/activate_test2"
         val dialect = sqlServerDialect
     }
@@ -348,8 +348,8 @@ class SqlServerActivateTestMigrationCustomColumnType extends ActivateTestMigrati
 object polyglotContext extends ActivateTestContext {
     lazy val postgre = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
-        val user = "postgres"
-        val password = "postgres"
+        val user = Some("postgres")
+        val password = Some("postgres")
         val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
         val dialect = postgresqlDialect
     }
@@ -366,8 +366,8 @@ object polyglotContext extends ActivateTestContext {
     }
     lazy val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
-        val user = "root"
-        val password = "root"
+        val user = Some("root")
+        val password = Some("root")
         val url = "jdbc:mysql://127.0.0.1/activate_test_polyglot"
         val dialect = mySqlDialect
     }
@@ -386,8 +386,8 @@ object polyglotContext extends ActivateTestContext {
 
     lazy val derby = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
-        val user = ""
-        val password = ""
+        val user = None
+        val password = None
         val url = "jdbc:derby:memory:activate_test_derby_polygot;create=true"
         val dialect = derbyDialect
     }

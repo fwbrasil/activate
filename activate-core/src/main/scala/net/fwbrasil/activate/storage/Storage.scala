@@ -20,9 +20,9 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 
 class TransactionHandle(
-        private val commitBlock: () => Unit,
-        private val rollbackBlock: () => Unit,
-        private val finallyBlock: () => Unit) {
+    private val commitBlock: () => Unit,
+    private val rollbackBlock: () => Unit,
+    private val finallyBlock: () => Unit) {
     def commit =
         try commitBlock()
         finally finallyBlock()
@@ -41,7 +41,7 @@ trait Storage[T] extends Logging {
         deleteList: List[(BaseEntity, Map[String, EntityValue[Any]])]): Option[TransactionHandle]
 
     protected[activate] def toStorageAsync(
-        readList: List[(BaseEntity, Long)],    
+        readList: List[(BaseEntity, Long)],
         statements: List[MassModificationStatement],
         insertList: List[(BaseEntity, Map[String, EntityValue[Any]])],
         updateList: List[(BaseEntity, Map[String, EntityValue[Any]])],
@@ -87,9 +87,13 @@ trait StorageFactory {
 object StorageFactory {
     @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
     def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
-        import scala.collection.JavaConversions._
         val properties =
-            new ActivateProperties(Option(context.properties), s"storage.$name")
+            new ActivateProperties(Option(context.properties), Some(s"storage.$name"))
+        fromProperties(properties)
+    }
+
+    @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
+    def fromProperties(properties: ActivateProperties)(implicit context: ActivateContext) = {
         val factoryClassName =
             properties.getRequiredProperty("factory")
         val storageFactory =

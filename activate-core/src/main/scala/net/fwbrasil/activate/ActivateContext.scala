@@ -49,7 +49,7 @@ trait ActivateContext
     info("Initializing context " + contextName)
 
     private[activate] val properties =
-        new ActivateProperties(None, "activate")
+        new ActivateProperties(None, Some("activate"))
 
     implicit val context = this: this.type
 

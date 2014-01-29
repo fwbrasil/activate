@@ -29,9 +29,6 @@ object ActivateBuild extends Build {
     val prevaylerFactory = "org.prevayler" % "prevayler-factory" % "2.6"
     val prevaylerXStream = "org.prevayler.extras" % "prevayler-xstream" % "2.6"
 
-    /* Tests */
-    val junit = "junit" % "junit" % "4.11" % "test"
-    val specs2 = "org.specs2" %% "specs2" % "2.2.2" % "test"
     /* 
     Install oracle in your local repo
   */
@@ -179,16 +176,16 @@ object ActivateBuild extends Build {
         )
 
     val play = "com.typesafe.play" %% "play" % "2.2.0"
-    val playTest = "com.typesafe.play" %% "play-test" % "2.2.0" % "provided"
+    val playTest = "com.typesafe.play" %% "play-test" % "2.2.0"
 
     lazy val activatePlay =
         Project(
             id = "activate-play",
             base = file("activate-play"),
-            dependencies = Seq(activateCore, activateTest),
+            dependencies = Seq(activateCore, activateTest, activateJdbc),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
-                    Seq(play, playTest)
+                    Seq(play, playTest % "provided", specs2 % "provided")
             )
         )
 
@@ -235,16 +232,19 @@ object ActivateBuild extends Build {
             )
         )
 
+    val junit = "junit" % "junit" % "4.11"
+    val specs2 = "org.specs2" %% "specs2" % "2.2.2"
+
     lazy val activateTest =
         Project(id = "activate-test",
             base = file("activate-test"),
-            dependencies = Seq(activateCore, activatePrevayler, activateJdbc,
-                activateMongo, activateGraph, activateSprayJson, activateJacksonJson, activateJdbcAsync,
-                activateSlick, activateMongoAsync, activatePrevalent, activateCassandraAsync, activateLift),
+            dependencies = Seq(activateCore, activatePrevayler % "test", activateJdbc % "test",
+                activateMongo % "test", activateGraph % "test", activateSprayJson % "test", activateJacksonJson % "test", activateJdbcAsync % "test",
+                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test"),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
-                    Seq(junit, specs2, mysql, objbd6, postgresql, db2jcc,
-                        h2, derby, hqsqldb, gfork, blueprintsNeo4j, jtds),
+                    Seq(junit % "test", specs2 % "test", mysql % "test", objbd6 % "test", postgresql % "test", db2jcc % "test",
+                        h2 % "test", derby % "test", hqsqldb % "test", gfork % "test", blueprintsNeo4j % "test", jtds % "test"),
                 scalacOptions ++= Seq("-Xcheckinit")
             )
         )

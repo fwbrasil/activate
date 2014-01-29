@@ -328,8 +328,8 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     val jdbcDriver: String
     val url: String
-    val user: String
-    val password: String
+    val user: Option[String]
+    val password: Option[String]
 
     val poolSize = 20
 
@@ -349,11 +349,11 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         _connectionPool.getConnection
 
     private def initConnectionPool = {
-        Class.forName(jdbcDriver)
+        ActivateContext.loadClass(jdbcDriver)
         val config = new BoneCPConfig
         config.setJdbcUrl(url)
-        config.setUsername(user)
-        config.setPassword(password)
+        user.map(config.setUsername)
+        password.map(config.setPassword)
         config.setLazyInit(true)
         config.setDisableConnectionTracking(true)
         val partitions = Runtime.getRuntime.availableProcessors
@@ -386,8 +386,8 @@ object PooledJdbcRelationalStorageFactory extends StorageFactory {
     class PooledJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends PooledJdbcRelationalStorage {
         val jdbcDriver = getProperty("jdbcDriver").get
         val url = getProperty("url").get
-        val user = getProperty("user").get
-        val password = getProperty("password").get
+        val user = getProperty("user")
+        val password = getProperty("password")
         val dialect = SqlIdiom.dialect(getProperty("dialect").get)
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =

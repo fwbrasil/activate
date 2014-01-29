@@ -14,6 +14,6 @@ import play.Play
 
 class ActivatePlayPlugin(app: play.Application) extends Plugin {
 
-    override def onStart =
+    override def onStart = 
         ActivateContext.setClassLoader(Play.application.classloader)
 }

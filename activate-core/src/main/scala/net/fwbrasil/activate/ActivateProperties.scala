@@ -5,11 +5,11 @@ import scala.util.PropertiesTrait
 
 class ActivateProperties(
     parent: Option[ActivateProperties],
-    prefix: String,
+    prefix: Option[String],
     pGetProperty: String => Option[String] = (name: String) => Option(System.getProperty(name))) {
 
     def basePath: List[String] =
-        parent.map(_.basePath).getOrElse(List()) ++ List(prefix)
+        parent.map(_.basePath).getOrElse(List()) ++ prefix.toList
 
     def fullPath(path: String*) =
         (basePath ++ path.toList).mkString(".")
