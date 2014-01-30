@@ -67,10 +67,8 @@ class derbyDialect(pEscape: String => String, pNormalize: String => String) exte
             }
         } catch {
             case e: SQLException =>
-                e.getMessage match {
-                    case "FUNCTION 'REGEXP' already exists." => //ok
-                    case other => throw e
-                }
+                if(!e.getMessage.contains("REGEXP"))
+                  throw e
         }
 
     def toSqlDmlRegexp(value: String, regex: String) =
