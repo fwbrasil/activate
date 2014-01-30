@@ -252,7 +252,22 @@ class SprayJsonSpecs extends ActivateTest {
                         }
                     }
                 })
-
+        }
+        "filter fields to render" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        object SprayJsonContext extends SprayJsonContext {
+                            val context = step.ctx
+                        }
+                        import SprayJsonContext._
+                        val entity = new Supplier("name", "city")
+                        entity.toJson(excludeFields = List("id", "name")).compactPrint === """{"city":"city"}"""
+                        entity.toJsonString(includeFields = List("name")) === """{"name":"name"}"""
+                        entity.toJsonString(excludeFields = List("id", "name"), includeFields = List("city")) === """{"city":"city"}"""
+                    }
+                })
         }
     }
 

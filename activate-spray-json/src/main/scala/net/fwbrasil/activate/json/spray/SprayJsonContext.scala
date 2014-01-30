@@ -146,7 +146,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
             case value: EntityInstanceEntityValue[_] =>
                 value.asInstanceOf[EntityInstanceEntityValue[BaseEntity]].value.map {
                     entity =>
-                        _createJsonFromEntity(entity, depth - 1, seenEntities)
+                        _createJsonFromEntity(entity, depth - 1, seenEntities, List(), List())
                 }.getOrElse(JsNull)
             case value: EntityInstanceReferenceValue[_] =>
                 toJsValue(entityIdTval(value.entityClass)(value.value), depth, seenEntities)
@@ -243,23 +243,25 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         }
     }
 
-    def createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0): JsObject =
-        _createJsonFromEntity(entity, depth, Set()).asJsObject
+    def createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()): JsObject =
+        _createJsonFromEntity(entity, depth, Set(), excludeFields, includeFields).asJsObject
 
-    private def _createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, pSeenEntities: Set[BaseEntity]) = {
+    private def _createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int, pSeenEntities: Set[BaseEntity], exclude: List[String], include: List[String]) = {
         if (pSeenEntities.contains(entity))
             toJsValue(entityIdTval(entity.getClass)(Some(entity.id)), depth, pSeenEntities)
         else {
             val seenEntities = pSeenEntities ++ Set(entity)
+            val vars =
+                entity.vars.filter(!_.isTransient).filter(v => !exclude.contains(v.name) && (include.isEmpty || include.contains(v.name)))
             val fields =
-                entity.vars.filter(!_.isTransient).map(ref =>
+                vars.map(ref =>
                     (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value), depth, seenEntities)).getOrElse(JsNull))).toMap
             JsObject(fields)
         }
     }
 
-    def createJsonStringFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0) =
-        createJsonFromEntity(entity, depth).compactPrint
+    def createJsonStringFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()) =
+        createJsonFromEntity(entity, depth, excludeFields, includeFields).compactPrint
 
     implicit def entityJsonFormat[E <: BaseEntity: Manifest] =
         new RootJsonFormat[E] {

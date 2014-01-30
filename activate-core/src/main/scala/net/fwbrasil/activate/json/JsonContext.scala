@@ -19,9 +19,9 @@ trait JsonContext[J] {
     def createOrUpdateEntityFromJson[E <: BaseEntity: Manifest](json: String): E
     def createOrUpdateEntityFromJson[E <: BaseEntity: Manifest](json: J): E
 
-    def createJsonStringFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0): String
-    def createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0): J
-    
+    def createJsonStringFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()): String
+    def createJsonFromEntity[E <: BaseEntity: Manifest](entity: E, depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()): J
+
     def fullDepth = Int.MaxValue
 
     implicit class EntityJsonMethods[E <: BaseEntity: Manifest](val entity: E) {
@@ -32,11 +32,13 @@ trait JsonContext[J] {
         def updateFromJson(json: String): E =
             JsonContext.this.updateEntityFromJson(json, entity)
 
-        def toJsonString: String = toJsonString(0)
-        def toJsonString(depth: Int): String = createJsonStringFromEntity(entity, depth)
-        
-        def toJson: J = toJson(0)
-        def toJson(depth: Int): J = createJsonFromEntity(entity, depth)
+        def toJsonString: String = toJsonString()
+        def toJsonString(depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()): String = 
+            createJsonStringFromEntity(entity, depth, excludeFields, includeFields)
+
+        def toJson: J = toJson()
+        def toJson(depth: Int = 0, excludeFields: List[String] = List(), includeFields: List[String] = List()): J =
+            createJsonFromEntity(entity, depth, excludeFields, includeFields)
     }
 
 }

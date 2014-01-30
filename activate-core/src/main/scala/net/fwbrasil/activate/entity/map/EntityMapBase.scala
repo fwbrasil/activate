@@ -14,6 +14,7 @@ import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.smirror.SConstructor
 import net.fwbrasil.smirror.SClass
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
 
@@ -91,7 +92,7 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
         context.transactional(context.nested) {
             try {
                 EntityValidation.setThreadOptions(Set())
-                for ((property, value) <- values if (property != "id")) {
+                for ((property, value) <- values if (property != "id" && property != OptimisticOfflineLocking.versionVarName)) {
                     val ref = entity.varNamed(property)
                     if (ref == null)
                         throw new NullPointerException(s"Invalid property name $property for class ${m.runtimeClass}.")
