@@ -269,6 +269,21 @@ class SprayJsonSpecs extends ActivateTest {
                     }
                 })
         }
+        "support custom json fild name" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        object SprayJsonContext extends SprayJsonContext {
+                            val context = step.ctx
+                        }
+                        import SprayJsonContext._
+                        val entity = new SimpleEntity(1)
+                        entity.toJsonString(includeFields = List("jsonIntValue")) === """{"jsonIntValue":1}"""
+                        entity.toJsonString(excludeFields = List("id")) === """{"jsonIntValue":1}"""
+                    }
+                })
+        }
     }
 
 }

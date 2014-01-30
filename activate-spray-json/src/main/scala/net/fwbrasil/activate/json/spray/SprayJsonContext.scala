@@ -252,10 +252,12 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         else {
             val seenEntities = pSeenEntities ++ Set(entity)
             val vars =
-                entity.vars.filter(!_.isTransient).filter(v => !exclude.contains(v.name) && (include.isEmpty || include.contains(v.name)))
+                entity.vars.filter(!_.isTransient).filter(v =>
+                    !exclude.contains(v.metadata.jsonName) &&
+                        (include.isEmpty || include.contains(v.metadata.jsonName)))
             val fields =
                 vars.map(ref =>
-                    (ref.name, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value), depth, seenEntities)).getOrElse(JsNull))).toMap
+                    (ref.metadata.jsonName, ref.get.map(value => toJsValue(ref.toEntityPropertyValue(value), depth, seenEntities)).getOrElse(JsNull))).toMap
             JsObject(fields)
         }
     }

@@ -18,6 +18,10 @@ class EntityPropertyMetadata(
         Option(varField.getAnnotation(classOf[InternalAlias]))
             .map(_.value)
             .getOrElse(originalName)
+    val jsonName =
+        Option(varField.getAnnotation(classOf[InternalAlias]))
+        	.map(_.jsonName).filter(_.nonEmpty)
+        	.getOrElse(name)
     def findMethods(names: String*) =
         entityMethods.filter(m => names.contains(m.getName))
     val getter = findMethods(javaName, originalName).filter(_.getParameterTypes.isEmpty).headOption.getOrElse {
