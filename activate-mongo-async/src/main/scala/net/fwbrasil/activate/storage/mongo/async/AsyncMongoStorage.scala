@@ -225,16 +225,16 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     private def collectionsNames =
         await(mongoDB.collectionNames(executionContext))
 
-    private def toQueryResult(query: Query[_], cursor: Cursor[BSONDocument]) =
+    private def toQueryResult(query: Query[_], cursor: Cursor[BSONDocument]) = {
+        implicit val ctx = executionContext
         try query match {
             case q: LimitedOrderedQuery[_] =>
-                cursor.toList(q.limit)(executionContext)
+                cursor.collect[List](q.limit)
             case other =>
-                cursor.toList()(executionContext)
-        } finally {
-            cursor.close
-        }
-
+                cursor.collect[List]()
+        } 
+    }
+        
     private def storeStatements(statements: List[MassModificationStatement])(implicit ctx: ExecutionContext) =
         statements.foldLeft(Future()) { (future, statement) =>
             future.flatMap { _ =>
@@ -359,10 +359,9 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 future.flatMap { list =>
                     val (entity, where, select) = query
                     val cursor = coll(entity).find(dbObject(where), dbObject(select)).cursor[BSONDocument]
-                    try cursor.toList
+                    cursor.collect[List]()
                         .map(_.map(_.get("_id").map(storageValue(_).asInstanceOf[BaseEntity#ID]))
                             .flatten.map(id => (id, entity.niceClass)) ++ list)
-                    finally cursor.close
                 }
             }
         }.map { stale =>
