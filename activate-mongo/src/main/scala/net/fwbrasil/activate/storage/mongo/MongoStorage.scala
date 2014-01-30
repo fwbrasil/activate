@@ -84,8 +84,7 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
     override def delayedInit(body: => Unit) = {
         body
         val options = MongoClientOptions.builder.connectionsPerHost(poolSize).build
-        val address = new ServerAddress(host, port)
-        val conn = new MongoClient(address, options)
+        val conn = new MongoClient(addresses)
         mongoDB = conn.getDB(db)
         if (authentication.isDefined) {
             val (user, password) = authentication.get
@@ -275,6 +274,18 @@ trait MongoStorage extends MarshalStorage[DB] with DelayedInit {
                 ret.limit(q.limit)
                 q.offsetOption.map(ret.skip)
             case other =>
+        }
+
+    private def addresses =
+        host.split(",").toList.map {
+            _.split(":").toList match {
+                case host :: port :: Nil =>
+                    new ServerAddress(host, port.toInt)
+                case host :: Nil =>
+                    new ServerAddress(host, port)
+                case other =>
+                    throw new IllegalStateException
+            }
         }
 
 }

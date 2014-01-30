@@ -260,7 +260,7 @@ class DerbyActivateTestMigrationCustomColumnType extends Migration()(derbyContex
 object mongoContext extends ActivateTestContext {
     lazy val storage = new MongoStorage {
         override val authentication = Option(("activate_test", "activate_test"))
-        override val host = "localhost"
+        override val host = "localhost,localhost:27017"
         override val port = 27017
         override val db = "activate_test"
     }
