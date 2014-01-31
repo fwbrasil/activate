@@ -43,19 +43,17 @@ class AsyncQuerySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    val (fullId, emptyId) = step {
+                    val (fullId, emptyId) = transactional {
                         (newFullActivateTestEntity.id, newEmptyActivateTestEntity.id)
                     }
-                    step {
-                        await(asyncTransactionalChain {
-                                implicit ctx =>
-                                    asyncById[ActivateTestEntity](fullId)
-                        }) must beSome
-                        await(asyncTransactionalChain {
-                                implicit ctx =>
-                                    asyncById[ActivateTestEntity](emptyId)
-                        }) must beSome
-                    }
+                    await(asyncTransactionalChain {
+                        implicit ctx =>
+                            asyncById[ActivateTestEntity](fullId)
+                    }) must beSome
+                    await(asyncTransactionalChain {
+                        implicit ctx =>
+                            asyncById[ActivateTestEntity](emptyId)
+                    }) must beSome
                 })
         }
 
@@ -68,8 +66,8 @@ class AsyncQuerySpecs extends ActivateTest {
                     }
                     step {
                         await(asyncTransactionalChain {
-                                implicit ctx =>
-                                    asyncAll[ActivateTestEntity]
+                            implicit ctx =>
+                                asyncAll[ActivateTestEntity]
                         }).size must beEqualTo(3)
                     }
                 })
@@ -87,23 +85,23 @@ class AsyncQuerySpecs extends ActivateTest {
                         val future =
                             asyncTransactionalChain {
                                 implicit ctx =>
-                            asyncSelect[ActivateTestEntity].where(
-                                _.intValue :== fullIntValue,
-                                _.longValue :== fullLongValue,
-                                _.booleanValue :== fullBooleanValue,
-                                _.charValue :== fullCharValue,
-                                _.stringValue :== fullStringValue,
-                                _.floatValue :== fullFloatValue,
-                                _.doubleValue :== fullDoubleValue,
-                                _.bigDecimalValue :== fullBigDecimalValue,
-                                _.dateValue :== fullDateValue,
-                                _.calendarValue :== fullCalendarValue,
-                                _.entityValue :== fullEntityValue,
-                                _.optionValue :== fullOptionValue,
-                                _.customNamedValue :== fullStringValue,
-                                _.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
-                                _.caseClassEntityValue :== fullCaseClassEntityValue)
-                        }
+                                    asyncSelect[ActivateTestEntity].where(
+                                        _.intValue :== fullIntValue,
+                                        _.longValue :== fullLongValue,
+                                        _.booleanValue :== fullBooleanValue,
+                                        _.charValue :== fullCharValue,
+                                        _.stringValue :== fullStringValue,
+                                        _.floatValue :== fullFloatValue,
+                                        _.doubleValue :== fullDoubleValue,
+                                        _.bigDecimalValue :== fullBigDecimalValue,
+                                        _.dateValue :== fullDateValue,
+                                        _.calendarValue :== fullCalendarValue,
+                                        _.entityValue :== fullEntityValue,
+                                        _.optionValue :== fullOptionValue,
+                                        _.customNamedValue :== fullStringValue,
+                                        _.entityWithoutAttributeValue :== fullEntityWithoutAttributeValue,
+                                        _.caseClassEntityValue :== fullCaseClassEntityValue)
+                            }
                         await(future).size must beEqualTo(1)
                     }
                 })
@@ -119,8 +117,8 @@ class AsyncQuerySpecs extends ActivateTest {
                     }
                     step {
                         await(asyncTransactionalChain {
-                                implicit ctx =>
-                                    asyncAll[TraitAttribute]
+                            implicit ctx =>
+                                asyncAll[TraitAttribute]
                         }).size must beEqualTo(2)
                     }
                 })
