@@ -463,21 +463,21 @@ class QuerySpecs extends ActivateTest {
                     }
                 })
         }
-        "select simple values" in {
-            activateTest(
-                (step: StepExecutor) => {
-                    import step.ctx._
-                    step {
-                        newFullActivateTestEntity
-                    }
-                    step {
-                        newFullActivateTestEntity
-                        query {
-                            (e: ActivateTestEntity) => where(e.stringValue :== fullStringValue) select ("a")
-                        } must beEqualTo(List("a", "a"))
-                    }
-                })
-        }
+//        "select simple values" in {
+//            activateTest(
+//                (step: StepExecutor) => {
+//                    import step.ctx._
+//                    step {
+//                        newFullActivateTestEntity
+//                    }
+//                    step {
+//                        newFullActivateTestEntity
+//                        query {
+//                            (e: ActivateTestEntity) => where(e.stringValue :== fullStringValue) select ("a")
+//                        } must beEqualTo(List("a", "a"))
+//                    }
+//                })
+//        }
 
         "support query entity hierarchy involving option relation" in {
             activateTest(
