@@ -284,7 +284,7 @@ trait QueryContext extends StatementContext
             }(manifest).headOption.asInstanceOf[Option[T]]
         else
             Some(liveCache.materializeEntity(id, entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[T])
-                .filter(entity => !initialized || entity.isInitialized || !entity.isDeleted)
+                .filter(entity => !initialized || !entity.isDeleted)
     }
 
     //ASYNC

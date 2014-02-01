@@ -113,7 +113,7 @@ class EntitySpecs extends ActivateTest {
                     def metadata[E <: Entity: Manifest] =
                         EntityHelper.getEntityMetadata(manifest[E].runtimeClass)
                     def entity(id: String) =
-                        byId[ActivateTestEntity](id).get
+                        byId[ActivateTestEntity](id, initialized = false).get
                     def verifyReferences(id: String, map: Map[EntityMetadata, List[Entity]]) =
                         (HashMap() ++ entity(id).references) ===
                             (HashMap() ++ map)
@@ -141,10 +141,10 @@ class EntitySpecs extends ActivateTest {
                         entity(id3).deleteIfHasntReferences must throwA[CannotDeleteEntity]
                     }
                     step {
-                        entity(id3).deleteCascade
-                        entity(id3).isDeleted === true
-                        entity(id2).isDeleted === true
-                        entity(id1).isDeleted === true
+                    	entity(id3).deleteCascade
+                        entity(id3).isDeleted must beTrue
+                        entity(id2).isDeleted must beTrue
+                        entity(id1).isDeleted must beTrue
                     }
                     step {
                         all[ActivateTestEntity] must beEmpty

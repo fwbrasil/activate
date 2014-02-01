@@ -98,9 +98,9 @@ trait ActivateIndexContext extends MemoryIndexContext with PersistedIndexContext
         for (index <- indexes) {
 
             val entityClass = index.entityClass
-
+            
             def filter(entities: List[BaseEntity]) =
-                entities.filter(insert => entityClass.isAssignableFrom(insert.getClass))
+                entities.filter(e => entityClass.isAssignableFrom(e.getClass))
 
             index.update(
                 filter(inserts),

@@ -147,7 +147,7 @@ class MassDeleteSpecs extends ActivateTest {
                     }
                     step {
                         step.ctx.update {
-                            (entity: TraitAttribute) => where(entity isNotNull) set(entity.attribute := "1")
+                            (entity: TraitAttribute) => where(entity isNotNull) set (entity.attribute := "1")
                         }
                     }
                     step {
@@ -161,7 +161,7 @@ class MassDeleteSpecs extends ActivateTest {
                 })
         }
         "ignore the StorageVersion for delete[Entity]" in {
-            activateTest(
+            try activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
                     step {
@@ -173,6 +173,7 @@ class MassDeleteSpecs extends ActivateTest {
                         all[StorageVersion] must not beEmpty
                     }
                 })
+            finally contexts.foreach(_.unloadIndexes)
         }
 
     }

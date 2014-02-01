@@ -135,7 +135,7 @@ class PersistedIndex[E <: BaseEntity: Manifest, P <: PersistedIndexEntry[K, E]: 
     private def entry(id: P#ID) =
         byId[P](id).getOrElse(
             throw new IllegalStateException(
-                "Invalid persisted index entry id. If you dind't do direct manipulation at the database, " +
+                "Invalid persisted index entry id. If you dind't do direct manipulation to the database, " +
                     "please fill a bug report with this exception."))
 
     override def toString =
