@@ -2,8 +2,12 @@ package net.fwbrasil.activate.test
 
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
+import scala.concurrent.Future
+import net.fwbrasil.activate.ActivateTestContext
 
 class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with ActivateTest {
+    
+    override def executors(ctx: ActivateTestContext) = List(OneTransaction(ctx))
 
     "ActivateTest" >> {
         "transactionRollbackStrategy" should {
@@ -16,6 +20,12 @@ class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with Activate
                     activateTest(transactionRollbackStrategy) {
                         all[ActivateTestEntity].size === 1
                     }
+                    activateTestAsync(transactionRollbackStrategy) {
+                        all[ActivateTestEntity].size === 1
+                    }
+                    activateTestAsyncChain(transactionRollbackStrategy) { implicit ctx =>
+                        asyncAll[ActivateTestEntity].map(_.size === 1)(ctx)
+                    }
                 })
             }
             "clean the test modifications in the end" in {
@@ -27,6 +37,15 @@ class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with Activate
                     activateTest(transactionRollbackStrategy) {
                         all[ActivateTestEntity].onlyOne.intValue = fullIntValue
                         newEmptyActivateTestEntity
+                    }
+                    activateTestAsync(transactionRollbackStrategy) {
+                        all[ActivateTestEntity].onlyOne.intValue = fullIntValue
+                        newEmptyActivateTestEntity
+                    }
+                    activateTestAsyncChain(transactionRollbackStrategy) { implicit ctx =>
+                        asyncAll[ActivateTestEntity]
+                            .map(_.onlyOne.intValue = fullIntValue)(ctx)
+                            .map(_ => newEmptyActivateTestEntity)(ctx)
                     }
                     transactional {
                         all[ActivateTestEntity].map(_.intValue) === List(emptyIntValue)
@@ -46,17 +65,33 @@ class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with Activate
                         activateTest(strategy) {
                             all[ActivateTestEntity].size === 0
                         }
+                        activateTestAsync(strategy) {
+                            all[ActivateTestEntity].size === 0
+                        }
+                        activateTestAsyncChain(strategy) { implicit ctx =>
+                            asyncAll[ActivateTestEntity].map(_.size === 0)(ctx)
+                        }
                     })
                 }
                 "not clean the test modifications in the end" in {
                     activateTest((step: StepExecutor) => {
                         import step.ctx._
+                        def check =
+                            transactional {
+                                all[ActivateTestEntity].size === 1
+                            }
                         activateTest(strategy) {
                             newEmptyActivateTestEntity
                         }
-                        transactional {
-                            all[ActivateTestEntity].isEmpty must beTrue
+                        check
+                        activateTestAsync(strategy) {
+                            newEmptyActivateTestEntity
                         }
+                        check
+                        activateTestAsyncChain(strategy) { implicit ctx =>
+                            Future(newEmptyActivateTestEntity)(ctx)
+                        }
+                        check
                     })
                 }
             }

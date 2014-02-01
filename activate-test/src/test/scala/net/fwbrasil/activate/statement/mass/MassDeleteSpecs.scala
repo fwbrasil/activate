@@ -5,6 +5,7 @@ import org.specs2.runner.JUnitRunner
 import net.fwbrasil.activate.ActivateTest
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.migration.StorageVersion
+import net.fwbrasil.activate.polyglotContext
 
 @RunWith(classOf[JUnitRunner])
 class MassDeleteSpecs extends ActivateTest {
@@ -163,14 +164,16 @@ class MassDeleteSpecs extends ActivateTest {
         "ignore the StorageVersion for delete[Entity]" in {
             try activateTest(
                 (step: StepExecutor) => {
-                    import step.ctx._
-                    step {
-                        delete {
-                            (e: BaseEntity) => where()
+                    if (step.ctx != polyglotContext) {
+                        import step.ctx._
+                        step {
+                            delete {
+                                (e: BaseEntity) => where()
+                            }
                         }
-                    }
-                    step {
-                        all[StorageVersion] must not beEmpty
+                        step {
+                            all[StorageVersion] must not beEmpty
+                        }
                     }
                 })
             finally contexts.foreach(_.unloadIndexes)
