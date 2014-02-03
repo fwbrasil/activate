@@ -145,7 +145,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
         initialized = true
     }
 
-    private[activate] def isInitialized =
+    def isInitialized =
         initialized
 
     private[activate] def initialize(forWrite: Boolean) = {

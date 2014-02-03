@@ -31,6 +31,7 @@ import net.fwbrasil.activate.index.ActivateIndexContext
 import net.fwbrasil.activate.entity.id.CustomID
 import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.entity.BaseEntity
+import net.fwbrasil.activate.entity.id.EntityId
 
 trait ActivateContext
         extends EntityContext
@@ -139,6 +140,7 @@ object ActivateContext {
             Migration.migrationsCache.clear
             EntityHelper.clearMetadatas
             Reflection.clearCaches
+            EntityId.idClassCache.clear
         }
     }
 

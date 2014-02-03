@@ -44,7 +44,19 @@ trait EntityId {
 
 object EntityId {
 
-    def idClassFor(entityClass: Class[_]): Class[_] =
+    val idClassCache = new ConcurrentHashMap[Class[_], Class[_]]
+
+    def idClassFor(entityClass: Class[_]): Class[_] = {
+        val value = idClassCache.get(entityClass)
+        if (value == null) {
+            val clazz = _idClassFor(entityClass)
+            idClassCache.put(entityClass, clazz)
+            clazz
+        } else
+            value
+    }
+
+    private def _idClassFor(entityClass: Class[_]): Class[_] =
         if (classOf[UUID].isAssignableFrom(entityClass))
             classOf[String]
         else if (classOf[CustomID[_]].isAssignableFrom(entityClass)) {
