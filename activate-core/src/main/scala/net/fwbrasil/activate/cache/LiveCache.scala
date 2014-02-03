@@ -327,19 +327,19 @@ class LiveCache(
     }
 
     def loadFromDatabase(entity: BaseEntity): Unit =
-        initializeEntity(loadRowFromDatabase(entity), entity)
+        initializeEntity(loadRowFromDatabase(entity), entity, transient)
 
     def asyncLoadFromDatabase(entity: BaseEntity)(implicit tctx: TransactionalExecutionContext) =
-        asyncLoadRowFromDatabase(entity, tctx).map(initializeEntity(_, entity))(tctx)
+        asyncLoadRowFromDatabase(entity, tctx).map(initializeEntity(_, entity, shadow))(tctx)
 
-    private def initializeEntity(rowOption: Option[List[Any]], entity: BaseEntity) = {
+    private def initializeEntity(rowOption: Option[List[Any]], entity: BaseEntity, deletePropagation: Propagation) = {
         entity.lastVersionValidation = DateTime.now.getMillis
         rowOption.map { row =>
             val vars = entity.vars.toList.filter(p => !p.isTransient)
             setEntityValues(entity, vars.zip(row).toMap)
             Some(entity)
         }.getOrElse {
-            transactional(transient) {
+            transactional(deletePropagation) {
                 entity.deleteWithoutInitilize
             }
             None
