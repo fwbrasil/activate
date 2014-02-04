@@ -819,6 +819,8 @@ trait ActivateTestContext
         var length = 0
         @transient val transientValue = new Object
         @transient lazy val transientLazyValue = new Object
+        
+        val compressedEntityValue = new CompressedEntityValue(fullStringValue)
 
         override def toString = s"ActivateTestEntity(id=$id)"
     }
@@ -920,6 +922,7 @@ trait ActivateTestContext
         require(entity.listEntityValue == listEntityValue)
         require(entity.unitializedList == List() || entity.unitializedList == List(1, 2))
         require(entity.tupleOptionValue == tupleOptionValue)
+        require(entity.compressedEntityValue == new CompressedEntityValue(fullStringValue))
 
     }
 
