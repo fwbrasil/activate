@@ -60,7 +60,7 @@ case class In(valueA: StatementSelectValue) extends CompositeOperator {
 case class NotIn(valueA: StatementSelectValue) extends CompositeOperator {
     def notIn[V](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
         CompositeOperatorCriteria(valueA, this, ListValue(() => valueB.toList, (v: V) => ctx.toStatementValueEntityValue(v)))
-    override def toString = "in"
+    override def toString = "not in"
 }
 
 case class IsNull(valueA: StatementSelectValue) extends SimpleOperator {
