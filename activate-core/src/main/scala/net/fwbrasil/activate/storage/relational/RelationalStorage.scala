@@ -82,7 +82,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                 }
                 tree.resolve
             } catch {
-                case e: CyclicReferenceException =>
+                case CyclicReferenceException =>
                     // Let storage cry if necessary!
                     statements.toList
             }

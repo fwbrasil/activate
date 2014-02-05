@@ -277,7 +277,7 @@ abstract class Migration(implicit val context: ActivateContext) {
             try {
                 tree.resolve
             } catch {
-                case e: CyclicReferenceException =>
+                case CyclicReferenceException =>
                     // Let storage cry if necessary!
                     metadatas.toList
             }

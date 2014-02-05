@@ -4,10 +4,11 @@ import scala.collection.mutable.{ Set => MutableSet }
 import scala.collection.mutable.{ Map => MutableMap }
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.util.RichList._
+import scala.util.control.NoStackTrace
 
 object GraphUtil {
 
-    class CyclicReferenceException extends IllegalStateException("Cyclic reference.")
+    object CyclicReferenceException extends IllegalStateException("Cyclic reference.") with NoStackTrace
 
     class DependencyTree[T: Manifest](values: Set[T]) {
 
@@ -30,7 +31,7 @@ object GraphUtil {
         private[this] def nodeFor(value: T) =
             nodeMap.getOrElseUpdate(value, Node(value))
         private[this] def throwCyclicReferenceException =
-            throw new CyclicReferenceException
+            throw CyclicReferenceException
 
         def resolve = {
             val r = roots
