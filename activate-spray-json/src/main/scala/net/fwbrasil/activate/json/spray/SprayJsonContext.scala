@@ -96,6 +96,8 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 })(entityValue.valueManifest.asInstanceOf[Manifest[BaseEntity]])
             case (JsString(value), entityValue: SerializableEntityValue[_]) =>
                 entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
+            case (jsValue, entityValue: EncodedEntityValue) =>
+                entityValue.decode(fromJsValue(jsValue, entityValue.emptyTempValue))
             case (jsValue, entityValue) =>
                 throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
         }
@@ -164,6 +166,8 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 value.value.map(v =>
                     JsString(new String(value.serializator.toSerialized(v)(value.typeManifest))))
                     .getOrElse(JsNull)
+            case value: EncoderEntityValue =>
+                toJsValue(value.encodedEntityValue, depth, seenEntities)
         }
 
     def updateEntityFromJson[E <: BaseEntity: Manifest](jsObject: JsObject, id: E#ID): E = {
