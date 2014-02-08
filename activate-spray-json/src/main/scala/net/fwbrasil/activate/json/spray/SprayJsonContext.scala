@@ -20,6 +20,7 @@ import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.CalendarEntityValue
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.BaseEntity
+import net.fwbrasil.activate.entity.EncodedEntityValue
 import java.util.Date
 import java.util.Calendar
 import net.fwbrasil.activate.entity.IdVar
