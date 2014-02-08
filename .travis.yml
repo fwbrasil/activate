@@ -13,11 +13,11 @@ notifications:
 services:
   - mongodb
 env:
-  - DB=memoryStorage
-  - DB=prevaylerStorage
-  - DB=mongoStorage
-  - DB=postgresStorage
-  - DB=mysqlStorage
+  - category=memory
+  - category=prevalent
+  - category=mongo
+  - category=relational
+  - category=polyglot
 before_script:
   - mysql -e 'create database activate_test;'
   - psql -c 'create database activate_test;' -U postgres
