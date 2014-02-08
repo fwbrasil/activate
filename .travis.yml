@@ -10,6 +10,8 @@ notifications:
   email:
     recipients:
       - fwbrasil@gmail.com
+services:
+  - mongodb
 env:
   - DB=memoryStorage
   - DB=prevaylerStorage
