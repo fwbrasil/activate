@@ -20,7 +20,7 @@ import net.fwbrasil.activate.entity.EntityInstanceReferenceValue
 import net.fwbrasil.activate.entity.CalendarEntityValue
 import net.fwbrasil.activate.entity.EntityValue
 import net.fwbrasil.activate.entity.BaseEntity
-import net.fwbrasil.activate.entity.EncodedEntityValue
+import net.fwbrasil.activate.entity.EncoderEntityValue
 import java.util.Date
 import java.util.Calendar
 import net.fwbrasil.activate.entity.IdVar
@@ -37,6 +37,7 @@ import java.nio.charset.Charset
 import net.fwbrasil.activate.json.JsonContext
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.id.EntityId
+import net.fwbrasil.activate.entity.Encoder
 
 trait SprayJsonContext extends JsonContext[JsObject] {
     val jsonCharset = Charset.defaultCharset
@@ -97,8 +98,9 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 })(entityValue.valueManifest.asInstanceOf[Manifest[BaseEntity]])
             case (JsString(value), entityValue: SerializableEntityValue[_]) =>
                 entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
-            case (jsValue, entityValue: EncodedEntityValue) =>
-                entityValue.decode(fromJsValue(jsValue, entityValue.emptyTempValue))
+            case (jsValue, entityValue: EncoderEntityValue[_, _]) =>
+                val temp = entityValue.emptyTempValue
+                entityValue.encoder.asInstanceOf[Encoder[Any, Any]].decode(fromJsValue(jsValue, temp))
             case (jsValue, entityValue) =>
                 throw new UnsupportedOperationException(s"Can't unmarshall $jsValue to $entityValue")
         }
@@ -167,7 +169,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 value.value.map(v =>
                     JsString(new String(value.serializator.toSerialized(v)(value.typeManifest))))
                     .getOrElse(JsNull)
-            case value: EncoderEntityValue =>
+            case value: EncoderEntityValue[_, _] =>
                 toJsValue(value.encodedEntityValue, depth, seenEntities)
         }
 
