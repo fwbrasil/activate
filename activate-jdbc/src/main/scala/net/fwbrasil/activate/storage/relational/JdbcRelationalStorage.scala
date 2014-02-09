@@ -15,8 +15,6 @@ import net.fwbrasil.activate.util.Logging
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import java.sql.BatchUpdateException
-import com.jolbox.bonecp.BoneCP
-import com.jolbox.bonecp.BoneCPConfig
 import net.fwbrasil.activate.storage.marshalling._
 import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
 import net.fwbrasil.activate.storage.TransactionHandle
@@ -26,6 +24,7 @@ import java.sql.PreparedStatement
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import scala.collection.mutable.ListBuffer
 import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 case class JdbcStatementException(
     statement: QlStatement,
@@ -335,7 +334,7 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     val logStatements = false
 
-    private var _connectionPool: BoneCP = _
+    private var _connectionPool: DataSource = _
 
     override def delayedInit(body: => Unit) = {
         body
@@ -350,18 +349,14 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     private def initConnectionPool = {
         ActivateContext.loadClass(jdbcDriver)
-        val config = new BoneCPConfig
-        config.setJdbcUrl(url)
-        user.map(config.setUsername)
-        password.map(config.setPassword)
-        config.setLazyInit(true)
-        config.setDisableConnectionTracking(true)
-        val partitions = Runtime.getRuntime.availableProcessors
-        config.setPartitionCount(partitions)
-        config.setMaxConnectionsPerPartition(poolSize / partitions)
-        config.setLogStatementsEnabled(logStatements)
-        config.setDefaultAutoCommit(true)
-        _connectionPool = new BoneCP(config)
+        val config = new HikariConfig
+        config.setDataSourceClassName(jdbcDriver)
+        config.addDataSourceProperty("url", url)
+        user map { u => config.addDataSourceProperty("user", u)}
+        password map {p => config.addDataSourceProperty("password", p)}
+        config.setAutoCommit(true)
+        config.setMaximumPoolSize(poolSize)
+        _connectionPool = new HikariDataSource(config);
     }
 
     override def getConnectionReadOnly = {

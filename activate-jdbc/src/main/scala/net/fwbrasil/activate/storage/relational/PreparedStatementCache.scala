@@ -6,10 +6,10 @@ import java.sql.PreparedStatement
 import scala.collection.mutable.Stack
 import java.sql.ResultSet
 import net.fwbrasil.activate.util.IdentityHashMap
-import com.jolbox.bonecp.ConnectionHandle
 import scala.collection.concurrent.TrieMap
 import com.google.common.collect.MapMaker
 import net.fwbrasil.activate.util.ConcurrentCache
+import com.zaxxer.hikari.proxy.ConnectionProxy
 
 class PreparedStatementCache {
 
@@ -36,8 +36,8 @@ class PreparedStatementCache {
 
     private def realConnection(connection: Connection) =
         connection match {
-            case conn: ConnectionHandle =>
-                conn.getInternalConnection
+            case conn: ConnectionProxy =>
+                conn.unwrap(classOf[Connection])
             case conn =>
                 conn
         }
