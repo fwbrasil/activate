@@ -117,7 +117,7 @@ class GraphUtilSpecs extends Specification {
         val tree = new DependencyTree[A](set.toSet)
         for ((a, b) <- edges)
             tree.addDependency(a, b)
-        tree.resolve
+        tree.resolve.getOrElse(throw new IllegalStateException)
     }
 
 }

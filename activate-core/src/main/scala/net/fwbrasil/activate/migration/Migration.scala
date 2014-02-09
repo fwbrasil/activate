@@ -26,8 +26,8 @@ class StorageVersion(
     val contextName: String,
     var lastScript: Long,
     var lastAction: Int)
-        extends BaseEntity
-        with UUID
+    extends BaseEntity
+    with UUID
 
 object Migration {
 
@@ -230,7 +230,7 @@ abstract class Migration(implicit val context: ActivateContext) {
         private[activate] def definitions =
             _definitions.toList
         private def buildColumn[T](name: String, customTypeNameOption: Option[String])(implicit m: Manifest[T], tval: Option[T] => EntityValue[T]) = {
-            if(m.erasure == classOf[Option[_]])
+            if (m.erasure == classOf[Option[_]])
                 throw new IllegalStateException("Don't use Option[T] for column migration, use T directly.")
             val column = Column[T](name, customTypeNameOption)
             _definitions ++= List(column)
@@ -273,14 +273,7 @@ abstract class Migration(implicit val context: ActivateContext) {
                     tree.addDependency(metadata, depedencyMetadata))
             }
         }
-        val resolved =
-            try {
-                tree.resolve
-            } catch {
-                case CyclicReferenceException =>
-                    // Let storage cry if necessary!
-                    metadatas.toList
-            }
+        val resolved = tree.resolve.getOrElse(metadatas.toList)
         val actionList = resolved.map(metadata => {
             val mainTable = table(manifestClass(metadata.entityClass))
             val lists = metadata.persistentListPropertiesMetadata

@@ -164,7 +164,7 @@ object EntityEnhancer extends Logging {
             notLoaded.map(enhance(_, classPool)).flatten
         val resolved =
             resolveDependencies(enhancedEntityClasses)
-        materializeClasses(resolved) ++ getClasses(alreadyLoaded)
+        materializeClasses(resolved.get) ++ getClasses(alreadyLoaded)
     }
 
     private val findLoadedClassMethod = classOf[ClassLoader].getDeclaredMethod("findLoadedClass", classOf[String])

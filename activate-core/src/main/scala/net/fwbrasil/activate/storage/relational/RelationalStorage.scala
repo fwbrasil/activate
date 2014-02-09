@@ -54,8 +54,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
     protected[activate] def resolveDependencies(statements: Set[DmlStorageStatement]): List[DmlStorageStatement] =
         if (statements.size <= 1)
             statements.toList
-        else
-            try {
+        else{
                 val entityInsertMap = statements.groupBy(_.entityId).mapValues(_.head)
                 val tree = new DependencyTree[DmlStorageStatement](statements)
                 for (insertA <- statements) {
@@ -80,11 +79,7 @@ trait RelationalStorage[T] extends MarshalStorage[T] {
                         }
                     }
                 }
-                tree.resolve
-            } catch {
-                case CyclicReferenceException =>
-                    // Let storage cry if necessary!
-                    statements.toList
+                tree.resolve.getOrElse(statements.toList)
             }
 
     override protected[activate] def migrateStorage(action: ModifyStorageAction): Unit =

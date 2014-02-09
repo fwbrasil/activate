@@ -32,7 +32,7 @@ object transactionRollbackStrategy extends ActivateTestStrategy {
         runTest(f)
         
     def runTestAsyncChain[R](f: TransactionalExecutionContext => Future[R])(implicit ctx: ActivateContext): R = {
-        val ectx = new TransactionalExecutionContext
+        val ectx = new TransactionalExecutionContext()
         try await(f(ectx))
         finally ectx.transaction.rollback
     }

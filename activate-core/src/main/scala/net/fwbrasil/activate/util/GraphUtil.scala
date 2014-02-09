@@ -34,20 +34,18 @@ object GraphUtil {
             throw CyclicReferenceException
 
         def resolve = {
-            val r = roots
-            if (r.isEmpty && nodeMap.nonEmpty)
-                throwCyclicReferenceException
-
+            val roots = this.roots
             val resolved = ListBuffer[Node[T]]()
-            val ordered = r.map(_.value).sortIfComparable.reverse
+            val ordered = roots.map(_.value).sortIfComparable.reverse
             for (nodeValue <- ordered)
                 fDepResolve(nodeFor(nodeValue), resolved, MutableSet[Node[T]]())
             val result =
                 for (node <- resolved)
                     yield node.value
             if (result.toSet != values)
-                throwCyclicReferenceException
-            result.toList.reverse
+                None
+            else
+                Some(result.toList.reverse)
         }
 
         def fDepResolve(node: Node[T], resolved: ListBuffer[Node[T]], unresolved: MutableSet[Node[T]]): Unit = {
@@ -55,7 +53,7 @@ object GraphUtil {
             for (edge <- node.edges)
                 if (!resolved.contains(edge))
                     if (unresolved.contains(edge))
-                        throwCyclicReferenceException
+                        return
                     else
                         fDepResolve(edge, resolved, unresolved)
             resolved += node
