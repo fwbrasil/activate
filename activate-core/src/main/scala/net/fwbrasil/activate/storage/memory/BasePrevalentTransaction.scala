@@ -20,7 +20,7 @@ class BasePrevalentTransaction(
                 system.add(materialize(entityId, entityClass))
 
             for ((entityId, entityClass) <- deleteList) {
-                val entity = system.entitiesMapFor(entityClass)(entityId)
+                val entity = system.entitiesMapFor(entityClass).get(entityId)
                 liveCache.remove(entity)
                 system.remove(entityClass, entityId)
                 for (ref <- entity.vars)
@@ -30,7 +30,7 @@ class BasePrevalentTransaction(
             val assignments = insertList ++ updateList
 
             for (((entityId, entityClass), changeSet) <- assignments) {
-                val entity = system.entitiesMapFor(entityClass)(entityId)
+                val entity = system.entitiesMapFor(entityClass).get(entityId)
                 for ((varName, value) <- changeSet; if (varName != "id")) {
                     val ref = entity.varNamed(varName)
                     val entityValue = Marshaller.unmarshalling(value, ref.tval(None))

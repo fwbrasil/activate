@@ -13,7 +13,7 @@ trait ActivateTestStrategy {
     def runTest[R](f: => R)(implicit ctx: ActivateContext): R
     def runTestAsync[R](f: => R)(implicit ctx: ActivateContext): R
     def runTestAsyncChain[R](f: TransactionalExecutionContext => Future[R])(implicit ctx: ActivateContext): R
-    
+
     protected def await[R](future: Future[R]) =
         Await.result(future, Duration.Inf)
 }
@@ -27,10 +27,10 @@ object transactionRollbackStrategy extends ActivateTestStrategy {
         finally
             transaction.rollback
     }
-    
-    def runTestAsync[R](f: => R)(implicit ctx: ActivateContext): R = 
+
+    def runTestAsync[R](f: => R)(implicit ctx: ActivateContext): R =
         runTest(f)
-        
+
     def runTestAsyncChain[R](f: TransactionalExecutionContext => Future[R])(implicit ctx: ActivateContext): R = {
         val ectx = new TransactionalExecutionContext()
         try await(f(ectx))
@@ -44,7 +44,7 @@ object cleanDatabaseStrategy extends ActivateTestStrategy {
         prepareDatabase
         ctx.transactional(f)
     }
-    
+
     def runTestAsync[R](f: => R)(implicit ctx: ActivateContext): R = {
         prepareDatabase
         await(ctx.asyncTransactional(f))
@@ -53,7 +53,7 @@ object cleanDatabaseStrategy extends ActivateTestStrategy {
         prepareDatabase
         await(ctx.asyncTransactionalChain(f(_)))
     }
-    
+
     private def prepareDatabase(implicit ctx: ActivateContext) = {
         cleanDatabase
         ctx.reinitializeContext
@@ -80,7 +80,7 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
         prepareDatabase
         ctx.transactional(f)
     }
-    
+
     def runTestAsync[R](f: => R)(implicit ctx: ActivateContext): R = {
         prepareDatabase
         await(ctx.asyncTransactional(f))
@@ -96,7 +96,7 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
             storageVersion.lastScript = -1
             storageVersion.lastAction = -1
         }
-    
+
     private def prepareDatabase(implicit ctx: ActivateContext) = {
         cleanDatabase
         resetStorageVersion
@@ -105,12 +105,17 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
     }
 
     private def cleanDatabase(implicit ctx: ActivateContext) =
-        new ManualMigration {
-            def up = {
-                removeReferencesForAllEntities.ifExists
-                removeAllEntitiesTables.ifExists
-            }
-        }.execute
+        ctx.storage match {
+            case storage: TransientMemoryStorage =>
+                storage.directAccess.clear
+            case other =>
+                new ManualMigration {
+                    def up = {
+                        removeReferencesForAllEntities.ifExists
+                        removeAllEntitiesTables.ifExists
+                    }
+                }.execute
+        }
 }
 
 trait ActivateTest {
@@ -133,9 +138,9 @@ trait ActivateTest {
     protected def activateTestAsync[R](test: => R)(implicit ctx: ActivateContext): R =
         activateTestAsync(defaultStrategy)(test)
 
-    protected def activateTestAsyncChain[R](strategy: ActivateTestStrategy)(test: TransactionalExecutionContext=> Future[R])(implicit ctx: ActivateContext): R =
+    protected def activateTestAsyncChain[R](strategy: ActivateTestStrategy)(test: TransactionalExecutionContext => Future[R])(implicit ctx: ActivateContext): R =
         strategy.runTestAsyncChain(test)
 
-    protected def activateTestAsyncChain[R](test: TransactionalExecutionContext=> Future[R])(implicit ctx: ActivateContext): R =
+    protected def activateTestAsyncChain[R](test: TransactionalExecutionContext => Future[R])(implicit ctx: ActivateContext): R =
         activateTestAsyncChain(defaultStrategy)(test)
 }

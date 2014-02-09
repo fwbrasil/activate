@@ -15,6 +15,7 @@ import java.io.FileInputStream
 import scala.collection.JavaConversions._
 import net.fwbrasil.activate.storage.memory.BasePrevalentTransaction
 import net.fwbrasil.activate.storage.memory.BasePrevalentStorageSystem
+import java.io.ObjectStreamClass
 
 class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, bufferPoolSize: Int) {
 
@@ -87,7 +88,14 @@ class PrevalentJournal(directory: File, serializer: Serializer, fileSize: Int, b
 
     private def recoverSnapshot(implicit ctx: ActivateContext) =
         snapshotFiles.lastOption.map { file =>
-            val stream = new ObjectInputStream(new FileInputStream(file))
+            val stream = new ObjectInputStream(new FileInputStream(file)) {
+                override def resolveClass(desc: ObjectStreamClass): Class[_] =
+                    try Class.forName(desc.getName, false, classOf[PrevalentJournal].getClassLoader)
+                    catch {
+                        case e: ClassNotFoundException =>
+                            super.resolveClass(desc)
+                    }
+            }
             val system = stream.readObject.asInstanceOf[BasePrevalentStorageSystem]
 
             val idx = fileNameToIndex(file)

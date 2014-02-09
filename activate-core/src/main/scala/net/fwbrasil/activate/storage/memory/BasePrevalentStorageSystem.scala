@@ -9,11 +9,13 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.EntityHelper
 import net.fwbrasil.activate.util.Reflection.NiceObject
-import scala.collection.mutable.HashMap
+import scala.collection.mutable.{HashMap => MutableHashMap}
 import scala.collection.mutable.SynchronizedMap
+import scala.collection.concurrent.TrieMap
 
 class BasePrevalentStorageSystem extends Serializable {
-    val contents = new HashMap[String, HashMap[BaseEntity#ID, BaseEntity]] with SynchronizedMap[String, HashMap[BaseEntity#ID, BaseEntity]]
+    
+    val contents = MutableHashMap[String, ConcurrentHashMap[BaseEntity#ID, BaseEntity]]()
     def add(entity: BaseEntity) =
         entitiesMapFor(entity.niceClass) += entity.id -> entity
     def remove(entityClass: Class[BaseEntity], entityId: BaseEntity#ID) =
@@ -29,7 +31,7 @@ class BasePrevalentStorageSystem extends Serializable {
     def entitiesMapFor(entityClass: Class[BaseEntity]) = {
         contents.get(entityClass.getName).getOrElse {
             this.synchronized {
-                contents.getOrElseUpdate(entityClass.getName, new HashMap[BaseEntity#ID, BaseEntity] with SynchronizedMap[BaseEntity#ID, BaseEntity])
+                contents.getOrElseUpdate(entityClass.getName, new ConcurrentHashMap[BaseEntity#ID, BaseEntity])
             }
         }
     }
