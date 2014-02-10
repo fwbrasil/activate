@@ -100,6 +100,8 @@ import net.fwbrasil.activate.storage.relational.DeleteStorageStatement
 import net.fwbrasil.activate.storage.relational.UpdateStorageStatement
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.storage.marshalling.StorageOptionalValue
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
+import com.zaxxer.hikari.HikariConfig
 
 object SqlIdiom {
     lazy val dialectsMap = {
@@ -163,6 +165,18 @@ trait SqlIdiom extends QlIdiom {
     def findIndexStatement(tableName: String, indexName: String): String
 
     def findConstraintStatement(tableName: String, constraintName: String): String
+    
+    def hikariConfigFor(storage: PooledJdbcRelationalStorage, jdbcDataSourceName: String) = {
+        import storage._
+        val config = new HikariConfig
+        config.setDataSourceClassName(jdbcDataSourceName)
+        config.addDataSourceProperty("url", url)
+        user map { u => config.addDataSourceProperty("user", u)}
+        password map {p => config.addDataSourceProperty("password", p)}
+        config.setAutoCommit(true)
+        config.setMaximumPoolSize(poolSize)
+        config
+    }
 
     protected def setValue[V](ps: PreparedStatement, f: (V) => Unit, i: Int, optionValue: Option[V], sqlType: Int): Unit =
         if (optionValue.isEmpty || optionValue == null)

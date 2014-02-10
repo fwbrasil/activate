@@ -67,6 +67,7 @@ abstract class ActivateTestMigration(
     implicit val ctx: ActivateTestContext)
     extends Migration {
 
+    val createFKs = true
     val timestamp = ActivateTestMigration.timestamp
 
     def up = {
@@ -83,8 +84,9 @@ abstract class ActivateTestMigration(
         createTableForAllEntities
             .ifNotExists
 
-        createReferencesForAllEntities
-            .ifNotExists
+        if (createFKs)
+            createReferencesForAllEntities
+                .ifNotExists
 
         createInexistentColumnsForAllEntities
 
@@ -246,7 +248,9 @@ object derbyContext extends ActivateTestContext {
     }
 }
 
-class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext)
+class DerbyActivateTestMigration extends ActivateTestMigration()(derbyContext) {
+    override val createFKs = false
+}
 class DerbyActivateTestMigrationCustomColumnType extends Migration()(derbyContext) {
 
     val timestamp = ActivateTestMigration.timestamp + 1
@@ -819,36 +823,36 @@ trait ActivateTestContext
         var length = 0
         @transient val transientValue = new Object
         @transient lazy val transientLazyValue = new Object
-        
+
         val compressedEntityValue = new CompressedEntityValue(fullStringValue)
 
         override def toString = s"ActivateTestEntity(id=$id)"
     }
 
     def validateFullTestEntity(entity: ActivateTestEntity = null,
-                               intValue: Int = fullIntValue,
-                               longValue: Long = fullLongValue,
-                               booleanValue: Boolean = fullBooleanValue,
-                               charValue: Char = fullCharValue,
-                               stringValue: String = fullStringValue,
-                               floatValue: Float = fullFloatValue,
-                               doubleValue: Double = fullDoubleValue,
-                               bigDecimalValue: BigDecimal = fullBigDecimalValue,
-                               dateValue: java.util.Date = fullDateValue,
-                               jodaInstantValue: DateTime = fullJodaInstantValue,
-                               calendarValue: java.util.Calendar = fullCalendarValue,
-                               byteArrayValue: Array[Byte] = fullByteArrayValue,
-                               entityValue: ActivateTestEntity = fullEntityValue,
-                               traitValue1: TraitAttribute = fullTraitValue1,
-                               traitValue2: TraitAttribute = fullTraitValue2,
-                               enumerationValue: EnumerationValue = fullEnumerationValue,
-                               lazyValue: String = fullLazyValue,
-                               optionValue: Option[String] = fullOptionValue,
-                               entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
-                               caseClassEntityValue: CaseClassEntity = fullCaseClassEntityValue,
-                               serializableEntityValue: DummySeriablizable = fullSerializableEntityValue,
-                               listEntityValue: LazyList[ActivateTestEntity] = fullListEntityValue,
-                               tupleOptionValue: Option[(Int, Int)] = fullTupleOptionValue) =
+        intValue: Int = fullIntValue,
+        longValue: Long = fullLongValue,
+        booleanValue: Boolean = fullBooleanValue,
+        charValue: Char = fullCharValue,
+        stringValue: String = fullStringValue,
+        floatValue: Float = fullFloatValue,
+        doubleValue: Double = fullDoubleValue,
+        bigDecimalValue: BigDecimal = fullBigDecimalValue,
+        dateValue: java.util.Date = fullDateValue,
+        jodaInstantValue: DateTime = fullJodaInstantValue,
+        calendarValue: java.util.Calendar = fullCalendarValue,
+        byteArrayValue: Array[Byte] = fullByteArrayValue,
+        entityValue: ActivateTestEntity = fullEntityValue,
+        traitValue1: TraitAttribute = fullTraitValue1,
+        traitValue2: TraitAttribute = fullTraitValue2,
+        enumerationValue: EnumerationValue = fullEnumerationValue,
+        lazyValue: String = fullLazyValue,
+        optionValue: Option[String] = fullOptionValue,
+        entityWithoutAttributeValue: EntityWithoutAttribute = fullEntityWithoutAttributeValue,
+        caseClassEntityValue: CaseClassEntity = fullCaseClassEntityValue,
+        serializableEntityValue: DummySeriablizable = fullSerializableEntityValue,
+        listEntityValue: LazyList[ActivateTestEntity] = fullListEntityValue,
+        tupleOptionValue: Option[(Int, Int)] = fullTupleOptionValue) =
 
         validateEmptyTestEntity(
             entity,
@@ -877,29 +881,29 @@ trait ActivateTestContext
             tupleOptionValue)
 
     def validateEmptyTestEntity(entity: ActivateTestEntity = null,
-                                intValue: Int = emptyIntValue,
-                                longValue: Long = emptyLongValue,
-                                booleanValue: Boolean = emptyBooleanValue,
-                                charValue: Char = emptyCharValue,
-                                stringValue: String = emptyStringValue,
-                                floatValue: Float = emptyFloatValue,
-                                doubleValue: Double = emptyDoubleValue,
-                                bigDecimalValue: BigDecimal = emptyBigDecimalValue,
-                                dateValue: java.util.Date = emptyDateValue,
-                                jodaInstantValue: DateTime = emptyJodaInstantValue,
-                                calendarValue: java.util.Calendar = emptyCalendarValue,
-                                byteArrayValue: Array[Byte] = emptyByteArrayValue,
-                                entityValue: ActivateTestEntity = emptyEntityValue,
-                                traitValue1: TraitAttribute = emptyTraitValue1,
-                                traitValue2: TraitAttribute = emptyTraitValue2,
-                                enumerationValue: EnumerationValue = emptyEnumerationValue,
-                                lazyValue: String = emptyLazyValue,
-                                optionValue: Option[String] = emptyOptionValue,
-                                entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
-                                caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
-                                serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
-                                listEntityValue: LazyList[ActivateTestEntity] = emptyListEntityValue,
-                                tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
+        intValue: Int = emptyIntValue,
+        longValue: Long = emptyLongValue,
+        booleanValue: Boolean = emptyBooleanValue,
+        charValue: Char = emptyCharValue,
+        stringValue: String = emptyStringValue,
+        floatValue: Float = emptyFloatValue,
+        doubleValue: Double = emptyDoubleValue,
+        bigDecimalValue: BigDecimal = emptyBigDecimalValue,
+        dateValue: java.util.Date = emptyDateValue,
+        jodaInstantValue: DateTime = emptyJodaInstantValue,
+        calendarValue: java.util.Calendar = emptyCalendarValue,
+        byteArrayValue: Array[Byte] = emptyByteArrayValue,
+        entityValue: ActivateTestEntity = emptyEntityValue,
+        traitValue1: TraitAttribute = emptyTraitValue1,
+        traitValue2: TraitAttribute = emptyTraitValue2,
+        enumerationValue: EnumerationValue = emptyEnumerationValue,
+        lazyValue: String = emptyLazyValue,
+        optionValue: Option[String] = emptyOptionValue,
+        entityWithoutAttributeValue: EntityWithoutAttribute = emptyEntityWithoutAttributeValue,
+        caseClassEntityValue: CaseClassEntity = emptyCaseClassEntityValue,
+        serializableEntityValue: DummySeriablizable = emptySerializableEntityValue,
+        listEntityValue: LazyList[ActivateTestEntity] = emptyListEntityValue,
+        tupleOptionValue: Option[(Int, Int)] = emptyTupleOptionValue) = {
 
         require(entity.intValue == intValue)
         require(entity.longValue == longValue)

@@ -34,6 +34,8 @@ import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.LimitedOrderedQuery
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
+import com.zaxxer.hikari.HikariConfig
 
 object derbyRegex {
     def regexp(src: String, pattern: String) = {
@@ -45,12 +47,12 @@ object derbyRegex {
 }
 
 object derbyDialect extends derbyDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
-    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) = 
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
         new postgresqlDialect(escape, normalize)
 }
 
 class derbyDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
-    
+
     override def escape(string: String) =
         pEscape(pNormalize(string))
 
@@ -67,9 +69,31 @@ class derbyDialect(pEscape: String => String, pNormalize: String => String) exte
             }
         } catch {
             case e: SQLException =>
-                if(!e.getMessage.contains("REGEXP"))
-                  throw e
+                if (!e.getMessage.contains("REGEXP"))
+                    throw e
         }
+
+    override def hikariConfigFor(storage: PooledJdbcRelationalStorage, jdbcDataSourceName: String) = {
+        import storage._
+        val config = new HikariConfig
+        val (url, connectionAttributes) =
+            storage.url.split(";").toList match {
+                case url :: connectionAttributes :: Nil =>
+                    (url, connectionAttributes)
+                case url :: Nil =>
+                    (url, "")
+                case other =>
+                    throw new IllegalStateException("Invalid derby url")
+            }
+        config.addDataSourceProperty("databaseName", url.replace("jdbc:derby:", ""))
+        config.addDataSourceProperty("connectionAttributes", connectionAttributes)
+        config.setDataSourceClassName(jdbcDataSourceName)
+        user map { u => config.addDataSourceProperty("user", u) }
+        password map { p => config.addDataSourceProperty("password", p) }
+        config.setAutoCommit(true)
+        config.setMaximumPoolSize(poolSize)
+        config
+    }
 
     def toSqlDmlRegexp(value: String, regex: String) =
         "REGEXP(" + value + ", " + regex + ")=1"

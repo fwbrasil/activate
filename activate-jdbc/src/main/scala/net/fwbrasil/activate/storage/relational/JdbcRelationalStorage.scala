@@ -357,14 +357,7 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     private def initConnectionPool(jdbcDataSourceName: String) = {
         ActivateContext.loadClass(jdbcDataSourceName)
-        val config = new HikariConfig
-        config.setDataSourceClassName(jdbcDataSourceName)
-        config.addDataSourceProperty("url", url)
-        user map { u => config.addDataSourceProperty("user", u)}
-        password map {p => config.addDataSourceProperty("password", p)}
-        config.setAutoCommit(true)
-        config.setMaximumPoolSize(poolSize)
-        _connectionPool = new HikariDataSource(config);
+        _connectionPool = new HikariDataSource(dialect.hikariConfigFor(this, jdbcDataSourceName))
     }
 
     override def getConnectionReadOnly = {
