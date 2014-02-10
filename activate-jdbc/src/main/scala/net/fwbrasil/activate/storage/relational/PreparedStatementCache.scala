@@ -48,7 +48,7 @@ class PreparedStatementCache {
         aquireFrom(stackFor(cache, statement))
 
     private def aquireFrom(stack: ConcurrentCache[(PreparedStatement, List[String])]): Option[(PreparedStatement, List[String])] =
-        Option(stack.poll)
+        Option(stack.poll).filter(!_._1.isClosed)
 
     private def cacheFor(connection: Connection) = {
         val key = realConnection(connection)
