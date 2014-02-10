@@ -35,7 +35,7 @@ object ActivateBuild extends Build {
     val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
     val mysql = "mysql" % "mysql-connector-java" % "5.1.28"
     val postgresql = "org.postgresql" % "postgresql" % "9.3-1100-jdbc4"
-    val boneCP = "com.jolbox" % "bonecp" % "0.8.0.RELEASE"
+    val hirakiCP = "com.zaxxer" % "HikariCP" % "1.2.8" % "compile"
     val h2 = "com.h2database" % "h2" % "1.3.175"
     val derby = "org.apache.derby" % "derby" % "10.10.1.1"
     val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.1"
@@ -108,7 +108,7 @@ object ActivateBuild extends Build {
             dependencies = Seq(activateCore),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
-                    Seq(boneCP)
+                    Seq(hirakiCP)
             )
         )
 
