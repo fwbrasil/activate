@@ -25,5 +25,5 @@ before_script:
   - psql -c 'create database activate_test;' -U postgres
   - psql -c 'create database activate_test_async;' -U postgres
   - psql -c 'create database activate_test_polyglot;' -U postgres
-  - sleep 30
+  - sleep 10
   - mongo mydb_test --eval 'db.addUser("activate_test", "activate_test");'
