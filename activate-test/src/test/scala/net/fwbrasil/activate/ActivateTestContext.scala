@@ -133,7 +133,7 @@ object mysqlContext extends ActivateTestContext with SlickQueryContext {
     System.getProperties.put("activate.storage.mysql.factory", "net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorageFactory")
     System.getProperties.put("activate.storage.mysql.jdbcDriver", "com.mysql.jdbc.Driver")
     System.getProperties.put("activate.storage.mysql.user", "root")
-    System.getProperties.put("activate.storage.mysql.password", "root")
+    System.getProperties.put("activate.storage.mysql.password", "")
     System.getProperties.put("activate.storage.mysql.url", "jdbc:mysql://127.0.0.1/activate_test")
     System.getProperties.put("activate.storage.mysql.dialect", "mySqlDialect")
     lazy val storage =
@@ -155,7 +155,7 @@ object postgresqlContext extends ActivateTestContext {
                 case "order" => "orderr"
                 case other => other
             }
-        val dialect = postgresqlDialect(escape = noEscape, normalize)
+        val dialect = postgresqlDialect(escape = noEscape, normalize = normalize(_))
     }
 }
 class PostgresqlActivateTestMigration extends ActivateTestMigration()(postgresqlContext)
@@ -188,7 +188,7 @@ object asyncMysqlContext extends ActivateTestContext {
                 username = "root",
                 host = "localhost",
                 port = 3306,
-                password = Some("root"),
+                password = None,
                 database = Some("activate_test_async"))
         lazy val objectFactory = new MySQLConnectionFactory(configuration)
         override def poolConfiguration = PoolConfiguration.Default.copy(maxQueueSize = 400, maxObjects = 5)

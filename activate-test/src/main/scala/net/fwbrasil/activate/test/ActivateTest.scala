@@ -102,6 +102,7 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
         resetStorageVersion
         ctx.reinitializeContext
         ctx.runMigration
+        ctx.reinitializeContext
     }
 
     private def cleanDatabase(implicit ctx: ActivateContext) =
