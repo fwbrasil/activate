@@ -396,6 +396,10 @@ object PooledJdbcRelationalStorageFactory extends StorageFactory {
         val user = getProperty("user")
         val password = getProperty("password")
         val dialect = SqlIdiom.dialect(getProperty("dialect").get)
+        getProperty("SQL2003") map { p => p match {
+          case "true" => dialect.SQL2003 = true
+          case _ =>
+        }}
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new PooledJdbcRelationalStorageFromFactory(getProperty)
@@ -408,6 +412,10 @@ object SimpleJdbcRelationalStorageFactory extends StorageFactory {
         val user = getProperty("user").get
         val password = getProperty("password").get
         val dialect = SqlIdiom.dialect(getProperty("dialect").get)
+        getProperty("SQL2003") map { p => p match {
+          case "true" => dialect.SQL2003 = true
+          case _ =>
+        }}
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new SimpleJdbcRelationalStorageFromFactory(getProperty)
@@ -417,6 +425,10 @@ object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
     class DataSourceJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends DataSourceJdbcRelationalStorage {
         val dataSourceName = getProperty("jdbcDataSource").get
         val dialect = SqlIdiom.dialect(getProperty("dialect").get)
+        getProperty("SQL2003") map { p => p match {
+          case "true" => dialect.SQL2003 = true
+          case _ =>
+        }}
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new DataSourceJdbcRelationalStorageFromFactory(getProperty)

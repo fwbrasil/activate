@@ -180,7 +180,7 @@ trait HikariWithoutUrl {
 
 trait SqlIdiom extends QlIdiom {
 
-    def SQL2003 = false
+    var SQL2003: Boolean = false
 
     def supportsLimitedQueries = true
 

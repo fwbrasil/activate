@@ -38,8 +38,6 @@ object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + st
 }
 
 class postgresqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
-
-    override val SQL2003 = true
     
     override def escape(string: String) =
         pEscape(pNormalize(string))
