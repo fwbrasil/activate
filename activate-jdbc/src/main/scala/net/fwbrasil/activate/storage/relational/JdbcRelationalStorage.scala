@@ -326,6 +326,7 @@ trait SimpleJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit {
 
     val jdbcDriver: String
+    val jdbcDataSource: Option[String] = None
     val url: String
     val user: Option[String]
     val password: Option[String]
@@ -338,7 +339,14 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
 
     override def delayedInit(body: => Unit) = {
         body
-        initConnectionPool
+        val jdbcDataSourceName: String = jdbcDataSource match {
+          case Some(name) => name
+          case None => jdbcDriverToDataSource.get(jdbcDriver) match {
+            case Some(name) => name
+            case None => throw new Exception("Could not find provided jdbcDriver, please provide a jdbcDataSource instead.")
+          }
+        }
+        initConnectionPool(jdbcDataSourceName)
     }
 
     def connectionPool =
@@ -347,10 +355,10 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
     override def getConnection =
         _connectionPool.getConnection
 
-    private def initConnectionPool = {
-        ActivateContext.loadClass(jdbcDriver)
+    private def initConnectionPool(jdbcDataSourceName: String) = {
+        ActivateContext.loadClass(jdbcDataSourceName)
         val config = new HikariConfig
-        config.setDataSourceClassName(jdbcDriver)
+        config.setDataSourceClassName(jdbcDataSourceName)
         config.addDataSourceProperty("url", url)
         user map { u => config.addDataSourceProperty("user", u)}
         password map {p => config.addDataSourceProperty("password", p)}
@@ -365,6 +373,16 @@ trait PooledJdbcRelationalStorage extends JdbcRelationalStorage with DelayedInit
         con
     }
 
+    private val jdbcDriverToDataSource = Map(
+      "org.postgresql.Driver" -> "org.postgresql.ds.PGSimpleDataSource",
+      "com.mysql.jdbc.Driver" -> "com.mysql.jdbc.jdbc2.optional.MysqlDataSource",
+      "oracle.jdbc.driver.OracleDriver" -> "oracle.jdbc.pool.OracleDataSource",
+      "org.h2.Driver" -> "org.h2.jdbcx.JdbcDataSource",
+      "org.apache.derby.jdbc.EmbeddedDriver" -> "org.apache.derby.jdbc.EmbeddedDataSource",
+      "org.hsqldb.jdbcDriver" -> "org.hsqldb.jdbc.JDBCDataSource",
+      "com.ibm.db2.jcc.DB2Driver" -> "com.ibm.db2.jcc.DB2SimpleDataSource",
+      "net.sourceforge.jtds.jdbc.Driver" -> "net.sourceforge.jtds.jdbcx.JtdsDataSource"
+    )
 }
 
 trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
@@ -379,7 +397,8 @@ trait DataSourceJdbcRelationalStorage extends JdbcRelationalStorage {
 
 object PooledJdbcRelationalStorageFactory extends StorageFactory {
     class PooledJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends PooledJdbcRelationalStorage {
-        val jdbcDriver = getProperty("jdbcDriver").get
+        val jdbcDriver = getProperty("jdbcDriver").getOrElse("")
+        override val jdbcDataSource = getProperty("jdbcDataSource")
         val url = getProperty("url").get
         val user = getProperty("user")
         val password = getProperty("password")
@@ -403,7 +422,7 @@ object SimpleJdbcRelationalStorageFactory extends StorageFactory {
 
 object DataSourceJdbcRelationalStorageFactory extends StorageFactory {
     class DataSourceJdbcRelationalStorageFromFactory(val getProperty: String => Option[String]) extends DataSourceJdbcRelationalStorage {
-        val dataSourceName = getProperty("dataSourceName").get
+        val dataSourceName = getProperty("jdbcDataSource").get
         val dialect = SqlIdiom.dialect(getProperty("dialect").get)
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
