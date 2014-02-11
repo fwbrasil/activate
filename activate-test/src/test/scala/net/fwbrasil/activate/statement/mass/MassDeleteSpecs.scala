@@ -162,7 +162,7 @@ class MassDeleteSpecs extends ActivateTest {
                 })
         }
         "ignore the StorageVersion for delete[Entity]" in {
-            try activateTest(
+            activateTest(
                 (step: StepExecutor) => {
                     if (step.ctx != polyglotContext) {
                         import step.ctx._
@@ -174,10 +174,10 @@ class MassDeleteSpecs extends ActivateTest {
                         step {
                             all[StorageVersion] must not beEmpty
                         }
+                        unloadIndexes
                     }
                 })
-            finally contexts.foreach(_.unloadIndexes)
-        }
+        }.pendingUntilFixed("https://github.com/brettwooldridge/HikariCP/pull/35")
 
     }
 }

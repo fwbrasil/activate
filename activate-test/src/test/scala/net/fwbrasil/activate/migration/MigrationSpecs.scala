@@ -13,11 +13,14 @@ import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.asyncPostgresqlContext
 import net.fwbrasil.activate.asyncMongoContext
+import net.fwbrasil.activate.asyncMysqlContext
+import net.fwbrasil.activate.derbyContext
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
 
-    override def contexts = super.contexts.filter(c => c != polyglotContext && c != asyncPostgresqlContext && c != asyncMongoContext)
+    override def contexts = super.contexts.filter(c => 
+        c != polyglotContext && c != asyncPostgresqlContext && c != asyncMongoContext && c != asyncMysqlContext && c != derbyContext)
 
     "Migration" should {
 
