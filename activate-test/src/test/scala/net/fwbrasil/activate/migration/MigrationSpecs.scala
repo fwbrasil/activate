@@ -19,7 +19,7 @@ import net.fwbrasil.activate.derbyContext
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
 
-    override def contexts = super.contexts.filter(c => 
+    override def contexts = super.contexts.filter(c =>
         c != polyglotContext && c != asyncPostgresqlContext && c != asyncMongoContext && c != asyncMysqlContext && c != derbyContext)
 
     "Migration" should {
@@ -175,48 +175,54 @@ class MigrationSpecs extends MigrationTest {
         "RemoveTable" in {
 
             "removeAllEntitiesTables" in {
-                migrationTest(
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                            createTableForEntity[TraitAttribute1]
-                        }
-                    },
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                            removeAllEntitiesTables
-                                .ifExists
-                        }
-                        override def validateUp = {
-                            validateSchemaError(new TraitAttribute1("a"))
-                            validateSchemaError(all[TraitAttribute1])
-                        }
-                    }) must throwA[CannotRevertMigration]
+                if (contexts.nonEmpty) {
+                    migrationTest(
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
+                                createTableForEntity[TraitAttribute1]
+                            }
+                        },
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
+                                removeAllEntitiesTables
+                                    .ifExists
+                            }
+                            override def validateUp = {
+                                validateSchemaError(new TraitAttribute1("a"))
+                                validateSchemaError(all[TraitAttribute1])
+                            }
+                        }) must throwA[CannotRevertMigration]
+                }
+                ok
             }
 
             "Table.removeTable" in {
-                migrationTest(
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                            createTableForEntity[TraitAttribute1]
-                        }
-                    },
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                            table[TraitAttribute1]
-                                .removeTable
-                            table[TraitAttribute1]
-                                .removeTable
-                                .ifExists
-                        }
-                        override def validateUp = {
-                            validateSchemaError(new TraitAttribute1("a"))
-                            validateSchemaError(all[TraitAttribute1])
-                        }
-                    }) must throwA[CannotRevertMigration]
+                if (contexts.nonEmpty) {
+                    migrationTest(
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
+                                createTableForEntity[TraitAttribute1]
+                            }
+                        },
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
+                                table[TraitAttribute1]
+                                    .removeTable
+                                table[TraitAttribute1]
+                                    .removeTable
+                                    .ifExists
+                            }
+                            override def validateUp = {
+                                validateSchemaError(new TraitAttribute1("a"))
+                                validateSchemaError(all[TraitAttribute1])
+                            }
+                        }) must throwA[CannotRevertMigration]
+                }
+                ok
             }
 
         }
@@ -637,29 +643,35 @@ class MigrationSpecs extends MigrationTest {
 
         "produce an error if there is a transactional" in {
             "up" in {
-                migrationTest(
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                            transactional {
+                if (contexts.nonEmpty) {
+                    migrationTest(
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
+                                transactional {
 
+                                }
                             }
-                        }
-                    }) must throwA[IllegalStateException]
+                        }) must throwA[IllegalStateException]
+                }
+                ok
             }
 
             "down" in {
-                migrationTest(
-                    new TestMigration()(_) {
-                        import context._
-                        def up = {
-                        }
-                        override def down = {
-                            transactional {
-
+                if (contexts.nonEmpty) {
+                    migrationTest(
+                        new TestMigration()(_) {
+                            import context._
+                            def up = {
                             }
-                        }
-                    }) must throwA[IllegalStateException]
+                            override def down = {
+                                transactional {
+
+                                }
+                            }
+                        }) must throwA[IllegalStateException]
+                }
+                ok
             }
         }
 

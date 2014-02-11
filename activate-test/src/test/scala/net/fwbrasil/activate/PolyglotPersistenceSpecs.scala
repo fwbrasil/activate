@@ -157,11 +157,12 @@ class PolyglotPersistenceSpecs extends ActivateTest {
         "handle concurrent distributed transactions" in
             activateTest(
                 (step: StepExecutor) => {
+                    unloadIndexes
                     step {
                         clearStorages
                         createEntitiesForAllStorages
                     }
-                    val numbers = 100
+                    val numbers = 50
                     def entityA = all[ActivateTestEntity].head //mysql
                     def entityB = all[SimpleEntity].head //memory
                     step {
