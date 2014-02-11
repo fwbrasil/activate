@@ -165,6 +165,27 @@ class PostgresqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
     override def bigStringType = "TEXT"
 }
 
+object postgresqlSQL2003Context extends ActivateTestContext {
+  lazy val storage = new PooledJdbcRelationalStorage {
+    val jdbcDriver = "org.postgresql.Driver"
+    val user = Some("postgres")
+    val password = Some("postgres")
+    val url = "jdbc:postgresql://127.0.0.1/activate_test_sql2003"
+    def normalize(string: String) =
+      string.toLowerCase match {
+        case "order" => "orderr"
+        case other => other
+      }
+    val dialect = postgresqlDialect(escape = noEscape, normalize = normalize(_))
+    dialect.SQL2003 = true
+  }
+}
+class PostgresqlSQL2003ActivateTestMigration extends ActivateTestMigration()(postgresqlSQL2003Context)
+class PostgresqlSQL2003ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(postgresqlSQL2003Context) {
+  override def bigStringType = "TEXT"
+}
+
+
 object asyncPostgresqlContext extends ActivateTestContext {
     lazy val storage = new AsyncPostgreSQLStorage {
         def configuration =

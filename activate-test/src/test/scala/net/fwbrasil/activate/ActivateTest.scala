@@ -47,7 +47,7 @@ object ActivateTest {
             memory -> List(memoryContext),
             prevalent -> List(prevaylerContext, prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
-            relational -> List(postgresqlContext, asyncPostgresqlContext, mysqlContext, asyncMysqlContext),
+            relational -> List(postgresqlContext, asyncPostgresqlContext, postgresqlSQL2003Context, mysqlContext, asyncMysqlContext),
             relational_mem -> List(derbyContext, h2Context, hsqldbContext),
             proprietary -> List(oracleContext, db2Context, sqlServerContext),
             //            cassandra -> List(asyncCassandraContext),
@@ -113,7 +113,7 @@ object ActivateTest {
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     args.execute(threadsNb = 1)
-    
+
     def isTravis =
         System.getenv("travis") == "true"
 

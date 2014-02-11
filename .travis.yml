@@ -25,6 +25,7 @@ before_script:
   - mysql -e 'create database activate_test_polyglot;'
   - mysql -e 'create database activate_test_polyglot_async;'
   - psql -c 'create database activate_test;' -U postgres
+  - psql -c 'create database activate_test_sql2003;' -U postgres
   - psql -c 'create database activate_test_async;' -U postgres
   - psql -c 'create database activate_test_polyglot;' -U postgres
   - psql -c 'create database activate_test_polyglot_async;' -U postgres
