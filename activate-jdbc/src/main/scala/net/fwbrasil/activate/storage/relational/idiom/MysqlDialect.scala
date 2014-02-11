@@ -34,7 +34,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object mySqlDialect extends mySqlDialect(pEscape = string => "`" + string + "`", pNormalize = string => string) {
     def apply(escape: String => String = string => "`" + string + "`", normalize: String => String = string => string) =
-        new postgresqlDialect(escape, normalize)
+        new mySqlDialect(escape, normalize)
 }
 
 class mySqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {

@@ -38,7 +38,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object oracleDialect extends oracleDialect(pEscape = string => "\"" + string + "\"", pNormalize = oracleDialectNormalizer.normalize) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = oracleDialectNormalizer.normalize) = 
-        new postgresqlDialect(escape, normalize)
+        new oracleDialect(escape, normalize)
 }
 
 object oracleDialectNormalizer {

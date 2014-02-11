@@ -48,7 +48,7 @@ object derbyRegex {
 
 object derbyDialect extends derbyDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
-        new postgresqlDialect(escape, normalize)
+        new derbyDialect(escape, normalize)
 }
 
 class derbyDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {

@@ -4,9 +4,11 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.util.RichList._
 import scala.concurrent.Future
 import net.fwbrasil.activate.ActivateTestContext
+import net.fwbrasil.activate.polyglotContext
 
 class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with ActivateTest {
     
+    override def contexts = super.contexts.filter(_ != polyglotContext)
     override def executors(ctx: ActivateTestContext) = List(OneTransaction(ctx))
 
     "ActivateTest" >> {

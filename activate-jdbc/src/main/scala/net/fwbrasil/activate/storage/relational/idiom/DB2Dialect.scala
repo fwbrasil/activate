@@ -45,7 +45,7 @@ import net.fwbrasil.activate.entity.BaseEntity
 
 object db2Dialect extends db2Dialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
-        new postgresqlDialect(escape, normalize)
+        new db2Dialect(escape, normalize)
 }
 
 class db2Dialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {

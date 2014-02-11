@@ -353,7 +353,7 @@ object polyglotContext extends ActivateTestContext {
     lazy val postgre = new PooledJdbcRelationalStorage {
         val jdbcDriver = "org.postgresql.Driver"
         val user = Some("postgres")
-        val password = Some("postgres")
+        val password = None
         val url = "jdbc:postgresql://127.0.0.1/activate_test_polyglot"
         val dialect = postgresqlDialect
     }
@@ -371,7 +371,7 @@ object polyglotContext extends ActivateTestContext {
     lazy val mysql = new PooledJdbcRelationalStorage {
         val jdbcDriver = "com.mysql.jdbc.Driver"
         val user = Some("root")
-        val password = Some("root")
+        val password = None
         val url = "jdbc:mysql://127.0.0.1/activate_test_polyglot"
         val dialect = mySqlDialect
     }

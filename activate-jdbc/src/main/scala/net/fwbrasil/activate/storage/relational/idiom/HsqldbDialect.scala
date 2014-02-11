@@ -29,7 +29,7 @@ import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
 object hsqldbDialect extends hsqldbDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase()) = 
-        new postgresqlDialect(escape, normalize)
+        new hsqldbDialect(escape, normalize)
 }
 
 class hsqldbDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
