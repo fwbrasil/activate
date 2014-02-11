@@ -177,6 +177,7 @@ class MassDeleteSpecs extends ActivateTest {
                         unloadIndexes
                     }
                 })
+            failure
         }.pendingUntilFixed("https://github.com/brettwooldridge/HikariCP/pull/35")
 
     }
