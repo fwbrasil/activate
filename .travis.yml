@@ -13,6 +13,7 @@ notifications:
 services:
   - mongodb
 env:
+  - travis=true
   - category=memory
   - category=prevalent
   - category=mongo

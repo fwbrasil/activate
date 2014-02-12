@@ -59,82 +59,85 @@ class ReadValidationSpecs extends ActivateTest {
     val optimisticOfflineLockingOption = "-Dactivate.offlineLocking.enable=true"
     val optimisticOfflineLockingValidateReadOption = "-Dactivate.offlineLocking.validateReads=true"
 
-    "The read validation" should {
+    if (!isTravis) {
 
-        "maintain the lastVersionValidation" in {
+        "The read validation" should {
 
-            "on create" in test {
-                setTime(1)
-                val entity = transactional(new ReadValidationEntity(0))
-                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+            "maintain the lastVersionValidation" in {
+
+                "on create" in test {
+                    setTime(1)
+                    val entity = transactional(new ReadValidationEntity(0))
+                    require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                }
+
+                "on update" in test {
+                    setTime(1)
+                    val entity = transactional(new ReadValidationEntity(0))
+                    setTime(2)
+                    transactional(entity.intValue = 2)
+                    require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                }
+
+                "on delete" in test {
+                    setTime(1)
+                    val entity = transactional(new ReadValidationEntity(0))
+                    setTime(2)
+                    transactional(entity.delete)
+                    require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                }
+
+                "on read validation" in test {
+                    setTime(1)
+                    val entity = transactional(new ReadValidationEntity(0))
+                    setTime(2)
+                    ReadValidationEntity.shouldValidateRead = () => true
+                    transactional(entity.intValue)
+                    require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                }
             }
 
-            "on update" in test {
+            "defer read validation for 1 milis" in test {
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
+                deferReadValidationFor(1 millis, entity)
+                require(!entity.shouldValidateRead)
                 setTime(2)
-                transactional(entity.intValue = 2)
-                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                require(entity.shouldValidateRead)
+                ok
             }
 
-            "on delete" in test {
+            "defer read validation for the infinite" in test {
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
-                setTime(2)
-                transactional(entity.delete)
-                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                deferReadValidationFor(Duration.Inf, entity)
+                require(!entity.shouldValidateRead)
+                setTime(2000)
+                require(!entity.shouldValidateRead)
             }
 
-            "on read validation" in test {
+            "reload the entity if necessary" in test {
+                val oldValue = 0
+                val newValue = 1
                 setTime(1)
                 val entity = transactional(new ReadValidationEntity(0))
-                setTime(2)
                 ReadValidationEntity.shouldValidateRead = () => true
-                transactional(entity.intValue)
-                require(entity.lastVersionValidation.equals(DateTime.now.getMillis))
+                modifyEntityOnDatabase(entity.id, newValue)
+                require(transactional(entity.intValue) == newValue)
             }
-        }
 
-        "defer read validation for 1 milis" in test {
-            setTime(1)
-            val entity = transactional(new ReadValidationEntity(0))
-            deferReadValidationFor(1 millis, entity)
-            require(!entity.shouldValidateRead)
-            setTime(2)
-            require(entity.shouldValidateRead)
-            ok
-        }
-
-        "defer read validation for the infinite" in test {
-            setTime(1)
-            val entity = transactional(new ReadValidationEntity(0))
-            deferReadValidationFor(Duration.Inf, entity)
-            require(!entity.shouldValidateRead)
-            setTime(2000)
-            require(!entity.shouldValidateRead)
-        }
-
-        "reload the entity if necessary" in test {
-            val oldValue = 0
-            val newValue = 1
-            setTime(1)
-            val entity = transactional(new ReadValidationEntity(0))
-            ReadValidationEntity.shouldValidateRead = () => true
-            modifyEntityOnDatabase(entity.id, newValue)
-            require(transactional(entity.intValue) == newValue)
-        }
-
-        "reload the entity if necessary after the deferred read time" in test {
-            val oldValue = 0
-            val newValue = 1
-            setTime(1)
-            val entity = transactional(new ReadValidationEntity(0))
-            val entityId = entity.id
-            modifyEntityOnDatabase(entity.id, newValue)
-            deferReadValidationFor(1 millis, entity)
-            require(transactional(entity.intValue) == oldValue)
-            setTime(2)
-            require(transactional(entity.intValue) == newValue)
+            "reload the entity if necessary after the deferred read time" in test {
+                val oldValue = 0
+                val newValue = 1
+                setTime(1)
+                val entity = transactional(new ReadValidationEntity(0))
+                val entityId = entity.id
+                modifyEntityOnDatabase(entity.id, newValue)
+                deferReadValidationFor(1 millis, entity)
+                require(transactional(entity.intValue) == oldValue)
+                setTime(2)
+                require(transactional(entity.intValue) == newValue)
+            }
         }
     }
 

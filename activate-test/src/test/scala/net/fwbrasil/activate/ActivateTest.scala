@@ -113,6 +113,9 @@ object ActivateTest {
 trait ActivateTest extends SpecificationWithJUnit with Serializable {
 
     args.execute(threadsNb = 1)
+    
+    def isTravis =
+        System.getenv("travis") == "true"
 
     def executors(ctx: ActivateTestContext): List[StepExecutor] =
         List(

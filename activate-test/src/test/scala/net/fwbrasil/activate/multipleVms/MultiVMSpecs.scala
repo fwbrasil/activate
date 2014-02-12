@@ -18,21 +18,24 @@ class MultiVMSpecs extends ActivateTest {
     val optimisticOfflineLockingOption = "-Dactivate.offlineLocking.enable=true"
     val optimisticOfflineLockingValidateReadOption = "-Dactivate.offlineLocking.validateReads=true"
 
-    "Multiple VMs" should {
-        "work with offline locking with read validation" in synchronized {
-            test(mainVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
-                forkVmOptions = List(optimisticOfflineLockingOption),
-                expectSucess = true)
-        }
-        "not work without offline locking" in synchronized {
-            test(mainVmOptions = List(),
-                forkVmOptions = List(),
-                expectSucess = false)
-        }
-        "not work with optimistic offline locking without read validation" in synchronized {
-            test(mainVmOptions = List(optimisticOfflineLockingOption),
-                forkVmOptions = List(optimisticOfflineLockingOption),
-                expectSucess = false)
+    if (!isTravis) {
+
+        "Multiple VMs" should {
+            "work with offline locking with read validation" in synchronized {
+                test(mainVmOptions = List(optimisticOfflineLockingOption, optimisticOfflineLockingValidateReadOption),
+                    forkVmOptions = List(optimisticOfflineLockingOption),
+                    expectSucess = true)
+            }
+            "not work without offline locking" in synchronized {
+                test(mainVmOptions = List(),
+                    forkVmOptions = List(),
+                    expectSucess = false)
+            }
+            "not work with optimistic offline locking without read validation" in synchronized {
+                test(mainVmOptions = List(optimisticOfflineLockingOption),
+                    forkVmOptions = List(optimisticOfflineLockingOption),
+                    expectSucess = false)
+            }
         }
     }
 
@@ -53,11 +56,11 @@ class MultiVMSpecs extends ActivateTest {
 }
 
 case class MainVM(
-        numOfVMs: Int,
-        numOfThreads: Int,
-        numOfTransactions: Int,
-        mainVmOptions: List[String],
-        forkVmOptions: List[String]) {
+    numOfVMs: Int,
+    numOfThreads: Int,
+    numOfTransactions: Int,
+    mainVmOptions: List[String],
+    forkVmOptions: List[String]) {
 
     val result =
         JvmFork.forkAndExpect(others = mainVmOptions) {
