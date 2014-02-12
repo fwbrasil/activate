@@ -13,6 +13,14 @@ class CustomEncodedEntityValueEncoder
     def decode(i: Int) = new CustomEncodedEntityValue(i)
 }
 
+class CustomEncodedObjectEntityValue(val i: Int) extends Serializable
+
+object CustomEncodedObjectEntityValueEncoder
+        extends Encoder[CustomEncodedObjectEntityValue, Int] {
+    def encode(value: CustomEncodedObjectEntityValue) = value.i
+    def decode(i: Int) = new CustomEncodedObjectEntityValue(i)
+}
+
 sealed trait UserStatus extends Serializable
 case object SuperUser extends UserStatus
 case object NormalUser extends UserStatus
