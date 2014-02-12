@@ -17,6 +17,7 @@ env:
   - category=prevalent
   - category=mongo
   - category=relational
+  - category=relational_mem
   - category=polyglot
 before_script:
   - mysql -e 'create database activate_test;'

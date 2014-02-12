@@ -34,6 +34,7 @@ object ActivateTestContextCategory extends Enumeration {
     val mongo = Value("mongo")
     //    val cassandra = Value("cassandra")
     val relational = Value("relational")
+    val relational_mem = Value("relational_mem")
     val proprietary = Value("proprietary")
     val polyglot = Value("polyglot")
 }
@@ -46,8 +47,8 @@ object ActivateTest {
             memory -> List(memoryContext),
             prevalent -> List(prevaylerContext, prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
-            relational -> List(postgresqlContext, asyncPostgresqlContext,
-                mysqlContext, asyncMysqlContext, derbyContext, h2Context, hsqldbContext),
+            relational -> List(postgresqlContext, asyncPostgresqlContext, mysqlContext, asyncMysqlContext),
+            relational_mem -> List(derbyContext, h2Context, hsqldbContext),
             proprietary -> List(oracleContext, db2Context, sqlServerContext),
             //            cassandra -> List(asyncCassandraContext),
             polyglot -> List(polyglotContext))

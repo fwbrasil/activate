@@ -5,10 +5,14 @@ import net.fwbrasil.activate.util.RichList._
 import scala.concurrent.Future
 import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 
 class ActivateTestSpecs extends net.fwbrasil.activate.ActivateTest with ActivateTest {
-    
-    override def contexts = super.contexts.filter(_ != polyglotContext)
+
+    override def contexts =
+        super.contexts.filter(_ != polyglotContext)
+            .filter(!_.storage.isInstanceOf[PooledJdbcRelationalStorage])
+
     override def executors(ctx: ActivateTestContext) = List(OneTransaction(ctx))
 
     "ActivateTest" >> {
