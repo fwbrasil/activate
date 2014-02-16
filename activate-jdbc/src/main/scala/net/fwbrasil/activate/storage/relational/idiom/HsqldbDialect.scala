@@ -32,13 +32,11 @@ object hsqldbDialect extends hsqldbDialect(pEscape = string => "\"" + string + "
         new hsqldbDialect(escape, normalize)
 }
 
-class hsqldbDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom with HikariWithoutUrl{
+class hsqldbDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
     
     override def escape(string: String) =
         pEscape(pNormalize(string))
         
-    override def urlPrefix = "jdbc:hsqldb:"
-
     def toSqlDmlRegexp(value: String, regex: String) =
         "REGEXP_MATCHES(" + value + ", " + regex + ")"
 

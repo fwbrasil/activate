@@ -167,7 +167,7 @@ trait HikariWithoutUrl {
                 case other =>
                     throw new IllegalStateException("Invalid derby url")
             }
-        config.addDataSourceProperty("databaseName", url.replace("jdbc:h2:", ""))
+        config.addDataSourceProperty("databaseName", url.replace(urlPrefix, ""))
         config.addDataSourceProperty("connectionAttributes", connectionAttributes)
         config.setDataSourceClassName(jdbcDataSourceName)
         user map { u => config.addDataSourceProperty("user", u) }
