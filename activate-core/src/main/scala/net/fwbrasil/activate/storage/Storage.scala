@@ -86,10 +86,22 @@ trait StorageFactory {
 
 object StorageFactory {
     @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
-    def fromSystemProperties(name: String)(implicit context: ActivateContext) = {
+    def fromSystemProperties(name: String)(implicit context: ActivateContext) =
+        fromProperties(name, name => Option(System.getProperty(name)))
+    
+    @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
+    def fromEnvVariables(name: String)(implicit context: ActivateContext) = 
+        fromProperties(name, name => Option(System.getenv(name)))
+    
+    @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
+    def fromProperties(name: String, getProperty: String => Option[String])(implicit context: ActivateContext) = {
         val properties =
-            new ActivateProperties(Option(context.properties), Some(s"storage.$name"))
-        fromProperties(properties)
+            new ActivateProperties(Option(context.properties), Some(s"storage.$name"), getProperty)
+        val factoryClassName =
+            properties.getRequiredProperty("factory")
+        val storageFactory =
+            Reflection.getCompanionObject[StorageFactory](ActivateContext.loadClass(factoryClassName)).get
+        storageFactory.buildStorage(properties.getProperty(_))
     }
 
     @implicitNotFound("ActivateContext implicit not found. Please import yourContext._")
