@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.statement.query
 
+import net.fwbrasil.activate.util.Reflection.toRichClass
 import scala.concurrent.Future
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.cache.LiveCache
@@ -277,7 +278,9 @@ trait QueryContext extends StatementContext
     def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true) = {
         startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
-        val isPolymorfic = EntityHelper.concreteClasses(entityClass) != List(entityClass)
+        val isPolymorfic =
+            !entityClass.isConcreteClass &&
+                EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic)
             dynamicQuery {
                 (e: BaseEntity) => where(e.id :== id) select (e)

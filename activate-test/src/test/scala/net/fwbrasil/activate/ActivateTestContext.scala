@@ -722,15 +722,20 @@ trait ActivateTestContext
         def toPath: String =
             List(Some(toString), parent.map(_.toPath)).flatten.mkString(" / ")
     }
-
-    class Box(var contains: List[Num] = Nil) extends TreeNode[Box] {
+    
+    class TreeNodeBox extends TreeNode[Box] {
         protected def m = manifest[Box]
+    }
+
+    class Box(var contains: List[Num] = Nil) extends TreeNodeBox {
         def add(n: Int) = {
             val num = new Num(n)
             contains = num :: contains
             num
         }
     }
+    
+    class BoxContainer(val box: TreeNodeBox) extends Entity
 
     class Num(
         var num: Int) extends Entity

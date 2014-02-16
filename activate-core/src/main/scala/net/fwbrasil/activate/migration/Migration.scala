@@ -330,7 +330,7 @@ abstract class Migration(implicit val context: ActivateContext) {
         for (
             property <- metadata.persistentPropertiesMetadata;
             if (classOf[BaseEntity].isAssignableFrom(property.propertyType) &&
-                !property.propertyType.isInterface &&
+                List(property.propertyType) == EntityHelper.concreteClasses(property.propertyType.asInstanceOf[Class[BaseEntity]]) &&
                 !Modifier.isAbstract(property.propertyType.getModifiers) &&
                 context.storageFor(metadata.entityClass) == context.storageFor(property.propertyType.asInstanceOf[Class[BaseEntity]]))
         ) yield (property.name, EntityHelper.getEntityName(property.propertyType), shortConstraintName(metadata.name, property.name))
