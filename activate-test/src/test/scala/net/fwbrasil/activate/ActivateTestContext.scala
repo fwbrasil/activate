@@ -203,10 +203,10 @@ class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
 
 object h2Context extends ActivateTestContext {
     lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
-        val storage = new SimpleJdbcRelationalStorage {
+        val storage = new PooledJdbcRelationalStorage {
             val jdbcDriver = "org.h2.Driver"
-            val user = "sa"
-            val password = ""
+            val user = Some("sa")
+            val password = None
             val url = "jdbc:h2:mem:activate_test_h2;DB_CLOSE_DELAY=-1"
             val dialect = h2Dialect
         }
@@ -221,10 +221,10 @@ class H2ActivateTestMigrationCustomColumnType extends ActivateTestMigrationCusto
 
 object hsqldbContext extends ActivateTestContext {
     lazy val (storage, permanentConnectionToHoldMemoryDatabase) = {
-        val storage = new SimpleJdbcRelationalStorage {
+        val storage = new PooledJdbcRelationalStorage {
             val jdbcDriver = "org.hsqldb.jdbcDriver"
-            val user = "sa"
-            val password = ""
+            val user = Some("sa")
+            val password = None
             val url = "jdbc:hsqldb:mem:activate_test_hsqldb"
             val dialect = hsqldbDialect
         }
@@ -388,10 +388,10 @@ object polyglotContext extends ActivateTestContext {
         override val db = "activate_test_polyglot_async"
     }
 
-    lazy val derby = new PooledJdbcRelationalStorage {
+    lazy val derby = new SimpleJdbcRelationalStorage {
         val jdbcDriver = "org.apache.derby.jdbc.EmbeddedDriver"
-        val user = None
-        val password = None
+        val user = ""
+        val password = ""
         val url = "jdbc:derby:memory:activate_test_derby_polygot;create=true"
         val dialect = derbyDialect
     }

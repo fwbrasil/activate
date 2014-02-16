@@ -26,19 +26,23 @@ import net.fwbrasil.activate.storage.marshalling.ListStorageValue
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
 import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
+import com.zaxxer.hikari.HikariConfig
 
 object h2Dialect extends h2Dialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toUpperCase) {
     def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toUpperCase) =
         new h2Dialect(escape, normalize)
 }
 
-class h2Dialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+class h2Dialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom with HikariWithoutUrl {
 
     override def escape(string: String) =
         pEscape(pNormalize(string))
 
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " regexp " + regex
+
+    override def urlPrefix = "jdbc:h2:"
 
     override def findTableStatement(tableName: String) =
         "SELECT COUNT(1) " +

@@ -150,6 +150,34 @@ case class JdbcActivateResultSet(rs: ResultSet)
 
 }
 
+trait HikariWithoutUrl {
+    this: SqlIdiom =>
+    
+    def urlPrefix: String
+    
+    override def hikariConfigFor(storage: PooledJdbcRelationalStorage, jdbcDataSourceName: String) = {
+        import storage._
+        val config = new HikariConfig
+        val (url, connectionAttributes) =
+            storage.url.split(";").toList match {
+                case url :: connectionAttributes :: Nil =>
+                    (url, connectionAttributes)
+                case url :: Nil =>
+                    (url, "")
+                case other =>
+                    throw new IllegalStateException("Invalid derby url")
+            }
+        config.addDataSourceProperty("databaseName", url.replace("jdbc:h2:", ""))
+        config.addDataSourceProperty("connectionAttributes", connectionAttributes)
+        config.setDataSourceClassName(jdbcDataSourceName)
+        user map { u => config.addDataSourceProperty("user", u) }
+        password map { p => config.addDataSourceProperty("password", p) }
+        config.setAutoCommit(true)
+        config.setMaximumPoolSize(poolSize)
+        config
+    }
+}
+
 trait SqlIdiom extends QlIdiom {
 
     def supportsLimitedQueries = true

@@ -51,7 +51,7 @@ object derbyDialect extends derbyDialect(pEscape = string => "\"" + string + "\"
         new derbyDialect(escape, normalize)
 }
 
-class derbyDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
+class derbyDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom with HikariWithoutUrl {
 
     override def escape(string: String) =
         pEscape(pNormalize(string))
@@ -72,28 +72,8 @@ class derbyDialect(pEscape: String => String, pNormalize: String => String) exte
                 if (!e.getMessage.contains("REGEXP"))
                     throw e
         }
-
-    override def hikariConfigFor(storage: PooledJdbcRelationalStorage, jdbcDataSourceName: String) = {
-        import storage._
-        val config = new HikariConfig
-        val (url, connectionAttributes) =
-            storage.url.split(";").toList match {
-                case url :: connectionAttributes :: Nil =>
-                    (url, connectionAttributes)
-                case url :: Nil =>
-                    (url, "")
-                case other =>
-                    throw new IllegalStateException("Invalid derby url")
-            }
-        config.addDataSourceProperty("databaseName", url.replace("jdbc:derby:", ""))
-        config.addDataSourceProperty("connectionAttributes", connectionAttributes)
-        config.setDataSourceClassName(jdbcDataSourceName)
-        user map { u => config.addDataSourceProperty("user", u) }
-        password map { p => config.addDataSourceProperty("password", p) }
-        config.setAutoCommit(true)
-        config.setMaximumPoolSize(poolSize)
-        config
-    }
+        
+        override def urlPrefix = "jdbc:derby:"
 
     def toSqlDmlRegexp(value: String, regex: String) =
         "REGEXP(" + value + ", " + regex + ")=1"
