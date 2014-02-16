@@ -34,7 +34,7 @@ object EntityHelper {
                 .filter(clazz.isAssignableFrom)
                 .filter(_ != classOf[StorageVersion] || clazz == classOf[StorageVersion])
                 .toList.asInstanceOf[List[Class[BaseEntity]]]
-        )
+                .sortWith((a, b) => !a.isAssignableFrom(b)))
 
     def initialize(classpathHints: List[Any]): Unit =
         synchronized {

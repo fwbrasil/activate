@@ -279,7 +279,6 @@ trait QueryContext extends StatementContext
         startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic =
-            !entityClass.isConcreteClass &&
                 EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic)
             dynamicQuery {
