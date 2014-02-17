@@ -278,13 +278,13 @@ trait SqlIdiom extends QlIdiom {
 
     def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {
-            case action: StorageCreateListTable =>
+            case action: StorageCreateListTable if !SQL2003 =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
                     toSqlDdlAction(action.addOwnerIndexAction)
-            case action: StorageRemoveListTable =>
+            case action: StorageRemoveListTable if !SQL2003 =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
@@ -344,6 +344,8 @@ trait SqlIdiom extends QlIdiom {
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
+            case action: StorageCreateListTable if SQL2003 => List.empty
+            case action: StorageRemoveListTable if SQL2003 => List.empty
         }
 
     def versionVerifyQueries(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]], queryLimit: Int) =
@@ -380,11 +382,13 @@ trait SqlIdiom extends QlIdiom {
 
     def toValue(storageValue: StorageValue): Any =
         storageValue match {
-            case value: ListStorageValue =>
-                if (value.value.isDefined)
-                    "1"
-                else
-                    "0"
+            case value: ListStorageValue if SQL2003 =>
+              value.value.getOrElse(List.empty)
+            case value: ListStorageValue if !SQL2003 =>
+                    if (value.value.isDefined)
+                        "1"
+                    else
+                        "0"
             case value: StorageOptionalValue =>
                 value.value.getOrElse(null)
             case value: ReferenceStorageValue =>

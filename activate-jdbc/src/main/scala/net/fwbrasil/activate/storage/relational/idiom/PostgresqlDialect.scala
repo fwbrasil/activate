@@ -33,15 +33,15 @@ import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import java.sql.{Types, PreparedStatement}
 
 object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
-    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string, useArray: Boolean = false) =
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string) =
         new postgresqlDialect(escape, normalize)
 }
 
 class postgresqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
-    
+
     override def escape(string: String) =
         pEscape(pNormalize(string))
-    
+
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " ~ " + regex
 
@@ -106,7 +106,6 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                 "ALTER TABLE " + escape(tableName) + " ADD CONSTRAINT " + escape(constraintName) + " FOREIGN KEY (" + escape(columnName) + ") REFERENCES " + escape(referencedTable) + "(id)"
             case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
                 "ALTER TABLE " + escape(tableName) + " DROP CONSTRAINT " + escape(constraintName)
-            case _ => "" //TODO: Log or Error
         }
     }
 
