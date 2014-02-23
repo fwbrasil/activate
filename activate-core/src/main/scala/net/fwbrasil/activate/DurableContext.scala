@@ -375,15 +375,15 @@ trait DurableContext {
                             insertsByStorage,
                             updatesByStorage,
                             deletesByStorage,
-                            tail)
-                    }.recover {
-                        case e: Throwable =>
-                            rollbackStorage(
-                                insertsByStorage,
-                                updatesByStorage,
-                                deletesByStorage,
-                                storage)
-                            throw e
+                            tail).recover {
+                                case e: Throwable =>
+                                    rollbackStorage(
+                                        insertsByStorage,
+                                        updatesByStorage,
+                                        deletesByStorage,
+                                        storage)
+                                    throw e
+                            }
                     }
             case Nil =>
                 Future.successful()
