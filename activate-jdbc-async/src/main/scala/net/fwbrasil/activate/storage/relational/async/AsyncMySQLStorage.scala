@@ -20,6 +20,7 @@ object AsyncMySQLStorageFactory extends StorageFactory {
             new Configuration(
                 username = getProperty("user").get,
                 host = getProperty("host").get,
+                port = getProperty("port").map(_.toInt).getOrElse(3306),
                 password = getProperty("password"),
                 database = getProperty("database"))
 

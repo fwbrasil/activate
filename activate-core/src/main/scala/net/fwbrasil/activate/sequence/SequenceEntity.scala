@@ -4,7 +4,7 @@ import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.id.UUID
 
-abstract class SequenceEntity[T] private[activate] (
+abstract class SequenceEntity[T](
     val name: String,
     val step: Int)(
         implicit ctx: ActivateContext)
@@ -12,7 +12,7 @@ abstract class SequenceEntity[T] private[activate] (
         with BaseEntity
         with UUID
 
-class IntSequenceEntity private[activate] (
+class IntSequenceEntity private (
     name: String,
     step: Int)(
         implicit ctx: ActivateContext)
@@ -37,7 +37,7 @@ object IntSequenceEntity {
     }
 }
 
-class LongSequenceEntity private[activate] (
+class LongSequenceEntity private (
     name: String,
     step: Int)(
         implicit ctx: ActivateContext)

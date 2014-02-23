@@ -11,11 +11,11 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.radon.transaction.Transaction
 
 case class CustomCache[E <: BaseEntity: Manifest](
-        cacheType: CacheType,
-        transactionalCondition: Boolean = false,
-        condition: E => Boolean = (e: E) => true,
-        limitOption: Option[Long] = None,
-        expiration: Duration = Duration.Inf) {
+    cacheType: CacheType,
+    transactionalCondition: Boolean = false,
+    condition: E => Boolean = (e: E) => true,
+    limitOption: Option[Long] = None,
+    expiration: Duration = Duration.Inf) {
 
     private val cache = cacheBuilder.build[AnyRef, E]
 
@@ -44,7 +44,9 @@ case class CustomCache[E <: BaseEntity: Manifest](
             finally
                 transaction.rollback
         } else
-            tryCondition(entity)
+            ctx.transactional(ctx.notSupported) {
+                tryCondition(entity)
+            }
 
     private def tryCondition(entity: E) =
         try condition(entity)
