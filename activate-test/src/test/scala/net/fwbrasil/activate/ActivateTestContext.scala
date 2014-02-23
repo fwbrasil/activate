@@ -695,6 +695,7 @@ trait ActivateTestContext
         var entityValue: ActivateTestEntity,
         var entityWithoutAttributeValue: EntityWithoutAttribute) extends Entity {
         var customEncodedEntityValue = new CustomEncodedEntityValue(1)
+        var customEncodedObjectEntityValue = new CustomEncodedObjectEntityValue(1)
         var userStatus: UserStatus = NormalUser
     }
 
