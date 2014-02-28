@@ -247,7 +247,7 @@ class LiveCache(
                 val entity = map.get(entityId)
                 if (entity == null) {
                     val entity = createLazyEntity(entityClass, entityId)
-                    map.put(entityId, entity)
+                    require(map.put(entityId, entity) == null)
                     addToCache(entity)
                     entity
                 } else
