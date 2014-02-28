@@ -745,6 +745,10 @@ trait ActivateTestContext
         def all = ActivateTestContext.this.all[ActivateTestEntity]
         var onModifyFloatCallback = (oldValue: Float, newValue: Float) => {}
         var lifecycleCallback = (event: String) => {}
+        def callback(event: String) = {
+            new Num(3)
+            lifecycleCallback(event)
+        }
     }
 
     class ActivateTestEntity(
@@ -801,17 +805,17 @@ trait ActivateTestContext
             emptyTupleOptionValue,
             emptyStringValue)
 
-        ActivateTestEntity.lifecycleCallback("insideConstructor")
+        ActivateTestEntity.callback("insideConstructor")
 
-        override protected def beforeConstruct = ActivateTestEntity.lifecycleCallback("beforeConstruct")
-        override protected def afterConstruct = ActivateTestEntity.lifecycleCallback("afterConstruct")
-        override protected def beforeInitialize = ActivateTestEntity.lifecycleCallback("beforeInitialize")
-        override protected def afterInitialize = ActivateTestEntity.lifecycleCallback("afterInitialize")
-        override protected def beforeDelete = ActivateTestEntity.lifecycleCallback("beforeDelete")
-        override protected def afterDelete = ActivateTestEntity.lifecycleCallback("afterDelete")
-        override def beforeInsert = ActivateTestEntity.lifecycleCallback("beforeInsert")
-        override def beforeUpdate = ActivateTestEntity.lifecycleCallback("beforeUpdate")
-        override def beforeInsertOrUpdate = ActivateTestEntity.lifecycleCallback("beforeInsertOrUpdate")
+        override protected def beforeConstruct = ActivateTestEntity.callback("beforeConstruct")
+        override protected def afterConstruct = ActivateTestEntity.callback("afterConstruct")
+        override protected def beforeInitialize = ActivateTestEntity.callback("beforeInitialize")
+        override protected def afterInitialize = ActivateTestEntity.callback("afterInitialize")
+        override protected def beforeDelete = ActivateTestEntity.callback("beforeDelete")
+        override protected def afterDelete = ActivateTestEntity.callback("afterDelete")
+        override def beforeInsert = ActivateTestEntity.callback("beforeInsert")
+        override def beforeUpdate = ActivateTestEntity.callback("beforeUpdate")
+        override def beforeInsertOrUpdate = ActivateTestEntity.callback("beforeInsertOrUpdate")
 
         def onModifyFloat =
             on(_.floatValue).change {
