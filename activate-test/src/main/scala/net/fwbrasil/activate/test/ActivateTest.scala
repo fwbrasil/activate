@@ -94,9 +94,12 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
     def resetStorageVersion(implicit ctx: ActivateContext) =
         ctx.transactional {
             import ctx._
-            select[StorageVersion]
-                .where(_.contextName :== ctx.name)
-                .headOption.map {
+            Migration.storageVersionCache.get(ctx.name)
+                .orElse(
+                    select[StorageVersion]
+                        .where(_.contextName :== ctx.name)
+                        .headOption)
+                .map {
                     storageVersion =>
                         storageVersion.lastScript = -1
                         storageVersion.lastAction = -1
