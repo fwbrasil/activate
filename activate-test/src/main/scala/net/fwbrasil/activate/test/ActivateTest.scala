@@ -8,6 +8,7 @@ import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
+import net.fwbrasil.activate.migration.StorageVersion
 
 trait ActivateTestStrategy {
     def runTest[R](f: => R)(implicit ctx: ActivateContext): R
@@ -92,9 +93,14 @@ object recreateDatabaseStrategy extends ActivateTestStrategy {
 
     def resetStorageVersion(implicit ctx: ActivateContext) =
         ctx.transactional {
-            val storageVersion = Migration.storageVersionCache(ctx.name)
-            storageVersion.lastScript = -1
-            storageVersion.lastAction = -1
+            import ctx._
+            select[StorageVersion]
+                .where(_.contextName :== ctx.name)
+                .headOption.map {
+                    storageVersion =>
+                        storageVersion.lastScript = -1
+                        storageVersion.lastAction = -1
+                }
         }
 
     private def prepareDatabase(implicit ctx: ActivateContext) = {
