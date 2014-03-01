@@ -276,73 +276,87 @@ class EntityMapSpecs extends ActivateTest {
                     })
             }
 
-            "recover entity" in {
+            "entity map created from entity" in {
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val map = step {
+                            val entity = new ReadValidationEntity(3)
+                            new EntityMap(entity)
+                        }
+                        step {
+                            map.createEntityUsingConstructor
+                        }
+                    })
+            }
+        }
 
-                "existing" in {
+        "recover entity" in {
 
-                    "blocking" in
-                        activateTest(
-                            (step: StepExecutor) => {
-                                import step.ctx._
-                                val map =
-                                    step {
-                                        new EntityMap(fullCaseClassEntityValue)
-                                    }
+            "existing" in {
+
+                "blocking" in
+                    activateTest(
+                        (step: StepExecutor) => {
+                            import step.ctx._
+                            val map =
                                 step {
-                                    map.entityById === Some(fullCaseClassEntityValue)
+                                    new EntityMap(fullCaseClassEntityValue)
                                 }
-                            })
+                            step {
+                                map.entityById === Some(fullCaseClassEntityValue)
+                            }
+                        })
 
-                    "async" in
-                        activateTest(
-                            (step: StepExecutor) => {
-                                import step.ctx._
-                                val map =
-                                    transactional {
-                                        new EntityMap(fullCaseClassEntityValue)
-                                    }
-                                val future = asyncTransactionalChain { implicit ctx =>
-                                    map.entityAsyncById
-                                }
-                                val res = Await.result(future, Duration.Inf)
+                "async" in
+                    activateTest(
+                        (step: StepExecutor) => {
+                            import step.ctx._
+                            val map =
                                 transactional {
-                                    res === Some(fullCaseClassEntityValue)
+                                    new EntityMap(fullCaseClassEntityValue)
                                 }
-                            })
-                }
+                            val future = asyncTransactionalChain { implicit ctx =>
+                                map.entityAsyncById
+                            }
+                            val res = Await.result(future, Duration.Inf)
+                            transactional {
+                                res === Some(fullCaseClassEntityValue)
+                            }
+                        })
+            }
 
-                "not existing" in {
+            "not existing" in {
 
-                    "blocking" in
-                        activateTest(
-                            (step: StepExecutor) => {
-                                import step.ctx._
-                                val map =
-                                    step {
-                                        new EntityMap[CaseClassEntity]
-                                    }
+                "blocking" in
+                    activateTest(
+                        (step: StepExecutor) => {
+                            import step.ctx._
+                            val map =
                                 step {
-                                    map.entityById === None
+                                    new EntityMap[CaseClassEntity]
                                 }
-                            })
+                            step {
+                                map.entityById === None
+                            }
+                        })
 
-                    "async" in
-                        activateTest(
-                            (step: StepExecutor) => {
-                                import step.ctx._
-                                val map =
-                                    transactional {
-                                        new EntityMap[CaseClassEntity](_.id -> "invalid")
-                                    }
-                                val future = asyncTransactionalChain { implicit ctx =>
-                                    map.entityAsyncById
-                                }
-                                val res = Await.result(future, Duration.Inf)
+                "async" in
+                    activateTest(
+                        (step: StepExecutor) => {
+                            import step.ctx._
+                            val map =
                                 transactional {
-                                    res === None
+                                    new EntityMap[CaseClassEntity](_.id -> "invalid")
                                 }
-                            })
-                }
+                            val future = asyncTransactionalChain { implicit ctx =>
+                                map.entityAsyncById
+                            }
+                            val res = Await.result(future, Duration.Inf)
+                            transactional {
+                                res === None
+                            }
+                        })
             }
         }
 
