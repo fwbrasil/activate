@@ -95,5 +95,21 @@ class EagerQuerySpecs extends ActivateTest {
                     }
                 })
         }
+
+        "eager query with orderBy" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        fullEntityValue
+                    }
+                    step {
+                        query {
+                            (a: ActivateTestEntity) =>
+                                where() select (a.eager) orderBy (a.dateValue)
+                        }.onlyOne === fullEntityValue
+                    }
+                })
+        }
     }
 }
