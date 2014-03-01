@@ -9,6 +9,9 @@ import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.lift.EntityForm
 import java.util.NoSuchElementException
 import net.fwbrasil.activate.statement.StatementMocks
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class EntityMapSpecs extends ActivateTest {
@@ -51,7 +54,7 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
-        "be created by the entity.toMap"  in {
+        "be created by the entity.toMap" in {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
@@ -273,6 +276,74 @@ class EntityMapSpecs extends ActivateTest {
                     })
             }
 
+            "recover entity" in {
+
+                "existing" in {
+
+                    "blocking" in
+                        activateTest(
+                            (step: StepExecutor) => {
+                                import step.ctx._
+                                val map =
+                                    step {
+                                        new EntityMap(fullCaseClassEntityValue)
+                                    }
+                                step {
+                                    map.entityById === Some(fullCaseClassEntityValue)
+                                }
+                            })
+
+                    "async" in
+                        activateTest(
+                            (step: StepExecutor) => {
+                                import step.ctx._
+                                val map =
+                                    transactional {
+                                        new EntityMap(fullCaseClassEntityValue)
+                                    }
+                                val future = asyncTransactionalChain { implicit ctx =>
+                                    map.entityAsyncById
+                                }
+                                val res = Await.result(future, Duration.Inf)
+                                transactional {
+                                    res === Some(fullCaseClassEntityValue)
+                                }
+                            })
+                }
+
+                "not existing" in {
+
+                    "blocking" in
+                        activateTest(
+                            (step: StepExecutor) => {
+                                import step.ctx._
+                                val map =
+                                    step {
+                                        new EntityMap[CaseClassEntity]
+                                    }
+                                step {
+                                    map.entityById === None
+                                }
+                            })
+
+                    "async" in
+                        activateTest(
+                            (step: StepExecutor) => {
+                                import step.ctx._
+                                val map =
+                                    transactional {
+                                        new EntityMap[CaseClassEntity](_.id -> "invalid")
+                                    }
+                                val future = asyncTransactionalChain { implicit ctx =>
+                                    map.entityAsyncById
+                                }
+                                val res = Await.result(future, Duration.Inf)
+                                transactional {
+                                    res === None
+                                }
+                            })
+                }
+            }
         }
 
         "have a proper error message for invalid arguments" in {

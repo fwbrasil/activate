@@ -23,6 +23,14 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
     implicit val m: Manifest[E]
     implicit val context: ActivateContext
 
+    def entityById =
+        get(_.id).flatMap(id => context.byId[E](id.asInstanceOf[E#ID]))
+
+    def entityAsyncById(implicit ctx: TransactionalExecutionContext) =
+        get(_.id)
+            .map(id => context.asyncById[E](id.asInstanceOf[E#ID]))
+            .getOrElse(Future.successful(None))
+
     def get[V](f: E => V) =
         values.get(keyFor(f)).asInstanceOf[Option[V]]
 
