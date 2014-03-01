@@ -25,7 +25,6 @@ trait StatementValueContext extends ValueContext {
         if (sourceOption.isDefined)
             new StatementEntitySourcePropertyValue(sourceOption.get, path)
         else new SimpleValue[V](() => ref.get.get, ref.tval)
-
     }
 
     private[activate] def propertyPath(ref: Var[_]) = {
@@ -131,6 +130,11 @@ class StatementEntitySourceValue[V](val entitySource: EntitySource, val eager: B
 
 class StatementEntitySourcePropertyValue(override val entitySource: EntitySource, val propertyPathVars: List[Var[_]], pEager: Boolean = EagerQueryContext.isEager)
         extends StatementEntitySourceValue(entitySource, pEager) {
+    
+    propertyPathVars.find(_.isTransient).map {
+        _ => throw new UnsupportedOperationException("Transient values can't be used for queries.")
+    }
+    
     override def entityClass = propertyPathVars.last.valueClass.asInstanceOf[Class[BaseEntity]]
     def lastVar = propertyPathVars.last
     def propertyPathNames =

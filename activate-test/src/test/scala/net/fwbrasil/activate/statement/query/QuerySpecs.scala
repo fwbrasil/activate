@@ -717,5 +717,18 @@ class QuerySpecs extends ActivateTest {
                 })
         }
 
+        "transient value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newEmptyActivateTestEntity
+                    }
+                    step {
+                        select[ActivateTestEntity].where(_.transientInt :== 1) must throwA[UnsupportedOperationException]
+                    }
+                })
+        }
+
     }
 }
