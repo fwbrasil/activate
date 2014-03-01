@@ -746,7 +746,7 @@ trait ActivateTestContext
         var onModifyFloatCallback = (oldValue: Float, newValue: Float) => {}
         var lifecycleCallback = (event: String) => {}
         def callback(event: String) = {
-            new Num(3)
+            (new Num(3)).delete
             lifecycleCallback(event)
         }
     }
