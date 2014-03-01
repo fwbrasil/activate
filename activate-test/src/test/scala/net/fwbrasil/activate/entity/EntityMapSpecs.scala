@@ -99,6 +99,26 @@ class EntityMapSpecs extends ActivateTest {
                     }
                 })
         }
+        "update transient entity value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    if (step.isInstanceOf[OneTransaction] || step.isInstanceOf[MultipleTransactions]) {
+                        import step.ctx._
+                        val entityId =
+                            step {
+                                newEmptyActivateTestEntity.id
+                            }
+                        val dummy = new Object
+                        step {
+                            val map = new EntityMap[ActivateTestEntity](_.transientValue -> dummy)
+                            map.updateEntity(entity(entityId))
+                        }
+                        step {
+                            entity(entityId).transientValue === dummy
+                        }
+                    }
+                })
+        }
         "modify value" in {
             activateTest(
                 (step: StepExecutor) => {

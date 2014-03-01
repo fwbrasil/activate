@@ -831,7 +831,7 @@ trait ActivateTestContext
         @Alias("customName")
         var customNamedValue = fullStringValue
         var length = 0
-        @transient val transientValue = new Object
+        @transient var transientValue = new Object
         @transient lazy val transientLazyValue = new Object
         @transient val transientInt = 1
 
