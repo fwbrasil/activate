@@ -52,7 +52,8 @@ object EntityHelper {
         entitiesMetadatas.get(getEntityClassHashId(clazz))
 
     def getEntityMetadata(clazz: Class[_]) =
-        getEntityMetadataOption(clazz).get
+        getEntityMetadataOption(clazz).getOrElse(
+            throw new IllegalArgumentException(s"Invalid entity class $clazz."))
 
     // Example ID (45 chars)
     // e1a59a08-7c5b-11e1-91c3-73362e1b7d0d-9a70c810
