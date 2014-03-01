@@ -6,12 +6,12 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 
-class JavaSerializatorEvelope[T](val value: T) extends Serializable
+class JavaSerializerEvelope[T](val value: T) extends Serializable
 
 object javaSerializer extends Serializer {
 
     def toSerialized[T: Manifest](value: T): Array[Byte] = {
-        val envelope = new JavaSerializatorEvelope(value)
+        val envelope = new JavaSerializerEvelope(value)
         val baos = new ByteArrayOutputStream();
         val oos = new ObjectOutputStream(baos);
         oos.writeObject(envelope);
@@ -20,7 +20,7 @@ object javaSerializer extends Serializer {
     def fromSerialized[T: Manifest](bytes: Array[Byte]): T = {
         val bios = new ByteArrayInputStream(bytes);
         val ois = new ObjectInputStream(bios);
-        val envelope = ois.readObject().asInstanceOf[JavaSerializatorEvelope[T]];
+        val envelope = ois.readObject().asInstanceOf[JavaSerializerEvelope[T]];
         envelope.value.asInstanceOf[T]
     }
 }

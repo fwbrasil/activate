@@ -52,13 +52,13 @@ case class Matcher(valueA: StatementSelectValue) extends CompositeOperator {
 }
 
 case class In(valueA: StatementSelectValue) extends CompositeOperator {
-    def in[V](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
+    def in[V: Manifest](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
         CompositeOperatorCriteria(valueA, this, ListValue(() => valueB.toList, (v: V) => ctx.toStatementValueEntityValue(v)))
     override def toString = "in"
 }
 
 case class NotIn(valueA: StatementSelectValue) extends CompositeOperator {
-    def notIn[V](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
+    def notIn[V: Manifest](valueB: => Iterable[V])(implicit tval: Option[V] => EntityValue[V], ctx: StatementValueContext) =
         CompositeOperatorCriteria(valueA, this, ListValue(() => valueB.toList, (v: V) => ctx.toStatementValueEntityValue(v)))
     override def toString = "not in"
 }

@@ -11,6 +11,7 @@ import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.asyncMongoContext
 import net.fwbrasil.activate.migration.StorageVersion
+import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
 
 @RunWith(classOf[JUnitRunner])
 class QuerySpecs extends ActivateTest {
@@ -463,21 +464,21 @@ class QuerySpecs extends ActivateTest {
                     }
                 })
         }
-//        "select simple values" in {
-//            activateTest(
-//                (step: StepExecutor) => {
-//                    import step.ctx._
-//                    step {
-//                        newFullActivateTestEntity
-//                    }
-//                    step {
-//                        newFullActivateTestEntity
-//                        query {
-//                            (e: ActivateTestEntity) => where(e.stringValue :== fullStringValue) select ("a")
-//                        } must beEqualTo(List("a", "a"))
-//                    }
-//                })
-//        }
+        //        "select simple values" in {
+        //            activateTest(
+        //                (step: StepExecutor) => {
+        //                    import step.ctx._
+        //                    step {
+        //                        newFullActivateTestEntity
+        //                    }
+        //                    step {
+        //                        newFullActivateTestEntity
+        //                        query {
+        //                            (e: ActivateTestEntity) => where(e.stringValue :== fullStringValue) select ("a")
+        //                        } must beEqualTo(List("a", "a"))
+        //                    }
+        //                })
+        //        }
 
         "support query entity hierarchy involving option relation" in {
             activateTest(
@@ -696,7 +697,22 @@ class QuerySpecs extends ActivateTest {
                             list.find(_.isInstanceOf[StorageVersion]) must beEmpty
                         test(all[BaseEntity])
                         test(select[BaseEntity].where(_.id isNotNull))
-                        test(query { (e: BaseEntity) => where(e.id isNotNull) select(e) })
+                        test(query { (e: BaseEntity) => where(e.id isNotNull) select (e) })
+                    }
+                })
+        }
+
+        "custom value criteria" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        fullCaseClassEntityValue
+                    }
+                    step {
+                        val entity = fullCaseClassEntityValue
+                        val selected = select[CaseClassEntity].where(_.customEncodedEntityValue :== entity.customEncodedEntityValue)
+                        selected.onlyOne === entity
                     }
                 })
         }

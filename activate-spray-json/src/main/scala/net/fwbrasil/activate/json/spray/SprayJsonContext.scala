@@ -97,7 +97,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                     value => entityId(value, entityValue.entityClass)
                 })(entityValue.valueManifest.asInstanceOf[Manifest[BaseEntity]])
             case (JsString(value), entityValue: SerializableEntityValue[_]) =>
-                entityValue.serializator.fromSerialized(value.getBytes)(entityValue.typeManifest)
+                entityValue.serializer.fromSerialized(value.getBytes)(entityValue.typeManifest)
             case (jsValue, entityValue: EncoderEntityValue[_, _]) =>
                 val temp = entityValue.emptyTempValue
                 entityValue.encoder.asInstanceOf[Encoder[Any, Any]].decode(fromJsValue(jsValue, temp))
@@ -167,7 +167,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                     .getOrElse(JsNull)
             case value: SerializableEntityValue[_] =>
                 value.value.map(v =>
-                    JsString(new String(value.serializator.toSerialized(v)(value.typeManifest))))
+                    JsString(new String(value.serializer.toSerialized(v)(value.typeManifest))))
                     .getOrElse(JsNull)
             case value: EncoderEntityValue[_, _] =>
                 toJsValue(value.encodedEntityValue, depth, seenEntities)

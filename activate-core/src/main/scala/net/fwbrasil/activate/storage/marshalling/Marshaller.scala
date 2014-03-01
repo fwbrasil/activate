@@ -106,7 +106,7 @@ object Marshaller {
             }
             case (storageValue: ByteArrayStorageValue, entityValue: SerializableEntityValue[_]) =>
                 SerializableEntityValue[Any](
-                    storageValue.value.map(v => entityValue.serializator.fromSerialized(v)(entityValue.typeManifest)))
+                    storageValue.value.map(v => entityValue.serializer.fromSerialized(v)(entityValue.typeManifest)))
             case (storageValue: ListStorageValue, entityValue: ListEntityValue[_]) =>
                 val v = storageValue.value.map(list => list.map(e => {
                     unmarshalling(e, entityValue.emptyValueEntityValue).value
@@ -171,7 +171,7 @@ object Marshaller {
             case value: LazyListEntityValue[_] =>
                 ListStorageValue(value.value.map(list => list.ids.map(e => idMarshalling(Some(e), value.entityClass))), marshalling(value.emptyValueEntityValue))
             case value: SerializableEntityValue[_] =>
-                ByteArrayStorageValue(value.value.map(v => value.serializator.toSerialized(v)(value.typeManifest)))
+                ByteArrayStorageValue(value.value.map(v => value.serializer.toSerialized(v)(value.typeManifest)))
             case value: EncoderEntityValue[_, _] =>
                 marshalling(value.encodedEntityValue)
         }

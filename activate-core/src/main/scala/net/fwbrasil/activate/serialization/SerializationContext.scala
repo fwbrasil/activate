@@ -24,7 +24,7 @@ trait SerializationContext {
         val invalid = vars.filter(!_.baseTVal(None).isInstanceOf[SerializableEntityValue[_]])
         if (invalid.nonEmpty)
             throw new IllegalArgumentException(
-                "Triyng to define a custom serializator for a supported property type. " +
+                "Triyng to define a custom serializer for a supported property type. " +
                     "Class " + erasureOf[E].getSimpleName + " - properties: " + invalid.map(_.name).mkString(", "))
         new Serialize[E](vars.map(_.name))
     }

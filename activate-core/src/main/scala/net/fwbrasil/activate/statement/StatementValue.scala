@@ -58,10 +58,10 @@ trait StatementValueContext extends ValueContext {
     import language.implicitConversions
     
     implicit def toStatementValueEntityId(entityId: => BaseEntity#ID): StatementSelectValue =
-        toStatementValueEntityValue(entityId)(EntityValue.tvalFunction(entityId.getClass, classOf[Object]))
+        toStatementValueEntityValue(entityId)(manifestClass(entityId.getClass))
 
     @implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
-    implicit def toStatementValueEntityValue[V](value: => V)(implicit m: Option[V] => EntityValue[V]): StatementSelectValue =
+    implicit def toStatementValueEntityValue[V: Manifest](value: => V): StatementSelectValue =
         toStatementValueEntityValueOption(
             if (value.isInstanceOf[Option[_]])
                 value.asInstanceOf[Option[V]]
@@ -69,7 +69,7 @@ trait StatementValueContext extends ValueContext {
                 Option(value))
 
     @implicitNotFound("Conversion to EntityValue not found. Perhaps the entity property is not supported.")
-    implicit def toStatementValueEntityValueOption[V](value: => Option[V])(implicit m: Option[V] => EntityValue[V]): StatementSelectValue = {
+    implicit def toStatementValueEntityValueOption[V: Manifest](value: => Option[V]): StatementSelectValue = {
         // Just to evaluate
         value
         StatementMocks.lastFakeVarCalled match {
@@ -82,7 +82,8 @@ trait StatementValueContext extends ValueContext {
                     case entity: BaseEntity =>
                         toStatementValueEntity(() => value.getOrElse(null.asInstanceOf[V]).asInstanceOf[BaseEntity]).asInstanceOf[StatementSelectValue]
                     case other =>
-                        new SimpleValue[V](() => value.getOrElse(null.asInstanceOf[V]), m)
+                        val tval = EntityValue.tvalFunctionOption[V](erasureOf[V], classOf[Object]).get
+                        new SimpleValue[V](() => value.getOrElse(null.asInstanceOf[V]), tval)
                 }
         }
     }
