@@ -4,7 +4,7 @@ Migration is the storage schema evolution mechanism provided by Activate.
 
 Example:
 
-```scala
+``` scala
 class ExampleMigration extends Migration {
     def timestamp = 201208191834l
     def up = {
