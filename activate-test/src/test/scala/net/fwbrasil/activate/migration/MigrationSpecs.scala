@@ -15,6 +15,7 @@ import net.fwbrasil.activate.asyncPostgresqlContext
 import net.fwbrasil.activate.asyncMongoContext
 import net.fwbrasil.activate.asyncMysqlContext
 import net.fwbrasil.activate.derbyContext
+import net.fwbrasil.activate.entity.EntityHelper
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
@@ -696,6 +697,24 @@ class MigrationSpecs extends MigrationTest {
                             }
                     })
             }
+        }
+
+        "add indexes for all concrete subclasses of an abstract entity" in {
+            migrationTest(
+                new TestMigration()(_) {
+                    import context._
+                    def up = {
+                        createTableForAllEntities
+                        import net.fwbrasil.activate.util.ManifestUtil._
+                        EntityHelper.concreteClasses(classOf[TraitAttribute]).map { clazz =>
+                            table[Entity](manifestClass(clazz)).addIndex(indexName = "IX_" + clazz.getSimpleName, unique = false)("attribute")
+                        }
+                    }
+                    override def validateUp =
+                        transactional {
+                            new Box(List(new Num(0)))
+                        }
+                })
         }
 
     }
