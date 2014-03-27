@@ -119,7 +119,7 @@ object QueryNormalizer extends StatementNormalizer[Query[_]] {
         val orderByOption = query.orderByClause
         if (orderByOption.isDefined) {
             val select = query.select
-            val orderByValues = orderByOption.get.criterias.map(_.value).filter(!select.values.contains(_))
+            val orderByValues = orderByOption.get.criterias.map(_.value)
             val newSelect = Select(select.values ++ orderByValues: _*)
             val map = new IdentityHashMap[Any, Any]()
             map.put(select, newSelect)

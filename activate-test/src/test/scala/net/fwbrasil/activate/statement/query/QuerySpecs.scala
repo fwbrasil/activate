@@ -730,5 +730,21 @@ class QuerySpecs extends ActivateTest {
                 })
         }
 
+        "order by a select value" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newFullActivateTestEntity
+                        newFullActivateTestEntity
+                    }
+                    step {
+                        query {
+                            (e: ActivateTestEntity) =>
+                                where() select (e.intValue, e.stringValue) orderBy (e.intValue)
+                        }
+                    }
+                })
+        }
     }
 }
