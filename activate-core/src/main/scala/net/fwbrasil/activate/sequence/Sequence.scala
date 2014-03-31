@@ -10,9 +10,11 @@ abstract class Sequence[T] {
 
     val step: Int
 
-    final def nextValue(step: Int) =
-        context.transactional(context.requiresNew) {
-            _nextValue
+    final def nextValue =
+        synchronized {
+            context.transactional(context.requiresNew) {
+                _nextValue
+            }
         }
 
     protected def _nextValue: T

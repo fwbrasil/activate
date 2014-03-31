@@ -23,7 +23,7 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
     private val sequence = transactional(requiresNew)(fSequence)
 
     private val segmentSize = sequence.step
-    private var hi = sequence.nextValue(1)
+    private var hi = sequence.nextValue
     private var low = n.zero
 
     require(segmentSize > 1,
@@ -36,7 +36,7 @@ abstract class SegmentedIdGenerator[E <: BaseEntity: Manifest](
             if (n.lteq(low, n.fromInt(segmentSize))) 
                 n.plus(hi, low)
             else {
-                hi = sequence.nextValue(segmentSize)
+                hi = sequence.nextValue
                 low = n.zero
                 nextId
             }
@@ -48,5 +48,5 @@ abstract class SequencedIdGenerator[E <: BaseEntity: Manifest](
     val sequence: Sequence[E#ID])
         extends IdGenerator[E] {
     def nextId =
-        sequence.nextValue(1)
+        sequence.nextValue
 }
