@@ -4,7 +4,7 @@ Activate is a framework to persist objects in Scala. It is a [STM](http://en.wik
 
 ## Sample code
 
-```
+``` scala
 package com.example.foo
 
 import net.fwbrasil.activate.ActivateContext
@@ -49,7 +49,7 @@ object simpleMain extends App {
 
 # Benefits
 
-The main benefits of the framework are:
+**The main benefits of the framework are**:
 
 - Atomic, consistent, isolated and durable transactions. You can use entities without worrying about concurrency issues.
 - Easy and transparent polyglot persistence.
@@ -72,31 +72,31 @@ The main benefits of the framework are:
 - http://fwbrasil.net/maven
 - http://repo1.maven.org/maven2
 
-Group id: `net.fwbrasil`
+Group id: **net.fwbrasil**
 
 Artifacts ids:
 
-- `activate-core`
-- `activate-play`
-- `activate-lift`
-- `activate-jdbc`
-- `activate-jdbc-async`
-- `activate-mongo`
-- `activate-mongo-async`
-- `activate-prevayler`
-- `activate-prevalent`
-- `activate-slick`
-- `activate-spray-json`
+- **activate-core**
+- **activate-play**
+- **activate-lift**
+- **activate-jdbc**
+- **activate-jdbc-async**
+- **activate-mongo**
+- **activate-mongo-async**
+- **activate-prevayler**
+- **activate-prevalent**
+- **activate-slick**
+- **activate-spray-json**
 
-Last version: `1.4.4`
+Last version: **1.4.4**
 
-Available scala versions: `2.10`
+Available scala versions: **2.10**
 
 # Activate example project
 
 A easy way to start with Activate is to use the example project.
 
-[Download activate example project](https://github.com/fwbrasil/activate-example/zipball/v1.4.4).
+Download [activate example project](https://github.com/fwbrasil/activate-example/zipball/v1.4.4).
 
 Install the Simple Build Tool (SBT) following the [instructions](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html).
 
@@ -104,11 +104,12 @@ Modify project/ActivateExampleBuild.scala and com/example/foo/ActivateExampleCon
 
 Call sbt inside the activate-example folder and create the eclipse project files:
 
-```
-$ sbt
-> eclipse
-```
 
-Now you can import into eclipse. It is necessary that the scala plugin is installed http://scala-ide.org/.
+> $ sbt
+> 
+> \> eclipse
+
+
+Now you can import into eclipse. It is necessary that the scala plugin is installed [http://scala-ide.org/](http://scala-ide.org/).
 
 If you want to change the storage, simply change the two classes mentioned above, open the console and rebuild the eclipse project with the same command (“eclipse”).

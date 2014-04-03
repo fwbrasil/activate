@@ -21,85 +21,109 @@ Activate uses **Transparent Persistence** for all classes that extends the Entit
 ## THE ENTITY TRAIT ##
 The entity trait adds the following methods and values:
 
-**val id: String**
-An automatic generated timestamp based UUID added with the entity type information.
-It’s possible to recover the class using EntityHelper.getEntityClassFromId.
-It has 45 characters.
+- **val id: String**
 
-**def delete: Unit**
-Delete the entity instance
+    An automatic generated timestamp based UUID added with the entity type information.
 
-**def deleteIfHasntReferences: Unit**
-Deletes the entity only if it hans’t references.
+    It’s possible to recover the class using EntityHelper.getEntityClassFromId.
 
-**def deleteCascade: Unit**
-Deletes the entity and all cascade references to it.
+    It has 45 characters.
 
-**def canDelete: Boolean**
-Indicates if the entity hasn’t references and can be deleted.
+- **def delete: Unit** 
 
-**def isDeleted: Boolean**
-Indicates if the instance is deleted.
+	Delete the entity instance
 
-**def isDirty: Boolean**
-Indicates if the entity is modified by the current transaction.
+- **def deleteIfHasntReferences: Unit**
 
-**def creationTimestamp: Long**
-**def creationDate: java.util.Date**
-**def creationDateTime: org.joda.time.DateTime**
-Returns the instance creation date/timestamp. It’s not possible to perform queries using this methods. They extract the timestamp information from the entity UUID.
+	Deletes the entity only if it hans’t references.
 
-**def references: Map[EntityMetadata, List[Entity]]**
-Returns a map with all entities that references the entity.
+- **def deleteCascade: Unit**
 
-**def originalValue[T](f: this.type => T): T**
-Returns the original value of the attribute before the transaction start.
+	Deletes the entity and all cascade references to it.
 
-The entity trait also overrides the toString method, generating a string representation based on the entity properties.
+- **def canDelete: Boolean**
+
+	Indicates if the entity hasn’t references and can be deleted.
+
+- **def isDeleted: Boolean**
+
+	Indicates if the instance is deleted.
+
+- **def isDirty: Boolean**
+
+	Indicates if the entity is modified by the current transaction.
+
+- **def creationTimestamp: Long**
+	
+	**def creationDate: java.util.Date**
+	
+	**def creationDateTime: org.joda.time.DateTime**
+	
+	Returns the instance creation date/timestamp. It’s not possible to perform queries using this methods. They extract the timestamp information from the entity UUID.
+
+- **def references: Map[EntityMetadata, List[Entity]]**
+	
+	Returns a map with all entities that references the entity.
+
+- **def originalValue[T](f: this.type => T): T**
+	
+	Returns the original value of the attribute before the transaction start.
+
+The entity trait also overrides the **toString** method, generating a string representation based on the entity properties.
 
 
 ## ATTRIBUTES TYPES ##
 Activate has support for the types listed below. If an unsupported type is used, Activate will produce an error on context startup.
 
 Simple types:
-**scala.Int**
-**scala.Long**
-**scala.Boolean**
-**scala.Char**
-**scala.Float**
-**scala.Double**
-**scala.math.BigDecimal**
-**java.lang.String**
+
+- **scala.Int**
+- **scala.Long**
+- **scala.Boolean**
+- **scala.Char**
+- **scala.Float**
+- **scala.Double**
+- **scala.math.BigDecimal**
+- **java.lang.String**
 
 Other types:
 
-**scala.collection.immutable.List**
-MongoStorage, PrevaylerStorage and TransientMemoryStorage persist lists as “native” values.
-JdbcRelationalStorage persists lists in a separate list table. See migration for more information.
+- **scala.collection.immutable.List**
 
-**net.fwbrasil.activate.entity.LazyList**
-This is a special list type of entities. It uses lazy loading of its contents, avoiding hard references for the referenced entities. The persistence context has implicit conversions that allows its usage as normal lists.
+	MongoStorage, PrevaylerStorage and TransientMemoryStorage persist lists as “native” values.
+	JdbcRelationalStorage persists lists in a separate list table. See [migration](http://activate-framework.org/documentation/migration/) for more information.
 
-**scala.Enumeration**
-To use enumerations you must sublcass Val. Instead of “type MyEnum = Value”, use case “class MyEnum(name: String) extends Val(name)”.
+- **net.fwbrasil.activate.entity.LazyList**
 
-**java.util.Date**
-**java.util.Calendar**
-**scala.Array[Byte]**
+	This is a special list type of entities. It uses lazy loading of its contents, avoiding hard references for the referenced entities. The persistence context has implicit conversions that allows its usage as normal lists.
 
-If you have to modify a date/calendar/byte array attribute, don’t change the actual instance. Produce a new one and set the attribute again. Otherwise, Activate will not track modifications.
+- **scala.Enumeration**
 
-**org.joda.time.base.AbstractInstant**
-Support for joda time AbstractInstant subclasses: Instant, DateMidnight and DateTime.
+	To use enumerations you must sublcass Val. Instead of “type MyEnum = Value”, use case “class MyEnum(name: String) extends Val(name)”.
 
-**net.fwbrasil.activate.entity.Entity**
-Entity attributes are persisted as references (id) in the storage.
+- **java.util.Date**
 
-**scala.Serializable**
-Activate uses Serializable as the last option, other types have priority. Ensure that the serializable is immutable, otherwise Activate will not control the serializable internal modifications.
+- **java.util.Calendar**
 
-**scala.Option**
-Support for “options” for any of the types listed above.
+- **scala.Array[Byte]**
+
+	If you have to modify a date/calendar/byte array attribute, don’t change the actual instance. Produce a new one and set the attribute again. Otherwise, Activate will not track modifications.
+
+- **org.joda.time.base.AbstractInstant**
+
+	Support for joda time AbstractInstant subclasses: Instant, DateMidnight and DateTime.
+
+- **net.fwbrasil.activate.entity.Entity**
+
+	Entity attributes are persisted as references (id) in the storage.
+
+- **scala.Serializable**
+
+	Activate uses Serializable as the last option, other types have priority. Ensure that the serializable is immutable, otherwise Activate will not control the serializable internal modifications.
+
+- **scala.Option**
+
+	Support for “options” for any of the types listed above.
 
 
 ## CUSTOM TYPE ENCODERS ##
@@ -108,7 +132,7 @@ For the types not listed above, it is possible to create custom encoders that tr
 ``` scala
 class CustomEncodedEntityValue(val i: Int) extends Serializable
 ```
-Just create the encoder class and add it to the same package or a sub package of your persistence context:
+Just create the encoder class and add it to the **same package or a sub package** of your persistence context:
 
 ``` scala
 import myContext._
@@ -130,10 +154,15 @@ object myContext extends ActivateContext {
 ```
 Provided serializer implementations:
 
+
 net.fwbrasil.activate.serialization.xmlSerializer
+
 net.fwbrasil.activate.serialization.jsonSerializer
+
 net.fwbrasil.activate.serialization.javaSerializer
+
 net.fwbrasil.activate.serialization.kryoSerializer
+
 
 Additionally, is possible to define custom serializers by entity attribute:
 
@@ -180,7 +209,7 @@ It is possible to listen events of the entity lifecycle by overriding these meth
 ``` scala
 protected def beforeConstruct: Unit
 ```
-Called before the entity constructor body execution. IMPORTANT: This event should be overridden in very special cases, since the instance is in an inconsistent state.
+Called before the entity constructor body execution. **IMPORTANT**: This event should be overridden in very special cases, since the instance is in an inconsistent state.
 
 ``` scala
 protected def afterConstruct: Unit

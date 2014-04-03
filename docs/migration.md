@@ -1,8 +1,6 @@
 # Migration
 
-Migration is the storage schema evolution mechanism provided by Activate.
-
-Example:
+Migration is the storage schema evolution mechanism provided by Activate. Example:
 
 ``` scala
 class ExampleMigration extends Migration {
@@ -18,19 +16,19 @@ class ExampleMigration extends Migration {
 
 There is no need to register you migration. Just put it on the project classpath and it will be found by Activate.
 
-> The context definition must be declared in a base package of the migrations packages. Example: com.app.myContext for com.app.model.MyMigration
+**Important**: The context definition must be declared in a base package of the migrations packages. Example: com.app.myContext for com.app.model.MyMigration
 
-## Class explanation
+Class explanation
 
-**def timestamp: Long**
+- **def timestamp: Long**
 
-Determines the execution order of the migration. If there is more than one migration with the same timestamp, an error will be thrown. A good pattern to this number is YYYYMMDDHHSS.
+    Determines the execution order of the migration. If there is more than one migration with the same timestamp, an error will be thrown. A good pattern to this number is YYYYMMDDHHSS.
 
-**def up: Unit**
+- **def up: Unit**
 
-Method to register the migration actions.
+    Method to register the migration actions.
 
-There is also a “down” method. It has a default implementation that reverts the migration when it’s possible. To define a custom down method, just override it.
+There is also a “**down**” method. It has a default implementation that reverts the migration when it’s possible. To define a custom down method, just override it.
 
 ``` scala
 override def down = {
@@ -39,12 +37,12 @@ override def down = {
 }
 ```
 
-When the default “down” method implementation can’t revert a migration, it throws a CannotRevertMigration. Migrations actions that can’t be automatically reverted:
+When the default “down” method implementation can’t revert a migration, it throws a **CannotRevertMigration**. Migrations actions that can’t be automatically reverted:
 
-- Remove column
-- Remove table
-- Remove nested list table
-- Custom script
+- **Remove column**
+- **Remove table**
+- **Remove nested list table**
+- **Custom script**
 
 ## Schema update / revert
 
@@ -58,11 +56,17 @@ override protected lazy val runMigrationAtStartup = false
 
 Methods to update/revert storage migrations available at the net.fwbrasil.activate.migration.Migration object:
 
-`def update(context: ActivateContext): Unit` - Updates the storage to the last available migration.
+- **def update(context: ActivateContext): Unit**
 
-`def updateTo(context: ActivateContext, timestamp: Long): Unit` - Updates the storage to the specified timestamp.
+    Updates the storage to the last available migration.
 
-`def revertTo(context: ActivateContext, timestamp: Long): Unit` - Reverts the storage to de specified timestamp.
+- **def updateTo(context: ActivateContext, timestamp: Long): Unit** 
+
+    Updates the storage to the specified timestamp.
+
+- **def revertTo(context: ActivateContext, timestamp: Long): Unit**
+
+    Reverts the storage to de specified timestamp.
 
 ## Manual migration
 
@@ -79,9 +83,13 @@ class ExampleMigration extends ManualMigration {
 
 Methods to run manual migrations available at the net.fwbrasil.activate.migration.Migration object:
 
-`def execute(context: ActivateContext, manualMigration: ManualMigration): Unit` - Executes migration up actions.
+- **def execute(context: ActivateContext, manualMigration: ManualMigration): Unit**
 
-`def revert(context: ActivateContext, manualMigration: ManualMigration): Unit` - Executes migration down actions.
+    Executes migration up actions.
+
+- **def revert(context: ActivateContext, manualMigration: ManualMigration): Unit**
+    
+    Executes migration down actions.
 
 ## Table
 
@@ -96,7 +104,9 @@ The first uses the entity name and the second the entity class. It’s recommend
 
 ## Create table
 
-Table instance method: `def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable`
+Table instance method: 
+
+**def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable**
 
 Example including the “ifNotExists” option:
 
@@ -111,7 +121,8 @@ table[MyEntity]
 ## Remove table
 
 Table instance method:
-def removeTable: RemoveTable
+
+**def removeTable: RemoveTable**
 
 Example including the “ifExists” and “cascade” options:
 
@@ -125,7 +136,8 @@ table[MyEntity]
 ## Rename table
 
 Table instance method:
-`def renameTable(newName: String): RenameTable`
+
+**def renameTable(newName: String): RenameTable**
 
 Example including the “ifExists” option:
 
@@ -138,7 +150,8 @@ table("MyOldEntity")
 ## Add column
 
 Table instance method:
-`def addColumn(definition: (ColumnDef) => Unit): AddColumn`
+
+**def addColumn(definition: (ColumnDef) => Unit): AddColumn**
 
 Example including the “ifNotExists” option:
 
@@ -151,7 +164,8 @@ table[MyEntity]
 ## Rename column
 
 Table instance method:
-`def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn`
+
+**def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn**
 
 Example including the “ifExists” option:
 
@@ -161,8 +175,11 @@ table[MyEntity]
     .ifExists
 ```
 
+## Rename column
+
 Table instance method:
-`def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn`
+
+**def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn**
 
 Example including the “ifExists” option:
 
@@ -175,7 +192,8 @@ table[MyEntity]
 ## Modify column type
 
 Table instance method:
-def modifyColumnType(column: (ColumnDef) => Unit): ModifyColumnType
+
+**def modifyColumnType(column: (ColumnDef) => Unit): ModifyColumnType**
 
 Example including the “ifExists” option:
 
@@ -196,7 +214,8 @@ table[MyEntity]
 ## Add index
 
 Table instance method:
-`def addIndex(columnName: String, indexName: String): AddIndex`
+
+**def addIndex(columnName: String, indexName: String): AddIndex**
 
 Example including the “ifNotExists” option:
 
@@ -209,7 +228,8 @@ table[MyEntity]
 ## Remove index
 
 Table instance method:
-`def removeIndex(columnName: String, indexName: String): RemoveIndex`
+
+**def removeIndex(columnName: String, indexName: String): RemoveIndex**
 
 Example including the “ifExists” option:
 
@@ -221,7 +241,8 @@ table[MyEntity]
 ## Add reference (FK)
 
 Table instance method:
-`def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference`
+
+**def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference**
 
 Example including the “ifNotExists” option:
 
@@ -234,7 +255,8 @@ table[MyEntity]
 ## Remove reference (FK)
 
 Table instance method:
-`def removeReference(columnName: String, referencedTable: Table, constraintName: String): RemoveReference`
+
+**def removeReference(columnName: String, referencedTable: Table, constraintName: String): RemoveReference**
 
 Example including the “ifExists” option:
 
@@ -247,7 +269,8 @@ table[MyEntity]
 ## Add nested list table
 
 Table instance method:
-`def createNestedListTableOf[T](listName: String, listTableName : String): IfNotExistsBag`
+
+**def createNestedListTableOf[T](listName: String, listTableName : String): IfNotExistsBag**
 
 Creates a nested table to persist entity list properties. The “T” generic is the list content type.
 
@@ -268,7 +291,8 @@ Activate automatically manages the list content using this jdbc storage structur
 ## Remove nested list table
 
 Table instance method:
-`def removeNestedListTable(listName: String): IfExistsBag`
+
+**def removeNestedListTable(listName: String): IfExistsBag**
 
 Removes a nested list table.
 

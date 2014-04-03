@@ -32,31 +32,38 @@ NOTE: If you don’t specify propagation, “required” is the default.
 
 These are the supported propagations:
 
-**required**\
- Support a current transaction, create a new one if none exists.
+- **required**
 
-**nested**\
- Execute within a nested transaction if a current transaction exists,
+    Support a current transaction, create a new one if none exists.
+
+- **nested**
+
+    Execute within a nested transaction if a current transaction exists,
 otherwise throws a RequiredTransactionException.
 
-**mandatory**\
- Support a current transaction, throw a RequiredTransactionException if
+- **mandatory**
+
+    Support a current transaction, throw a RequiredTransactionException if
 none exists.
 
-**never**\
- Execute non-transactionally, throw a NotSupportedTransactionException
+- **never**
+
+    Execute non-transactionally, throw a NotSupportedTransactionException
 if a transaction exists.
 
-**notSupported**\
- Execute non-transactionally, suspend the current transaction if one
+- **notSupported**
+
+    Execute non-transactionally, suspend the current transaction if one
 exists.
 
-**requiresNew**\
- Create a new transaction, suspend the current transaction if one
+- **requiresNew**
+
+    Create a new transaction, suspend the current transaction if one
 exists.
 
-**supports**\
- Support a current transaction, execute non-transactionally if none
+- **supports**
+
+    Support a current transaction, execute non-transactionally if none
 exists.
 
 ## Manual transaction control
