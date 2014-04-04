@@ -5,6 +5,7 @@ import com.github.mauricio.async.db.RowData
 import java.sql.Timestamp
 import org.joda.time.DateTime
 import org.joda.time.LocalDateTime
+import org.joda.time.DateTimeZone
 
 case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
     extends ActivateResultSet {
@@ -33,9 +34,9 @@ case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
     def getLong(i: Int) =
         valueCase[Long](i) {
             case localDateTime: LocalDateTime =>
-                localDateTime.toDate.getTime
+                localDateTime.toDateTime(DateTimeZone.UTC).getMillis / 1000
             case dateTime: DateTime =>
-                dateTime.toDate.getTime
+                dateTime.getMillis / 1000
             case n =>
                 n.toString.toLong
         }

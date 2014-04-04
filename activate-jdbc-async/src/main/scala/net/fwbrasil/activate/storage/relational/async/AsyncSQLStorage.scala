@@ -271,7 +271,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     override def supportsAsync = true
 
     private def sendPreparedStatement(jdbcStatement: QlStatement, connection: Connection) = {
-        println(jdbcStatement.indexedStatement)
+        println(jdbcStatement.indexedStatement, jdbcStatement.valuesList.head.map(dialect.toValue))
         connection.sendPreparedStatement(
             jdbcStatement.indexedStatement,
             jdbcStatement.valuesList.head.map(dialect.toValue))
