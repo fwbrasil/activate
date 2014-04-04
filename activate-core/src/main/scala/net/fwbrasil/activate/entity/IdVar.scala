@@ -36,6 +36,8 @@ class IdVar private (metadata: EntityPropertyMetadata, pOuterEntity: BaseEntity,
         if (outerEntity != null) outerEntity.initialize(false, false)
         super.isDestroyed
     }
+    
+    override def isMutable = false 
 
     override def toString = "id -> " + getValue
 }

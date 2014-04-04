@@ -205,7 +205,7 @@ trait DurableContext {
         val readsByStorage = groupByStorage(reads)(_._1.niceClass)
 
         val storages = sortStorages((statementsByStorage.keys.toSet ++ insertsByStorage.keys.toSet ++
-            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet).toList)
+            updatesByStorage.keys.toSet ++ deletesByStorage.keys.toSet ++ readsByStorage.keys.toSet).toList)
 
         verifyMassSatatements(storages, statementsByStorage)
         extendedCommit(readsByStorage, statementsByStorage, insertsByStorage, updatesByStorage, deletesByStorage, storages)
