@@ -148,7 +148,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
     def isInitialized =
         initialized
 
-    private[activate] def initialize(forWrite: Boolean) = {
+    private[activate] def initialize(forWrite: Boolean, transient: Boolean) = {
         if (!initialized)
             this.synchronized {
                 if (!initializing && !initialized) {
@@ -163,7 +163,8 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
         if (!initializing &&
             forWrite &&
             OptimisticOfflineLocking.isEnabled &&
-            isPersisted) {
+            isPersisted &&
+            !transient) {
             val versionVar = _varsMap.get("version").asInstanceOf[Var[Long]]
             if (!versionVar.isDirty)
                 versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
@@ -183,7 +184,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
 
     private[activate] def initializeGraph(seen: Set[BaseEntity]): Unit =
         this.synchronized {
-            initialize(forWrite = false)
+            initialize(forWrite = false, transient = false)
             if (!isDeletedSnapshot)
                 for (ref <- varsOfTypeEntity)
                     if (ref.get.nonEmpty) {

@@ -252,7 +252,7 @@ trait DurableContext {
                 val nestedTransaction = new NestedTransaction(transaction)
                 transactional(nestedTransaction) {
                     for ((id, entity) <- entitiesRead) {
-                        entity.varNamed(OptimisticOfflineLocking.versionVarName).get.map { version =>
+                        entity.varNamed("version").get.map { version =>
                             result.put(entity, version.asInstanceOf[Long])
                         }
                     }

@@ -157,7 +157,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
         dialect.versionVerifyQueries(reads, queryLimit).foldLeft(Future[Unit]())((future, tuple) => {
             future.flatMap(_ => {
                 val (stmt, referenceStorageValue, clazz) = tuple
-                queryAsync(stmt, List(new StringStorageValue(None))).map {
+                queryAsync(stmt, List(referenceStorageValue)).map {
                     _.map {
                         _ match {
                             case List(ReferenceStorageValue(storageValue)) =>

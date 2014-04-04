@@ -347,7 +347,7 @@ trait SqlIdiom extends QlIdiom {
             val conditions =
                 for (i <- 0 until versions.size) yield {
                     val (id, version) = versions(i)
-                    val condition = "(" + escape("id") + " = :id" + i + " and " + escape(versionVarName) + " is not null and " + escape(versionVarName) + " != :version" + i + ")"
+                    val condition = "(" + escape("id") + " = :id" + i + " and " + escape(versionVarName) + " is not null and " + escape(versionVarName) + s" != :$versionVarName" + i + ")"
                     val bindId = ("id" + i) -> id
                     val bindVersion = (versionVarName + i) -> new LongStorageValue(Some(version))
                     (condition, bindId, bindVersion)

@@ -100,7 +100,7 @@ class Var[T](
     }
 
     protected def doInitialized[A](forWrite: Boolean)(f: => A): A = {
-        if (outerEntity != null) outerEntity.initialize(forWrite)
+        if (outerEntity != null) outerEntity.initialize(forWrite, isTransient)
         f
     }
 

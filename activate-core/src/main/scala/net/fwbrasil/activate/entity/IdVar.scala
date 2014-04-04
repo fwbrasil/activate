@@ -33,7 +33,7 @@ class IdVar private (metadata: EntityPropertyMetadata, pOuterEntity: BaseEntity,
         f
 
     override def isDestroyed: Boolean = {
-        if (outerEntity != null) outerEntity.initialize(false)
+        if (outerEntity != null) outerEntity.initialize(false, false)
         super.isDestroyed
     }
 

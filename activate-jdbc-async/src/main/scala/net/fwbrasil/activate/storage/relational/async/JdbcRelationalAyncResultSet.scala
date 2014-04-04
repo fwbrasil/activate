@@ -33,9 +33,9 @@ case class JdbcRelationalAsyncResultSet(rowData: RowData, charset: String)
     def getLong(i: Int) =
         valueCase[Long](i) {
             case localDateTime: LocalDateTime =>
-                localDateTime.getMillisOfSecond
+                localDateTime.toDate.getTime
             case dateTime: DateTime =>
-                dateTime.getMillisOfSecond
+                dateTime.toDate.getTime
             case n =>
                 n.toString.toLong
         }
