@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.idiom
 
+import net.fwbrasil.activate.OptimisticOfflineLocking.versionVarName
 import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
 import net.fwbrasil.activate.statement.StatementValue
@@ -346,9 +347,9 @@ trait SqlIdiom extends QlIdiom {
             val conditions =
                 for (i <- 0 until versions.size) yield {
                     val (id, version) = versions(i)
-                    val condition = "(" + escape("id") + " = :id" + i + " and " + escape("version") + " is not null and " + escape("version") + " != :version" + i + ")"
+                    val condition = "(" + escape("id") + " = :id" + i + " and " + escape(versionVarName) + " is not null and " + escape(versionVarName) + " != :version" + i + ")"
                     val bindId = ("id" + i) -> id
-                    val bindVersion = ("version" + i) -> new LongStorageValue(Some(version))
+                    val bindVersion = (versionVarName + i) -> new LongStorageValue(Some(version))
                     (condition, bindId, bindVersion)
                 }
             val groupedConditions = conditions.grouped(queryLimit)

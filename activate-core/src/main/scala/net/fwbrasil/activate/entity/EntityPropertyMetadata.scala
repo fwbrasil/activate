@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 class EntityPropertyMetadata(
     val entityMetadata: EntityMetadata,
@@ -15,13 +16,16 @@ class EntityPropertyMetadata(
     val javaName = varField.getName
     val originalName = javaName.split('$').last
     val name =
-        Option(varField.getAnnotation(classOf[InternalAlias]))
-            .map(_.value)
-            .getOrElse(originalName)
+        if (originalName == "version")
+            OptimisticOfflineLocking.versionVarName
+        else
+            Option(varField.getAnnotation(classOf[InternalAlias]))
+                .map(_.value)
+                .getOrElse(originalName)
     val jsonName =
         Option(varField.getAnnotation(classOf[InternalAlias]))
-        	.map(_.jsonName).filter(_.nonEmpty)
-        	.getOrElse(name)
+            .map(_.jsonName).filter(_.nonEmpty)
+            .getOrElse(name)
     def findMethods(names: String*) =
         entityMethods.filter(m => names.contains(m.getName))
     val getter = findMethods(javaName, originalName).filter(_.getParameterTypes.isEmpty).headOption.getOrElse {

@@ -121,7 +121,7 @@ trait QlIdiom {
     def versionCondition(propertyMap: Map[String, StorageValue]) = {
         propertyMap.get(versionVarName) match {
             case Some(newVersion: LongStorageValue) =>
-                s" AND ($versionVarName IS NULL OR $versionVarName = :version - 1)"
+                s" AND ($versionVarName IS NULL OR $versionVarName = :$versionVarName - 1)"
             case other =>
                 ""
         }

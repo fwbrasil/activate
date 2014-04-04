@@ -17,7 +17,7 @@ object OptimisticOfflineLocking {
     if (validateReads)
         require(isEnabled, "Cannot validate reads if optimistic offline locking is disabled")
 
-    val versionVarName =
+    var versionVarName =
         "version"
 
     def isVersionVar(ref: Var[Any]) =

@@ -164,7 +164,7 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
             forWrite &&
             OptimisticOfflineLocking.isEnabled &&
             isPersisted) {
-            val versionVar = _varsMap.get(OptimisticOfflineLocking.versionVarName).asInstanceOf[Var[Long]]
+            val versionVar = _varsMap.get("version").asInstanceOf[Var[Long]]
             if (!versionVar.isDirty)
                 versionVar.putValueWithoutInitialize(versionVar.getValueWithoutInitialize + 1l)
         }
