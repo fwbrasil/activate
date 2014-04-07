@@ -279,7 +279,7 @@ trait QueryContext extends StatementContext
         startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic =
-                EntityHelper.concreteClasses(entityClass) != List(entityClass)
+            EntityHelper.concreteClasses(entityClass) != List(entityClass)
         if (isPolymorfic)
             dynamicQuery {
                 (e: BaseEntity) => where(e.id :== id) select (e)
@@ -306,37 +306,39 @@ trait QueryContext extends StatementContext
 
     def asyncSelect[E <: BaseEntity: Manifest] = new AsyncSelectEntity[E]
 
-    private def asyncInitialize[T <: BaseEntity](entity: T)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
-        entity.synchronized {
-            if (!entity.isInitialized) {
-                entity.setInitializing
-                liveCache.asyncLoadFromDatabase(entity).asInstanceOf[Future[Option[T]]]
-            } else
-                Future(Some(entity).filter(!_.isDeleted))(texctx)
-        }
-
     def asyncById[T <: BaseEntity: Manifest](id: => T#ID, initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
         asyncById[T](id, erasureOf[T], initialized)
 
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
-            if (initialized)
-                entity.synchronized {
-                    if (!entity.isInitialized) {
-                        entity.setInitializing
-                        liveCache.asyncLoadFromDatabase(entity)
-                            .asInstanceOf[Future[Option[T]]]
-                            .map(_.map { entity =>
-                                entity.setInitialized
-                                entity
-                            })
-                    } else
-                        Future(Some(entity).filter(!_.isDeleted))
-                }
-            else
+            if (!initialized) {
+                asyncCacheMiss
+                asyncInitialize(entity)
+            } else {
+                asyncCacheHit
                 Future.successful(Some(entity))
+            }
         }.getOrElse(Future.successful(None))
+    }
+
+    protected def asyncCacheHit = {}
+    protected def asyncCacheMiss = {}
+
+    private def asyncInitialize[T <: BaseEntity](entity: T)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
+        import texctx.ctx._
+        entity.synchronized {
+            if (!entity.isInitialized) {
+                entity.setInitializing
+                liveCache.asyncLoadFromDatabase(entity)
+                    .asInstanceOf[Future[Option[T]]]
+                    .map(_.map { entity =>
+                        entity.setInitialized
+                        entity
+                    })
+            } else
+                Future(Some(entity).filter(!_.isDeleted))
+        }
     }
 
     def executeQueryAsync[S](query: Query[S], texctx: TransactionalExecutionContext): Future[List[S]] = {

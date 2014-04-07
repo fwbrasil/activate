@@ -25,6 +25,8 @@ import net.fwbrasil.activate.entity.id.EntityId
 import net.fwbrasil.activate.entity.id.EntityIdContext
 import scala.concurrent.duration.Duration
 import net.fwbrasil.activate.entity.map.EntityMapContext
+import net.fwbrasil.radon.transaction.TransactionalExecutionContext
+import scala.concurrent.Future
 
 trait BaseEntity extends Serializable with EntityValidation with EntityListeners with EntityId {
 
@@ -179,19 +181,36 @@ trait BaseEntity extends Serializable with EntityValidation with EntityListeners
             this
         }
 
-    private[activate] def initializeGraph: Unit =
+    def initializeGraph: Unit =
         initializeGraph(Set())
 
     private[activate] def initializeGraph(seen: Set[BaseEntity]): Unit =
         this.synchronized {
             initialize(forWrite = false, transient = false)
             if (!isDeletedSnapshot)
-                for (ref <- varsOfTypeEntity)
+                for (ref <- varsOfTypeEntity.filter(!_.isLazyFlag))
                     if (ref.get.nonEmpty) {
                         val entity = ref.get.get
                         if (!seen.contains(entity))
                             entity.initializeGraph(seen + this)
                     }
+        }
+
+    def asyncInitializeGraph(implicit tctx: TransactionalExecutionContext): Future[Unit] =
+        asyncInitializeGraph(Set[BaseEntity]())
+
+    private[activate] def asyncInitializeGraph(seen: Set[BaseEntity])(implicit tctx: TransactionalExecutionContext): Future[Unit] =
+        context.asyncById[this.type](this.id)(manifestClass(getClass), tctx).flatMap {
+            case Some(entity) =>
+                varsOfTypeEntity
+                    .map(_.get)
+                    .flatten
+                    .foldLeft(Future.successful({})) { (baseFuture, entity) =>
+                        baseFuture.flatMap { _ =>
+                            entity.asyncInitializeGraph(seen + this)
+                        }
+                    }
+            case None => Future.successful({})
         }
 
     private def varsOfTypeEntity =

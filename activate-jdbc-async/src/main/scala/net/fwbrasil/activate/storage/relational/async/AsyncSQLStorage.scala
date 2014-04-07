@@ -40,7 +40,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
 
-    private lazy val pool = new ConnectionPool(objectFactory, poolConfiguration, executionContext = executionContext)
+    lazy val pool = new ConnectionPool(objectFactory, poolConfiguration, executionContext = executionContext)
 
     val queryLimit = 1000
     val dialect: SqlIdiom
@@ -51,7 +51,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
         entitiesReadFromCache: List[List[BaseEntity]]) = {
         val jdbcQuery = dialect.toSqlDml(QueryStorageStatement(query, entitiesReadFromCache))
         val result = queryAsync(jdbcQuery, expectedTypes)
-        Await.result(result, defaultTimeout)
+        await(result)
     }
 
     override protected[activate] def queryAsync(query: Query[_], expectedTypes: List[StorageValue], entitiesReadFromCache: List[List[BaseEntity]])(implicit context: TransactionalExecutionContext): Future[List[List[StorageValue]]] = {
@@ -59,6 +59,9 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
             jdbcStatement => queryAsync(jdbcStatement, expectedTypes)
         }(context.ctx.ectx)
     }
+
+    protected def await[R](future: Future[R]) =
+        Await.result(future, defaultTimeout)
 
     private def queryAsync(query: NormalQlStatement, expectedTypes: List[StorageValue]): Future[List[List[StorageValue]]] = {
         implicit val ctx = executionContext
@@ -116,7 +119,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
                                 throw new IllegalStateException("Empty result.")
                         }
                     }
-                Some(Await.result(listFuture, defaultTimeout))
+                Some(await(listFuture))
             }
         ListStorageValue(listOption, expectedType.emptyStorageValue)
     }
@@ -150,7 +153,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
                             future.flatMap(_ => execute(statement, connection, isDdl)))
                     }
             }
-        Some(Await.result(res, defaultTimeout))
+        Some(await(res))
     }
 
     private def verifyReads(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]])(implicit context: ExecutionContext) = {
@@ -257,10 +260,10 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     }
 
     private def commit(c: Connection) =
-        Await.result(c.sendQuery("COMMIT"), defaultTimeout)
+        await(c.sendQuery("COMMIT"))
 
     private def rollback(c: Connection) =
-        Await.result(c.sendQuery("ROLLBACK"), defaultTimeout)
+        await(c.sendQuery("ROLLBACK"))
 
     def directAccess = pool.take
 
@@ -270,10 +273,8 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     def supportsQueryJoin = true
     override def supportsAsync = true
 
-    private def sendPreparedStatement(jdbcStatement: QlStatement, connection: Connection) = {
-        println(jdbcStatement.indexedStatement, jdbcStatement.valuesList.head.map(dialect.toValue))
+    protected def sendPreparedStatement(jdbcStatement: QlStatement, connection: Connection) =
         connection.sendPreparedStatement(
             jdbcStatement.indexedStatement,
             jdbcStatement.valuesList.head.map(dialect.toValue))
-    }
 }
