@@ -264,7 +264,7 @@ object ActivateBuild extends Build {
     def commonSettings =
         Defaults.defaultSettings ++ Seq(
             organization := "net.fwbrasil",
-            version := "1.5-SNAPSHOT",
+            version := "1.5-M5",
             scalaVersion := "2.10.3",
             javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
             publishMavenStyle := true,
@@ -279,7 +279,6 @@ object ActivateBuild extends Build {
                     Some("releases" at nexus + "service/local/staging/deploy/maven2")
             },
             resolvers ++= customResolvers,
-            credentials += Credentials(Path.userHome / ".sbt" / "sonatype.credentials"),
             publishMavenStyle := true,
             publishArtifact in Test := false,
             pomIncludeRepository := { x => false },
