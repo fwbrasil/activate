@@ -312,7 +312,7 @@ trait QueryContext extends StatementContext
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
-            if (!initialized) {
+            if (initialized) {
                 asyncCacheMiss
                 asyncInitialize(entity)
             } else {
