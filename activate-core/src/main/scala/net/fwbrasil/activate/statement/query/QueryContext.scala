@@ -312,13 +312,10 @@ trait QueryContext extends StatementContext
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
-            if (initialized) {
-                asyncCacheMiss
+            if (initialized) 
                 asyncInitialize(entity)
-            } else {
-                asyncCacheHit
+            else
                 Future.successful(Some(entity))
-            }
         }.getOrElse(Future.successful(None))
     }
 
@@ -329,6 +326,7 @@ trait QueryContext extends StatementContext
         import texctx.ctx._
         entity.synchronized {
             if (!entity.isInitialized) {
+                asyncCacheMiss
                 entity.setInitializing
                 liveCache.asyncLoadFromDatabase(entity)
                     .asInstanceOf[Future[Option[T]]]
@@ -336,8 +334,10 @@ trait QueryContext extends StatementContext
                         entity.setInitialized
                         entity
                     })
-            } else
+            } else {
+                asyncCacheHit
                 Future(Some(entity).filter(!_.isDeleted))
+            }
         }
     }
 
