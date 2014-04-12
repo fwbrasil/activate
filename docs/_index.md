@@ -28,23 +28,23 @@ Activate queries are consistent, even with entities created in the current trans
 
 Migration is the storage schema evolution mechanism provided by Activate.
 
-## [Multiple VMs](/docs/multiple vms.md)
+## [Multiple VMs](/docs/multiple-vms.md)
 
 Activate uses memory efficiently by maintaining soft references for the entities that are loaded from the storage.
 
-## [Mass statement](/docs/mass statement.md)
+## [Mass statement](/docs/mass-statement.md)
 
 Activate supports mass update/delete statements.
 
-## [Play framework](/docs/play framework.md)
+## [Play framework](/docs/play-framework.md)
 
 The “**activate-play**” component has some classes to facilitate the Activate usage with the [Play Framework](http://www.playframework.com/) 2.2.
 
-## [Lift framework](/docs/lift framework.md)
+## [Lift framework](/docs/lift-framework.md)
 
 The “**activate-lift**” module has the EntityForm that provides a easy way to handle lift entity forms.
 
-## [Spray Json](/docs/spray json.md)
+## [Spray Json](/docs/spray-json.md)
 
 The [spray-json](https://github.com/spray/spray-json) integration is a easy way to manipulate entities from/to json.
 
