@@ -1,11 +1,24 @@
 # Activate Persistence Framework
 
--> ![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg) <-
+![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg)
+
+Documentation ([index](/docs/_index.md)):
+
+- [Get started](/docs/get-started.md)
+- [Persistence Context](/docs/persistence-context.md)
+- [Entity](/docs/entity.md) [Transaction](/docs/transaction.md)
+- [Validation](/docs/validation.md)
+- [Query](/docs/query.md) [Migration](/docs/migration.md)
+- [Multiple VMs](/docs/multiple-vms.md)
+- [Mass statement](/docs/mass-statement.md)
+- [Play framework](/docs/play-framework.md)
+- [Lift framework](/docs/lift-framework.md)
+- [Spray Json](/docs/spray-json.md)
+- [Architecture](/docs/architecture.md)
 
 Official site with documentation:
 [http://activate-framework.org](http://activate-framework.org "http://activate-framework.org")
 
-Documentation: [Get started](/docs/get-started.md) [Persistence Context](/docs/persistence-context.md) [Entity](/docs/entity.md) [Transaction](/docs/transaction.md) [Validation](/docs/validation.md) [Query](/docs/query.md) [Migration](/docs/migration.md) [Multiple VMs](/docs/multiple vms.md) [Mass statement](/docs/mass statement.md [Play framework](/docs/play framework.md) [Lift framework](/docs/lift framework.md) [Spray Json](/docs/spray json.md) [Architecture](/docs/architecture.md)
 
 ## Introduction
 
