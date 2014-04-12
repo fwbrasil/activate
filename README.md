@@ -1,6 +1,6 @@
 # Activate Persistence Framework
 
--> ![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg) <-
+![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg)
 
 Official site with documentation:
 [http://activate-framework.org](http://activate-framework.org "http://activate-framework.org")
