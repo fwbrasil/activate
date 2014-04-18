@@ -29,7 +29,7 @@ class CreatePersonTableMigration extends Migration {
 
 object simpleMain extends App {
 
-  transnactional {
+  transactional {
     new Person("John")
   }
 
