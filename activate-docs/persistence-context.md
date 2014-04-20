@@ -2,10 +2,18 @@
 
 To use Activate, first you have to define a Persistence Context. It coordinates all the persistence needs, like transactions and the persistence lifecycle of entities.
 
-**Important**: The context definition must be declared in a base package of the entities and migrations packages.
-Example: com.app.myContext for com.app.model.MyEntity
+**Important**: 
+By default, Activate scans the persistence context package and sub-packages.
+It is possible to customize to scan custom class packages:
 
-Context must be a singleton, so it makes sense declare it as “object”. The name must be unique.
+``` scala
+object myContext extends ActivateContext {
+    val storage = ...
+    override protected def entitiesPackages = List("my.custom.package")
+}
+```
+
+**Context must be a singleton, so it makes sense declare it as “object”. The name must be unique.**
 
 Examples:
 
@@ -239,6 +247,27 @@ object asyncPostgreSQLContext extends ActivateContext {
 }
 ```
 
+**Async MySQL**
+
+```
+import net.fwbrasil.activate.ActivateContext
+import com.github.mauricio.async.db.Configuration
+import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
+import net.fwbrasil.activate.storage.relational.async.AsyncMySQLStorage
+ 
+object asyncMySQLContext extends ActivateContext {
+    val storage = new AsyncMySQLStorage {
+        def configuration =
+            new Configuration(
+                username = "user",
+                host = "localhost",
+                password = Some("password"),
+                database = Some("database_name"))
+        lazy val objectFactory = new MySQLConnectionFactory(configuration)
+    }
+}
+```
+
 All storages implements a method called “**directAccess**” which provides direct access to the underlying database. Use this method carefully, if you modify the database content, the entities in memory could stay in an inconsistent state.
 
 ## System properties
@@ -391,11 +420,27 @@ activate.storage.myContext.password=PASS
 **Async PostgreSQL**
 
 ```
+activate.storage.myContext.factory=net.fwbrasil.activate.storage.relational.async.AsyncMySQLStorageFactory
+activate.storage.myContext.host=localhost
+activate.storage.myContext.database=dbName
+activate.storage.myContext.user=USER
+activate.storage.myContext.password=PASS
+activate.storage.myContext.poolMaxQueueSize=10
+activate.storage.myContext.poolMaxObjects=4
+activate.storage.myContext.poolMaxIdle=10
+```
+
+**Async MySQL**
+
+```
 activate.storage.myContext.factory=net.fwbrasil.activate.storage.relational.async.AsyncPostgreSQLStorageFactory
 activate.storage.myContext.host=localhost
 activate.storage.myContext.database=dbName
 activate.storage.myContext.user=USER
 activate.storage.myContext.password=PASS
+activate.storage.myContext.poolMaxQueueSize=10
+activate.storage.myContext.poolMaxObjects=4
+activate.storage.myContext.poolMaxIdle=10
 ```
 
 ## Custom cache configuration
@@ -540,7 +585,7 @@ It’s not possible to have relations between entities from different contexts.
 
 ## Memory index
 
-The persistence context can have in-memory indexes that provide fast access to entities. The indexes are consistent with new and modified entities by transactions in the same VM. It is possible to enable the optimistic locking with read validation so the cache can be updated for modified entities in other VMs too. For now, the cache can’t be updated automatically for new entities created in other VMs. This limitation should be resolved on the 1.5 version.
+The persistence context can have in-memory indexes that provide fast access to entities. The indexes are consistent with new and modified entities by transactions in the same VM. It is possible to enable the optimistic locking with read validation so the cache can be updated for modified entities in other VMs too. For now, the cache can’t be updated automatically for new entities created in other VMs, please use persisted indexes if you need this consistency level.
 
 ```
 object myContext extends ActivateContext {
@@ -565,6 +610,34 @@ An example with a tuple key:
 val indexPersonByNameAndAge =
     memoryIndex[Person].on(person => (person.name, person.age))
 val list: LazyList[Person] = indexPersonByNameAndAge.get("John", 30)
+```
+
+## Persisted index
+
+The persistence index is similar to memory indexes, but it uses an entity to store and recover state.
+
+``` scala
+object myContext extends ActivateContext {
+
+    val storage = ...
+
+    val persistedIndexActivateTestEntityByIntValue =
+        persistedIndex[ActivateTestEntity].on(_.intValue).using[EntityByIntValue] {
+            key =>
+                query {
+                    (entry: EntityByIntValue) => where(entry.key :== key) select (entry)
+                }.headOption.getOrElse {
+                    new EntityByIntValue(key)
+                }
+        }
+}
+
+class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTestEntity] with UUID {
+    var ids =
+        new HashSet[String] ++ query {
+            (e: ActivateTestEntity) => where(e.intValue :== key) select (e.id)
+        }
+}
 ```
 
 ## JDBC

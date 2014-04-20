@@ -1,7 +1,7 @@
 # Transaction
 
-All entity creation, modification, read or query must be executed inside
-a transaction, otherwise a RequiredTransactionException will be thrown.
+All entity manipulation must be executed inside a transaction, otherwise a RequiredTransactionException will be thrown.
+
 Usage example:
 
 ``` scala
@@ -12,9 +12,21 @@ transactional {
 }
 ```
 
-**Important**: Activate uses optimistic locking assuming that the
-transaction does not have side effects. If you have transaction side
-effects, like IO, use the manual transaction control below.
+The only exception is to read entity propeties, where the transaction isn't required:
+
+``` scala
+val person =
+    transactional {
+        new Person("John")
+    }
+println(person.name)
+```
+
+**Important**:
+
+1. There isn't transaction isolation for reads outside transactions, use it carefully.
+
+2. Activate uses optimistic locking assuming that the transaction does not have side effects. If you have transaction side effects, like IO, use the manual transaction control below.
 
 ## Propagations
 

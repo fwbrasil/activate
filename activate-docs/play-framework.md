@@ -9,7 +9,6 @@ There also a non-blocking version:
 
 [https://github.com/fwbrasil/activate-example-play-async](https://github.com/fwbrasil/activate-example-play-async)
 
-
 ## PLAY PLUGIN ##
 To support play application reload, add this line to the **conf/play.plugins** file (create it if necessary):
 
@@ -18,6 +17,29 @@ To support play application reload, add this line to the **conf/play.plugins** f
 ```
 The plugin has full entity class loading/reloading support. It also supports migration loading/reloading, but not running already executed migrations.
 
+## ActivatePlayContext ##
+
+It is possible to define a persistence context using the common Activate approach, but the ActivatePlayContext provides an integration to define the storage based on the Play configurations:
+
+``` scala
+import net.fwbrasil.activate.ActivateContext
+import net.fwbrasil.activate.play.ActivatePlayContext
+
+object computerPersistenceContext extends ActivatePlayContext
+``` 
+
+## ActivatePlayTest ##
+
+The ActivatePlayTest trait provides some useful methods to write Play tests.
+
+``` scala
+"some test using activate" inActivate {
+    // test code
+}
+"some integration test using activate" inBrowserWithActivate { browser =>
+    // test code
+}
+```
 
 ## ENTITY FORM ##
 Entity form is a Play Form specialized in Activate entities. Constructor example:

@@ -21,13 +21,9 @@ Activate uses **Transparent Persistence** for all classes that extends the Entit
 ## THE ENTITY TRAIT ##
 The entity trait adds the following methods and values:
 
-- **val id: String**
+- **val id: T**
 
-    An automatic generated timestamp based UUID added with the entity type information.
-
-    It’s possible to recover the class using EntityHelper.getEntityClassFromId.
-
-    It has 45 characters.
+    Each entity must have a primary id field. It is possible to use automatic generated ids or define custom ids. See [entity id](/docs/entity.md#entity-id).
 
 - **def delete: Unit** 
 
@@ -71,6 +67,133 @@ The entity trait adds the following methods and values:
 
 The entity trait also overrides the **toString** method, generating a string representation based on the entity properties.
 
+## ENTITY ID ##
+
+### UUID
+
+By default, Activate provides an automatic id generation mechanism using UUIDs and the entity type information.
+
+``` scala
+class MyEntity extends Entity
+```
+
+This entity has a String id with 45 characters. It’s possible to recover the class using EntityHelper.getEntityClassFromId.
+
+### CUSTOM ID
+
+It is possible to use custom ids by extending from EntityWithCustomID:
+
+``` scala
+class MyEntity(id: Int) extends EntityWithCustomID[Int]
+```
+
+Using this approach, for each entity instantiation it is necesary to provide the id.
+
+### CUSTOM GENERATED ID
+
+The EntityWithGeneratedID trait provides automatic custom generated ids.
+
+``` scala
+class MyEntity extends EntityWithGeneratedID[Int]
+```
+
+It is necessary to have in the classpath an id generator:
+
+``` scala
+import net.fwbrasil.activate.entity.id.IdGenerator
+
+object myEntityIdGenerator extends IdGenerator[MyEntity] {
+	def nextId = ...
+}
+```
+
+You need to provide a concrete implementation for the nextId method. There are two default implementations using sequences:
+
+``` scala
+import net.fwbrasil.activate.entity.id.SegmentedIdGenerator
+
+object myEntityIdGenerator 
+		extends SegmentedIdGenerator[MyEntity](mySequence)
+
+object myEntityIdGenerator 
+		extends SequencedIdGenerator[MyEntity](mySequence)
+```
+
+The **SegmentedIdGenerator*** uses segments to reduce the lock contention during the id generation. It should be used if you don't need strictly sequenced ids.
+
+The **SequencedIdGenerator** uses the provided sequence directly.
+
+### SEQUENCES
+
+It is necessary to provide the "mySequence" instance in the previous example.
+
+``` scala
+import net.fwbrasil.activate.sequence.Sequence
+
+object mySequence extends Sequence[Int] {
+	protected def _nextValue = ??? // obtain the next value from the database
+}
+```
+
+You can use the two built in sequence mechanisms:
+
+``` scala
+object myEntityIdGenerator 
+		extends SegmentedIdGenerator[MyEntity](LongSequenceEntity(name = "myEntitySequence", step = 10))
+
+object myEntityIdGenerator
+		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
+```
+
+To use these sequences, it is necessary to create tables for the respective entities:
+
+Table LongSequenceEntity
+- id: String
+- name: String
+- value: Long
+
+Table IntSequenceEntity
+- id: String
+- name: String
+- value: Int
+
+### EXAMPLES
+
+The most commom usage scenario:
+
+``` scala
+import myPersistenceContext._
+
+class MyEntity 
+		extends EntityWithGeneratedID[Int]
+
+object myEntityIdGenerator 
+		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
+```
+
+A more complex example:
+
+``` scala
+class ModelIDSequence(name: String)
+		extends SequenceEntity[String](name, 1) {
+	def _nextValue = {
+		value += step
+		s"$name%05d" format value
+	}
+}
+
+object ModelIDSequence {
+	def apply(sequenceName: String, step: Int = 1) = {
+		transactional(requiresNew) {
+			select[ModelIDSequence].where(_.name :== sequenceName).headOption.getOrElse {
+				new ModelIDSequence(sequenceName)
+			} 
+		}
+	} 
+}
+
+class ModelSID extends SequencedIdGenerator[Model](ModelIDSequence("m"))
+```
 
 ## ATTRIBUTES TYPES ##
 Activate has support for the types listed below. If an unsupported type is used, Activate will produce an error on context startup.
@@ -141,6 +264,30 @@ class CustomEncodedEntityValueEncoder
 	def encode(value: CustomEncodedEntityValue) = value.i
 	def decode(i: Int) = new CustomEncodedEntityValue(i)
 }
+```
+
+Activate provides a compressed byte array enconder implementation (ZipEncoder). Example usage:
+
+``` scala
+case class CompressedEntityValue(string: String)
+
+class CompressedEntityValueEncoder extends ZipEncoder[CompressedEntityValue] {
+    
+    protected def write(value: CompressedEntityValue, stream: DataOutputStream) = {
+        val bytes = value.string.getBytes
+        stream.writeInt(bytes.length)
+        stream.writeBytes(value.string)
+    }
+    protected def read(stream: DataInputStream) = {
+    	val size = stream.readInt 
+        val array = new Array[Byte](size)
+        stream.readFully(array)
+        val string = new String(array)
+        new CompressedEntityValue(string)
+    }
+}
+```
+
 ```
 ## CUSTOM SERIALIZERS ##
 Activate uses serialization as the last option to persist an entity attribute, if it is supported. It is possible to determine the serializer to be used by overriding the context default serializer:
