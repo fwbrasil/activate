@@ -6,6 +6,7 @@ import net.fwbrasil.activate.util.ManifestUtil._
 import net.fwbrasil.activate.util.RichList.toRichList
 import net.fwbrasil.activate.util.ThreadUtil._
 import java.util.concurrent.atomic.AtomicInteger
+import net.fwbrasil.activate.entity.BaseEntity
 
 @RunWith(classOf[JUnitRunner])
 class ConcurrencySpecs extends ActivateTest {
@@ -171,6 +172,31 @@ class ConcurrencySpecs extends ActivateTest {
                             all[ActivateTestEntity].isEmpty must beTrue
                         }
                     })
+            }
+
+            "concurrent database reload and initialization" in {
+                activateTest(
+                    (step: StepExecutor) =>
+                        if (step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
+                            import step.ctx._
+                            val entityId =
+                                step {
+                                    newEmptyActivateTestEntity.id
+                                }
+                            step {
+                                val entity = byId[ActivateTestEntity](entityId).get
+                                runWithThreads(threads) {
+                                    transactional {
+                                        entity.intValue === emptyIntValue
+                                    }
+                                    entity.reloadFromDatabase
+                                    transactional {
+                                        entity.intValue === emptyIntValue
+                                    }
+                                    entity.reloadFromDatabase
+                                }
+                            }
+                        })
             }
 
         }
