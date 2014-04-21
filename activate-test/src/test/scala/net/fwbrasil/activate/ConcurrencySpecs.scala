@@ -17,7 +17,7 @@ class ConcurrencySpecs extends ActivateTest {
             MultipleTransactionsWithReinitialize(ctx),
             MultipleTransactionsWithReinitializeAndSnapshot(ctx)).filter(_.accept(ctx))
 
-    val threads = if(isTravis) 5 else 50
+    val threads = if (isTravis) 5 else 50
 
     "Activate" should {
         "be consistent" in {
@@ -177,7 +177,8 @@ class ConcurrencySpecs extends ActivateTest {
             "concurrent database reload and initialization" in {
                 activateTest(
                     (step: StepExecutor) =>
-                        if (step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
+                        if (step.isInstanceOf[MultipleTransactionsWithReinitialize] &&
+                            !step.ctx.storage.isMemoryStorage) {
                             import step.ctx._
                             val entityId =
                                 step {
