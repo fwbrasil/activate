@@ -63,6 +63,7 @@ import net.fwbrasil.activate.statement.FunctionApply
 import net.fwbrasil.activate.statement.ToUpperCase
 import net.fwbrasil.activate.entity.StringEntityValue
 import net.fwbrasil.activate.statement.ToLowerCase
+import net.fwbrasil.activate.statement.ToUserFunction
 import com.google.common.collect.MapMaker
 import java.util.concurrent.ConcurrentMap
 import CacheType._
@@ -538,6 +539,8 @@ class LiveCache(
                 executeStatementSelectValue(value.value).asInstanceOf[String].toUpperCase()
             case value: ToLowerCase =>
                 executeStatementSelectValue(value.value).asInstanceOf[String].toLowerCase()
+            case ToUserFunction(fn, value) =>
+                fn.applyGeneric(executeStatementSelectValue(value))
         }
 
     def executeStatementSelectValue(value: StatementSelectValue)(implicit entitySourceInstancesMap: Map[EntitySource, BaseEntity]): Any =

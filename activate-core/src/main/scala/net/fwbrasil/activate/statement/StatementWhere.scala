@@ -22,6 +22,8 @@ case class SimpleStatementBooleanValue(value: Boolean)(implicit val tval: Boolea
 trait OperatorContext {
     import language.implicitConversions
 
+    type UserFunction[V, U] = OperatorContext.UserFunction[V, U]
+
     implicit def toAnd(value: StatementBooleanValue) = And(value)
     implicit def toOr(value: StatementBooleanValue) = Or(value)
     implicit def toIsEqualTo[V](value: V)(implicit tval1: (=> V) => StatementSelectValue) = IsEqualTo(value)
@@ -38,10 +40,28 @@ trait OperatorContext {
     
     def toUpperCase(value: String)(implicit tval1: (=> String) => StatementSelectValue) = ToUpperCase(value)
     def toLowerCase(value: String)(implicit tval1: (=> String) => StatementSelectValue) = ToLowerCase(value)
+
+    def toUserFunction[U, V](fn: UserFunction[U, V])(value: U)(implicit tval1: (=> U) => StatementSelectValue, tval2: (=> V) => StatementSelectValue) = ToUserFunction(fn, value)
 }
+
+object OperatorContext {
+    abstract class UserFunction[U, V] {
+      def apply(value: U): V
+      def toStorage(value: String): String
+
+      def applyGeneric(value: Any): V = apply(value.asInstanceOf[U])
+    }
+}
+
+import OperatorContext.UserFunction
 
 class SimpleOperator() extends Operator
 class CompositeOperator() extends Operator
+
+case class ToUserFunction(fn: UserFunction[_, _], value: StatementSelectValue) extends FunctionApply(value) {
+    override def toString = s"$fn($value)"
+    def entityValue = value.entityValue.value.map(fn.applyGeneric)
+}
 
 case class Matcher(valueA: StatementSelectValue) extends CompositeOperator {
     def like(valueB: => String)(implicit f: Option[String] => EntityValue[String]) =
@@ -75,7 +95,7 @@ case class ToUpperCase(value: StatementSelectValue) extends FunctionApply(value)
 
 case class ToLowerCase(value: StatementSelectValue) extends FunctionApply(value) {
     override def toString = s"toLowerCase($value)"
-    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toUpperCase)
+    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toLowerCase)
 }
 
 case class IsNotNull(valueA: StatementSelectValue) extends SimpleOperator {
