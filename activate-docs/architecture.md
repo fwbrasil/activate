@@ -60,8 +60,7 @@ The Activate enhance is very smooth. It does not difficult debug and supports co
 ## EXAMPLE SCENARIO ##
 An example on how Activate deals with two concurrent bank transactions using transactional units as entities fields. Observe that the transaction execution and retries are non-bloking.
 
-![slide-1-638.jpg](/docs/img/slide-1-638.jpg?cb=1353364238 slide-1-638.jpg)
-
+<a href="http://www.slideshare.net/fwbrasil/activate-stm-example-scenario" target="_blank">![slide-1-638.jpg](/docs/img/example_scenario.png)</a>
 
 ## TRANSACTIONAL CONTEXT ##
 The transaction methods and control structures are provided by the RadonSTM transactional context. It is the basis for the [ActivateContext](https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/ActivateContext.scala) and has two important structures:

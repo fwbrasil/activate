@@ -24,6 +24,10 @@ Activate provides a [Design by Contract (DbC)](http://en.wikipedia.org/wiki/Desi
 
 Activate queries are consistent, even with entities created in the current transaction, so a new entity can be returned in a query.
 
+## [Test support](/docs/test-support.md)
+
+The **activate-test** module provides an infrastructure to ease writing tests with Activate.
+
 ## [Migration](/docs/migration.md)
 
 Migration is the storage schema evolution mechanism provided by Activate.

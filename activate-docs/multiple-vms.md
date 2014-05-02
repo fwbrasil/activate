@@ -8,7 +8,6 @@ The propose of offline locking is to detect transaction conflicts at commit time
 
 For a detailed explanation of the offline locking internals, please refer to the [Architecture Documentation](http://activate-framework.org/documentation/architecture/#multiple_vms).
 
-
 ## CONFIGURATION ##
 There are two system properties to configure the offline locking:
 
@@ -24,11 +23,45 @@ There are two system properties to configure the offline locking:
 
 ``` scala
 class ExampleMigration extends Migration {
-def timestamp = 201208191834l
-def up = {
-table[MyEntity]
-.addColumn(
-_.column[Long]("version"))
+	def timestamp = 201208191834l
+	def up = {
+		table[MyEntity]
+			.addColumn(
+				_.column[Long]("version"))
+	}
 }
+```
+
+**IMPORTANT**: The read validation mechanism doesn't validate reads against the database if only immutable values are used (vals).
+
+## DEFERRED READ VALIDATION ##
+
+The deffered read validation allows to postpone the read validation.
+
+For each entity:
+
+``` scala
+import myPersistenceContext._
+import scala.concurrent.duration._
+
+class MyEntity extends Entity {
+	
+	override def shouldValidateRead =
+		deferFor(5 minutes)
+}
+```
+
+For any entity:
+
+``` scala
+import net.fwbrasil.activate.ActivateContext
+import scala.concurrent.duration._
+
+class myPersistenceContext extends ActivateContext {
+
+	val storage = ...
+	
+	override def shouldValidateRead(entity: BaseEntity) =
+		deferFor(5 minutes)
 }
 ```

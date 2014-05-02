@@ -55,6 +55,16 @@ Get all natural persons with the name “John” or mother name “Mary”.
 ``` scala
 select[NaturalPerson] where(person => (person.name :== "John") :|| (person.motherName :== "Mary"))
 ```
+## COLLECTION OPERATORS ##
+It is possible to query collections using the **in** and **notInt** operators. Examples:
+
+``` scala
+query {
+    (e: MyEntity) => where(e.age.in(List(40))) select (e)
+}
+
+select[MyEntity].where(_.age notIn List(20, 30))
+```
 ## MATCH OPERATORS ##
 Activate supports queries that matches strings by using the operators **like** and **regexp**.
 
