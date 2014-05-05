@@ -102,7 +102,7 @@ It is necessary to have in the classpath an id generator:
 ``` scala
 import net.fwbrasil.activate.entity.id.IdGenerator
 
-object myEntityIdGenerator extends IdGenerator[MyEntity] {
+class MoyEntityIdGenerator extends IdGenerator[MyEntity] {
 	def nextId = ...
 }
 ```
@@ -112,10 +112,10 @@ You need to provide a concrete implementation for the nextId method. There are t
 ``` scala
 import net.fwbrasil.activate.entity.id.SegmentedIdGenerator
 
-object myEntityIdGenerator 
+class MyEntityIdGenerator 
 		extends SegmentedIdGenerator[MyEntity](mySequence)
 
-object myEntityIdGenerator 
+class MyEntityIdGenerator 
 		extends SequencedIdGenerator[MyEntity](mySequence)
 ```
 
@@ -138,10 +138,10 @@ object mySequence extends Sequence[Int] {
 You can use the two built in sequence mechanisms:
 
 ``` scala
-object myEntityIdGenerator 
+class MyEntityIdGenerator 
 		extends SegmentedIdGenerator[MyEntity](LongSequenceEntity(name = "myEntitySequence", step = 10))
 
-object myEntityIdGenerator
+class MyEntityIdGenerator
 		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
 ```
 
@@ -167,7 +167,7 @@ import myPersistenceContext._
 class MyEntity 
 		extends EntityWithGeneratedID[Int]
 
-object myEntityIdGenerator 
+class MyEntityIdGenerator 
 		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
 ```
 
