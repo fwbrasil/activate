@@ -2,22 +2,22 @@
 
 ![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg)
 
-Documentation ([index](/docs/_index.md)):
+Documentation ([index](/activate-docs/_index.md)):
 
-- [Get started](/docs/get-started.md)
-- [Persistence Context](/docs/persistence-context.md)
-- [Entity](/docs/entity.md) 
-- [Transaction](/docs/transaction.md)
-- [Validation](/docs/validation.md)
-- [Query](/docs/query.md)
-- [Test support](/docs/test-support.md)
-- [Migration](/docs/migration.md)
-- [Multiple VMs](/docs/multiple-vms.md)
-- [Mass statement](/docs/mass-statement.md)
-- [Play framework](/docs/play-framework.md)
-- [Lift framework](/docs/lift-framework.md)
-- [Spray Json](/docs/spray-json.md)
-- [Architecture](/docs/architecture.md)
+- [Get started](/activate-docs/get-started.md)
+- [Persistence Context](/activate-docs/persistence-context.md)
+- [Entity](/activate-docs/entity.md) 
+- [Transaction](/activate-docs/transaction.md)
+- [Validation](/activate-docs/validation.md)
+- [Query](/activate-docs/query.md)
+- [Test support](/activate-docs/test-support.md)
+- [Migration](/activate-docs/migration.md)
+- [Multiple VMs](/activate-docs/multiple-vms.md)
+- [Mass statement](/activate-docs/mass-statement.md)
+- [Play framework](/activate-docs/play-framework.md)
+- [Lift framework](/activate-docs/lift-framework.md)
+- [Spray Json](/activate-docs/spray-json.md)
+- [Architecture](/activate-docs/architecture.md)
 
 ## Introduction
 
