@@ -18,12 +18,12 @@ object persistenceContext extends ActivateContext {
   val storage = StorageFactory.fromSystemProperties("myStorage")
 }
 
-inport persistenceContext._
+import persistenceContext._
 
 class Person(var name: String) extends Entity
 
 class CreatePersonTableMigration extends Migration {
-  def timestamp = Z012111616051
+  def timestamp = 2012111616051
   def up = {
     table[Person]
       .createTable(
