@@ -2,16 +2,16 @@
 
 ## 1.5
 
-- [custom ids](/docs/entity.md#custom-id)
-- [mysql async](/docs/persistence-context.md)
-- [reads without transaction](/docs/transaction.md#transaction)
-- [new play integration](/docs/play-framework.md#activateplaycontext)
-- [test support](/docs/test-support.md)
-- [deferred read validation](/docs/multiple-vms.md#deferred-read-validation)
-- [query collection operators (in/notInt)](/docs/query.md#collection-operators)
-- [custom classpath scan](/docs/persistence-context.md)
-- [persisted index](/docs/persistence-context.md#persisted-index)
-- [zip encoder](/docs/entity.md#custom-type-encoders)
+- [custom ids](/activate-docs/entity.md#custom-id)
+- [mysql async](/activate-docs/persistence-context.md)
+- [reads without transaction](/activate-docs/transaction.md#transaction)
+- [new play integration](/activate-docs/play-framework.md#activateplaycontext)
+- [test support](/activate-docs/test-support.md)
+- [deferred read validation](/activate-docs/multiple-vms.md#deferred-read-validation)
+- [query collection operators (in/notInt)](/activate-docs/query.md#collection-operators)
+- [custom classpath scan](/activate-docs/persistence-context.md)
+- [persisted index](/activate-docs/persistence-context.md#persisted-index)
+- [zip encoder](/activate-docs/entity.md#custom-type-encoders)
 - [bug fixes](https://github.com/fwbrasil/activate/issues?milestone=4&page=1&state=closed)
 
 ## 1.4
