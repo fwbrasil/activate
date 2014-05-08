@@ -2,6 +2,10 @@
 
 Activate is a framework to persist objects in Scala. It is a [STM](http://en.wikipedia.org/wiki/Software_transactional_memory) (Software Transactional Memory) distributed and durable with pluggable persistence. Its core is the [RadonSTM](https://github.com/fwbrasil/radon-stm), which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do optimistic concurrency control. The durability of transactions is pluggable and can use persistence in different paradigms such as relational (JDBC), prevalence (Prevayler) and non-relational (MongoDB). The framework also has support for polyglot persistence using distributed transactions.
 
+## Requirements
+
+Activate requires Java 7.
+
 ## Sample code
 
 ``` scala

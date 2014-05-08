@@ -35,7 +35,7 @@ object ActivateBuild extends Build {
     val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
     val mysql = "mysql" % "mysql-connector-java" % "5.1.28"
     val postgresql = "org.postgresql" % "postgresql" % "9.3-1100-jdbc4"
-    val hirakiCP = "com.zaxxer" % "HikariCP" % "1.2.9-patched" % "compile"
+    val hirakiCP = "com.zaxxer" % "HikariCP" % "1.3.8"
     val h2 = "com.h2database" % "h2" % "1.3.175"
     val derby = "org.apache.derby" % "derby" % "10.10.1.1"
     val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.1"
@@ -126,8 +126,8 @@ object ActivateBuild extends Build {
             )
         )
 
-    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.12"
-    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.12"
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.13"
+    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.13"
 
     lazy val activateJdbcAsync =
         Project(
@@ -266,7 +266,7 @@ object ActivateBuild extends Build {
             organization := "net.fwbrasil",
             version := "1.5-M6",
             scalaVersion := "2.10.3",
-            javacOptions ++= Seq("-source", "1.5", "-target", "1.5"),
+            javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
             publishMavenStyle := true,
             // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 
             // publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
