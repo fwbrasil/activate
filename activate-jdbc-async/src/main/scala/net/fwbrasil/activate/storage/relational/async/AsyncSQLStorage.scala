@@ -30,6 +30,7 @@ import net.fwbrasil.activate.storage.relational.StorageStatement
 import net.fwbrasil.activate.storage.relational.idiom.SqlIdiom
 import net.fwbrasil.radon.transaction.TransactionalExecutionContext
 import net.fwbrasil.activate.OptimisticOfflineLocking
+import com.github.mauricio.async.db.pool.AsyncObjectPool
 
 trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
 
@@ -40,7 +41,7 @@ trait AsyncSQLStorage[C <: Connection] extends RelationalStorage[Future[C]] {
     def charset = CharsetUtil.UTF_8
     def poolConfiguration = PoolConfiguration.Default
 
-    lazy val pool = new ConnectionPool(objectFactory, poolConfiguration, executionContext = executionContext)
+    lazy val pool: AsyncObjectPool[C] with Connection = new ConnectionPool(objectFactory, poolConfiguration, executionContext = executionContext)
 
     val queryLimit = 1000
     val dialect: SqlIdiom
