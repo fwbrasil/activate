@@ -75,7 +75,7 @@ case class ToUpperCase(value: StatementSelectValue) extends FunctionApply(value)
 
 case class ToLowerCase(value: StatementSelectValue) extends FunctionApply(value) {
     override def toString = s"toLowerCase($value)"
-    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toUpperCase)
+    def entityValue = value.entityValue.asInstanceOf[StringEntityValue].value.map(_.toLowerCase)
 }
 
 case class IsNotNull(valueA: StatementSelectValue) extends SimpleOperator {
