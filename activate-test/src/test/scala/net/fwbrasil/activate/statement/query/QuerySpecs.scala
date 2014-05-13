@@ -101,7 +101,7 @@ class QuerySpecs extends ActivateTest {
 
                         select[ActivateTestEntity].where(
                             _.entityValue isNull,
-                            _.charValue :== 'A' //, 
+                            _.charValue :== 'A' //,
                         //							_.enumerationValue isNull
                         ).headOption must beNone
                     }
@@ -181,6 +181,36 @@ class QuerySpecs extends ActivateTest {
                             (e: ActivateTestEntity) =>
                                 where((e.booleanValue isNotNull) :&& (e.stringValue isNotNull)) select (e)
                         }.size must beEqualTo(1)
+                    }
+                })
+        }
+
+        "support query with and, or, and parentheses" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    step {
+                        newFullActivateTestEntity
+                        newEmptyActivateTestEntity
+                    }
+                    step {
+                        query {
+                            // E.g. SELECT * from XYZ where a = true && (a = true OR a = false)
+                            // Equivalent to SELECT * from XYZ where a = true
+                            (e: ActivateTestEntity) => where(
+                                (e.booleanValue :== true) :&&
+                                ((e.booleanValue :== true) :|| (e.booleanValue :== false))
+                            ) select (e)
+                        }.size must beEqualTo(1)
+
+                        query {
+                            // E.g. SELECT * from XYZ where a = true && a = true OR a = false
+                            // Equivalent to SELECT * from XYZ where a = true OR a = false
+                            (e: ActivateTestEntity) => where(
+                                (e.booleanValue :== true) :&&
+                                (e.booleanValue :== true) :|| (e.booleanValue :== false)
+                            ) select (e)
+                        }.size must beEqualTo(3)
                     }
                 })
         }

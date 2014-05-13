@@ -333,7 +333,7 @@ trait QlIdiom {
     def toSqlDml(value: Criteria)(implicit binds: MutableMap[StorageValue, String]): String =
         value match {
             case value: BooleanOperatorCriteria =>
-                toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB)
+                "(" + toSqlDml(value.valueA) + toSqlDml(value.operator) + toSqlDml(value.valueB) + ")"
             case value: SimpleOperatorCriteria =>
                 toSqlDml(value.valueA) + toSqlDml(value.operator)
             case CompositeOperatorCriteria(valueA: StatementValue, operator: Matcher, valueB: StatementValue) =>
