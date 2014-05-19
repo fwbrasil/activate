@@ -45,7 +45,8 @@ class EntityMetadata(
         propertiesMetadata.find(_.name == "id").getOrElse(
             throw new IllegalStateException(
                 s"Can't find the entity 'id' property for $entityClass, probably the entity class was loaded before the persistence context. " +
-                    "Try to add a 'transactional{}' call on the application startup to force the persistence context load."))
+                    "Try to add a 'transactional{}' call on the application startup to force the persistence context load." + 
+                    "Please also make sure that there aren't instance variables or methods referencing entities inside the main class."))
     allMethods.foreach(_.setAccessible(true))
     allFields.foreach(_.setAccessible(true))
     lazy val sClass = sClassOf(entityClass)(runtimeMirror(entityClass.getClassLoader))
