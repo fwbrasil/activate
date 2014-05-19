@@ -642,7 +642,7 @@ class EntityByIntValue(val key: Int) extends PersistedIndexEntry[Int, ActivateTe
 
 ## JDBC
 
-To use jdbc, import the “**activate-jdbc**” component in your sbt or maven project.
+To use jdbc, import the “**activate-jdbc**” component in your sbt or maven project. Jdbc storages aren't schemaless, so it is necessary to provide [migrations](https://github.com/fwbrasil/activate/blob/master/activate-docs/migration.md) to create the entity tables.
 
 There are three [jdbc](http://en.wikipedia.org/wiki/JDBC) storage implementations inside package **net.fwbrasil.activate.storage.relational**:
 
