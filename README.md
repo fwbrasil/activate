@@ -1,5 +1,7 @@
 # Activate Persistence Framework
 
+https://codeship.io/projects/6791ccc0-c291-0131-1750-5afae8528f01/status
+
 ![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg)
 
 Documentation ([index](/activate-docs/_index.md)):
