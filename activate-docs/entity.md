@@ -151,11 +151,13 @@ Table LongSequenceEntity
 - id: String
 - name: String
 - value: Long
+- step: Int
 
 Table IntSequenceEntity
 - id: String
 - name: String
 - value: Int
+- step: Int
 
 ### EXAMPLES
 

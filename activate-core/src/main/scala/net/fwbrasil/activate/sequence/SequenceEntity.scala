@@ -54,9 +54,10 @@ class LongSequenceEntity private (
 object LongSequenceEntity {
     def apply(sequenceName: String, step: Int = 1)(implicit ctx: ActivateContext) = {
         import ctx._
-        select[LongSequenceEntity].where(_.name :== sequenceName).headOption.getOrElse {
-            new LongSequenceEntity(sequenceName, step)
+        transactional(requiresNew) {
+            select[LongSequenceEntity].where(_.name :== sequenceName).headOption.getOrElse {
+                new LongSequenceEntity(sequenceName, step)
+            }
         }
     }
 }
-
