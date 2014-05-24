@@ -92,7 +92,7 @@ Artifacts ids:
 - **activate-slick**
 - **activate-spray-json**
 
-Last version: **1.4.4**
+Last version: **1.5**
 
 Available scala versions: **2.10**
 
@@ -100,7 +100,7 @@ Available scala versions: **2.10**
 
 A easy way to start with Activate is to use the example project.
 
-Download [activate example project](https://github.com/fwbrasil/activate-example/zipball/v1.4.4).
+Download [activate example project](https://github.com/fwbrasil/activate-example/zipball/v1.5).
 
 Install the Simple Build Tool (SBT) following the [instructions](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html).
 
