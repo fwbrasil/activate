@@ -175,7 +175,7 @@ trait EntityIdContext {
             uuidGenerator.nextId(entityClass).asInstanceOf[E#ID]
         else
             nextIdOptionFor(entityClass)
-                .getOrElse(throw new IllegalStateException(s"Can't find a id generator for $entityClass."))
+                .getOrElse(throw new IllegalStateException(s"Can't find an id generator for $entityClass."))
 
     def idGeneratorFor[E <: BaseEntity](entityClass: Class[E]) =
         generatorsByConcreteEntityClass.get.get(entityClass.asInstanceOf[Class[BaseEntity]]).asInstanceOf[Option[IdGenerator[E]]]
