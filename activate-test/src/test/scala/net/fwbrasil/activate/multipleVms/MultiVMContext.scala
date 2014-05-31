@@ -5,6 +5,7 @@ import net.fwbrasil.activate.postgresqlContext
 import net.fwbrasil.activate.migration.ManualMigration
 import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.asyncMongoContext
+import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 trait MultiVMContext extends StoppableActivateContext {
 
@@ -22,7 +23,7 @@ trait MultiVMContext extends StoppableActivateContext {
                 .ifNotExists
     }
 
-    lazy val storage = postgresqlContext.storage
+    lazy val storage = asyncFinagleMysqlContext.storage
     
     versionMigration.execute
     

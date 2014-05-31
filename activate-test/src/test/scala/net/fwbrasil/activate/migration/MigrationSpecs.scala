@@ -16,12 +16,13 @@ import net.fwbrasil.activate.asyncMongoContext
 import net.fwbrasil.activate.asyncMysqlContext
 import net.fwbrasil.activate.derbyContext
 import net.fwbrasil.activate.entity.EntityHelper
+import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 @RunWith(classOf[JUnitRunner])
 class MigrationSpecs extends MigrationTest {
 
     override def contexts = super.contexts.filter(c =>
-        c != polyglotContext && c != asyncPostgresqlContext && c != asyncMongoContext && c != asyncMysqlContext && c != derbyContext)
+        c != polyglotContext && c != asyncPostgresqlContext && c != asyncMongoContext && c != asyncMysqlContext && c != derbyContext && c != asyncFinagleMysqlContext)
 
     "Migration" should {
 

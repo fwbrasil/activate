@@ -9,6 +9,7 @@ import net.fwbrasil.activate.OptimisticOfflineLocking
 import net.fwbrasil.activate.mysqlContext
 import scala.collection.immutable.HashMap
 import net.fwbrasil.activate.asyncMysqlContext
+import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 @RunWith(classOf[JUnitRunner])
 class EntitySpecs extends ActivateTest {
@@ -156,7 +157,7 @@ class EntitySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != mysqlContext && step.ctx != asyncMysqlContext) {
+                    if (step.ctx != mysqlContext && step.ctx != asyncMysqlContext && step.ctx != asyncFinagleMysqlContext) {
                         step {
                             val entity = newEmptyActivateTestEntity
                             entity.entityValue = entity
@@ -175,7 +176,7 @@ class EntitySpecs extends ActivateTest {
             activateTest(
                 (step: StepExecutor) => {
                     import step.ctx._
-                    if (step.ctx != mysqlContext && step.ctx != asyncMysqlContext) {
+                    if (step.ctx != mysqlContext && step.ctx != asyncMysqlContext && step.ctx != asyncFinagleMysqlContext) {
                         step {
                             val entity = newEmptyActivateTestEntity
                             entity.entityValue = entity
