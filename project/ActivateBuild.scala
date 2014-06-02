@@ -55,7 +55,7 @@ object ActivateBuild extends Build {
                 activateJdbc, activateMongo, activateTest, activatePlay,
                 activateGraph, activateSprayJson, activateJdbcAsync,
                 activateSlick, activateMongoAsync, activatePrevalent,
-                activateCassandraAsync, activateLift),
+                activateCassandraAsync, activateLift, activateFinagleMysql),
             settings = commonSettings
         )
 
@@ -137,6 +137,19 @@ object ActivateBuild extends Build {
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
                     Seq(postgresqlAsync, mysqlAsync)
+            )
+        )
+
+    val finagleMysql = "com.twitter" %% "finagle-mysql" % "6.16.0"
+
+    lazy val activateFinagleMysql =
+        Project(
+            id = "activate-finagle-mysql",
+            base = file("activate-finagle-mysql"),
+            dependencies = Seq(activateCore, activateJdbc),
+            settings = commonSettings ++ Seq(
+                libraryDependencies ++=
+                    Seq(finagleMysql)
             )
         )
 
@@ -240,7 +253,8 @@ object ActivateBuild extends Build {
             base = file("activate-test"),
             dependencies = Seq(activateCore, activatePrevayler % "test", activateJdbc % "test",
                 activateMongo % "test", activateGraph % "test", activateSprayJson % "test", activateJacksonJson % "test", activateJdbcAsync % "test",
-                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test"),
+                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test",
+                activateFinagleMysql % "test"),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
                     Seq(junit % "test", specs2 % "test", mysql % "test", objbd6 % "test", postgresql % "test", db2jcc % "test",
@@ -264,7 +278,7 @@ object ActivateBuild extends Build {
     def commonSettings =
         Defaults.defaultSettings ++ Seq(
             organization := "net.fwbrasil",
-            version := "1.5",
+            version := "1.6-SNAPSHOT",
             scalaVersion := "2.10.3",
             javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
             publishMavenStyle := true,

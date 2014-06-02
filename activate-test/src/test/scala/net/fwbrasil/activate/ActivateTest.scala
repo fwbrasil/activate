@@ -47,7 +47,7 @@ object ActivateTest {
             memory -> List(memoryContext),
             prevalent -> List(prevaylerContext, prevalentContext),
             mongo -> List(mongoContext, asyncMongoContext),
-            relational -> List(postgresqlContext, asyncPostgresqlContext, mysqlContext, asyncMysqlContext),
+            relational -> List(postgresqlContext, asyncPostgresqlContext, mysqlContext, asyncMysqlContext, asyncFinagleMysqlContext),
             relational_mem -> List(derbyContext, h2Context, hsqldbContext),
             proprietary -> List(oracleContext, db2Context, sqlServerContext),
             //            cassandra -> List(asyncCassandraContext),

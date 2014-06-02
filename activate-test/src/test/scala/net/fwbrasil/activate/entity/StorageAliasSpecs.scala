@@ -9,12 +9,13 @@ import net.fwbrasil.activate.ActivateTestContext
 import net.fwbrasil.activate.storage.mongo.MongoStorage
 import com.mongodb.BasicDBObject
 import net.fwbrasil.activate.polyglotContext
+import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 @RunWith(classOf[JUnitRunner])
 class StorageAliasSpecs extends ActivateTest {
 
     override def contexts =
-        super.contexts.filter(ctx => ctx != polyglotContext && !ctx.storage.isMemoryStorage && !ctx.storage.supportsAsync)
+        super.contexts.filter(ctx => ctx != polyglotContext && !ctx.storage.isMemoryStorage && !ctx.storage.supportsAsync && ctx != asyncFinagleMysqlContext)
 
     override def executors(ctx: ActivateTestContext) =
         super.executors(ctx).filter(!_.isInstanceOf[OneTransaction])
