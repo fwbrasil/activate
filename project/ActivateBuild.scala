@@ -278,7 +278,7 @@ object ActivateBuild extends Build {
     def commonSettings =
         Defaults.defaultSettings ++ Seq(
             organization := "net.fwbrasil",
-            version := "1.6-SNAPSHOT",
+            version := "1.5.1",
             scalaVersion := "2.10.3",
             javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
             publishMavenStyle := true,
