@@ -68,7 +68,7 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
             val constructor =
                 selected.onlyOne(
                     "There should be one and only one constructor available for the " +
-                        s"entity map values. \nCompatible constructors: $selected. \nAvailable constructors: constructors. \nEntity map values: $this")
+                        s"entity map values. \nCompatible constructors: $selected. \nAvailable $constructors: constructors. \nEntity map values: $this")
             val values =
                 constructor.parameters.map {
                     parameter =>
