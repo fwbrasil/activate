@@ -597,8 +597,9 @@ class LiveCache(
         for (entitySource <- from.entitySources) {
             val entities = fromCache(entitySource.entityClass)
             for (entity <- entities)
-                if ((!entity.isPersisted || entity.isDirty) &&
-                    !storageFor(entity.niceClass).isMemoryStorage)
+                if (!(entity.isPersisted || entity.isDirty) &&
+                    !storageFor(entity.niceClass).isMemoryStorage &&
+                    entity.vars.find(_.isCreating).isEmpty)
                     entity.initializeGraph
         }
         CollectionUtil.combine(entitySourceInstances(from.entitySources: _*))

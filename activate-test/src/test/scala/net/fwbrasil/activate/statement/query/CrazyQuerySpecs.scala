@@ -129,7 +129,7 @@ class CrazyQuerySpecs extends ActivateTest {
             "forced graph initialization by dirty entity" in {
                 activateTest(
                     (step: StepExecutor) => {
-                        if (!step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactionsWithReinitialize]) {
+                        if (!step.ctx.storage.isMemoryStorage && step.isInstanceOf[MultipleTransactions]) {
                             import step.ctx._
                             val entityId =
                                 step {
