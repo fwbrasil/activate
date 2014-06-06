@@ -14,6 +14,8 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import net.fwbrasil.activate.util.ConcurrentCache
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 trait StatementContext extends StatementValueContext with OperatorContext {
 
@@ -23,7 +25,22 @@ trait StatementContext extends StatementValueContext with OperatorContext {
     type Function = Any
     private val cache = new ConcurrentHashMap[(Class[_], Seq[Manifest[_]]), (List[Field], ConcurrentCache[(Function, Statement)])]()
 
+    private[activate] def asyncExecuteStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => Future[R], manifests: Manifest[_]*)(implicit ctx: ExecutionContext): Future[R] = {
+        val (statement, giveBack) = cachedStatement(f, produce, manifests: _*)
+        val result = execute(statement)
+        result.onComplete(_ => giveBack())
+        result
+    }
+
     private[activate] def executeStatementWithParseCache[S <: Statement, R](f: Function, produce: () => S, execute: (S) => R, manifests: Manifest[_]*): R = {
+        val (statement, giveBack) = cachedStatement(f, produce, manifests: _*)
+        try
+            execute(statement)
+        finally
+            giveBack()
+    }
+
+    private[activate] def cachedStatement[S <: Statement, R](f: Function, produce: () => S, manifests: Manifest[_]*) = {
         val (fields, stack) = {
             val key = (f.getClass.asInstanceOf[Class[Any]], manifests)
             var tuple = cache.get(key)
@@ -57,10 +74,9 @@ trait StatementContext extends StatementValueContext with OperatorContext {
                     }
                 (f, statement)
             }
-        try
-            execute(statement)
-        finally
-            stack.offer((function, statement))
+
+        val giveBack = () => stack.offer((function, statement))
+        (statement, giveBack)
     }
 
     protected def mockEntity[E <: BaseEntity: Manifest]: E =

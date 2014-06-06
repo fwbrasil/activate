@@ -20,8 +20,8 @@ env:
   - travis=true category=relational_mem
   - travis=true category=polyglot
 before_script:
-  - mysql -e "CREATE USER 'finagle'@'localhost' IDENTIFIED BY 'finagle';"
-  - mysql -e "GRANT ALL PRIVILEGES ON * . * TO 'finagle'@'localhost';"
+  - mysql -u root -e "CREATE USER 'finagle'@'localhost' IDENTIFIED BY 'finagle';"
+  - mysql -u root -e "GRANT ALL PRIVILEGES ON * . * TO 'finagle'@'localhost';"
   - mysql -e 'create database activate_test;'
   - mysql -e 'create database activate_test_finagle;'
   - mysql -e 'create database activate_test_async;'

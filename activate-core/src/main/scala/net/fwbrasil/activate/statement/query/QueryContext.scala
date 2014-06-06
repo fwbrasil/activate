@@ -312,7 +312,7 @@ trait QueryContext extends StatementContext
     def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
-            if (initialized) 
+            if (initialized)
                 asyncInitialize(entity)
             else
                 Future.successful(Some(entity))
@@ -324,20 +324,18 @@ trait QueryContext extends StatementContext
 
     private def asyncInitialize[T <: BaseEntity](entity: T)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] = {
         import texctx.ctx._
-        entity.synchronized {
-            if (!entity.isInitialized) {
-                asyncCacheMiss
-                entity.setInitializing
-                liveCache.asyncLoadFromDatabase(entity)
-                    .asInstanceOf[Future[Option[T]]]
-                    .map(_.map { entity =>
-                        entity.setInitialized
-                        entity
-                    })
-            } else {
-                asyncCacheHit
-                Future(Some(entity).filter(!_.isDeleted))
-            }
+        if (!entity.isInitialized) {
+            asyncCacheMiss
+            entity.setInitializing
+            liveCache.asyncLoadFromDatabase(entity)
+                .asInstanceOf[Future[Option[T]]]
+                .map(_.map { entity =>
+                    entity.setInitialized
+                    entity
+                })
+        } else {
+            asyncCacheHit
+            Future(Some(entity).filter(!_.isDeleted))
         }
     }
 
@@ -352,41 +350,41 @@ trait QueryContext extends StatementContext
     }
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
-            manifest[E1])
+            manifest[E1])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest](f: (E1, E2) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
             manifest[E1],
-            manifest[E2])
+            manifest[E2])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest](f: (E1, E2, E3) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
             manifest[E1],
             manifest[E2],
-            manifest[E3])
+            manifest[E3])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest](f: (E1, E2, E3, E4) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
             manifest[E1],
             manifest[E2],
             manifest[E3],
-            manifest[E4])
+            manifest[E4])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
@@ -394,10 +392,10 @@ trait QueryContext extends StatementContext
             manifest[E2],
             manifest[E3],
             manifest[E4],
-            manifest[E5])
+            manifest[E5])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
@@ -406,10 +404,10 @@ trait QueryContext extends StatementContext
             manifest[E3],
             manifest[E4],
             manifest[E5],
-            manifest[E6])
+            manifest[E6])(texctx)
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest, E2 <: BaseEntity: Manifest, E3 <: BaseEntity: Manifest, E4 <: BaseEntity: Manifest, E5 <: BaseEntity: Manifest, E6 <: BaseEntity: Manifest, E7 <: BaseEntity: Manifest](f: (E1, E2, E3, E4, E5, E6, E7) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =
-        executeStatementWithParseCache[Query[S], Future[List[S]]](
+        asyncExecuteStatementWithParseCache[Query[S], List[S]](
             f,
             () => produceQuery[S, E1, E2, E3, E4, E5, E6, E7, Query[S]](f),
             (query: Query[S]) => query.executeAsync,
@@ -419,7 +417,7 @@ trait QueryContext extends StatementContext
             manifest[E4],
             manifest[E5],
             manifest[E6],
-            manifest[E7])
+            manifest[E7])(texctx)
 
     private def treatResults[S](query: Query[S], normalized: List[Query[S]], results: List[List[Any]]): List[S] = {
         val orderedResuts =
