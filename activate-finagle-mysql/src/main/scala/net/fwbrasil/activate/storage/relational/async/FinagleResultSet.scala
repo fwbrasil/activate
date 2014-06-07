@@ -2,6 +2,9 @@ package net.fwbrasil.activate.storage.relational.async
 
 import java.sql.Timestamp
 
+import org.joda.time.DateTimeZone
+import org.joda.time.LocalDateTime
+
 import com.twitter.finagle.exp.mysql.BigDecimalValue
 import com.twitter.finagle.exp.mysql.ByteValue
 import com.twitter.finagle.exp.mysql.DoubleValue
@@ -13,8 +16,8 @@ import com.twitter.finagle.exp.mysql.NullValue
 import com.twitter.finagle.exp.mysql.RawValue
 import com.twitter.finagle.exp.mysql.ShortValue
 import com.twitter.finagle.exp.mysql.StringValue
+import com.twitter.finagle.exp.mysql.TimestampValue
 import com.twitter.finagle.exp.mysql.Value
-import com.twitter.finagle.exp.mysql.transport.BufferReader
 
 import net.fwbrasil.activate.storage.relational.idiom.ActivateResultSet
 
@@ -46,8 +49,8 @@ class FinagleResultSet(values: List[Value]) extends ActivateResultSet {
         }
     def getLong(i: Int) =
         valueCase(i) {
-            case RawValue(12, charset, isBinary, bytes) =>
-                BufferReader(bytes).readInt
+            case TimestampValue(timestamp) =>
+                new LocalDateTime(timestamp.getTime).toDateTime(DateTimeZone.UTC).getMillis / 1000
             case IntValue(value) => value
             case LongValue(value) => value
         }

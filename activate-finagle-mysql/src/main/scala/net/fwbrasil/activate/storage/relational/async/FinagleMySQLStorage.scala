@@ -190,7 +190,6 @@ trait FinagleMySQLStorage extends RelationalStorage[Client] {
         }
 
     private def loadList(rs: FinagleResultSet, i: Int, expectedType: ListStorageValue) = {
-        // TODO review. It should be async too!
         val split = rs.getString(i).getOrElse("0").split('|')
         val notEmptyFlag = split.head
         if (notEmptyFlag != "1")

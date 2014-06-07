@@ -248,6 +248,7 @@ trait DurableContext {
                 val entitiesRead =
                     vars.map(_.outerEntity)
                         .filter(_.shouldValidateRead)
+                        .filter(_.isInitialized)
                         .map(e => e.id -> e).toMap
                 val nestedTransaction = new NestedTransaction(transaction)
                 transactional(nestedTransaction) {
