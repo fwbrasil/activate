@@ -19,7 +19,7 @@ Examples:
 
 **PostgreSQL**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
@@ -37,7 +37,7 @@ object postgresqlContext extends ActivateContext {
 
 **MySQL**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
@@ -55,7 +55,7 @@ object mysqlContext extends ActivateContext {
 
 **Oracle**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.oracleDialect
@@ -73,7 +73,7 @@ object oracleContext extends ActivateContext {
 
 **H2**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.h2Dialect
@@ -91,7 +91,7 @@ object h2Context extends ActivateContext {
 
 **Derby**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.derbyDialect
@@ -109,7 +109,7 @@ object h2Context extends ActivateContext {
 
 **HsqlDB**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.hsqldbDialect
@@ -127,7 +127,7 @@ object h2Context extends ActivateContext {
 
 **DB2**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.db2Dialect
@@ -145,7 +145,7 @@ object db2Context extends ActivateContext {
 
 **SQL Server**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.relational.PooledJdbcRelationalStorage
 import net.fwbrasil.activate.storage.relational.idiom.sqlServerDialect
@@ -163,7 +163,7 @@ object sqlServerContext extends ActivateContext {
 
 **MongoDB**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.mongo.MongoStorage
  
@@ -179,7 +179,7 @@ object mongoContext extends ActivateContext {
 
 **Prevayler**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.prevayler.PrevaylerStorage
  
@@ -190,7 +190,7 @@ object prevaylerContext extends ActivateContext {
 
 **Prevalent**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.prevalent.PrevalentStorage
  
@@ -201,7 +201,7 @@ object prevalentContext extends ActivateContext {
 
 **Transient Memory**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.memory.TransientMemoryStorage
  
@@ -212,7 +212,7 @@ object memoryContext extends ActivateContext {
 
 **Async MongoDB**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.mongo.async.AsyncMongoStorage
  
@@ -228,7 +228,7 @@ object asyncMongoContext extends ActivateContext {
 
 **Async PostgreSQL**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
@@ -249,7 +249,7 @@ object asyncPostgreSQLContext extends ActivateContext {
 
 **Async MySQL**
 
-```
+```scala
 import net.fwbrasil.activate.ActivateContext
 import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
@@ -268,11 +268,40 @@ object asyncMySQLContext extends ActivateContext {
 }
 ```
 
-All storages implements a method called “**directAccess**” which provides direct access to the underlying database. Use this method carefully, if you modify the database content, the entities in memory could stay in an inconsistent state.
+**Async Finagle MySQL**
+
+```scala
+import net.fwbrasil.activate.ActivateContext
+import com.twitter.finagle.exp.MysqlClient
+import com.twitter.finagle.exp.MysqlStackClient
+import com.twitter.finagle.client.DefaultPool
+import com.twitter.util.TimeConversions.longToTimeableNumber
+import net.fwbrasil.activate.storage.relational.async.FinagleMySQLStorage
+ 
+object asyncFinagleMySQLContext extends ActivateContext {
+    lazy val storage = new FinagleMySQLStorage {
+        
+        val dbPoolConfig = DefaultPool.Param(
+            low = 10, 
+            high = 50, 
+            bufferSize = 0,
+            idleTime = 100 millis,
+            maxWaiters = 200)
+            
+         val client =
+            new MysqlClient(MysqlStackClient.configured(dbPoolConfig))
+                .withCredentials("user", "pass")
+                .withDatabase("db_name")
+                .newRichClient("host:port")
+    }
+}
+```
+
+All storages implement a method called “**directAccess**” which provides direct access to the underlying database. Use this method carefully, if you modify the database content, the entities in memory could stay in an inconsistent state.
 
 ## System properties
 
-It’s possible to define the storage based on system properties. For this context:
+It is possible to define the storage based on system properties. For this context:
 
 ```
 import net.fwbrasil.activate.ActivateContext
