@@ -350,10 +350,8 @@ class LiveCache(
     }
 
     def setEntityValues(entity: BaseEntity, values: Map[Var[Any], Any]): Unit = {
-        transactional(shadow) {
-            for ((ref, value) <- values)
-                ref.putValueWithoutInitialize(value)
-        }
+        for ((ref, value) <- values)
+            ref.setRefContent(Option(value))
         executePendingMassStatements(entity)
     }
 
