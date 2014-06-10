@@ -96,17 +96,21 @@ Last version: **1.5**
 
 Available scala versions: **2.10**
 
-# SBT Example
+# SBT dependency example
 
+```
 "net.fwbrasil" %% "activate-core" % "1.5"
+```
 
-# Maven Example
+# Maven dependency example
 
+```xml
 <dependency>
     <groupId>net.fwbrasil</groupId>
     <artifactId>activate-core_2.10</artifactId>
     <version>1.5</version>
 </dependency>
+```
 
 # Activate example project
 
