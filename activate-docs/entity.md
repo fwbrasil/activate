@@ -290,7 +290,7 @@ class CompressedEntityValueEncoder extends ZipEncoder[CompressedEntityValue] {
 }
 ```
 
-```
+
 ## CUSTOM SERIALIZERS ##
 Activate uses serialization as the last option to persist an entity attribute, if it is supported. It is possible to determine the serializer to be used by overriding the context default serializer:
 
