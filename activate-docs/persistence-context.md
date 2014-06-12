@@ -472,6 +472,20 @@ activate.storage.myContext.poolMaxObjects=4
 activate.storage.myContext.poolMaxIdle=10
 ```
 
+**Async Finagle MySQL**
+
+```
+activate.storage.myContext.factory=net.fwbrasil.activate.storage.relational.async.FinagleMySQLStorageFactory
+activate.storage.myContext.host=localhost:3306
+activate.storage.myContext.database=dbName
+activate.storage.myContext.user=USER
+activate.storage.myContext.password=PASS
+activate.storage.myContext.poolMaxQueueSize=10
+activate.storage.myContext.poolMaxObjects=4
+activate.storage.myContext.poolMinObjects=1
+activate.storage.myContext.poolMaxIdle=10
+```
+
 ## Custom cache configuration
 
 Activate has a cache called LiveCache that uses [soft references](http://docs.oracle.com/javase/7/docs/api/java/lang/ref/SoftReference.html) for the entities. They that are cleaned as soon the virtual machine needs memory. See the [Architecture](http://activate-framework.org/documentation/architecture/) documentation for more information. This behavior should be sufficient for most of the use cases, but there is a mechanism to customize the caching configuration.
