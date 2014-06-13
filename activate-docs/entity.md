@@ -23,7 +23,7 @@ The entity trait adds the following methods and values:
 
 - **val id: T**
 
-    Each entity must have a primary id field. It is possible to use automatic generated ids or define custom ids. See [entity id](/docs/entity.md#entity-id).
+    Each entity must have a primary id field. It is possible to use automatic generated ids or define custom ids. See [entity id](/activate-docs/entity.md#entity-id).
 
 - **def delete: Unit** 
 

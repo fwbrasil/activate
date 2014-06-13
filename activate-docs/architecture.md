@@ -13,11 +13,11 @@ The optimistic approach does not lock resources during transaction execution. At
 ## TRANSACTIONAL UNIT ##
 Lets take as an example a bank account entity:
 
-![account-entity-1](/docs/img/account-entity-1.png)
+![account-entity-1](/activate-docs/img/account-entity-1.png)
 
 As it is possible to observe, the balance variable has two parts: the identity (it is a balance) and a value (the balance value at certain time). Activate uses this two parts to create a indirection that permits each entity variable to be a STM transactional unit.
 
-![account-entity-2](/docs/img/account-entity-2.png)
+![account-entity-2](/activate-docs/img/account-entity-2.png)
 
 All the concurrency control is done in the identity. In the RadonSTM this transactional unit is called “Ref“. Activate specializes this type with the class “Var“.
 
@@ -60,7 +60,7 @@ The Activate enhance is very smooth. It does not difficult debug and supports co
 ## EXAMPLE SCENARIO ##
 An example on how Activate deals with two concurrent bank transactions using transactional units as entities fields. Observe that the transaction execution and retries are non-bloking.
 
-<a href="http://www.slideshare.net/fwbrasil/activate-stm-example-scenario" target="_blank">![slide-1-638.jpg](/docs/img/example_scenario.png)</a>
+<a href="http://www.slideshare.net/fwbrasil/activate-stm-example-scenario" target="_blank">![slide-1-638.jpg](/activate-docs/img/example_scenario.png)</a>
 
 ## TRANSACTIONAL CONTEXT ##
 The transaction methods and control structures are provided by the RadonSTM transactional context. It is the basis for the [ActivateContext](https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/ActivateContext.scala) and has two important structures:

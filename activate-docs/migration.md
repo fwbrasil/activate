@@ -388,4 +388,4 @@ removeReferencesForAllEntities
     .ifExists
 ```
 
-[< Query]("/docs/query") | [Multiple VMs >]("/docs/multiple-vms")
+[< Query]("/activate-docs/query") | [Multiple VMs >]("/activate-docs/multiple-vms")
