@@ -26,7 +26,7 @@ object FinagleMySQLStorageFactory extends StorageFactory {
                 config = config.copy(high = value.toInt)
             }
             getProperty("poolMinObjects").map { value =>
-                config = config.copy(high = value.toInt)
+                config = config.copy(low = value.toInt)
             }
             getProperty("poolMaxIdle").map { value =>
                 config = config.copy(idleTime = value.toLong millis)
