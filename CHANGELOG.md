@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6
+
+- [finagle mysql](/activate-docs/persistence-context.md)
+
 ## 1.5
 
 - [custom ids](/activate-docs/entity.md#custom-id)
