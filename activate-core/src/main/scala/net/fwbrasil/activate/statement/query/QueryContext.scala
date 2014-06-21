@@ -346,7 +346,7 @@ trait QueryContext extends StatementContext
         val future =
             normalizedQueries.foldLeft(Future(List[List[Any]]()))(
                 (future, query) => future.flatMap(list => liveCache.executeQueryAsync(query)(texctx).map(list ++ _)))
-        future.map(treatResults(query, normalizedQueries, _))
+        future.map(treatResults(query, normalizedQueries, _))(texctx)
     }
 
     def asyncQuery[S, E1 <: BaseEntity: Manifest](f: (E1) => Query[S])(implicit texctx: TransactionalExecutionContext): Future[List[S]] =

@@ -40,9 +40,6 @@ object AsyncMySQLStorageFactory extends StorageFactory {
             }
             config
         }
-        
-        override def await[R](future: Future[R]) =
-            throw new IllegalStateException("Don't block!")
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new AsyncMySQLStorageFromFactory(getProperty)

@@ -38,6 +38,28 @@ class AsyncQuerySpecs extends ActivateTest {
                     }
                 })
         }
+        
+        "perform simple query with eager loading" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    import step.ctx._
+                    val entityId =
+                        step {
+                            newEmptyActivateTestEntity.id
+                        }
+                    step {
+                        val future =
+                            asyncTransactionalChain {
+                                implicit ctx =>
+                                    asyncQuery {
+                                        (e: ActivateTestEntity) => where(e.id isNotNull) select (e.eager)
+                                    }
+                            }
+                        val result = Await.result(future, Duration.Inf)
+                        result.map(_.id) === List(entityId)
+                    }
+                })
+        }
 
         "support asyncById query" in {
             activateTest(
