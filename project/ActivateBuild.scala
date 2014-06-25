@@ -164,7 +164,7 @@ object ActivateBuild extends Build {
             )
         )
 
-    val reactivemongo = "org.reactivemongo" %% "reactivemongo" % "0.10.0"
+    val reactivemongo = "org.reactivemongo" %% "reactivemongo" % "0.10.5.akka23-SNAPSHOT"
 
     lazy val activateMongoAsync =
         Project(
@@ -271,7 +271,7 @@ object ActivateBuild extends Build {
         "fwbrasil.net" at "http://fwbrasil.net/maven/",
         "spray" at "http://repo.spray.io/",
         "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/",
-        "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
+        "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
         "Alfesco" at "https://maven.alfresco.com/nexus/content/groups/public/"
     )
 

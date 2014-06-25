@@ -163,33 +163,38 @@ object mongoIdiom {
         }
 
     def getStorageValue(obj: Any, storageValue: StorageValue, fromDBList: Any => List[Any]): StorageValue = {
-        def getValue[T] = Option(obj.asInstanceOf[T])
-        storageValue match {
-            case value: IntStorageValue =>
-                IntStorageValue(getValue[Int])
-            case value: LongStorageValue =>
-                LongStorageValue(getValue[Long])
-            case value: BooleanStorageValue =>
-                BooleanStorageValue(getValue[Boolean])
-            case value: StringStorageValue =>
-                StringStorageValue(getValue[String])
-            case value: FloatStorageValue =>
-                FloatStorageValue(getValue[Double].map(_.floatValue))
-            case value: DateStorageValue =>
-                DateStorageValue(getValue[Date])
-            case value: DoubleStorageValue =>
-                DoubleStorageValue(getValue[Double])
-            case value: BigDecimalStorageValue =>
-                BigDecimalStorageValue(getValue[Double].map(BigDecimal(_)))
-            case value: ListStorageValue =>
+        (obj, storageValue) match {
+            case (obj: Int, value: IntStorageValue) =>
+                IntStorageValue(Option(obj))
+            case (obj: Double, value: IntStorageValue) =>
+                IntStorageValue(Option(obj).map(_.toInt))
+            case (obj: Long, value: LongStorageValue) =>
+                LongStorageValue(Option(obj))
+            case (obj: Double, value: LongStorageValue) =>
+                LongStorageValue(Option(obj).map(_.toLong))
+            case (obj: Boolean, value: BooleanStorageValue) =>
+                BooleanStorageValue(Option(obj))
+            case (obj: String, value: StringStorageValue) =>
+                StringStorageValue(Option(obj))
+            case (obj: Double, value: FloatStorageValue) =>
+                FloatStorageValue(Option(obj).map(_.floatValue))
+            case (obj: Date, value: DateStorageValue) =>
+                DateStorageValue(Option(obj))
+            case (obj: Double, value: DoubleStorageValue) =>
+                DoubleStorageValue(Option(obj))
+            case (obj: Double, value: BigDecimalStorageValue) =>
+                BigDecimalStorageValue(Option(obj).map(BigDecimal(_)))
+            case (obj: Any, value: ListStorageValue) =>
                 val listOption = Option(obj).map(fromDBList)
                 ListStorageValue(listOption.map { dbList =>
                     dbList.map(elem => getStorageValue(elem, value.emptyStorageValue, fromDBList)).toList
                 }, value.emptyStorageValue)
-            case value: ByteArrayStorageValue =>
-                ByteArrayStorageValue(getValue[Array[Byte]])
-            case value: ReferenceStorageValue =>
+            case (obj: Array[Byte], value: ByteArrayStorageValue) =>
+                ByteArrayStorageValue(Option(obj))
+            case (obj: Any, value: ReferenceStorageValue) =>
                 ReferenceStorageValue(getStorageValue(obj, value.value, fromDBList).asInstanceOf[StorageOptionalValue])
+            case other =>
+                throw new IllegalStateException(s"Can't decode: $other")
         }
     }
 

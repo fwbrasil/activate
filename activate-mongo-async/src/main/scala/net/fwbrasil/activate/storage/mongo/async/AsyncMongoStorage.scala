@@ -62,6 +62,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     val port: Int = 27017
     val db: String
     val authentication: Option[(String, String)] = None
+    val maxConnections = 10
 
     def directAccess =
         mongoDB
@@ -71,7 +72,7 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
     override def delayedInit(body: => Unit) = {
         body
         val driver = new MongoDriver
-        val conn = driver.connection(List(host + ":" + port))
+        val conn = driver.connection(List(host + ":" + port), nbChannelsPerNode = maxConnections)
         if (authentication.isDefined) {
             val (user, password) = authentication.get
             await(conn.authenticate(db, user, password))
@@ -232,9 +233,9 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
                 cursor.collect[List](q.limit)
             case other =>
                 cursor.collect[List]()
-        } 
+        }
     }
-        
+
     private def storeStatements(statements: List[MassModificationStatement])(implicit ctx: ExecutionContext) =
         statements.foldLeft(Future()) { (future, statement) =>
             future.flatMap { _ =>
@@ -255,11 +256,6 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
             insertMap.keys.toList.foldLeft(Future()) { (future, entityClass) =>
                 future.flatMap { _ =>
                     val inserts = insertMap(entityClass).toList.map(dbObject(_))
-                    //                    inserts.foldLeft(Future()) { (future, insert) =>
-                    //                    	future.flatMap { _ =>
-                    //                    	    coll(entityClass).insert(insert).map { _ =>}
-                    //                    	}
-                    //                    }
                     val enumerator = Enumerator(inserts: _*)
                     coll(entityClass).bulkInsert(enumerator).map { _ => }
                 }
@@ -393,6 +389,7 @@ object AsyncMongoStorageFactory extends StorageFactory {
         override val db = getProperty("db").get
         override val authentication =
             getProperty("user").map(user => (user, getProperty("password").get))
+        override val maxConnections = getProperty("poolMaxObjects").map(_.toInt).getOrElse(10)
     }
     override def buildStorage(getProperty: String => Option[String])(implicit context: ActivateContext): Storage[_] =
         new AsyncMongoStorageFromFactory(getProperty)

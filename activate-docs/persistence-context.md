@@ -222,6 +222,7 @@ object asyncMongoContext extends ActivateContext {
         override val port = 27017
         val db = "dbName"
         override val authentication = Option("USER", "PASS")
+        override val maxConnections = 10
     }
 }
 ```
@@ -444,6 +445,7 @@ activate.storage.myContext.port=27017
 activate.storage.myContext.db=dbName
 activate.storage.myContext.user=USER
 activate.storage.myContext.password=PASS
+activate.storage.myContext.poolMaxObjects=10
 ```
 
 **Async PostgreSQL**

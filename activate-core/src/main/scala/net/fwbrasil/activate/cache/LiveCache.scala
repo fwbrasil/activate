@@ -263,6 +263,8 @@ class LiveCache(
                 entityId.intern.synchronized(f)
             case entityId: Long =>
                 entityId.toString.intern.synchronized(f)
+            case entityId: Integer =>
+                entityId.toString.intern.synchronized(f)
             case entityId =>
                 entityId.synchronized(f)
         }
@@ -318,7 +320,7 @@ class LiveCache(
 
     def initializeEntityIfNecessary[E <: BaseEntity: Manifest](values: Map[String, Any]) = {
         val id = values("id").asInstanceOf[E#ID]
-        val entity = context.byId[E](id).get
+        val entity = context.byId[E](id, initialized = false).get
         entity.synchronized {
             if (!entity.isInitialized) {
                 val map = values.map(tuple => (entity.varNamed(tuple._1), tuple._2)).toMap
