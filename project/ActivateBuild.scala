@@ -4,7 +4,7 @@ import Keys._
 object ActivateBuild extends Build {
 
     /* Core dependencies */
-    val javassist = "org.javassist" % "javassist" % "3.18.1-GA"
+    val javassist = "org.javassist" % "javassist" % "3.18.2-GA"
     val radonStm = "net.fwbrasil" %% "radon-stm" % "1.6"
     val smirror = "net.fwbrasil" %% "smirror" % "0.8"
     val guava = "com.google.guava" % "guava" % "16.0"

@@ -180,8 +180,7 @@ object EntityEnhancer extends Logging {
 
     private def materializeClasses(resolved: List[CtClass]) = {
         import ActivateContext.classLoaderFor
-        for (enhancedEntityClass <- resolved) yield 
-        enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[BaseEntity]]
+        for (enhancedEntityClass <- resolved) yield enhancedEntityClass.toClass(classLoaderFor(enhancedEntityClass.getName), this.getClass.getProtectionDomain).asInstanceOf[Class[BaseEntity]]
     }
 
     private def getClasses(names: Set[String]) =
@@ -247,16 +246,13 @@ object EntityEnhancer extends Logging {
                 override def edit(fa: FieldAccess) = {
                     val isWriter = fa.isWriter
                     val isBeforeSuperCall = fa.indexOfBytecode < superCallIndex
-                    val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
-                    if (isWriter && isEnhancedField && isBeforeSuperCall && isPrimaryConstructor) {
-                        fields += fa.getField
-                        fa.replace("")
-                    } else {
-                        val isEnhancedField = enhancedFieldsMap.contains(fa.getField)
-                        if (isEnhancedField) {
-                            val (originalField, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-                            enhanceFieldAccess(fa, originalField, optionFlag)
-                        }
+                    enhancedFieldsMap.find(_._1.getName == fa.getFieldName).map {
+                        case (newField, (originalField, optionFlag)) =>
+                            if (isWriter && isBeforeSuperCall && isPrimaryConstructor) {
+                                fields += newField
+                                fa.replace("")
+                            } else
+                                enhanceFieldAccess(fa, originalField, optionFlag)
                     }
                 }
             })
@@ -296,20 +292,12 @@ object EntityEnhancer extends Logging {
             new ExprEditor {
                 override def edit(fa: FieldAccess) = {
                     if (!fa.where.isInstanceOf[CtConstructor]) {
-                        val field =
-                            try {
-                                fa.getField
-                            } catch {
-                                case e: javassist.NotFoundException =>
-                                    null
-                            }
-                        if (field != null && enhancedFieldsMap.contains(field)) {
-                            val (originalField, optionFlag) = enhancedFieldsMap.get(fa.getField).get
-                            enhanceFieldAccess(fa, originalField, optionFlag)
+                        enhancedFieldsMap.find(_._1.getName == fa.getFieldName).map {
+                            case (newField, (originalField, optionFlag)) =>
+                                enhanceFieldAccess(fa, originalField, optionFlag)
                         }
                     }
                 }
-
             })
     }
 
