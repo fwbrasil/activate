@@ -77,8 +77,27 @@ def invariantNameMustNotBeEmpty =
 ```
 If a pre-condition is violated, Activate throws an InvariantViolationException.
 
+### AUXILIARY METHODS
+
+- **email** pattern
+
+`protected def email(string: => String)`
+
+- **not empty**
+
+`protected def notEmpty[T](iterable: => Iterable[T])`
+
+- **not null**
+
+`protected def notNull(obj: => Any)`
+
+- **unique**
+
+`protected def unique(criterias: (this.type => Any)*)(implicit m: Manifest[this.type])`
+
 
 ## INVARIANTS LIFECYCLE ##
+
 It’s possible to define validation options globally, by transaction, by thread or by entity instance. The available options are:
 
 - **onCreate**
