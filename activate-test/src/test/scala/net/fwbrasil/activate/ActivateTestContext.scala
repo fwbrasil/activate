@@ -61,6 +61,7 @@ import com.twitter.finagle.exp.MysqlClient
 import com.twitter.finagle.exp.MysqlStackClient
 import com.twitter.finagle.client.DefaultPool
 import com.twitter.util.Duration
+import net.fwbrasil.activate.entity.EntityWithCustomID
 
 case class DummySeriablizable(val string: String)
 
@@ -665,7 +666,7 @@ trait ActivateTestContext
     class Supplier(var name: String, var city: String) extends Entity
     class Coffee(var name: String, var supplier: Supplier, var price: Double) extends Entity
 
-    class SimpleEntity(@Alias(value = "intValue", jsonName = "jsonIntValue") var intValue: Int) extends Entity
+    class SimpleEntity(val id: Int, @Alias(value = "intValue", jsonName = "jsonIntValue") var intValue: Int) extends EntityWithCustomID[Int]
 
     trait TraitAttribute extends Entity {
         var attribute: String

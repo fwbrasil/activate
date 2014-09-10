@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.json.spray
 
+import net.fwbrasil.activate.util.RichList._
 import net.fwbrasil.activate.util.Reflection._
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.entity.SerializableEntityValue
@@ -38,6 +39,8 @@ import net.fwbrasil.activate.json.JsonContext
 import net.fwbrasil.activate.entity.EntityInstanceEntityValue
 import net.fwbrasil.activate.entity.id.EntityId
 import net.fwbrasil.activate.entity.Encoder
+import net.fwbrasil.activate.entity.EntityWithCustomID
+import net.fwbrasil.activate.OptimisticOfflineLocking
 
 trait SprayJsonContext extends JsonContext[JsObject] {
     val jsonCharset = Charset.defaultCharset
@@ -190,14 +193,13 @@ trait SprayJsonContext extends JsonContext[JsObject] {
         val entityMetadata =
             EntityHelper.metadatas.find(_.entityClass == entityClass).get
         val propMetadataMap =
-            entityMetadata.propertiesMetadata.mapBy(_.name)
-        for ((name, jdValue) <- fields if (name != "id")) {
+            entityMetadata.propertiesMetadata.mapBy(_.jsonName)
+        for ((name, jsValue) <- fields if (name != "id" && name != OptimisticOfflineLocking.versionVarName)) {
             val property = propMetadataMap(name)
-            val ref = entity.varNamed(name)
+            val ref = entity.vars.filter(_.metadata.jsonName == name).onlyOne(s"Can't find entity field $name")
             val entityValue = ref.toEntityPropertyValue(None)
-            val value = fromJsValue(jdValue, entityValue)
-            val propertyMetadata = propMetadataMap(name)
-            if (propertyMetadata.isOption)
+            val value = fromJsValue(jsValue, entityValue)
+            if (property.isOption)
                 ref.put(Option(value))
             else
                 ref.putValue(value)
@@ -210,7 +212,12 @@ trait SprayJsonContext extends JsonContext[JsObject] {
 
     def createEntityFromJson[E <: BaseEntity: Manifest](json: JsObject): E = {
         val entityClass = erasureOf[E]
-        val id = context.nextIdFor(entityClass)
+        val id =
+            if (classOf[EntityWithCustomID[_]].isAssignableFrom(entityClass)) {
+                val id = json.getFields("id").headOption.getOrElse(throw new IllegalStateException("Can't find the entity id."))
+                entityId(id, entityClass).asInstanceOf[BaseEntity#ID]
+            }else
+                context.nextIdFor(entityClass)
         val entity = context.liveCache.createLazyEntity(entityClass, id)
         entity.setInitialized
         entity.setNotPersisted

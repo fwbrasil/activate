@@ -272,19 +272,34 @@ class SprayJsonSpecs extends ActivateTest {
                 })
         }
         "support custom json fild name" in {
-            activateTest(
-                (step: StepExecutor) => {
-                    import step.ctx._
-                    step {
-                        object SprayJsonContext extends SprayJsonContext {
-                            val context = step.ctx
+            "serialization" in
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            object SprayJsonContext extends SprayJsonContext {
+                                val context = step.ctx
+                            }
+                            import SprayJsonContext._
+                            val entity = new SimpleEntity(222, 1)
+                            entity.toJsonString(includeFields = List("jsonIntValue")) === """{"jsonIntValue":1}"""
+                            entity.toJsonString(excludeFields = List("id")) === """{"jsonIntValue":1}"""
                         }
-                        import SprayJsonContext._
-                        val entity = new SimpleEntity(1)
-                        entity.toJsonString(includeFields = List("jsonIntValue")) === """{"jsonIntValue":1}"""
-                        entity.toJsonString(excludeFields = List("id")) === """{"jsonIntValue":1}"""
-                    }
-                })
+                    })
+            "deserialization" in
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        step {
+                            object SprayJsonContext extends SprayJsonContext {
+                                val context = step.ctx
+                            }
+                            import SprayJsonContext._
+                            val entity = createEntityFromJson[SimpleEntity]("""{"id": 444, "jsonIntValue":1}""")
+                            entity.id === 444
+                            entity.intValue = 1
+                        }
+                    })
         }
     }
 
