@@ -39,7 +39,7 @@ class EntityForm[T <: BaseEntity](
     implicit val entityMetadata = EntityHelper.getEntityMetadata(erasureOf[T])
 
     def fillWith(entityMap: EntityMapBase[T, _]) =
-        new EntityForm[T](mapping, mapping.unbind(new MutableEntityMap(entityMap.values))._1)
+        new EntityForm[T](mapping, mapping.unbind(new MutableEntityMap(entityMap.values)))
 
     def fillWith(entity: T): EntityForm[T] =
         fillWith(new MutableEntityMap(entity))
@@ -102,11 +102,21 @@ case class EntityMapping[T <: BaseEntity](
         }
     }
 
-    def unbind(value: MutableEntityMap[T]) = {
+    def unbind(value: MutableEntityMap[T]): Map[String,String] = {
+      val data = value.values
+      val res =
+        (for ((key, value) <- data)
+        yield properties.find(_.key == key).map(_.asInstanceOf[Mapping[Any]].unbind(value))).flatten
+      res.foldLeft(
+        Map[String, String]())(
+          (t1, t2) => (t1 ++ t2))
+    }
+
+    def unbindAndValidate(value: MutableEntityMap[T]) = {
         val data = value.values
         val res =
             (for ((key, value) <- data)
-                yield properties.find(_.key == key).map(_.asInstanceOf[Mapping[Any]].unbind(value))).flatten
+                yield properties.find(_.key == key).map(_.asInstanceOf[Mapping[Any]].unbindAndValidate(value))).flatten
         res.foldLeft(
             (Map[String, String](), Seq[FormError]()))(
                 (t1, t2) => (t1._1 ++ t2._1, t1._2 ++ t2._2))

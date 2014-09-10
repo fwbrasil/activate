@@ -188,8 +188,8 @@ object ActivateBuild extends Build {
             )
         )
 
-    val play = "com.typesafe.play" %% "play" % "2.2.1"
-    val playTest = "com.typesafe.play" %% "play-test" % "2.2.1"
+    val play = "com.typesafe.play" %% "play" % "2.3.2"
+    val playTest = "com.typesafe.play" %% "play-test" % "2.3.2"
 
     lazy val activatePlay =
         Project(
