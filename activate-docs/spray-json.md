@@ -63,3 +63,13 @@ def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: String): E
 def createOrUpdateEntityFromJson[E <: Entity : Manifest](json: JsObject): E
 ```
 If the json has an id, the entity is updated. Otherwise, a new entity is created.
+
+## Field alias ##
+
+The @Alias annotation allows to define the "jsonName" to be used during the field serialization.
+
+Example:
+
+```scala
+class Person(@Alias(value = "PERSON_NAME", jsonName = "name") name: String) extends Entity
+```
