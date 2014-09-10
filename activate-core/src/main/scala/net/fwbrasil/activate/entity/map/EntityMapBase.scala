@@ -15,6 +15,8 @@ import net.fwbrasil.smirror.SConstructor
 import net.fwbrasil.smirror.SClass
 import net.fwbrasil.activate.entity.EntityPropertyMetadata
 import net.fwbrasil.activate.OptimisticOfflineLocking
+import net.fwbrasil.activate.entity.EntityWithCustomID
+import net.fwbrasil.activate.entity.id.EntityId
 
 trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
 
@@ -82,7 +84,11 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
 
     def createEntity =
         context.transactional(context.nested) {
-            val id = context.nextIdFor(entityClass)
+            val id =
+                if (classOf[EntityWithCustomID[_]].isAssignableFrom(entityClass))
+                    get(_.id).getOrElse(throw new IllegalStateException("Can't find id."))
+                else
+                    context.nextIdFor(entityClass)
             val entity = context.liveCache.createLazyEntity(entityClass, id)
             entity.setInitialized
             entity.setNotPersisted
@@ -165,7 +171,6 @@ trait EntityMapBase[E <: BaseEntity, T <: EntityMapBase[E, T]] {
             classOf[java.lang.Boolean]
         else
             clazz
-
 }
 
 trait EntityMapContext {

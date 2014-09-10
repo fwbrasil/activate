@@ -311,6 +311,42 @@ class EntityMapSpecs extends ActivateTest {
             }
         }
 
+        "support entities with custom id" in {
+
+            "create" in
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val map = step {
+                            new EntityMap[SimpleEntity]
+                                .put(_.id)(333)
+                                .put(_.intValue)(4444)
+                        }
+                        step {
+                            val entity = map.createEntity
+                            entity.id === 333
+                            entity.intValue = 444
+                        }
+                    })
+
+            "update" in
+                activateTest(
+                    (step: StepExecutor) => {
+                        import step.ctx._
+                        val map = step {
+                            new EntityMap[SimpleEntity]
+                                .put(_.id)(333)
+                                .put(_.intValue)(444)
+                        }
+                        step {
+                            val entity = new SimpleEntity(333, 555)
+                            map.updateEntity(entity)
+                            entity.id === 333
+                            entity.intValue = 555
+                        }
+                    })
+        }
+
         "recover entity" in {
 
             "existing" in {
