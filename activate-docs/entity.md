@@ -139,10 +139,10 @@ You can use the two built in sequence mechanisms:
 
 ``` scala
 class MyEntityIdGenerator 
-		extends SegmentedIdGenerator[MyEntity](LongSequenceEntity(name = "myEntitySequence", step = 10))
+		extends SegmentedIdGenerator[MyEntity](LongSequenceEntity(sequenceName = "myEntitySequence", step = 10))
 
 class MyEntityIdGenerator
-		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
+		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(sequenceName = "myEntitySequence", step = 10))
 ```
 
 To use these sequences, it is necessary to create tables for the respective entities:
@@ -170,7 +170,7 @@ class MyEntity
 		extends EntityWithGeneratedID[Int]
 
 class MyEntityIdGenerator 
-		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(name = "myEntitySequence", step = 10))
+		extends SegmentedIdGenerator[MyEntity](IntSequenceEntity(sequenceName = "myEntitySequence", step = 10))
 ```
 
 A more complex example:
