@@ -35,7 +35,7 @@ class Query[S](override val from: From, override val where: Where, val select: S
     def context =
         (for (src <- from.entitySources)
             yield ActivateContext.contextFor(src.entityClass))
-            .toSet.onlyOne("All query entities sources must be from the same context.")
+            .distinct.onlyOne("All query entities sources must be from the same context.")
 
     private[activate] def orderByClause: Option[OrderBy] = None
 

@@ -52,10 +52,10 @@ class SlickQuerySpecs extends ActivateTest {
                         new Coffee("French_Roast_Decaf", sup2, 9.99)
                     }
 
-                    def testCompare[T](slick: Query[_, _], activate: List[_]) =
+                    def testCompare[T](slick: Query[_, _, Seq], activate: List[_]) =
                         slick.execute === activate
 
-                    def testCompareSet(slick: Query[_, _], activate: List[_]) =
+                    def testCompareSet(slick: Query[_, _, Seq], activate: List[_]) =
                         slick.execute.toSet === activate.toSet
 
                     step {

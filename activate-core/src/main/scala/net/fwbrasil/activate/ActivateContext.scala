@@ -34,18 +34,18 @@ import net.fwbrasil.activate.entity.BaseEntity
 import net.fwbrasil.activate.entity.id.EntityId
 
 trait ActivateContext
-        extends EntityContext
-        with QueryContext
-        with MassUpdateContext
-        with MassDeleteContext
-        with NamedSingletonSerializable
-        with Logging
-        with DelayedInit
-        with DurableContext
-        with StatementsContext
-        with SerializationContext
-        with MigrationContext
-        with ActivateIndexContext {
+    extends EntityContext
+    with QueryContext
+    with MassUpdateContext
+    with MassDeleteContext
+    with NamedSingletonSerializable
+    with Logging
+    with DelayedInit
+    with DurableContext
+    with StatementsContext
+    with SerializationContext
+    with MigrationContext
+    with ActivateIndexContext {
 
     info("Initializing context " + contextName)
 
@@ -60,8 +60,8 @@ trait ActivateContext
         (additionalStorages.keys.toSet + storage).toList
 
     private[activate] def storageFor(query: Query[_]): Storage[_] =
-        query.from.entitySources.map(source => storageFor(source.entityClass))
-            .toSet.onlyOne(storages => s"Query $query uses entities from different storages: $storages.")
+        query.from.entitySources.map(source => storageFor(source.entityClass)).distinct
+            .onlyOne(storages => s"Query $query uses entities from different storages: $storages.")
 
     private[activate] def storageFor(entityClass: Class[_]): Storage[Any] =
         additionalStoragesByEntityClasses.getOrElse(
@@ -94,7 +94,7 @@ trait ActivateContext
         contextEntities.map(_.contains(entityClass)).getOrElse(true)
 
     protected val contextEntities: Option[List[Class[_ <: BaseEntity]]] = None
-    
+
     override def toString = "ActivateContext: " + name
 
 }
@@ -117,7 +117,7 @@ object ActivateContext {
             classOf[BaseEntity].getClassLoader()
         else
             currentClassLoader
-            
+
     private[activate] val contextCache =
         new ConcurrentHashMap[Class[_], ActivateContext]()
 

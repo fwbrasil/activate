@@ -116,7 +116,7 @@ trait SprayJsonContext extends JsonContext[JsObject] {
 
     private def entity(value: JsValue, entityClass: Class[_]) = {
         val id = entityId(value, entityClass)
-        context.byId[BaseEntity](id, entityClass.asInstanceOf[Class[BaseEntity]])
+        context.byId[BaseEntity](id, entityClass.asInstanceOf[Class[BaseEntity]], true)
             .getOrElse(throw new IllegalStateException("Invalid id " + value))
     }
 

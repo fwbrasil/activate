@@ -265,7 +265,7 @@ class LiveCache(
                 entityId.toString.intern.synchronized(f)
             case entityId: Integer =>
                 entityId.toString.intern.synchronized(f)
-            case entityId =>
+            case entityId: AnyRef =>
                 entityId.synchronized(f)
         }
 

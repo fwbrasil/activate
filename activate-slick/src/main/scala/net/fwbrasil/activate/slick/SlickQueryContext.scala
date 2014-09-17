@@ -58,24 +58,24 @@ trait SlickQueryContext {
         }
 
     import driver.simple._
-    
+
     implicit def entityIdColumnType[E <: BaseEntity: ClassTag] = {
         val entityValue = EntityId.idTvalFunctionFor(classTag[E].erasure)(None).asInstanceOf[EntityValue[_]]
         entityValue match {
             case value: StringEntityValue =>
-            	driver.columnTypes.stringJdbcType
+                driver.columnTypes.stringJdbcType
             case value: IntEntityValue =>
                 driver.columnTypes.intJdbcType
             case value: LongEntityValue =>
                 driver.columnTypes.longJdbcType
         }
     }.asInstanceOf[driver.BaseColumnType[E#ID]]
-    
+
     implicit def EntityMappedColumnType[E <: BaseEntity: ClassTag] = MappedColumnType.base[E, E#ID](_.id, byId[E](_)(manifestClass(classTag[E].erasure)).get)
-    
+
     class EntityTable[E <: BaseEntity: Manifest](tag: Tag)
-            extends Table[E](
-                tag, EntityHelper.getEntityName(erasureOf[E])) {
+        extends Table[E](
+            tag, EntityHelper.getEntityName(erasureOf[E])) {
         def mock = StatementMocks.mockEntity(erasureOf[E])
         def idColumn = column[E#ID]("id")
         def * = idColumn <> (fromId, (entity: E) => toId(entity))
@@ -99,7 +99,7 @@ trait SlickQueryContext {
         tableThreadLocal.set(table)
         table.mock
     }
-    
+
     implicit def EntityColumnToFK[E <: BaseEntity: Manifest](column: Column[E]) = {
         val table = tableThreadLocal.get
         val otherTable = TableQuery[EntityTable[E]]
@@ -130,11 +130,11 @@ trait SlickQueryContext {
         def col = column
     }
 
-    implicit class QueryRun[T, U](query: Query[T, U]) {
+    implicit class QueryRun[T, U, C[U]](query: Query[T, U, C]) {
         def execute =
             backend.withSession {
-                session: Session =>
-                    query.run(session).toList
+                implicit session: Session =>
+                    query.buildColl[List]
             }
     }
 

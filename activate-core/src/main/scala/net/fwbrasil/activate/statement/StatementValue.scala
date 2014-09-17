@@ -72,7 +72,7 @@ trait StatementValueContext extends ValueContext {
         // Just to evaluate
         value
         StatementMocks.lastFakeVarCalled match {
-            case Some(ref: Var[V]) =>
+            case Some(ref: FakeVar[V]) =>
                 toStatementValueRef(ref)
             case other =>
                 value.getOrElse(null.asInstanceOf[V]) match {

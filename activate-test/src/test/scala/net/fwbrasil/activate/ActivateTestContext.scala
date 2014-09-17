@@ -56,11 +56,11 @@ import net.fwbrasil.activate.entity.TestValidationEntity
 import net.fwbrasil.activate.slick.SlickQueryContext
 import net.fwbrasil.activate.storage.relational.async.AsyncMySQLStorage
 import com.github.mauricio.async.db.mysql.pool.MySQLConnectionFactory
-import net.fwbrasil.activate.storage.relational.async.FinagleMySQLStorage
-import com.twitter.finagle.exp.MysqlClient
-import com.twitter.finagle.exp.MysqlStackClient
-import com.twitter.finagle.client.DefaultPool
-import com.twitter.util.Duration
+//import net.fwbrasil.activate.storage.relational.async.FinagleMySQLStorage
+//import com.twitter.finagle.exp.MysqlClient
+//import com.twitter.finagle.exp.MysqlStackClient
+//import com.twitter.finagle.client.DefaultPool
+//import com.twitter.util.Duration
 import net.fwbrasil.activate.entity.EntityWithCustomID
 
 case class DummySeriablizable(val string: String)
@@ -208,21 +208,7 @@ class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrat
 }
 
 object asyncFinagleMysqlContext extends ActivateTestContext {
-    lazy val storage = new FinagleMySQLStorage {
-        
-        val dbPoolConfig = DefaultPool.Param(
-            low = 10, 
-            high = 50, 
-            bufferSize = 0,
-            idleTime = Duration.Top,
-            maxWaiters = 200)
-            
-         val client =
-            new MysqlClient(MysqlStackClient.configured(dbPoolConfig))
-                .withCredentials("finagle", "finagle")
-                .withDatabase("activate_test_finagle")
-                .newRichClient("localhost:3306")
-    }
+    lazy val storage = new TransientMemoryStorage
 }
 class AsyncFinagleMysqlActivateTestMigration extends ActivateTestMigration()(asyncFinagleMysqlContext)
 class AsyncFinagleMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncFinagleMysqlContext) {

@@ -275,7 +275,7 @@ trait QueryContext extends StatementContext
     def byId[T <: BaseEntity: Manifest](id: => T#ID, initialized: Boolean = true): Option[T] =
         byId(id, erasureOf[T], initialized)
 
-    def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true) = {
+    def byId[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean) = {
         startTransaction
         val manifest = ManifestUtil.manifestClass[BaseEntity](entityClass)
         val isPolymorfic =
@@ -309,7 +309,7 @@ trait QueryContext extends StatementContext
     def asyncById[T <: BaseEntity: Manifest](id: => T#ID, initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext): Future[Option[T]] =
         asyncById[T](id, erasureOf[T], initialized)
 
-    def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean = true)(implicit texctx: TransactionalExecutionContext) = {
+    def asyncById[T <: BaseEntity](id: => T#ID, entityClass: Class[T], initialized: Boolean)(implicit texctx: TransactionalExecutionContext) = {
         import texctx.ctx._
         texctx.transactional(byId(id, entityClass, initialized = false)).map { entity =>
             if (initialized)

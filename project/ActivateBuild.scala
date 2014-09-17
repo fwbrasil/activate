@@ -11,7 +11,7 @@ object ActivateBuild extends Build {
     val objenesis = "org.objenesis" % "objenesis" % "2.1"
     val jug = "com.fasterxml.uuid" % "java-uuid-generator" % "3.1.3"
     val reflections = "org.reflections" % "reflections" % "0.9.8" exclude ("javassist", "javassist") exclude ("dom4j", "dom4j")
-    val grizzled = "org.clapper" %% "grizzled-slf4j" % "1.0.1"
+    val grizzled = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
     val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.0"
     val jodaTime = "joda-time" % "joda-time" % "2.3"
     val jodaConvert = "org.joda" % "joda-convert" % "1.6"
@@ -55,7 +55,7 @@ object ActivateBuild extends Build {
                 activateJdbc, activateMongo, activateTest, activatePlay,
                 activateGraph, activateSprayJson, activateJdbcAsync,
                 activateSlick, activateMongoAsync, activatePrevalent,
-                activateCassandraAsync, activateLift, activateFinagleMysql),
+                activateCassandraAsync, activateLift),
             settings = commonSettings
         )
 
@@ -112,8 +112,8 @@ object ActivateBuild extends Build {
             )
         )
 
-    val slick = "com.typesafe.slick" % "slick_2.10" % "2.0.0"
-    val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.10.3"
+    val slick = "com.typesafe.slick" %% "slick" % "2.1.0"
+    val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.11.2"
 
     lazy val activateSlick =
         Project(
@@ -126,8 +126,8 @@ object ActivateBuild extends Build {
             )
         )
 
-    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.13"
-    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.13"
+    val postgresqlAsync = "com.github.mauricio" %% "postgresql-async" % "0.2.15"
+    val mysqlAsync = "com.github.mauricio" %% "mysql-async" % "0.2.15"
 
     lazy val activateJdbcAsync =
         Project(
@@ -140,18 +140,18 @@ object ActivateBuild extends Build {
             )
         )
 
-    val finagleMysql = "com.twitter" %% "finagle-mysql" % "6.16.0"
+    // val finagleMysql = "com.twitter" %% "finagle-mysql" % "6.16.0"
 
-    lazy val activateFinagleMysql =
-        Project(
-            id = "activate-finagle-mysql",
-            base = file("activate-finagle-mysql"),
-            dependencies = Seq(activateCore, activateJdbc),
-            settings = commonSettings ++ Seq(
-                libraryDependencies ++=
-                    Seq(finagleMysql)
-            )
-        )
+    // lazy val activateFinagleMysql =
+    //     Project(
+    //         id = "activate-finagle-mysql",
+    //         base = file("activate-finagle-mysql"),
+    //         dependencies = Seq(activateCore, activateJdbc),
+    //         settings = commonSettings ++ Seq(
+    //             libraryDependencies ++=
+    //                 Seq(finagleMysql)
+    //         )
+    //     )
 
     lazy val activateMongo =
         Project(
@@ -202,7 +202,7 @@ object ActivateBuild extends Build {
             )
         )
 
-    val lift = "net.liftweb" %% "lift-webkit" % "2.5.1"
+    val lift = "net.liftweb" %% "lift-webkit" % "2.6-RC1"
 
     lazy val activateLift =
         Project(
@@ -215,7 +215,7 @@ object ActivateBuild extends Build {
             )
         )
 
-    val sprayJson = "io.spray" %% "spray-json" % "1.2.5"
+    val sprayJson = "io.spray" %% "spray-json" % "1.2.6"
 
     lazy val activateSprayJson =
         Project(
@@ -232,7 +232,7 @@ object ActivateBuild extends Build {
         "com.fasterxml.jackson.core" % "jackson-core" % "2.3.1",
         "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.1",
         "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.1",
-        "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.3.1")
+        "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.2")
 
     lazy val activateJacksonJson =
         Project(
@@ -246,15 +246,14 @@ object ActivateBuild extends Build {
         )
 
     val junit = "junit" % "junit" % "4.11"
-    val specs2 = "org.specs2" %% "specs2" % "2.3.7"
+    val specs2 = "org.specs2" %% "specs2" % "2.4.2"
 
     lazy val activateTest =
         Project(id = "activate-test",
             base = file("activate-test"),
             dependencies = Seq(activateCore, activatePrevayler % "test", activateJdbc % "test",
                 activateMongo % "test", activateGraph % "test", activateSprayJson % "test", activateJacksonJson % "test", activateJdbcAsync % "test",
-                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test",
-                activateFinagleMysql % "test"),
+                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test"),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
                     Seq(junit % "test", specs2 % "test", mysql % "test", objbd6 % "test", postgresql % "test", db2jcc % "test",
@@ -279,7 +278,7 @@ object ActivateBuild extends Build {
         Defaults.defaultSettings ++ Seq(
             organization := "net.fwbrasil",
             version := "1.6.2",
-            scalaVersion := "2.10.3",
+            scalaVersion := "2.11.2",
             javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
             publishMavenStyle := true,
             // publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))), 

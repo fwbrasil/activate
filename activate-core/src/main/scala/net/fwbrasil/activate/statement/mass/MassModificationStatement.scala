@@ -13,7 +13,7 @@ abstract class MassModificationStatement(from: From, where: Where)
     def execute: Unit = {
         val context =
             (for (src <- from.entitySources)
-                yield ActivateContext.contextFor(src.entityClass)).toSet.onlyOne
+                yield ActivateContext.contextFor(src.entityClass)).distinct.onlyOne
         context.executeMassModification(this)
     }
 }
