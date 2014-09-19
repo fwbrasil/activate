@@ -169,7 +169,14 @@ trait QlIdiom {
         "	" + escape(column.name) + " " + columnType(column)
 
     def columnType(column: StorageColumn) =
-        column.specificTypeOption.getOrElse(toSqlDdl(column.storageValue))
+        column.specificTypeOption.getOrElse {
+            column.storageValue match {
+                case value: ReferenceStorageValue =>
+                    toSqlDdl(value.value)
+                case value =>
+                    toSqlDdl(value)
+            }
+        }
 
     def escape(string: String): String
 

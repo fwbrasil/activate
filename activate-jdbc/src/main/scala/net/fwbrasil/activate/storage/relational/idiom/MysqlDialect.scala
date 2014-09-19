@@ -160,8 +160,6 @@ class mySqlDialect(pEscape: String => String, pNormalize: String => String) exte
                 "INTEGER"
             case value: ByteArrayStorageValue =>
                 "BLOB"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 
 }

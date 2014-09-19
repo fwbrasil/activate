@@ -703,6 +703,8 @@ trait ActivateTestContext
         var customEncodedEntityValue = new CustomEncodedEntityValue(1)
         var customEncodedObjectEntityValue = new CustomEncodedObjectEntityValue(1)
         var userStatus: UserStatus = NormalUser
+        
+        val simpleEntity: SimpleEntity = null
     }
 
     abstract class ActivateTestDummyEntity(var dummy: Boolean) extends Entity

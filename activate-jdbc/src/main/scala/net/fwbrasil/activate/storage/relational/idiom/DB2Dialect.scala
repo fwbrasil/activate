@@ -214,8 +214,6 @@ class db2Dialect(pEscape: String => String, pNormalize: String => String) extend
                 "BLOB"
             case value: ListStorageValue =>
                 "SMALLINT"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 }
 

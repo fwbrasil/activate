@@ -157,8 +157,6 @@ class sqlServerDialect(pEscape: String => String, pNormalize: String => String) 
                 "VARBINARY(8000)"
             case value: ListStorageValue =>
                 "INTEGER"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 }
 

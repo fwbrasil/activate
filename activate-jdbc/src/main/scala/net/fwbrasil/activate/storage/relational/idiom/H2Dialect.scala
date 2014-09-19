@@ -131,8 +131,6 @@ class h2Dialect(pEscape: String => String, pNormalize: String => String) extends
                 "BYTEA"
             case value: ListStorageValue =>
                 "INTEGER"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 }
 

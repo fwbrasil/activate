@@ -180,8 +180,6 @@ class oracleDialect(pEscape: String => String, pNormalize: String => String) ext
                 "INTEGER"
             case value: ByteArrayStorageValue =>
                 "BLOB"
-            case value: ReferenceStorageValue =>
-                "VARCHAR2(45)"
         }
 
 }

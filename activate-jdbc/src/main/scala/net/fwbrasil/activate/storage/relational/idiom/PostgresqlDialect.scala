@@ -81,6 +81,8 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
                     ")"
             case StorageCreateTable(tableName, idColumn, columns, ifNotExists) =>
+                if(tableName.toLowerCase == "caseclassentity")
+                    println(1)
                 "CREATE TABLE " + escape(tableName) + "(\n" +
                     "	ID " + columnType(idColumn) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
                     columns.map(toSqlDdl).mkString(", \n") +
@@ -136,8 +138,6 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                 "VARCHAR(1)"
             case value: ByteArrayStorageValue =>
                 "BYTEA"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 }
 

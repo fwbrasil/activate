@@ -128,8 +128,6 @@ class hsqldbDialect(pEscape: String => String, pNormalize: String => String) ext
                 "INTEGER"
             case value: ByteArrayStorageValue =>
                 "BLOB"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 }
 

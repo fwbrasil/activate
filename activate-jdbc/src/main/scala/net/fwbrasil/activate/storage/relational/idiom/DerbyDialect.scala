@@ -180,8 +180,6 @@ class derbyDialect(pEscape: String => String, pNormalize: String => String) exte
                 "LONG VARCHAR FOR BIT DATA"
             case value: ListStorageValue =>
                 "VARCHAR(1)"
-            case value: ReferenceStorageValue =>
-                "VARCHAR(45)"
         }
 
     override def toSqlDml(select: Select)(implicit binds: MutableMap[StorageValue, String]): String = {
