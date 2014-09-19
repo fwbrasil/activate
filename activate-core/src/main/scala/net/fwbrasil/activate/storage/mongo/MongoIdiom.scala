@@ -193,6 +193,8 @@ object mongoIdiom {
                 ByteArrayStorageValue(Option(obj))
             case (obj: Any, value: ReferenceStorageValue) =>
                 ReferenceStorageValue(getStorageValue(obj, value.value, fromDBList).asInstanceOf[StorageOptionalValue])
+            case (null, value: StorageValue) =>
+                value
             case other =>
                 throw new IllegalStateException(s"Can't decode: $other")
         }

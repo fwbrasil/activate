@@ -228,7 +228,8 @@ class PolyglotPersistenceSpecs extends ActivateTest {
         new Order("a") //default storage postgre
         new Num(1) //derby
         new EntityWithUninitializedValue //h2
-        new SimpleEntity(1, 1) //memory
+        val id = all[SimpleEntity].map(_.id).max + 1
+        new SimpleEntity(id, 1) //memory
         new Box //mongo
         newEmptyActivateTestEntity.intValue = 1 //mysql
         new Employee("a", None) //prevayler

@@ -79,7 +79,7 @@ abstract class ActivateTestMigration(
     def up = {
 
         // Cascade option is ignored in MySql and Derby
-        if (ctx == mysqlContext || ctx == asyncMysqlContext || ctx == asyncFinagleMysqlContext || ctx == derbyContext || ctx == sqlServerContext || ctx == polyglotContext)
+        if (ctx == mysqlContext || ctx == asyncMysqlContext || ctx == derbyContext || ctx == sqlServerContext || ctx == polyglotContext)
             removeReferencesForAllEntities
                 .ifExists
 
@@ -204,14 +204,6 @@ object asyncMysqlContext extends ActivateTestContext {
 }
 class AsyncMysqlActivateTestMigration extends ActivateTestMigration()(asyncMysqlContext)
 class AsyncMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncMysqlContext) {
-    override def bigStringType = "TEXT"
-}
-
-object asyncFinagleMysqlContext extends ActivateTestContext {
-    lazy val storage = new TransientMemoryStorage
-}
-class AsyncFinagleMysqlActivateTestMigration extends ActivateTestMigration()(asyncFinagleMysqlContext)
-class AsyncFinagleMysqlActivateTestMigrationCustomColumnType extends ActivateTestMigrationCustomColumnType()(asyncFinagleMysqlContext) {
     override def bigStringType = "TEXT"
 }
 

@@ -140,19 +140,6 @@ object ActivateBuild extends Build {
             )
         )
 
-    // val finagleMysql = "com.twitter" %% "finagle-mysql" % "6.16.0"
-
-    // lazy val activateFinagleMysql =
-    //     Project(
-    //         id = "activate-finagle-mysql",
-    //         base = file("activate-finagle-mysql"),
-    //         dependencies = Seq(activateCore, activateJdbc),
-    //         settings = commonSettings ++ Seq(
-    //             libraryDependencies ++=
-    //                 Seq(finagleMysql)
-    //         )
-    //     )
-
     lazy val activateMongo =
         Project(
             id = "activate-mongo",

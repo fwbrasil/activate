@@ -20,7 +20,6 @@ import net.fwbrasil.activate.storage.relational.async.AsyncPostgreSQLStorage
 import net.fwbrasil.activate.entity.id.UUID
 import net.fwbrasil.activate.entity.Entity
 import net.fwbrasil.activate.storage.relational.async.AsyncSQLStorage
-import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 class Event(
     val name: String,
@@ -225,8 +224,7 @@ class SprayJsonSpecs extends ActivateTest {
                 (step: StepExecutor) => {
                     import step.ctx._
                     if (!step.ctx.storage.isInstanceOf[JdbcRelationalStorage] &&
-                        !step.ctx.storage.isInstanceOf[AsyncSQLStorage[_]] &&
-                        step.ctx != asyncFinagleMysqlContext) {
+                        !step.ctx.storage.isInstanceOf[AsyncSQLStorage[_]]) {
                         object SprayJsonContext extends SprayJsonContext {
                             val context = step.ctx
                         }

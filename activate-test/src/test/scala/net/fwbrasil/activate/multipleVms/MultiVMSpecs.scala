@@ -11,7 +11,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import ctx1._
 import net.fwbrasil.activate.postgresqlContext
-import net.fwbrasil.activate.asyncFinagleMysqlContext
 
 @RunWith(classOf[JUnitRunner])
 class MultiVMSpecs extends ActivateTest {
@@ -41,7 +40,7 @@ class MultiVMSpecs extends ActivateTest {
     }
 
     private def test(mainVmOptions: List[String], forkVmOptions: List[String], expectSucess: Boolean) =
-        if (super.contexts.find(_ == asyncFinagleMysqlContext).isDefined) {
+        if (super.contexts.find(_ == postgresqlContext).isDefined) {
             val numOfVMs = 4
             val numOfThreads = 4
             val numOfTransactions = 30
