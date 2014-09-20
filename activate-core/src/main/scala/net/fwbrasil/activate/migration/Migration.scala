@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.migration
 
+import net.fwbrasil.activate.util.Reflection.toRichClass
 import language.postfixOps
 import language.existentials
 import net.fwbrasil.activate.util.Reflection
@@ -241,6 +242,7 @@ abstract class Migration(implicit val context: ActivateContext) {
     private def entitiesMetadatas =
         EntityHelper.metadatas.filter(e =>
             e.entityClass != classOf[StorageVersion]
+                && e.entityClass.isConcreteClass
                 && ActivateContext.contextFor(e.entityClass) == context)
 
     def createTableForAllEntities =

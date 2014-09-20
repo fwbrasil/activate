@@ -48,6 +48,24 @@ class MigrationSpecs extends MigrationTest {
                         }
                     })
 
+            "createTableForAllEntities ignores non-concrete classes" in
+                migrationTest(
+                    new TestMigration()(_) {
+                        import context._
+                        def up = {
+                            createTableForAllEntities
+                        }
+                        override def down = {}
+                        override def validateUp =
+                            if (!context.storage.isSchemaless) {
+                                val drop = new ManualMigration()(context) {
+                                    override def up =
+                                        table[Page].removeTable
+                                }
+                                drop.execute must throwA[Exception]
+                            }
+                    })
+
             "createTableForEntity" in
                 migrationTest(
                     new TestMigration()(_) {
