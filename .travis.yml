@@ -2,7 +2,7 @@ language: scala
 jdk:
   - openjdk7
 scala:
-  - 2.10.3
+  - 2.11.2
 branches:
   only:
     - master
