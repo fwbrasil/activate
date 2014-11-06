@@ -98,9 +98,8 @@ abstract class ActivateTestMigration(
 
         table[ctx.EntityByIntValue]
             .addIndex(
-                columnName = "key",
                 indexName = "IDX_KEY",
-                unique = true)
+                unique = true)("key")
             .ifNotExists
     }
 }

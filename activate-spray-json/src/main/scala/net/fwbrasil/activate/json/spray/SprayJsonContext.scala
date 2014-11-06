@@ -162,11 +162,11 @@ trait SprayJsonContext extends JsonContext[JsObject] {
                 jsValue[Enumeration#Value](value.asInstanceOf[EnumerationEntityValue[Enumeration#Value]], e => JsString(e.toString))
             case value: ListEntityValue[_] =>
                 value.value.map(list =>
-                    JsArray(list.map(e => toJsValue(value.valueEntityValue(e), depth))))
+                    JsArray(list.map(e => toJsValue(value.valueEntityValue(e), depth)).toVector))
                     .getOrElse(JsNull)
             case value: LazyListEntityValue[_] =>
                 value.value.map(list =>
-                    JsArray(list.ids.map(id => toJsValue(entityIdTval(value.entityClass)(Some(id)), depth, seenEntities))))
+                    JsArray(list.ids.map(id => toJsValue(entityIdTval(value.entityClass)(Some(id)), depth, seenEntities)).toVector))
                     .getOrElse(JsNull)
             case value: SerializableEntityValue[_] =>
                 value.value.map(v =>

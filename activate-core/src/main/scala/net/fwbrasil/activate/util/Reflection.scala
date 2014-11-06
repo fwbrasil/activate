@@ -7,6 +7,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Date
 
+import scala.collection.JavaConversions.asScalaSet
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import scala.language.existentials
@@ -121,8 +122,9 @@ object Reflection {
     def getAllImplementorsNames(classpathHints: List[Any], interfaceClass: Class[_]) = {
         val hints = reflectionsHints(classpathHints ++ List(interfaceClass))
         val reflections = reflectionsFor(hints)
-        val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
-        Set(subtypes: _*).asInstanceOf[Set[String]]
+        val subtypes = reflections.getSubTypesOf(interfaceClass)
+        val names = for (subtype <- subtypes) yield { subtype.getCanonicalName }
+        names.toSet
     }
 
     import language.existentials
