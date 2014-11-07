@@ -257,7 +257,6 @@ object ActivateBuild extends Build {
         "Local Maven Repository" at "" + Path.userHome.asFile.toURI.toURL + "/.m2/repository",
         "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
         "fwbrasil.net" at "http://fwbrasil.net/maven/",
-        "spray" at "http://repo.spray.io/",
         "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/",
         "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
         "Alfesco" at "https://maven.alfresco.com/nexus/content/groups/public/"
@@ -271,7 +270,7 @@ object ActivateBuild extends Build {
             crossScalaVersions := Seq("2.10.4","2.11.4"),
             javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
             publishMavenStyle := true,
-            publishTo := Some(Resolver.file("file",  file(Path.userHome.absolutePath+"/.m2/repository"))), 
+            // publishTo := Some(Resolver.file("file",  file(Path.userHome.absolutePath+"/.m2/repository"))), 
             // publishTo := Option(Resolver.ssh("fwbrasil.net repo", "fwbrasil.net", 8080) as("maven") withPermissions("0644")),
             /*
             publishTo <<= version { v: String =>
