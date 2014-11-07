@@ -35,7 +35,6 @@ object ActivateBuild extends Build {
     val objbd6 = "com.oracle" % "ojdbc6" % "11.2.0"
     val mysql = "mysql" % "mysql-connector-java" % "5.1.34"
     val postgresql = "org.postgresql" % "postgresql" % "9.3-1102-jdbc41"
-    val hirakiCP = "com.zaxxer" % "HikariCP" % "2.2.2"
     val h2 = "com.h2database" % "h2" % "1.4.182"
     val derby = "org.apache.derby" % "derby" % "10.11.1.1"
     val hqsqldb = "org.hsqldb" % "hsqldb" % "2.3.2"
@@ -101,6 +100,9 @@ object ActivateBuild extends Build {
             )
         )
 
+    val hirakiCP = "com.zaxxer" % "HikariCP" % "2.2.2"
+    val metrics = "com.codahale.metrics" % "metrics-core" % "3.0.2"
+
     lazy val activateJdbc =
         Project(
             id = "activate-jdbc",
@@ -108,7 +110,7 @@ object ActivateBuild extends Build {
             dependencies = Seq(activateCore),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
-                    Seq(hirakiCP)
+                    Seq(hirakiCP, metrics)
             )
         )
 
