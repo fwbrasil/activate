@@ -1,5 +1,7 @@
 # Activate Persistence Framework
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fwbrasil/activate?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ![Activate splash](http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg)
 
 Documentation ([index](/activate-docs/_index.md)):
