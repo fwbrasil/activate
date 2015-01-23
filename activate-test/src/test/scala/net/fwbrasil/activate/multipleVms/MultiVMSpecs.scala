@@ -5,7 +5,6 @@ import net.fwbrasil.activate.storage.relational.idiom.postgresqlDialect
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.storage.relational.idiom.mySqlDialect
-import scala.actors.remote.NetKernel
 import net.fwbrasil.activate.ActivateTest
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
