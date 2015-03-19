@@ -101,7 +101,7 @@ Only at commit time there is a database transaction, if it is supported.
 ## EFFICIENT MEMORY USAGE ##
 A key point to a durable STM is to guarantee that exists only one transactional unit representing one data in the database, like the name of a Person. If there are more than one transactional unit representing the same data, the STM concurrency control properties are no longer valid.
 
-Activate implements an in-memory repository called [LiveCache](https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/cache/live/LiveCache.scala). It assures that there is only one instance of an entity loaded in the memory. The approach to achieve this behavior is to use soft references to all loaded entities from the database.
+Activate implements an in-memory repository called [LiveCache](https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/cache/LiveCache.scala). It assures that there is only one instance of an entity loaded in the memory. The approach to achieve this behavior is to use soft references to all loaded entities from the database.
 
 For example, if two threads use the same entity, they will use the same object instance. All modifications will be isolated by transactions in a non-blocking way and the consistency will be assured at commit time. So, you do not have to worry about concurrency issues.
 
