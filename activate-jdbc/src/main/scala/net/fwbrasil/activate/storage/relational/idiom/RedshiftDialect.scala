@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.storage.relational.idiom
 
+import scala.collection.immutable.Stream.Empty
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
 import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
@@ -31,12 +32,12 @@ import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 
-object redshiftDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toLowerCase) {
+object redshiftDialect extends redshiftDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toLowerCase) {
   def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toLowerCase) =
-    new postgresqlDialect(escape, normalize)
+    new redshiftDialect(escape, normalize)
 }
 
-class redshiftDialect(pEscape: String => String, pNormalize: String => String) extends postgresqlDialect (pEscape = string => "\"" + string + "\"", pNormalize = string => string.toLowerCase) {
+class redshiftDialect(pEscape: String => String, pNormalize: String => String) extends postgresqlDialect (pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
 
   override def escape(string: String) =
     pEscape(pNormalize(string))
@@ -98,14 +99,10 @@ class redshiftDialect(pEscape: String => String, pNormalize: String => String) e
       case StorageRemoveColumn(tableName, name, ifExists) =>
         "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
       //redshift dont contains indexes, constraints and fk's
-      case StorageAddIndex(tableName, columns, indexName, ifNotExists, unique) =>
-        ""
-      case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
-        ""
-      case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-        ""
-      case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
-        ""
+      case StorageAddIndex(tableName, columns, indexName, ifNotExists, unique) => ""
+      case StorageRemoveIndex(tableName, columnName, name, ifExists) => ""
+      case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) => ""
+      case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) => ""
     }
   }
 
