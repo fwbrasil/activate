@@ -97,8 +97,18 @@ class redshiftDialect(pEscape: String => String, pNormalize: String => String) e
         "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
       case StorageRemoveColumn(tableName, name, ifExists) =>
         "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
+      //redshift dont contains indexes, constraints and fk's
+      case StorageAddIndex(tableName, columns, indexName, ifNotExists, unique) =>
+        ""
+      case StorageRemoveIndex(tableName, columnName, name, ifExists) =>
+        ""
+      case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+        ""
+      case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) =>
+        ""
     }
   }
+
 
   override def concat(strings: String*) =
     "CONCAT(" + strings.mkString(", ") + ")"
