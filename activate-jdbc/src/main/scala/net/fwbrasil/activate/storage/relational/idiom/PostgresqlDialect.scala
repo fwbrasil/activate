@@ -47,27 +47,27 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
     override def findTableStatement(tableName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.TABLES " +
-            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
+            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
             "   AND TABLE_NAME = '" + pNormalize(tableName) + "'"
 
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.COLUMNS " +
-            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
+            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA" +
             "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
             "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
 
     override def findIndexStatement(tableName: String, indexName: String) =
         "SELECT COUNT(1)  " +
             "	FROM pg_catalog.pg_indexes" +
-            "  WHERE schemaname = CURRENT_SCHEMA()" +
+            "  WHERE schemaname = CURRENT_SCHEMA" +
             "	AND tablename = '" + pNormalize(tableName) + "'" +
             "	AND indexname = '" + pNormalize(indexName) + "'"
 
     override def findConstraintStatement(tableName: String, constraintName: String): String =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
-            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
+            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
             "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
             "   AND CONSTRAINT_NAME = '" + pNormalize(constraintName) + "'"
 
