@@ -43,32 +43,14 @@ class redshiftDialect(pEscape: String => String, pNormalize: String => String) e
     pEscape(pNormalize(string))
 
 
-  override def findTableStatement(tableName: String) =
-    "SELECT COUNT(1) " +
-      "  FROM INFORMATION_SCHEMA.TABLES " +
-      " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
-      "   AND TABLE_NAME = '" + pNormalize(tableName) + "'"
 
-  override def findTableColumnStatement(tableName: String, columnName: String) =
-    "SELECT COUNT(1) " +
-      "  FROM INFORMATION_SCHEMA.COLUMNS " +
-      " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
-      "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
-      "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
-
+  //dont exists index
   override def findIndexStatement(tableName: String, indexName: String) =
-    "SELECT COUNT(1)  " +
-      "	FROM pg_catalog.pg_indexes" +
-      "  WHERE schemaname = CURRENT_SCHEMA()" +
-      "	AND tablename = '" + pNormalize(tableName) + "'" +
-      "	AND indexname = '" + pNormalize(indexName) + "'"
-
+    "SELECT COUNT(1)  "
+  //dont exists constraints
   override def findConstraintStatement(tableName: String, constraintName: String): String =
-    "SELECT COUNT(1) " +
-      "  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
-      " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() " +
-      "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
-      "   AND CONSTRAINT_NAME = '" + pNormalize(constraintName) + "'"
+    "SELECT COUNT(1) "
+
 
   override def toSqlDdl(action: ModifyStorageAction): String = {
     action match {
