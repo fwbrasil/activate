@@ -55,9 +55,23 @@ object ActivateBuild extends Build {
                 activateJdbc, activateMongo, activateTest, activatePlay,
                 activateGraph, activateSprayJson, activateJdbcAsync,
                 activateSlick, activateMongoAsync, activatePrevalent,
-                activateCassandraAsync, activateLift),
+                activateCassandraAsync, activateLift, activateFinagleMysql),
             settings = commonSettings
         )
+
+    val finagleMysql = "com.twitter" %% "finagle-mysql" % "6.25.0"
+
+    lazy val activateFinagleMysql =
+        Project(
+            id = "activate-finagle-mysql",
+            base = file("activate-finagle-mysql"),
+            dependencies = Seq(activateCore, activateJdbc),
+            settings = commonSettings ++ Seq(
+                libraryDependencies ++=
+                    Seq(finagleMysql)
+            )
+        )
+
 
     lazy val activateCore =
         Project(
@@ -240,7 +254,8 @@ object ActivateBuild extends Build {
             base = file("activate-test"),
             dependencies = Seq(activateCore, activatePrevayler % "test", activateJdbc % "test",
                 activateMongo % "test", activateGraph % "test", activateSprayJson % "test", activateJacksonJson % "test", activateJdbcAsync % "test",
-                activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test"),
+                               activateSlick % "test", activateMongoAsync % "test", activatePrevalent % "test", activateCassandraAsync % "test", activateLift % "test",
+                               activateFinagleMysql % "test"),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
                     Seq(junit % "test", specs2 % "test", mysql % "test", objbd6 % "test", postgresql % "test", db2jcc % "test",
