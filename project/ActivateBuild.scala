@@ -175,8 +175,11 @@ object ActivateBuild extends Build {
             )
         )
 
-    val play = "com.typesafe.play" %% "play" % "2.3.2"
-    val playTest = "com.typesafe.play" %% "play-test" % "2.3.2"
+    val playVersion = "2.4.3"
+
+    val play = "com.typesafe.play" %% "play" % playVersion
+    val playTest = "com.typesafe.play" %% "play-test" % playVersion
+    val inject = "javax.inject" % "javax.inject" % "1"
 
     lazy val activatePlay =
         Project(
@@ -185,7 +188,7 @@ object ActivateBuild extends Build {
             dependencies = Seq(activateCore, activateTest, activateJdbc),
             settings = commonSettings ++ Seq(
                 libraryDependencies ++=
-                    Seq(play, playTest % "provided", specs2 % "provided")
+                    Seq(play, playTest % "provided", specs2 % "provided", inject)
             )
         )
 

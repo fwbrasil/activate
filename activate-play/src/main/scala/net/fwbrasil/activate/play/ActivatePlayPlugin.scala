@@ -1,5 +1,6 @@
 package net.fwbrasil.activate.play
 
+import javax.inject.Inject
 import scala.collection.mutable.{ Map => MutableMap }
 import net.fwbrasil.activate.migration.Migration
 import net.fwbrasil.activate.ActivateContext
@@ -12,7 +13,7 @@ import net.fwbrasil.activate.entity.EntityMetadata
 import net.fwbrasil.activate.util.Reflection
 import play.Play
 
-class ActivatePlayPlugin(app: play.Application) extends Plugin {
+class ActivatePlayPlugin @Inject() (app: play.Application) extends Plugin {
 
     override def onStart = 
         ActivateContext.setClassLoader(Play.application.classloader)
