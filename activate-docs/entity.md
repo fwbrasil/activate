@@ -102,7 +102,7 @@ It is necessary to have in the classpath an id generator:
 ``` scala
 import net.fwbrasil.activate.entity.id.IdGenerator
 
-class MoyEntityIdGenerator extends IdGenerator[MyEntity] {
+class MyEntityIdGenerator extends IdGenerator[MyEntity] {
 	def nextId = ...
 }
 ```
