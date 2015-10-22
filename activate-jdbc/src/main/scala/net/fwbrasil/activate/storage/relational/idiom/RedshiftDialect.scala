@@ -1,0 +1,122 @@
+package net.fwbrasil.activate.storage.relational.idiom
+
+import scala.collection.immutable.Stream.Empty
+import scala.collection.mutable.{ Map => MutableMap }
+import net.fwbrasil.activate.storage.marshalling.BooleanStorageValue
+import net.fwbrasil.activate.storage.marshalling.DoubleStorageValue
+import net.fwbrasil.activate.storage.marshalling.IntStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageRenameTable
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
+import net.fwbrasil.activate.storage.marshalling.BigDecimalStorageValue
+import net.fwbrasil.activate.storage.marshalling.LongStorageValue
+import net.fwbrasil.activate.storage.marshalling.StringStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageValue
+import net.fwbrasil.activate.storage.marshalling.DateStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageAddColumn
+import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
+import net.fwbrasil.activate.storage.marshalling.FloatStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageAddIndex
+import net.fwbrasil.activate.storage.marshalling.StorageAddReference
+import net.fwbrasil.activate.storage.marshalling.ReferenceStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageRenameColumn
+import net.fwbrasil.activate.storage.marshalling.StorageCreateTable
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveReference
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveColumn
+import net.fwbrasil.activate.storage.marshalling.ByteArrayStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveIndex
+import net.fwbrasil.activate.storage.marshalling.ListStorageValue
+import net.fwbrasil.activate.storage.marshalling.StorageCreateListTable
+import net.fwbrasil.activate.storage.marshalling.StorageRemoveListTable
+import net.fwbrasil.activate.storage.marshalling.IntStorageValue
+import net.fwbrasil.activate.statement.query.OrderByCriteria
+import net.fwbrasil.activate.statement.query.orderByAscendingDirection
+import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+
+object redshiftDialect extends redshiftDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string.toLowerCase) {
+  def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string.toLowerCase) =
+    new redshiftDialect(escape, normalize)
+}
+
+class redshiftDialect(pEscape: String => String, pNormalize: String => String) extends postgresqlDialect (pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
+
+  override def escape(string: String) =
+    pEscape(pNormalize(string))
+
+
+
+  //dont exists index
+  override def findIndexStatement(tableName: String, indexName: String) =
+    "SELECT COUNT(1)  "
+  //dont exists constraints
+  override def findConstraintStatement(tableName: String, constraintName: String): String =
+    "SELECT COUNT(1) "
+
+
+  override def toSqlDdl(action: ModifyStorageAction): String = {
+    action match {
+      case StorageRemoveListTable(listTableName, ifNotExists) =>
+        "DROP TABLE " + escape(listTableName)
+      case StorageCreateListTable(ownerTableName, ownerIdColumn, listTableName, valueColumn, orderColumn, ifNotExists) =>
+        "CREATE TABLE " + escape(listTableName) + "(\n" +
+          "	" + escape("owner") + " " + columnType(ownerIdColumn) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
+          toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
+          ")"
+      case StorageCreateTable(tableName, idColumn, columns, ifNotExists) =>
+        if(tableName.toLowerCase == "caseclassentity")
+          println(1)
+        "CREATE TABLE " + escape(tableName) + "(\n" +
+          "	ID " + columnType(idColumn) + " PRIMARY KEY" + (if (columns.nonEmpty) ",\n" else "") +
+          columns.map(toSqlDdl).mkString(", \n") +
+          ")"
+      case StorageRenameTable(oldName, newName, ifExists) =>
+        "ALTER TABLE " + escape(oldName) + " RENAME TO " + escape(newName)
+      case StorageRemoveTable(name, ifExists, isCascade) =>
+        "DROP TABLE " + escape(name) + (if (isCascade) " CASCADE" else "")
+      case StorageAddColumn(tableName, column, ifNotExists) =>
+        "ALTER TABLE " + escape(tableName) + " ADD " + toSqlDdl(column)
+      case StorageRenameColumn(tableName, oldName, column, ifExists) =>
+        "ALTER TABLE " + escape(tableName) + " RENAME COLUMN " + escape(oldName) + " TO " + escape(column.name)
+      case StorageModifyColumnType(tableName, column, ifExists) =>
+        "ALTER TABLE " + escape(tableName) + " ALTER COLUMN " + escape(column.name) + " SET DATA TYPE " + columnType(column)
+      case StorageRemoveColumn(tableName, name, ifExists) =>
+        "ALTER TABLE " + escape(tableName) + " DROP COLUMN " + escape(name)
+      //redshift dont contains indexes, constraints and fk's
+      case StorageAddIndex(tableName, columns, indexName, ifNotExists, unique) => ""
+      case StorageRemoveIndex(tableName, columnName, name, ifExists) => ""
+      case StorageAddReference(tableName, columnName, referencedTable, constraintName, ifNotExists) => ""
+      case StorageRemoveReference(tableName, columnName, referencedTable, constraintName, ifNotExists) => ""
+    }
+  }
+
+
+  override def concat(strings: String*) =
+    "CONCAT(" + strings.mkString(", ") + ")"
+
+  override def toSqlDml(criteria: OrderByCriteria[_])(implicit binds: MutableMap[StorageValue, String]): String =
+    super.toSqlDml(criteria) + (if (criteria.direction == orderByAscendingDirection) " NULLS FIRST" else " NULLS LAST")
+
+  override def toSqlDdl(storageValue: StorageValue): String =
+    storageValue match {
+      case value: IntStorageValue =>
+        "INTEGER"
+      case value: LongStorageValue =>
+        "DECIMAL"
+      case value: BooleanStorageValue =>
+        "BOOLEAN"
+      case value: StringStorageValue =>
+        "TEXT"
+      case value: FloatStorageValue =>
+        "DOUBLE PRECISION"
+      case value: DateStorageValue =>
+        "TIMESTAMP"
+      case value: DoubleStorageValue =>
+        "DOUBLE PRECISION"
+      case value: BigDecimalStorageValue =>
+        "DECIMAL"
+      case value: ListStorageValue =>
+        "VARCHAR(1)"
+      case value: ByteArrayStorageValue =>
+        "BYTEA"
+    }
+}
+

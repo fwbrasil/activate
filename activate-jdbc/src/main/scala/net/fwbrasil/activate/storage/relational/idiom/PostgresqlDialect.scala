@@ -53,7 +53,7 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
     override def findTableColumnStatement(tableName: String, columnName: String) =
         "SELECT COUNT(1) " +
             "  FROM INFORMATION_SCHEMA.COLUMNS " +
-            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA " +
+            " WHERE TABLE_SCHEMA = CURRENT_SCHEMA" +
             "   AND TABLE_NAME = '" + pNormalize(tableName) + "'" +
             "   AND COLUMN_NAME = '" + pNormalize(columnName) + "'"
 
