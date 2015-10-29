@@ -7,6 +7,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Date
 
+import scala.collection.JavaConversions.iterableAsScalaIterable
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.{ HashMap => MutableHashMap }
 import scala.language.existentials
@@ -15,6 +16,7 @@ import scala.language.implicitConversions
 import org.joda.time.base.AbstractInstant
 import org.objenesis.ObjenesisStd
 import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 
 import net.fwbrasil.activate.entity.BaseEntity
 
@@ -120,9 +122,9 @@ object Reflection {
 
     def getAllImplementorsNames(classpathHints: List[Any], interfaceClass: Class[_]) = {
         val hints = reflectionsHints(classpathHints ++ List(interfaceClass))
-        val reflections = reflectionsFor(hints)
-        val subtypes = reflections.getStore.getSubTypesOf(interfaceClass.getName).toArray
-        Set(subtypes: _*).asInstanceOf[Set[String]]
+        val store = reflectionsFor(hints).getStore
+        val subtypes = store.getAll(classOf[SubTypesScanner].getSimpleName, interfaceClass.getName)
+        subtypes.toSet
     }
 
     import language.existentials

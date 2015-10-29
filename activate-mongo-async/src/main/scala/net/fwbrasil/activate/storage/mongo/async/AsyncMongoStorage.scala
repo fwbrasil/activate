@@ -14,8 +14,7 @@ import com.mongodb.BasicDBObject
 import net.fwbrasil.activate.storage.mongo.mongoIdiom
 import reactivemongo.bson._
 import reactivemongo.api._
-import reactivemongo.api.collections.default._
-import reactivemongo.api.collections.default.BSONGenericHandlers._
+import reactivemongo.api.collections.bson._
 import scala.concurrent.Future
 import net.fwbrasil.activate.storage.TransactionHandle
 import net.fwbrasil.activate.statement.mass.MassModificationStatement
@@ -23,7 +22,6 @@ import scala.concurrent.ExecutionContext
 import net.fwbrasil.activate.statement.mass.MassUpdateStatement
 import net.fwbrasil.activate.statement.From
 import net.fwbrasil.activate.statement.mass.MassDeleteStatement
-import play.api.libs.iteratee.Enumerator
 import net.fwbrasil.activate.storage.marshalling.ModifyStorageAction
 import net.fwbrasil.activate.storage.marshalling.StorageRenameTable
 import net.fwbrasil.activate.storage.marshalling.StorageRemoveTable
@@ -52,6 +50,7 @@ import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.storage.StorageFactory
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
 import net.fwbrasil.activate.util.Reflection._
+import scala.collection.immutable.Stream
 
 trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
 
@@ -255,9 +254,8 @@ trait AsyncMongoStorage extends MarshalStorage[DefaultDB] with DelayedInit {
         Future(mongoIdiom.toInsertMap(insertList)).flatMap { insertMap =>
             insertMap.keys.toList.foldLeft(Future()) { (future, entityClass) =>
                 future.flatMap { _ =>
-                    val inserts = insertMap(entityClass).toList.map(dbObject(_))
-                    val enumerator = Enumerator(inserts: _*)
-                    coll(entityClass).bulkInsert(enumerator).map { _ => }
+                    val inserts = insertMap(entityClass).toStream.map(dbObject(_))
+                    coll(entityClass).bulkInsert(inserts, true).map { _ => }
                 }
             }
         }
