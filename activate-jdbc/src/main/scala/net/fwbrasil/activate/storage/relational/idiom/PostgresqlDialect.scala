@@ -30,17 +30,18 @@ import net.fwbrasil.activate.storage.marshalling.IntStorageValue
 import net.fwbrasil.activate.statement.query.OrderByCriteria
 import net.fwbrasil.activate.statement.query.orderByAscendingDirection
 import net.fwbrasil.activate.storage.marshalling.StorageModifyColumnType
+import java.sql.{Types, PreparedStatement}
 
 object postgresqlDialect extends postgresqlDialect(pEscape = string => "\"" + string + "\"", pNormalize = string => string) {
-    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string) = 
+    def apply(escape: String => String = string => "\"" + string + "\"", normalize: String => String = string => string) =
         new postgresqlDialect(escape, normalize)
 }
 
 class postgresqlDialect(pEscape: String => String, pNormalize: String => String) extends SqlIdiom {
-    
+
     override def escape(string: String) =
         pEscape(pNormalize(string))
-    
+
     def toSqlDmlRegexp(value: String, regex: String) =
         value + " ~ " + regex
 
@@ -73,9 +74,9 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
 
     override def toSqlDdl(action: ModifyStorageAction): String = {
         action match {
-            case StorageRemoveListTable(listTableName, ifNotExists) =>
+            case StorageRemoveListTable(listTableName, ifNotExists) if !SQL2003 =>
                 "DROP TABLE " + escape(listTableName)
-            case StorageCreateListTable(ownerTableName, ownerIdColumn, listTableName, valueColumn, orderColumn, ifNotExists) =>
+            case StorageCreateListTable(ownerTableName, ownerIdColumn, listTableName, valueColumn, orderColumn, ifNotExists) if !SQL2003 =>
                 "CREATE TABLE " + escape(listTableName) + "(\n" +
                     "	" + escape("owner") + " " + columnType(ownerIdColumn) + " REFERENCES " + escape(ownerTableName) + "(ID),\n" +
                     toSqlDdl(valueColumn) + ", " + toSqlDdl(orderColumn) +
@@ -134,8 +135,10 @@ class postgresqlDialect(pEscape: String => String, pNormalize: String => String)
                 "DOUBLE PRECISION"
             case value: BigDecimalStorageValue =>
                 "DECIMAL"
-            case value: ListStorageValue =>
+            case value: ListStorageValue if !SQL2003 =>
                 "VARCHAR(1)"
+            case value: ListStorageValue if SQL2003 =>
+                toSqlDdl(value.emptyStorageValue) + "[]"
             case value: ByteArrayStorageValue =>
                 "BYTEA"
         }

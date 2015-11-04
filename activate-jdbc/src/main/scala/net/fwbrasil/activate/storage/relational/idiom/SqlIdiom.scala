@@ -181,6 +181,8 @@ trait HikariWithoutUrl {
 
 trait SqlIdiom extends QlIdiom {
 
+    var SQL2003: Boolean = false
+
     def supportsLimitedQueries = true
 
     def supportsRegex = true
@@ -233,11 +235,15 @@ trait SqlIdiom extends QlIdiom {
                 setValue(ps, (v: BigDecimal) => ps.setBigDecimal(i, v.bigDecimal), i, value.value, Types.BIGINT)
             case value: ByteArrayStorageValue =>
                 setValue(ps, (v: Array[Byte]) => ps.setBytes(i, v), i, value.value, Types.BINARY)
-            case value: ListStorageValue =>
+            case value: ListStorageValue if !SQL2003 =>
                 if (value.value.isDefined)
                     ps.setInt(i, 1)
                 else
                     ps.setInt(i, 0)
+            case value: ListStorageValue if SQL2003 =>
+                setValue(ps, (v: List[AnyRef]) => ps.setArray(i,
+                  ps.getConnection.createArrayOf(toSqlDdl(value.emptyStorageValue), v.toArray)),
+                  i, value.value, Types.ARRAY)
             case value: ReferenceStorageValue =>
                 setValue(ps, i, value.value)
         }
@@ -273,13 +279,13 @@ trait SqlIdiom extends QlIdiom {
 
     def toSqlDdlAction(action: ModifyStorageAction): List[NormalQlStatement] =
         action match {
-            case action: StorageCreateListTable =>
+            case action: StorageCreateListTable if !SQL2003 =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
                     restrictionQuery = ifNotExistsRestriction(findTableStatement(action.listTableName), action.ifNotExists))) ++
                     toSqlDdlAction(action.addOwnerIndexAction)
-            case action: StorageRemoveListTable =>
+            case action: StorageRemoveListTable if !SQL2003 =>
                 List(new NormalQlStatement(
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
@@ -339,6 +345,8 @@ trait SqlIdiom extends QlIdiom {
                     statement = toSqlDdl(action),
                     entityClass = classOf[BaseEntity],
                     restrictionQuery = ifExistsRestriction(findConstraintStatement(action.tableName, action.constraintName), action.ifExists)))
+            case action: StorageCreateListTable if SQL2003 => List.empty
+            case action: StorageRemoveListTable if SQL2003 => List.empty
         }
 
     def versionVerifyQueries(reads: Map[Class[BaseEntity], List[(ReferenceStorageValue, Long)]], queryLimit: Int) =
@@ -378,16 +386,17 @@ trait SqlIdiom extends QlIdiom {
 
     def toValue(storageValue: StorageValue): Any =
         storageValue match {
-            case value: ListStorageValue =>
-                if (value.value.isDefined)
-                    "1"
-                else
-                    "0"
+            case value: ListStorageValue if SQL2003 =>
+              value.value.getOrElse(List.empty)
+            case value: ListStorageValue if !SQL2003 =>
+                    if (value.value.isDefined)
+                        "1"
+                    else
+                        "0"
             case value: StorageOptionalValue =>
                 value.value.getOrElse(null)
             case value: ReferenceStorageValue =>
                 toValue(value.value)
         }
-
 }
 
