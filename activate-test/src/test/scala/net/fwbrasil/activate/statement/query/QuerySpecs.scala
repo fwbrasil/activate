@@ -10,6 +10,7 @@ import net.fwbrasil.activate.mongoContext
 import net.fwbrasil.activate.polyglotContext
 import net.fwbrasil.activate.ActivateContext
 import net.fwbrasil.activate.asyncMongoContext
+import net.fwbrasil.activate.mysqlContext
 import net.fwbrasil.activate.migration.StorageVersion
 import net.fwbrasil.activate.multipleVms.CustomEncodedEntityValue
 
@@ -604,6 +605,38 @@ class QuerySpecs extends ActivateTest {
                     }
                 })
 
+        }
+
+        "support user function" in {
+            activateTest(
+                (step: StepExecutor) => {
+                    val excludedContexts = Seq(mongoContext, asyncMongoContext, mysqlContext)
+                    if (!excludedContexts.contains(step.ctx)) {
+                        import step.ctx._
+                        val string1 = "-1"
+                        val string2 = "-2"
+                        import net.fwbrasil.activate.statement.StatementSelectValue
+
+                        object absFunc extends UserFunction[String, Int] {
+                          def apply(value: String) = value.toInt.abs
+                          def toStorage(value: String) = s"ABS(CAST($value as INTEGER))"
+                        }
+
+                        def abs(value: String)(implicit tval1: (=> String) => StatementSelectValue) = toUserFunction(absFunc)(value)
+                        step {
+                            newEmptyActivateTestEntity.stringValue = string1
+                            newEmptyActivateTestEntity.stringValue = string2
+                        }
+                        step {
+                            val result = select[ActivateTestEntity].where(e => toUserFunction(absFunc)(e.stringValue) :== string1.toInt.abs)
+                            result.size === 1
+                        }
+                        step {
+                            val result = select[ActivateTestEntity].where(e => abs(e.stringValue) :>= string1.toInt.abs)
+                            result.size === 2
+                        }
+                    }
+                })
         }
 
         "support query with many results" in {

@@ -20,6 +20,7 @@ import net.fwbrasil.activate.statement.IsLessThan
 import net.fwbrasil.activate.statement.IsNotEqualTo
 import net.fwbrasil.activate.statement.IsNotNull
 import net.fwbrasil.activate.statement.IsNull
+import net.fwbrasil.activate.statement.ToUserFunction
 import net.fwbrasil.activate.statement.Matcher
 import net.fwbrasil.activate.statement.Operator
 import net.fwbrasil.activate.statement.Or
@@ -287,6 +288,8 @@ trait QlIdiom {
                 stringUpperFunction(toSqlDml(value.value))
             case value: ToLowerCase =>
                 stringLowerFunction(toSqlDml(value.value))
+            case ToUserFunction(fn, value) =>
+                fn.toStorage(toSqlDml(value))
         }
 
     def stringUpperFunction(value: String): String = s"UPPER($value)"
