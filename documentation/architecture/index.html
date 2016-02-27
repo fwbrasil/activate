@@ -1,0 +1,363 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if gt IE 8]><!--> <html dir="ltr" lang="pt-BR"> <!--<![endif]-->
+
+<!-- Mirrored from activate-framework.org/documentation/architecture/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:49:59 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+
+	<!--=== META TAGS ===-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta charset="UTF-8" />
+	<meta name="description" content="Keywords">
+	<meta name="author" content="Name">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!--=== LINK TAGS ===-->
+	<link rel="shortcut icon" href="../../favicon.ico" />
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework RSS2 Feed" href="../../feed/index.html" />
+	<link rel="pingback" href="../../xmlrpc.php" />
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.html">
+	<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.html">
+	<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.html">
+
+	<!--=== TITLE ===-->
+	<title> &raquo; Architecture - Activate Persistence Framework</title>
+	
+	<!--== GOOGLE FONTS ==-->
+	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+
+	<!--=== WP_HEAD() ===-->
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework &raquo; Architecture Comments Feed" href="feed/index.html" />
+<link rel='stylesheet' id='base-style-css'  href='../../wp-content/themes/atom/css/base68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='skeleton-style-css'  href='../../wp-content/themes/atom/css/skeleton68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='layout-style-css'  href='../../wp-content/themes/atom/css/layout68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='main-style-css'  href='../../wp-content/themes/atom/style5152.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='shortcodes-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/css/shortcodes68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='pretty-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/css/prettyPhoto68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='shCore-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shCoredc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='shThemeDefault-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shThemeDefaultdc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='flex-slider-css-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/flexslider.css' type='text/css' media='all' />
+<link rel='stylesheet' id='uploadify-css-css'  href='../../wp-content/themes/atom/uploadify/uploadify.css' type='text/css' media='all' />
+<script type="text/javascript">var THEME_DIR = "../../wp-content/themes/atom/index.html";</script><script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+<script type='text/javascript' src='http://html5shim.googlecode.com/svn/trunk/html5.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/jquery.isotope.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/init.js'></script>
+<script type='text/javascript' src='https://apis.google.com/js/plusone.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tweet68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tipTip.minified4e44.js?ver=1.3'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/js/jquery.prettyPhoto.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/init.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shCore.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shAutoloader.js'></script>
+<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=&amp;sensor=false'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.gmap-1.1.0-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/jquery.flexslider-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/swfobject.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/jquery.uploadify.v2.1.4.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/ordernow.js'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../../xmlrpc0db0.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://activate-framework.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='HomePageNew' href='../../homepagenew/index.html' />
+<link rel='next' title='Documentation (v1.1)' href='../../1-1-docs/index.html' />
+<link rel='canonical' href='index.html' />
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shCore.css"></link>
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shThemeDefault.css"></link>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34374169-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body class="page page-id-822 page-child parent-pageid-694 page-template-default">
+
+<div class="container" id="header-wrapper-top">
+	<div id="logo-top">
+		<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+	</div><!-- #logo -->
+	
+	<div id="navigation-toggle"><a href="#">SHOW NAVIGATION</a></div>
+				
+	<div id="top-menu">
+		<ul id="menu-main-menu" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul>	</div> <!-- #side-menu -->
+</div>
+
+	<div class="container" id="wrapper">
+		
+		<div class="columns twelve alpha omega" id="main-content">
+		
+						
+			<div class="mega-title mega-single">
+				<h1>Architecture</h1>
+			</div>
+			
+			<div class="post">
+				<div class="post-content page-content">
+					<p>Activate is a Software Transactional Memory with efficient memory usage and pluggable persistence. This architecture documentation has as its target explain the Activate internals.</p>
+<p><a name="stm"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#stm">Software Transactional Memory</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">The Activate core is a STM implementation in Scala called <a href="http://github.com/fwbrasil/radon-stm/">RadonSTM</a>. From the point of view of Radon, Activate is a plugin that provides transaction durability. STM is a in-memory concurrency control mechanism. It uses optimistic locking to achieve transaction isolation, dealing with concurrent access and modification.</p>
+<p style="text-align: justify;">The usual approach to deal with concurrency is to use pessimistic locking, avoiding concurrent access. The resource is locked in a certain point and other transactions can not access it, awaiting for the end of the locking transaction.
+<p style="text-align: justify;">The optimistic approach does not lock resources during transaction execution. At the end, it validates all reads and writes, determining if the transaction is valid or not. If it is in an invalid state, there are two options: abort with an exception or retry to execute it. The retry is a valid option if the transaction has not side effects, like IO for example. To retry, the transaction is just cleaned and executed again, since it is isolated.</p>
+<p><a name="transactional_unit"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#transactional_unit">Transactional unit</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Lets take as an example a bank account entity:</p>
+<p><img src="../../wp-content/uploads/2012/05/account-entity-1.png" alt="" styleClass="none" /></p>
+<p style="text-align: justify;">As it is possible to observe, the balance variable has two parts: the identity (it is a balance) and a value (the balance value at certain time). Activate uses this two parts to create a indirection that permits each entity variable to be a STM transactional unit.</p>
+<p><img src="../../wp-content/uploads/2012/05/account-entity-2.png" alt="" /></p>
+<p style="text-align: justify;">All the concurrency control is done in the identity. In the RadonSTM this transactional unit is called &#8220;<a href="https://github.com/fwbrasil/radon-stm/blob/master/src/main/scala/net/fwbrasil/radon/ref/Ref.scala">Ref</a>&#8220;. Activate specializes this type with the class &#8220;<a href="https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/entity/Var.scala">Var</a>&#8220;. </p>
+<p><a name="entity_enhance"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#entity_enhance">Entity enhance</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>At persistence context initialization, all entities classes are enhanced. A simple class like:</p>
+<pre class="brush: scala">
+
+class Person(var name: String) extends Entity
+</pre>
+<p>At runtime, is transformed in:</p>
+<pre class="brush: scala">
+
+class Person(var name: Var[String]) extends Entity
+</pre>
+<p>Each entity field is transformed into a STM transactional unit. Entity fields assignments and reads are enhanced too. It&#8217;s not necessary to enhance the entity &#8220;client&#8221; classes, since in Scala there aren&#8217;t public fields and access is done by accessor methods. So, only local entity field access done by accessors needs to be enhanced.</p>
+<p>It is not necessary to use a javaagent or custom classloader to have the entities enhanced. It is a question of class loading order, since JVM class loading is lazy. Unless there is a misusage of Activate, the persistence context class will be always loaded before any entity class. For example:</p>
+<pre class="brush: scala">
+
+object myContext extends ActivateContext{
+	val storage = StorageFactory.fromSystemProperties("myStorage")
+}
+import myContext._
+
+class Person(var name: String) extends Entity
+object myMain extends App{
+	transactional {
+		new Person("John")
+	}
+} 
+</pre>
+<p>MyContext will always be loaded first than the Person class, in this case at the persistence context method &#8220;transactional&#8221; call. At context load, it is used a class called <a href="https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/entity/EntityEnhancer.scala">EntityEnhancer</a> that scan the classpath using the <a href="http://code.google.com/p/reflections/">Reflections</a> framework looking for all entity classes. After the scan, it enhance each entity class. After enhance, it loads each enhanced class.</p>
+<p>The Person class should be loaded when its constructor is called (new Person(&#8220;John&#8221;)), but at that point the class is already loaded by the EntityEnhancer with its variables enhanced as transactional units.</p>
+<p>The Activate enhance is very smooth. It does not difficult debug and supports complex entity hierarchies, including traits.</p>
+<p><a name="example_scenario"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#example_scenario">Example scenario</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>An example on how Activate deals with two concurrent bank transactions using transactional units as entities fields. Observe that the transaction execution and retries are non-bloking.</p>
+<p><iframe src="http://www.slideshare.net/slideshow/embed_code/15254088" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe></p>
+<p><a name="transactional_context"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#transactional_context">Transactional context</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">The transaction methods and control structures are provided by the RadonSTM transactional context. It is the basis for the <a href="https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/ActivateContext.scala">ActivateContext</a> and has two important structures:</p>
+<p style="text-align: justify;"><strong><a href="https://github.com/fwbrasil/radon-stm/blob/master/src/main/scala/net/fwbrasil/radon/transaction/time/TransactionClock.scala">TransactionClock</a></strong><br />
+A clock to determine transaction start and end timestamps. It is implemented using an AtomicLong, incremented each time that is used. It guarantees that transaction start/end timestamps are unique.</p>
+<p style="text-align: justify;"><strong><a href="https://github.com/fwbrasil/radon-stm/blob/master/src/main/scala/net/fwbrasil/radon/transaction/TransactionManager.scala">TransactionManager</a></strong><br />
+The transaction manager has a <a href="https://github.com/fwbrasil/radon-stm/blob/master/src/main/scala/net/fwbrasil/radon/util/ExclusiveThreadLocal.scala">ExclusiveThreadLocal</a> that determines the current transaction. The thread local is filled each time that a transaction is activated in a transaction <a href="https://github.com/fwbrasil/radon-stm/blob/master/src/main/scala/net/fwbrasil/radon/transaction/Propagation.scala">propagation</a> triggered by a transactional block. The ExclusiveThreadLocal guarantees that the transaction is active in only one thread per time.</p>
+<p><a name="commit_time"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#commit_time">The commit time</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>The conflict detection is based on the comparison of the transaction start timestamp with snapshots read and write timestamps. These are the main rules to determine if a transaction is inconsistent:</p>
+<p>- If there is a read on a Ref that was modified by another transaction after the transaction start timestamp.<br />
+- If there is a write on a Ref that was read by another transaction after the transaction start timestamp.</p>
+<p>There are some optimizations for read only transactions and another more subtle validations.</p>
+<p>At commit time, there are locks to assure that other transactions can not make the current transaction commit validation inconsistent. Locks are fine grained on each entity variable, using a ReentrantReadWriteLock according the nature of the variable usage (read or write). </p>
+<p>The retry mechanism can produce many retries in an extreme scenario. There is retryLimit variable defined in the transactional context to limit how many retries are allowed. The default is 3000. An example overriding it to 100:</p>
+<pre class="brush: scala">
+
+object myContext extends ActivateContext{
+	val storage = StorageFactory.fromSystemProperties("myStorage")
+	override val retryLimit = 100
+}
+</pre>
+<p><a name="database_transaction"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#database_transaction">Database transaction</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>During the STM transaction execution there is not a correspondent database transaction. There are database trips to perform queries and lazy entities initialization, done with individual transactions.</p>
+<p>Activate doesn&#8217;t maintain a database transaction during the STM transaction because it should create databases locks that brings a blocking behavior incompatible with the non-blocking optimistic approach. </p>
+<p>Only at commit time there is a database transaction, if it is supported.</p>
+<p><a name="efficient_memory_usage"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#efficient_memory_usage">Efficient memory usage</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>A key point to a durable STM is to guarantee that exists only one transactional unit representing one data in the database, like the name of a Person. If there are more than one transactional unit representing the same data, the STM concurrency control properties are no longer valid. </p>
+<p>Activate implements an in-memory repository called <a href="https://github.com/fwbrasil/activate/blob/master/activate-core/src/main/scala/net/fwbrasil/activate/cache/live/LiveCache.scala">LiveCache</a>. It assures that there is only one instance of an entity loaded in the memory. The approach to achieve this behavior is to use soft references to all loaded entities from the database.</p>
+<p>For example, if two threads use the same entity, they will use the same object instance. All modifications will be isolated by transactions in a non-blocking way and the consistency will be assured at commit time. So, you do not have to worry about concurrency issues.</p>
+<p>Thru the LiveCache soft references, Activate can efficiently use the available virtual machine memory. For example, if there is enough memory, all entities can stay in memory increasing performance by reducing the conversation with the database.</p>
+<p>Soft references are also the best way to decide which entities stays in memory. The garbage collector has a great algorithm do determine the most used entities that are better to maintain in memory. Using this approach it is not necessary to create magical algorithms using expiration time, number os objects, etc.</p>
+<p><a name="queries_and_lazy_loading"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#queries_and_lazy_loading">Queries and lazy loading</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>All Activate queries are executed by the LiveCache. It runs queries in memory and merges the result from the database query execution. For PrevaylerStorage and TransientMemoryStorage, the query is run using all in memory entities. For the other storages, LiveCache runs queries only for new and &#8220;dirty&#8221; entities. &#8220;Dirty&#8221; entities means entities that are modified by the current transaction.</p>
+<p>When an entity is selected by a query, Activate loads only its ID. If the entity is already in memory, it is returned. If the entity is not in memory, LiveCache creates a lazy entity. The lazy entity has no other loaded variables than the ID. At the first variable usage, the entity is initialized. If there is a variable that is another entity, the same approach is used.</p>
+<p><a name="multiple_vms"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#multiple_vms">Multiple VMs</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>As Activate has efficient memory usage, entities are not reloaded from the database unless the garbage collector clears them or the application restarts. If more than one VM uses the same storage, the commit validation mechanism can not detect conflicts between transactions from different contexts/VMs. </p>
+<p>To use Activate in this scenario, there is the Optimistic Offline Locking mechanism. Its role is to detect at commit time if there is a transaction conflict between transactions of different VMs. If there is a conflict, Activate reloads the entities information and retry the transaction if it is possible.</p>
+<p>The in-memory STM conflict detection occurs at the entity instance <strong>property</strong> granularity. For offline locking the conflict detection is at entity <strong>instance</strong> granularity.</p>
+<p>This is a <a href="http://martinfowler.com/eaaCatalog/optimisticOfflineLock.html">widely known</a> pattern to deal with concurrency. Each entity has a &#8220;Long&#8221; value called &#8220;version&#8221;. Every time that a transaction uses an entity, at commit time the entity storage version is compared to the its in-memory version information. If the in-memory information is equal to the storage information, the transaction modifications are persisted and the version information is incremented. If the in-memory version diverges from the storage, the commit process is aborted, the entity is reloaded from the storage and the transaction is retried if it possible.</p>
+<p>By default, the version information is used only for entity modifications. To activate the same mechanism for entities reads, it is necessary to set the &#8220;activate.offlineLocking.validateReads&#8221; property.</p>
+<p>Please refer to the <a href="../multiple-vms/index.html">Multiple VMs</a> documentation to learn how to configure the offline locking.</p>
+<p><a name="polyglot"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#polyglot">Polyglot persistence</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>It is possible to have more than one storage in the same persistence context. For example, a Person entity can be persisted in Mongo and have an attribute Contact that is an entity persisted in a relational storage. As the Activate transaction runs in-memory, during the transaction execution the storages are used only to get data that is not already in-memory, by running queries against the storage. For now, it is not possible to run queries that uses entities persisted in different storages. </p>
+<p>At commit time, Activate identifies what are the storages for each transaction modification and a two-phase commit is used to persist the transaction. In phase one, each storage receives all modifications (updates, deletes, inserts) and returns a commit handle. If all storages respond with success, the persistence context goes to phase two and send a commit message to each storage.</p>
+<p>Activate supports non-transactional storages that can not respond the first phase with a commit handle, since there isn&#8217;t a transaction. If the Activate transaction must be rollbacked because of a storage failure, the storages that do not respond with a commit handle are rollbacked by sending a group of modifications that reverts the modifications sent at phase one. This approach with non-transactional storages can lead to concurrency inconsistencies, but this is an expected behavior for this type of storages.</p>
+<p>Storages receive the two-phase commit instructions in this order:</p>
+<p>1. The &#8220;default&#8221; storage<br />
+2. Transactional storages<br />
+3. In-memory storages<br />
+4. Schemaless storages<br />
+5. Other storages</p>
+<p>See the <a href="../persistence-context/index.html#polyglot_context">polyglot context</a> documentation to usage instructions.</p>
+<p><a name="storages"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#storages">Storages</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Activate supports relational and non-relational databases. It is very easy to implement a new storage support, since it has only to execute queries and, at commit time, update values. </p>
+<p>When using ACID storages, Activate keeps full consistency guarantee. When using non ACID databases (for now there is only MongoDB), the user can expect that eventually some data will be inconsistent. Activate adds a very high consistency level on top of non ACID databases, but eventually, in special when using database eventual consistency with multiple VMs, there should be inconsistencies like stale reads.</p>
+<p>All concurrency tests are successfully executed, without inconsistencies, in top of non distributed MongoDB instance. The fact that exists only one transactional unit representing each of the storage data also assures that the same data is not updated in the database at the same time by concurrent threads. Thats why Activate adds a high level of consistency on top of non ACID databases. But for example it is not possible to assure that, if the server goes down, all transactions will be recovered, since MongoDB don&#8217;t maintain a file sync to persist it data by default.</p>
+<p>If data is modified in the database directly, Activate will not see the modification if the entity is already in memory. It is necessary to reinitialize the application or call the persistence context &#8220;reinitializeContext&#8221; method. It will clean all entities that are in memory.</p>
+
+<div class="one_half" ><a href="../spray-json/index.html" title="Spray Json">< Spray Json (previous)</a></div>
+<div class="one_half last " ></div><div class="clearboth"></div>
+				</div>
+			</div> <!-- .post -->
+						
+						
+			<!-- START of PAGINATION -->
+    		<div class="pagination"><div class='newer-posts'>&nbsp;</div><div class='older-posts'>&nbsp;</div><div class='clearfix'></div></div>
+    		<!-- END of PAGINATION -->
+
+		</div> <!-- #main-content -->
+		
+		 
+<div class="columns four alpha" id="side-nav">
+	<div id="header-wrapper-side">
+<div id="logo">
+	<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+</div><!-- #logo -->
+
+<div id="side-menu">
+	<ul id="menu-main-menu-1" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul></div> <!-- #side-menu -->
+
+	</div> <!-- #header-wrapper -->
+	
+	<div id="widgets">
+<div id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" action="http://activate-framework.org/" >
+	<div><label class="screen-reader-text" for="s">Search for:</label>
+	<input type="text" value="" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+	</form></div>		<div id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widgettitle"><span class="title">Recent Posts</span></h3>		<ul>
+				<li><a href="../../activate-1-6/index.html" title="Activate 1.6">Activate 1.6</a></li>
+				<li><a href="../../activate-1-5-is-out/index.html" title="Activate 1.5 is out!">Activate 1.5 is out!</a></li>
+				<li><a href="../../activate-1-4-1/index.html" title="Activate 1.4.1">Activate 1.4.1</a></li>
+				<li><a href="../../activate-1-3-reactive-persistence/index.html" title="Activate 1.3 &#8211; Reactive Persistence">Activate 1.3 &#8211; Reactive Persistence</a></li>
+				<li><a href="../../activate-1-2/index.html" title="Activate 1.2 &#8211; Polyglot Persistence">Activate 1.2 &#8211; Polyglot Persistence</a></li>
+				</ul>
+		</div><div id="text-3" class="widget widget_text">			<div class="textwidget"></div>
+		</div>	</div> <!-- #widgets -->
+	
+</div> <!-- #side-nav --> 
+		
+	</div><!-- #wrapper -->
+
+	<!--div class="container" id="footer">
+		<div id="footer-line-1" class="footer-line">
+			<span class="line-content">
+				<font color=white>Activate is released under LGPL license.</font>			</span>
+		</div>
+	</div-->
+	
+	<script type="text/javascript">resizeSidenav();</script>
+
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tools.tabs.min54f4.js?ver=1.2.5'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tabs-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/pin-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tweet-api68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tooltip-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shInit68b3.js?ver=1'></script>
+
+<!-- SyntaxHighlighter Stuff -->
+<script type="text/javascript" src="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/src/shCore.js"></script>
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+</script>
+
+	</body>
+
+<!-- Mirrored from activate-framework.org/documentation/architecture/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:50:01 GMT -->
+</html>

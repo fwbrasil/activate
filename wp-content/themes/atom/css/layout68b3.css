@@ -1,0 +1,750 @@
+/*
+* Skeleton V1.1
+* Copyright 2011, Dave Gamache
+* www.getskeleton.com
+* Free to use under the MIT license.
+* http://www.opensource.org/licenses/mit-license.php
+* 8/17/2011
+*/
+
+/* Table of Content
+==================================================
+	#Site Styles
+	#Page Styles
+	#Media Queries
+	#Font-Face */
+
+/* #Site Styles
+================================================== */
+
+/* #Page Styles
+================================================== */
+
+/* #Media Queries
+================================================== */
+
+	/* Smaller than standard 960 (devices and browsers) */
+	@media only screen and (max-width: 959px) {	}
+
+	/* Tablet Portrait size to standard 960 (devices and browsers) */
+	@media only screen and (min-width: 768px) and (max-width: 959px) {
+	
+		/* #Blog Post
+		================================================== */
+		
+		.post .post-meta .date{ width: 60px; }
+			
+		.post .post-meta .title{	width: 460px; }
+		
+		.post .post-meta .comments-counter{	width: 50px; }
+		
+		.post .post-content { padding-left: 80px; }		
+		
+		/* #Pagination
+		================================================== */
+		
+		.pagination .newer-posts, .pagination .older-posts {	width: 130px; }
+		
+		.pagination .back-top { width: 316px; }
+		
+		/* #Elements
+		================================================== */
+		
+		.post-content.page-content {
+			padding-left: 40px;
+		}
+		
+		.callout p {
+			text-align: right;
+		}	
+		
+		.callout .button {
+			position: relative;
+			float: none;
+			clear: both;
+			right: 0;
+			top: 0;
+		}
+		
+		.page-content.portfolio {
+			padding-left: 0;
+			padding-right: 0;
+		}
+		
+		#portfolio-wrapper .project-grid, .related-posts .project-grid { 
+			width: 192px !important;
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+		
+		#portfolio-wrapper .project-grid .portfolio-grid-icon-wrap, .related-posts .project-grid  .portfolio-grid-icon-wrap {
+			padding-bottom: 20px;
+		}
+		
+		#portfolio-wrapper .project-grid .overlay h4, .related-posts .project-grid  .overlay h4 {
+			padding-bottom: 10px;
+		}
+		
+		#portfolio-wrapper .project-grid .overlay p, .related-posts .project-grid .overlay p {
+			position: relative;
+			top: 24%;
+		}
+		
+		#portfolio-wrapper .project-list {
+			width: 566px;
+		}
+		
+		#portfolio-wrapper .project-list .project-thumb {
+			width: 364px;
+		}
+		
+		#portfolio-wrapper .project-list .project-details {
+			width: 172px;
+			padding: 0 10px 0 0;
+		}
+		
+		/** SOCIAL WIDGETS LINK **/
+		
+		.widget-social-icon {
+			padding-right: 8px;
+		}
+		
+		.homepage {
+			padding-left: 0;
+			padding-right: 0;
+			background-image: none;
+		}
+		
+		.homepage .page-content {
+			padding: 0;
+		}
+	
+	}
+
+	/* All Mobile Sizes (devices and browser) */
+	@media only screen and (max-width: 767px) {
+	
+		.blockquote.block-left 
+		{
+			margin: 0;
+			margin-bottom: 20px;
+			width: auto;
+			float: none;
+			clear: left;
+		}
+
+		.blockquote.block-right 
+		{
+			margin: 0;
+			margin-bottom: 20px;
+			width: auto;
+			float: none;
+			clear: right;
+		}
+		
+		
+		/*******************************
+		*	COLUMNS
+		/*******************************/
+
+		.one_half, .one_third, .two_third, .three_fourth, .one_fourth, .one_fifth, .two_fifth, .three_fifth, .four_fifth, .one_sixth, .five_sixth 
+		{
+			clear: both !important;
+			float: none !important;
+			display: block;
+			width: auto !important;
+		}	
+		
+		.post-content .no-margin {
+			margin-bottom: 20px;
+		}
+		
+		.callout .button {
+			position: relative;
+			float: none;
+			clear: both;
+			right: 0;
+			top: 0;
+		}
+		
+		.page-content.portfolio {
+			padding-left: 0;
+			padding-right: 0;
+		}		
+		
+		/*******************************
+		*	PROJECT INFOS
+		/*******************************/
+		
+		.project-lines {
+			width: auto;
+			float: none;
+			clear: both;
+		}
+		
+		.project-description {
+			width: auto;
+			float: none;
+			clear: both;
+			padding: 15px 20px;
+			background-image: none;
+		}
+		
+		.project-lines .project-line {
+		background-image: url("../images/border_bottom.png");
+		background-repeat: repeat-x;
+		background-position: left bottom;
+		padding: 10px 20px;
+		}
+		
+		.project-lines .project-line:last-child {
+			background-image: url("../images/border_bottom.png");
+			background-repeat: repeat-x;
+			background-position: left bottom;
+		}
+		
+		.flexslider .slides img {
+			-webkit-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			-moz-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13); 
+		}
+		
+		.pricing_table .section {
+			width: 100% !important;
+		}
+	
+	}
+
+	/* Mobile Landscape Size to Tablet Portrait (devices and browsers) */
+	@media only screen and (min-width: 480px) and (max-width: 767px) {
+	
+		#header-wrapper-top {
+			display: block;
+		}
+		
+		#header-wrapper-side {
+			display: none;
+		}	
+		
+		/* #Blog
+		================================================== */
+
+		.mega-title {
+			padding-right: 20px;
+			display: block;
+		}
+	
+		.mega-title:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -70px;
+			width: 0; height: 0;
+			border: none;
+		}
+
+		/* #Blog Post
+		================================================== */
+		
+		.post .thumb a img{
+        -webkit-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+        -moz-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+        box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);        
+		}
+		
+		.post .post-meta .date{ width: 50px; }
+			
+		.post .post-meta .title{	width: 320px; }
+		
+		.post .post-meta .comments-counter{	width: 50px; }
+		
+		.post .post-content { padding-left: 70px; }	
+		
+		/* #Pagination
+		================================================== */
+		
+		.pagination .newer-posts, .pagination .older-posts {	width: 120px; }
+		
+		.pagination .back-top { width: 180px; }
+		
+		.alignleft, img.alignleft {
+			margin: auto;
+			margin-bottom: 20px;
+			float: none;
+			clear: both;
+			display: block;
+		}
+		
+		.alignright, img.alignright {
+			margin: auto;
+			margin-bottom: 20px;
+			float: none;
+			clear: both;
+			display: block;
+		}	
+
+		/* #Elements
+		================================================== */
+		
+		.section-title {
+			padding: 5px 20px;
+			padding-right: 20px;
+			margin: 10px 0px 30px 0px;
+			position: relative;
+			left: -20px;
+			width: 100%;
+			display: block;
+		}
+		
+		.homepage .section-title {
+			padding: 5px 20px;
+			padding-right: 20px;
+			margin: 10px 0px 30px 0px;
+			position: relative;
+			left: 0px;
+			width: auto;
+			display: block;
+		}
+		
+		.related-posts  .section-title {
+			left: 0;
+			width: auto;
+		}
+		
+		.post-content.page-content {
+			padding-left: 20px;
+		}
+		
+		.section-title.section-title-default:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -44px;
+			width: 0; height: 0;
+			border: 0 solid;
+			border-color: #c14d4d;
+			border-right-color: transparent;
+		}
+		
+		.section-title.section-title-gray:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -44px;
+			width: 0; height: 0;
+			border: 0 solid;
+			border-color: #c14d4d;
+			border-right-color: transparent;
+		}
+		
+		.post-content .heroic-text {
+			left: -20px;
+			padding-right: 40px;
+		}
+		
+		.post-content .heroic-text h2 {
+			padding-right: 20px;
+		}
+		
+		.dotted-line {
+			left: -20px;
+			padding: 0 20px;
+		}
+		
+		.page-content.portfolio {
+			padding-left: 0;
+			padding-right: 0;
+		}
+		
+		#portfolio-wrapper .project-grid, .related-posts .project-grid { 
+			width: 210px !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			float: left;
+		}
+		
+		#portfolio-wrapper .project-grid .overlay p, .related-posts .project-grid .overlay p {
+			top: 25%;
+		}
+		
+		#portfolio-filter-wrapper ul li:first-child {
+			padding-left: 0px;
+		}
+		
+		#portfolio-wrapper .project-list {
+			width: 420px;
+		}
+		
+		#portfolio-wrapper .project-list .project-thumb {
+			width: 420px;
+		}
+		
+		#portfolio-wrapper .project-list .project-thumb img {
+			-webkit-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			-moz-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);  
+		}
+		
+		#portfolio-wrapper .project-list .project-details {
+			width: 400px;
+			padding: 0 10px;
+		}
+		
+		.homepage {
+			padding-left: 0;
+			padding-right: 0;
+			background-image: none;
+		}
+		
+		.homepage .page-content {
+			padding: 0;
+		}
+		
+		.section-wrapper .button {
+			top: 0px;
+		}
+		
+		/*** ORDER SYSTEM ***/
+		
+		.filter-list {
+			position: static;
+			right: auto;
+			top: auto;
+			margin-bottom: 20px;
+			line-height: 22px;
+		}
+		
+		.order-wrapper {
+			background-image: none;	
+		}
+		
+		.order-wrapper .order-field {
+			padding-right: 0px;
+			padding-bottom: 20px;
+			margin-bottom: 20px;
+			background-image: none;	
+			width: auto;
+			position: relative;
+			left: 0px;
+			padding-left: 0px;
+		}
+		
+		/*** ORDER SUMMARY ***/
+
+		.post .order-summary {
+			width: 50%;
+		}
+
+		.order-summary .section-title{
+			left: -20px;
+			margin-top: 0;
+		}
+		
+		.order-summary .order-items {
+			padding-left: 0;
+		}
+		
+	}
+
+	/* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
+	@media only screen and (max-width: 479px) {
+	
+		#header-wrapper-top {
+			display: block;
+		}
+		
+		#header-wrapper-side {
+			display: none;
+		}
+		
+		/* #Blog
+		================================================== */
+
+		.mega-title {
+			padding-right: 20px;
+			display: block;
+		}
+	
+		.mega-title:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -70px;
+			width: 0; height: 0;
+			border: none;
+		}
+
+		/* #Blog Post
+		================================================== */
+		
+		.post .thumb a img{
+        -webkit-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+        -moz-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+        box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);        
+		}
+		
+		.post .post-meta .date{ width: 50px; }
+			
+		.post .post-meta .title{	width: 200px; }
+		
+		.post .post-meta .comments-counter{	width: 50px; }
+		
+		.post .post-content { padding-left: 20px; }	
+		
+		/* #Pagination
+		================================================== */
+		
+		.pagination .newer-posts, .pagination .older-posts {	width: 90px; }
+		
+		.pagination .back-top { width: 120px; }
+		
+		.alignleft, img.alignleft {
+			margin: auto;
+			margin-bottom: 20px;
+			display: block;
+			float: none;
+			clear: both;
+		}
+		
+		.alignright, img.alignright {
+			margin: auto;
+			margin-bottom: 20px;
+			display: block;
+			float: none;
+			clear: both;
+		}
+		
+		/* #Elements
+		================================================== */
+		
+		.section-title {
+			padding: 5px 20px;
+			padding-right: 20px;
+			margin: 10px 0px 30px 0px;
+			position: relative;
+			left: -20px;
+			width: 100%;
+			display: block;
+		}
+		
+		.homepage .section-title {
+			padding: 5px 20px;
+			padding-right: 20px;
+			margin: 10px 0px 30px 0px;
+			position: relative;
+			left: 0px;
+			width: auto;
+			display: block;
+		}
+		
+		.related-posts  .section-title {
+			left: 0;
+			width: auto;
+		}
+		
+		.post-content.page-content {
+			padding-left: 20px;
+		}
+		
+		.section-title.section-title-default:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -44px;
+			width: 0; height: 0;
+			border: 0 solid;
+			border-color: #c14d4d;
+			border-right-color: transparent;
+		}
+		
+		.section-title.section-title-gray:after {
+			content: '';
+			position: absolute;
+			top: 0; right: -44px;
+			width: 0; height: 0;
+			border: 0 solid;
+			border-color: #c14d4d;
+			border-right-color: transparent;
+		}
+		
+		.post-content .heroic-text {
+			left: -20px;
+			padding-right: 40px;
+		}
+		
+		.post-content .heroic-text h2 {
+			padding-right: 20px;
+		}
+		
+		#comments .section-title  {
+			width: auto;
+		}
+		
+		#comments #comments-header a {
+			display: none;
+		}
+		
+		.dotted-line {
+			left: -20px;
+			padding: 0 20px;
+		}
+		
+		.page-content.portfolio {
+			padding-left: 0;
+			padding-right: 0;
+		}
+		
+		#portfolio-filters {
+			width: 260px;
+		}
+		
+		#portfolio-filter-wrapper ul {
+			padding-left: 30px;
+		}
+		
+		#portfolio-filter-wrapper ul li:first-child {
+			padding-left: 0px;
+		}
+		
+		#portfolio-wrapper .project-grid, .related-posts .project-grid { 
+			width: 240px !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			left: 30px !important;
+		}
+		
+		#portfolio-wrapper .project-list {
+			width: 300px;
+		}
+		
+		#portfolio-wrapper .project-list .project-thumb {
+			width: 300px;
+		}
+		
+		#portfolio-wrapper .project-list .project-thumb img {
+			-webkit-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			-moz-box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);
+			box-shadow:  0px 5px 0px 0px rgba(4, 5, 5, 0.13);  
+		}
+		
+		#portfolio-wrapper .project-list .project-details {
+			width: 270px;
+			padding: 0 15px;
+		}
+		
+		.homepage {
+			padding-left: 0;
+			padding-right: 0;
+			background-image: none;
+		}
+		
+		.homepage .page-content {
+			padding: 0;
+		}
+		
+		.section-wrapper .button {
+			display: none;
+		}
+		
+		/*** ORDER SYSTEM ***/
+		
+		.filter-list {
+			position: static;
+			right: auto;
+			top: auto;
+			margin-bottom: 20px;
+			line-height: 22px;
+		}
+		
+		.order-wrapper {
+			background-image: none;	
+		}
+		
+		.order-wrapper .order-field {
+			padding-right: 0px;
+			padding-bottom: 20px;
+			margin-bottom: 20px;
+			background-image: none;	
+			width: auto;
+			position: relative;
+			left: 0px;
+			padding-left: 0px;
+		}
+		
+		/*** ORDER SUMMARY ***/
+
+		.post .order-summary {
+			width: 50%;
+		}
+
+		.order-summary .section-title{
+			left: -20px;
+			margin-top: 0;
+		}
+		
+		.order-summary .order-items {
+			padding-left: 0;
+		}
+		
+	}
+
+
+/* #Font-Face
+================================================== */
+/* 	This is the proper syntax for an @font-face file
+		Just create a "fonts" folder at the root,
+		copy your FontName into code below and remove
+		comment brackets */
+
+/*	@font-face {
+	    font-family: 'FontName';
+	    src: url('../fonts/FontName.eot');
+	    src: url('../fonts/FontName.eot?iefix') format('eot'),
+	         url('../fonts/FontName.woff') format('woff'),
+	         url('../fonts/FontName.ttf') format('truetype'),
+	         url('../fonts/FontName.svg#webfontZam02nTh') format('svg');
+	    font-weight: normal;
+	    font-style: normal; }
+*/
+
+@font-face {
+    font-family: 'nevisBold';
+    src: url('../fonts/nevis-webfont.eot');
+    src: url('../fonts/nevis-webfontd41d.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/nevis-webfont.woff') format('woff'),
+         url('../fonts/nevis-webfont.html') format('truetype'),
+         url('../fonts/nevis-webfont.svg#nevisBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SanskritHelveticaRegular';
+    src: url('../fonts/sanskrit_helvetica-webfont.eot');
+    src: url('../fonts/sanskrit_helvetica-webfontd41d.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/sanskrit_helvetica-webfont.woff') format('woff'),
+         url('../fonts/sanskrit_helvetica-webfont.html') format('truetype'),
+         url('../fonts/sanskrit_helvetica-webfont.svg#SanskritHelveticaRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SanskritHelveticaOblique';
+    src: url('../fonts/sanskrit_helvetica_oblique-webfont.eot');
+    src: url('../fonts/sanskrit_helvetica_oblique-webfontd41d.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/sanskrit_helvetica_oblique-webfont.woff') format('woff'),
+         url('../fonts/sanskrit_helvetica_oblique-webfont.html') format('truetype'),
+         url('../fonts/sanskrit_helvetica_oblique-webfont.svg#SanskritHelveticaOblique') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SanskritHelveticaBold';
+    src: url('../fonts/sanskrit_helvetica_bold-webfont.eot');
+    src: url('../fonts/sanskrit_helvetica_bold-webfontd41d.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/sanskrit_helvetica_bold-webfont.woff') format('woff'),
+         url('../fonts/sanskrit_helvetica_bold-webfont.html') format('truetype'),
+         url('../fonts/sanskrit_helvetica_bold-webfont.svg#SanskritHelveticaBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}

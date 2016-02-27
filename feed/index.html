@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Activate Persistence Framework</title>
+	<atom:link href="http://activate-framework.org/feed/" rel="self" type="application/rss+xml" />
+	<link>http://activate-framework.org</link>
+	<description>Activate - Persistence as it should be</description>
+	<lastBuildDate>Fri, 13 Jun 2014 18:15:55 +0000</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=3.3.2</generator>
+		<item>
+		<title>Activate 1.6</title>
+		<link>http://activate-framework.org/activate-1-6/</link>
+		<comments>http://activate-framework.org/activate-1-6/#comments</comments>
+		<pubDate>Fri, 13 Jun 2014 18:15:55 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=1408</guid>
+		<description><![CDATA[&#160; Activate 1.6 is a quick release that features an integration with the finagle-mysql non-blocking driver and some performance enhancements. Example code: Please report if you find issues using this version.]]></description>
+			<content:encoded><![CDATA[<p>&nbsp;</p>
+<div>Activate 1.6 is a quick release that features an integration with the finagle-mysql non-blocking driver and some performance enhancements. Example code:</div>
+<div>
+<pre>
+<pre class="brush: scala">
+
+import net.fwbrasil.activate.ActivateContext
+import com.twitter.finagle.exp.MysqlClient
+import com.twitter.finagle.exp.MysqlStackClient
+import com.twitter.finagle.client.DefaultPool
+import com.twitter.util.TimeConversions.longToTimeableNumber
+import net.fwbrasil.activate.storage.relational.async.FinagleMySQLStorage
+
+object asyncFinagleMySQLContext extends ActivateContext {
+    lazy val storage = new FinagleMySQLStorage {
+
+        val dbPoolConfig = DefaultPool.Param(
+            low = 10,
+            high = 50,
+            bufferSize = 0,
+            idleTime = 100 millis,
+            maxWaiters = 200)
+
+         val client =
+            new MysqlClient(MysqlStackClient.configured(dbPoolConfig))
+                .withCredentials("user", "pass")
+                .withDatabase("db_name")
+                .newRichClient("host:port")
+    }
+}
+</pre>
+</pre>
+</div>
+<div></div>
+<div>Please report if you find issues using this version.</div>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-6/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.5 is out!</title>
+		<link>http://activate-framework.org/activate-1-5-is-out/</link>
+		<comments>http://activate-framework.org/activate-1-5-is-out/#comments</comments>
+		<pubDate>Sat, 24 May 2014 23:15:28 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=1396</guid>
+		<description><![CDATA[This version features support for custom ids, better play framework integration and some classes to ease writing tests with Activate. Special thanks to Valentin Churavy, Paweł Rzeczewski, Anton Khodakivskiy and Janos Haber for the valuable contributions. Change log: - custom ids - mysql async - reads without transaction - new play integration - test support - deferred read validation - query collection operators (in/notIn) - custom classpath scan [...]]]></description>
+			<content:encoded><![CDATA[<p>This version features support for custom ids, better play framework integration and some classes to ease writing tests with Activate.</p>
+<p>Special thanks to <a href="https://github.com/vchuravy">Valentin Churavy</a>, <a href="https://github.com/odwrotnie">Paweł Rzeczewski</a>, <a href="https://github.com/akhodakivskiy">Anton Khodakivskiy</a> and <a href="https://github.com/b0c1">Janos Haber</a> for the valuable contributions.</p>
+<p>Change log:</p>
+<p>- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/entity.md#custom-id">custom ids</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/persistence-context.md">mysql async</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/transaction.md#transaction">reads without transaction</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/play-framework.md#activateplaycontext">new play integration</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/test-support.md">test support</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/multiple-vms.md#deferred-read-validation">deferred read validation</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/query.md#collection-operators">query collection operators (in/notIn)</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/persistence-context.md">custom classpath scan</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/persistence-context.md#persisted-index">persisted index</a><br />
+- <a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/entity.md#custom-type-encoders">zip encoder</a><br />
+- <a href="https://github.com/fwbrasil/activate/issues?milestone=4&amp;page=1&amp;state=closed">bug fixes</a></p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-5-is-out/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.4.1</title>
+		<link>http://activate-framework.org/activate-1-4-1/</link>
+		<comments>http://activate-framework.org/activate-1-4-1/#comments</comments>
+		<pubDate>Sat, 05 Oct 2013 15:49:12 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=1378</guid>
+		<description><![CDATA[Activate 1.4.1 is available. The main new feature is the PrevalentStorage, that uses memory mapped files to maintain a prevalent storage and provides a high scalable persistence solution. Another important new feature is the support for Slick 2 lifted embedding queries. Special thanks to Paweł Rzeczewski for the help with the Lift integration and to [...]]]></description>
+			<content:encoded><![CDATA[<p>Activate 1.4.1 is available. </p>
+<p>The main new feature is the PrevalentStorage, that uses memory mapped files to maintain a prevalent storage and provides a high scalable persistence solution. Another important new feature is the support for Slick 2 lifted embedding queries.</p>
+<p>Special thanks to Paweł Rzeczewski for the help with the Lift integration and to Matias Rodriguez for the PrevalentStorage idea.</p>
+<p>Release notes (with links to the <a href="http://activate-framework.org/documentation/">documentation</a>):</p>
+<p>- <a href="http://activate-framework.org/documentation/persistence-context/#prevalent">Prevalent storage</a><br />
+- <a href="http://activate-framework.org/documentation/query/#slick_queries">Slick 2 lifted embedding support</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/">Sql Server dialect</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#custom_type_encoders">Custom type encoders</a><br />
+- <a href="http://activate-framework.org/documentation/lift-framework/">Lift Framewok integration</a><br />
+- <a href="http://activate-framework.org/documentation/play-framework/">Update to Play 2.2</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/#custom_cache_configuration">Custom cache configuration</a><br />
+- <a href="http://activate-framework.org/documentation/query/#eager_queries">Eager queries</a><br />
+- <a href="http://activate-framework.org/documentation/query/#cached_queries">Cached queries</a><br />
+- <a href="http://activate-framework.org/documentation/query/#dynamic_queries">Dynamic queries</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/#memory_index">Memory index</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#lifecycle_listeners">Lifecycle listeners</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#property_listeners">Property listeners</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#entity_map">EntityMap</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#entity_trait">Cascade delete</a><br />
+- <a href="http://activate-framework.org/documentation/entity/#custom_serializers">Kryo serializer</a><br />
+- <a href="http://activate-framework.org/documentation/migration/#modify_column_type">Modify column type migration</a><br />
+- <a href="http://activate-framework.org/documentation/query/#complete_query_form">Queries with empty where</a></p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-4-1/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.3 &#8211; Reactive Persistence</title>
+		<link>http://activate-framework.org/activate-1-3-reactive-persistence/</link>
+		<comments>http://activate-framework.org/activate-1-3-reactive-persistence/#comments</comments>
+		<pubDate>Mon, 10 Jun 2013 04:36:58 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=1259</guid>
+		<description><![CDATA[Activate 1.3 is available at maven central. This version features the reactive persistence. It is possible to perform fully non-blocking async transactions and queries using PostgreSQL and MongoDB. There is a reactive play example application. Special thanks to Mauricio for the help with postgresql-async and to b0c1 for the json related work. Release notes (with links to the documentation): [...]]]></description>
+			<content:encoded><![CDATA[<p>Activate 1.3 is available at maven central.</p>
+<p>This version features the reactive persistence. It is possible to perform fully non-blocking async transactions and queries using PostgreSQL and MongoDB.<br />
+There is a reactive play <a href="http://github.com/fwbrasil/activate-example-play-async">example application</a>.</p>
+<p>Special thanks to <a href="http://github.com/mauricio">Mauricio</a> for the help with <a href="http://github.com/mauricio/postgresql-async">postgresql-async</a> and to <a href="http://github.com/b0c1">b0c1</a> for the json related work.</p>
+<p>Release notes (with links to the <a href="http://activate-framework.org/documentation/">documentation</a>):</p>
+<p dir="ltr">- <a href="http://activate-framework.org/documentation/transaction/#async_transactions">Async transactions<br />
+</a>- <a href="http://activate-framework.org/documentation/query/#async_queries">Async queries<br />
+</a>- <a href="http://activate-framework.org/documentation/persistence-context/#async_postgresql">Reactive PostgreSQL storage</a> (using <a href="http://github.com/mauricio/postgresql-async">postgresql-async</a>)<br />
+- <a href="http://activate-framework.org/documentation/persistence-context/#async_mongodb">Reactive MongoDB storage</a> (using <a href="http://reactivemongo.org/">reactivemongo</a>)<br />
+- <a href="http://activate-framework.org/documentation/query/#slick_queries">Slick direct embedding queries</a><br />
+- <a href="http://activate-framework.org/documentation/spray-json/">Spray json integration<br />
+</a>- <a href="http://activate-framework.org/documentation/entity/#attributes_types">Lazy entity lists<br />
+</a>- <a href="http://activate-framework.org/documentation/query/#limited_query">Limited queries offset<br />
+</a>- <a href="http://activate-framework.org/documentation/query/#string_case_manipulation">toUpperCase/toLowerCase query functions<br />
+</a>- <a href="https://github.com/fwbrasil/activate/issues?milestone=3&amp;state=closed">Bug fixes</a></p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-3-reactive-persistence/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.2 &#8211; Polyglot Persistence</title>
+		<link>http://activate-framework.org/activate-1-2/</link>
+		<comments>http://activate-framework.org/activate-1-2/#comments</comments>
+		<pubDate>Sat, 16 Mar 2013 18:25:49 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=1121</guid>
+		<description><![CDATA[Activate 1.2 is available at maven central. The main feature of this version is the Polyglot Persistence. For example, an entity from a relational database can have a property that is an entity from a non-relational database. Transactions are distributed using the two-phase commit protocol. Another important feature is the optimistic offline locking. Now it [...]]]></description>
+			<content:encoded><![CDATA[<p>Activate 1.2 is available at maven central.</p>
+<p>The main feature of this version is the Polyglot Persistence. For example, an entity from a relational database can have a property that is an entity from a non-relational database. Transactions are distributed using the two-phase commit protocol.</p>
+<p>Another important feature is the optimistic offline locking. Now it is possible to use Activate as a Distribute STM without the need to use the Coordinator central service.</p>
+<p>Release notes (with links to the <a href="http://activate-framework.org/documentation/">documentation</a>):</p>
+<div>- Scala 2.10</div>
+<div>- <a href="http://activate-framework.org/documentation/persistence-context/#polyglot_context">Polyglot persistence</a></div>
+<div>- <a href="http://activate-framework.org/documentation/multiple-vms/">Optimistic offline locking</a></div>
+<div>- <a href="http://activate-framework.org/documentation/play-framework/">Play 2.1 support</a></div>
+<div>- <a href="http://activate-framework.org/documentation/persistence-context/">DB2 jdbc dialect</a></div>
+<div>- <a href="http://activate-framework.org/documentation/query/#limited_query">Limited queries</a></div>
+<div>- <a href="http://activate-framework.org/documentation/entity/#transient_attributes">Better transient field support</a></div>
+<div>- <a href="http://activate-framework.org/documentation/entity/#custom_serializers">Custom serializers</a></div>
+<div>- <a href="http://activate-framework.org/documentation/entity/#attributes_types">Nested list order preservation</a></div>
+<div>- <a href="https://github.com/fwbrasil/activate/issues?milestone=2&amp;state=closed">Bug fixes</a></div>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-2/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Autopsy of Akka Persistence</title>
+		<link>http://activate-framework.org/autopsy-akka-persistence/</link>
+		<comments>http://activate-framework.org/autopsy-akka-persistence/#comments</comments>
+		<pubDate>Wed, 28 Nov 2012 18:16:33 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=941</guid>
+		<description><![CDATA[Activate 1.0 was launched, people were talking about it and for my pleasant surprise Jonas Bonér, the Typesafe CTO, posted about it on twitter: Really nice! But then there is another post: While I fully respect Jonas Bonér and the Akka team, I disagree with this. I had already read about the reasons why the [...]]]></description>
+			<content:encoded><![CDATA[<p style="text-align: justify;">Activate 1.0 was launched, people were talking about it and for my pleasant surprise Jonas  Bonér, the Typesafe CTO, posted about it on twitter:</p>
+<div class="blockquote blockquote-default  ">
+<blockquote><strong>@jboner</strong> Activate Framework &#8211; durable STM with pluggable persistence: http://activate-framework.org/  #scala</p></blockquote>
+</div>
+<p>Really nice! But then there is another post:</p>
+<div class="blockquote blockquote-default  ">
+<blockquote><strong>@jboner</strong> For the record: I don&#8217;t believe in durable STMs. We tried that in Akka a couple of years ago. Dropped it for a reason. Use Slick instead.</p></blockquote>
+</div>
+<p style="text-align: justify;">
+While I fully respect Jonas Bonér and the Akka team, I disagree with this. I had already read about the reasons why the Akka Persistence module was discontinued, and it does not look like an STM problem, but rather design pitfalls in this specific Akka module. This is the document produced by the Akka Team:</p>
+<p><a href="https://docs.google.com/document/pub?id=1c9McZsW_mXiiQRWD-trViWmllHUb0ujOrJ92f-AUWYo">https://docs.google.com/document/pub?id=1c9McZsW_mXiiQRWD-trViWmllHUb0ujOrJ92f-AUWYo</a></p>
+<p>The analysis focuses on two main points:</p>
+<p>1. It is not possible to guarantee the Durable STM consistency due the absence of ACID transactions on NoSQL databases. (&#8220;No failure atomicity&#8221; and &#8220;No consistency&#8221;)</p>
+<p>2. The Akka Persistence STM is not distributed, so it is not possible to use it with multiple virtual machines. (&#8220;No isolation&#8221; and &#8220;Lost updates&#8221;)</p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3>Autopsy</h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">
+The second point is about an absent Akka Persistence feature, so it is not possible to do a study on it. Activate addresses this issue by providing a Coordinator to make the Durable STM distributed. More information <a href="http://activate-framework.org/documentation/architecture/">here</a> and <a href="http://activate-framework.org/documentation/multiple-vms/">here</a>.</p>
+<p style="text-align: justify;">The first point is about problems people were running into when using Akka Persistence. So it is possible to do a study on what went wrong. To start, we should locate the old source code. The module was moved to the also discontinued akka-modules repository. This is the source code (v1.0 tag):</p>
+<p><a href="https://github.com/akka/akka-modules/tree/82e7dea3dd93f976a519a5615b95d52fd8e6c28b">https://github.com/akka/akka-modules/tree/82e7dea3dd93f976a519a5615b95d52fd8e6c28b</a></p>
+<p>Binaries:</p>
+<p><a href="http://repo.akka.io/releases/se/scalablesolutions/akka/akka-persistence-common/1.0/">http://repo.akka.io/releases/se/scalablesolutions/akka/akka-persistence-common/1.0/</a></p>
+<p style="text-align: justify;">Since Activate achieves a high level of consistency even when used with MongoDB (non ACID), perhaps Akka Persistence was doing something different than Activate that could produce inconsistencies.</p>
+<p style="text-align: justify;">To find this difference, we can implement a very simple atomic storage:</p>
+<p><a href="https://github.com/fwbrasil/consistency/blob/master/src/main/scala/akkaPersistence/SimpleStorage.scala">SimpleStorage.scala</a></p>
+<p style="text-align: justify;">This storage supports only refs and uses a synchronized map of atomic integers to store them. Placement and retrieval of items in this storage are fully atomic. Since Akka Persistence’s problem was due to the lack of atomicity at NoSQL databases, this atomic storage should have no problems in the following test case.</p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3>Test case</h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">This test creates a ref with initial value 0 and run 50 threads in parallel, each one incrementing the value by 1 with a STM transaction. The ref’s final value should be 50:</p>
+<p><a href="https://github.com/fwbrasil/consistency/blob/master/src/test/scala/akkaPersistence/AkkaPersistenceConsistencySpecs.scala">AkkaPersistenceConsistencySpecs.scala</a></p>
+<p>Values are verified to be not equal to the expected value (50). The console output:</p>
+<pre class="brush: scala">
+
+expectedCurrentValue=50
+akkaCurrentValue=16
+databaseCurrentValue=16
+multiverseCurrentValue=0
+</pre>
+<p style="text-align: justify;">The akkaCurrentValue and databaseCurrentValue are the same, but differ from the expected value. It varies on each test execution. The multiverseCurrentValue is always zero.</p>
+<p style="text-align: justify;">Why does Akka Persistence produce inconsistencies, even using an atomic storage?</p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3>The commit flow problem</h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">
+Akka Persistence uses the Multiverse STM. It listens to the transaction events:</p>
+<p><a href="https://github.com/akka/akka/blob/v1.0/akka-stm/src/main/scala/akka/stm/Transaction.scala">Transaction.scala</a></p>
+<pre class="brush: scala">
+
+    mtx.registerLifecycleListener(new TransactionLifecycleListener() {
+      def notify(mtx: MultiverseTransaction, event: TransactionLifecycleEvent) = event match {
+        case TransactionLifecycleEvent.PostCommit => tx.commitJta
+        case TransactionLifecycleEvent.PreCommit => tx.commitPersistentState
+        case TransactionLifecycleEvent.PostAbort => tx.abort
+        case _ => {}
+      }
+    })
+</pre>
+<p style="text-align: justify;">The persistent commit occurs when a PreCommit event is fired by Multiverse. Looking at its implementation we can see where this event is fired:</p>
+<p><a href="https://fisheye.codehaus.org/browse/~tag=multiverse-0.6.2/multiverse/multiverse-core/src/main/java/org/multiverse/stms/AbstractTransaction.java?r=927bef4569ced40cec713ddb92251c91c606431d&#038;r=73583ffe8966d3cafc8a3528340a19446bcd0009">AbstractTransaction.java</a></p>
+<pre class="brush: scala">
+
+public final void commit() {
+  ...
+          case Active:
+               prepare();
+  ...
+
+public final void prepare() {
+  ...
+  case Active:
+               try {
+                   notifyAll(TransactionLifecycleEvent.PreCommit);
+  ...
+</pre>
+<p style="text-align: justify;">Before these lines there are only console log actions, so we conclude the PreCommit event is fired as the first thing on a transaction commit. This is the basic flow of a STM transaction commit:</p>
+<p>1. Lock each transactional unit (refs) used by the transaction;<br />
+2. Validate all reads and writes, throw an exception to retry the transaction in case of inconsistency;<br />
+3. Commit the write operations values on the transactional units (refs) in memory;<br />
+4. Release locks.</p>
+<p style="text-align: justify;">As the PreCommit event occurs before this workflow, the Akka Persistence was storing values that could be invalid. If the transaction retries, the invalid value is already placed on the storage. This looks like a design error. It would be more reasonable to do it:</p>
+<p>- After validating the transaction (2), as the storage should receive only valid items.<br />
+- Before releasing the locks (4). Otherwise, it is not possible to ensure that placement of items in the storage occurs in the same order as STM transaction commits.</p>
+<p style="text-align: justify;">Activate uses a different commit flow in order to solve this problem:</p>
+<p>1. Lock each transactional unit (refs) used by the transaction;<br />
+2. Validate all reads and writes, throw an exception to retry the transaction if there is inconsistency;<br />
+<strong>3. Place items in the storage;</strong><br />
+4. Commit the write operations values on the transactional units (refs) in memory;<br />
+5. Release locks.</p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3>The direct access problem</h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">It is possible to see a Durable STM as a way to represent in memory the data that is in the storage. Each data representation can be called as a STM transactional unit. The data representation must obey two important restrictions:</p>
+<p style="text-align: justify;">1. Each data representation must be unique in-memory. If there is more than one transactional unit representing the same data, the STM logic to validate transactions can not detect a write/read conflict on the data.</p>
+<p style="text-align: justify;">2. All access to the data must be done through a transactional unit. If there is a direct read or write to the storage, again the STM validation logic can not detect reads and writes conflicts.</p>
+<p style="text-align: justify;">The first restriction was broken in the Akka Persistence 1.0-M1. The problem was solved by the StorageManager class in 1.0.</p>
+<p style="text-align: justify;">The second restriction remains broken. The Persistent* classes access the storage directly when reading values. The read is done through the transaction unit only after a write. The PersistentRef for example:</p>
+<p><a href="https://github.com/akka/akka-modules/blob/82e7dea3dd93f976a519a5615b95d52fd8e6c28b/akka-persistence/akka-persistence-common/src/main/scala/akka/persistence/common/Storage.scala">Storage.scala</a></p>
+<pre class="brush: scala">
+
+def get: Option[T] = if (ref.isDefined) ref.opt else storage.getRefStorageFor(uuid)
+</pre>
+<p style="text-align: justify;">Ref is defined only after a write. All reads before the write are not tracked by the STM concurrency control. This is another Akka Persistence design problem.</p>
+<p style="text-align: justify;">Activate obeys these two restrictions. It uses soft references to guarantee that there is only one transactional unit for each storage data. It also guarantees that all reads and writes are made through a transactional unit. The database is only read in order to initialize the transactional unit (entity lazy initialization), or whenever the entity is reloaded by the Coordinator in case it’s been modified at another virtual machine.</p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3>Conclusion</h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p style="text-align: justify;">The Akka Persistence inconsistency problems would be present even with full ACID storages. The same concurrency test that fails using Akka Persistence with the implemented atomic storage, passes using Activate with the non atomic storage MongoDB:</p>
+<p><a href="https://github.com/fwbrasil/consistency/blob/master/src/test/scala/activate/ActivateConsistencySpecs.scala">ActivateConsistencySpecs.scala</a></p>
+<p style="text-align: justify;">Activate adds a very high consistency level on top of Mongo, but eventually (particularly when using database eventual consistency with the coordinator) there should be inconsistencies like stale reads. It is an expected limitation of any non ACID database, Activate just minimizes it.</p>
+<p style="text-align: justify;">If your application can not have rare inconsistencies, just use Activate with ACID storages so you can have full consistency support. You can choose which modules assemble in your application. The available modules for 1.1 are Jdbc, Mongo and Prevayler. In 1.2 we will have a module to support graph databases too.</p>
+<p style="text-align: justify;">This autopsy evidences that Akka Persistence has two problems that make its usage unfeasible with atomic or non atomic storages. Even if the arguments presented in the Akka Team document were completely right, they should be a reason to avoid Durable STM with NoSQL databases, not to discredit Durable STMs at all.</p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/autopsy-akka-persistence/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.1</title>
+		<link>http://activate-framework.org/activate-1-1/</link>
+		<comments>http://activate-framework.org/activate-1-1/#comments</comments>
+		<pubDate>Thu, 22 Nov 2012 01:08:09 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=922</guid>
+		<description><![CDATA[Activate Persistence Framework v1.1 is available. The main new feature is the Coordinator, that transforms Activate into a Distributed STM. There is a new architecture documentation too. Release notes: - Play application hot reload support (ActivatePlayPlugin) - New query syntax option: select[MyEntity] where(_.name :== &#8220;a&#8221;) - New databases: h2, derby and hsqldb. - Support for [...]]]></description>
+			<content:encoded><![CDATA[<p>Activate Persistence Framework v1.1 is available. The main new feature is the <a href="http://activate-framework.org/documentation/multiple-vms/">Coordinator</a>, that transforms Activate into a Distributed STM. There is a new <a href="http://activate-framework.org/documentation/architecture/">architecture documentation</a> too.</p>
+<p>Release notes:</p>
+<p>- Play application hot reload support (<a href="http://activate-framework.org/documentation/play-framework/">ActivatePlayPlugin</a>)<br />
+- New <a href="http://activate-framework.org/documentation/query/">query</a> syntax option: select[MyEntity] where(_.name :== &#8220;a&#8221;)<br />
+- New <a href="http://activate-framework.org/documentation/persistence-context/">databases</a>: h2, derby and hsqldb.<br />
+- Support for <a href="http://activate-framework.org/documentation/entity/">list</a> fields in entities: class MyEntity(var intList: List[Int]) extends Entity<br />
+- @<a href="http://activate-framework.org/documentation/entity/">Alias</a> annotation to customize entity and field names at the storage<br />
+- Manual <a href="http://activate-framework.org/documentation/migration/">migrations</a><br />
+- Multiple VMs support (<a href="http://activate-framework.org/documentation/multiple-vms/">Coordinator</a>)<br />
+- Performance enhancements<br />
+- <a href="https://github.com/fwbrasil/activate/issues?milestone=1&#038;state=closed">Bug fixes</a></p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-1/feed/</wfw:commentRss>
+		<slash:comments>3</slash:comments>
+		</item>
+		<item>
+		<title>Activate 1.0 is out!</title>
+		<link>http://activate-framework.org/activate-1-0-is-out/</link>
+		<comments>http://activate-framework.org/activate-1-0-is-out/#comments</comments>
+		<pubDate>Sun, 26 Aug 2012 14:24:42 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[NEWS]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=596</guid>
+		<description><![CDATA[After 2 years of development, Activate Persistence Framework 1.0 is out! The project idea began from the frustration of using Java persistence frameworks. I was tired of accidental complexity, type-unsafe queries, patterns like DAO and methods such as store, merge, detach, etc. Why can’t it be simpler? One day, a friend of mine presented Scala [...]]]></description>
+			<content:encoded><![CDATA[<p style="text-align: justify;">After 2 years of development, Activate Persistence Framework 1.0 is out!</p>
+<p style="text-align: justify;">The project idea began from the frustration of using Java persistence frameworks. I was tired of accidental complexity, type-unsafe queries, patterns like DAO and methods such as store, merge, detach, etc. Why can’t it be simpler? One day, a friend of mine presented Scala to me. That moment was the definitive kick-off to start Activate. The power and simplicity of Scala was the final ingredient.</p>
+<p style="text-align: justify;">My reference of persistence was <a href="http://prevayler.org" target="_blank">Prevayler</a>. How to do something like Prevayler without store all data in memory? A persistence framework based on <a href="http://en.wikipedia.org/wiki/Software_transactional_memory" target="_blank">STM</a> that implements the behavior of database in memory was the solution I have found. Using soft references, it can use all the available memory and rely on sophisticated Java GC to choose what entities stays in memory.</p>
+<p style="text-align: justify;">The project idea also was born while the NoSQL resurged. Inspired by this movement, the architecture was designed to provide pluggable persistence, allowing to write software that persists data in relational or non-relational storages in a homogeneous way.</p>
+<p style="text-align: justify;">I would like to thank people who contributed to the project directly or indirectly, especially Lau Borges for the website and tests.</p>
+<p style="text-align: justify;">I hope that Activate will be useful to the Scala community.</p>
+<p style="text-align: justify;">The official site and documentation:</p>
+<p><a href="http://activate-framework.org">http://activate-framework.org</a></p>
+<p>1.0 Release notes:</p>
+<p>- <a href="http://activate-framework.org/documentation/migration/">Migrations</a><br />
+- <a href="http://activate-framework.org/documentation/play-framework/">Play Framework support</a><br />
+- <a href="http://activate-framework.org/documentation/mass-statement/">Mass update/delete statements</a><br />
+- <a href="http://activate-framework.org/documentation/validation/">Validation using Design By Contract</a><br />
+- <a href="http://activate-framework.org/documentation/query/">Queries with &#8220;order by&#8221;</a><br />
+- <a href="http://activate-framework.org/documentation/query/">Paginated queries</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/">Storage direct access</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/">System properties defined storage<br />
+</a>- Better error messages<br />
+- It&#8217;s not necessary to use &#8220;-noverify&#8221; anymore<br />
+- Performance enhancements<br />
+- Bugfixes</p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-0-is-out/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+	</channel>
+</rss>

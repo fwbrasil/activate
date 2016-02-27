@@ -1,89 +1,237 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>Activate by fwbrasil</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Activate</h1>
-      <h2 class="project-tagline">Pluggable persistence in Scala</h2>
-      <a href="https://github.com/fwbrasil/activate" class="btn">View on GitHub</a>
-      <a href="https://github.com/fwbrasil/activate/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/fwbrasil/activate/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if gt IE 8]><!--> <html dir="ltr" lang="pt-BR"> <!--<![endif]-->
 
-    <section class="main-content">
-      <h1>
-<a id="activate-persistence-framework" class="anchor" href="#activate-persistence-framework" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Activate Persistence Framework</h1>
+<!-- Mirrored from activate-framework.org/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:47:21 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
 
-<p><a href="https://gitter.im/fwbrasil/activate?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></p>
+	<!--=== META TAGS ===-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta charset="UTF-8" />
+	<meta name="description" content="Keywords">
+	<meta name="author" content="Name">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-<p><img src="http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg" alt="Activate splash"></p>
+	<!--=== LINK TAGS ===-->
+	<link rel="shortcut icon" href="favicon.ico" />
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework RSS2 Feed" href="feed/index.html" />
+	<link rel="pingback" href="xmlrpc.php" />
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.html">
+	<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.html">
+	<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.html">
 
-<p>Documentation (<a href="/activate-docs/_index.md">index</a>):</p>
+	<!--=== TITLE ===-->
+	<title> - Activate Persistence Framework</title>
+	
+	<!--== GOOGLE FONTS ==-->
+	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
 
-<ul>
-<li><a href="/activate-docs/get-started.md">Get started</a></li>
-<li><a href="/activate-docs/persistence-context.md">Persistence Context</a></li>
-<li>
-<a href="/activate-docs/entity.md">Entity</a> </li>
-<li><a href="/activate-docs/transaction.md">Transaction</a></li>
-<li><a href="/activate-docs/validation.md">Validation</a></li>
-<li><a href="/activate-docs/query.md">Query</a></li>
-<li><a href="/activate-docs/test-support.md">Test support</a></li>
-<li><a href="/activate-docs/migration.md">Migration</a></li>
-<li><a href="/activate-docs/multiple-vms.md">Multiple VMs</a></li>
-<li><a href="/activate-docs/mass-statement.md">Mass statement</a></li>
-<li><a href="/activate-docs/play-framework.md">Play framework</a></li>
-<li><a href="/activate-docs/lift-framework.md">Lift framework</a></li>
-<li><a href="/activate-docs/spray-json.md">Spray Json</a></li>
-<li><a href="/activate-docs/architecture.md">Architecture</a></li>
-</ul>
+	<!--=== WP_HEAD() ===-->
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework &raquo; HomePage Comments Feed" href="homepage/feed/index.html" />
+<link rel='stylesheet' id='base-style-css'  href='wp-content/themes/atom/css/base68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='skeleton-style-css'  href='wp-content/themes/atom/css/skeleton68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='layout-style-css'  href='wp-content/themes/atom/css/layout68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='main-style-css'  href='wp-content/themes/atom/style5152.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='shortcodes-style-css'  href='wp-content/themes/atom/wpts/shortcodes/assets/css/shortcodes68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='pretty-style-css'  href='wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/css/prettyPhoto68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='shCore-style-css'  href='wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shCoredc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='shThemeDefault-css'  href='wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shThemeDefaultdc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='flex-slider-css-css'  href='wp-content/themes/atom/wpts/shortcodes/assets/flexslider/flexslider.css' type='text/css' media='all' />
+<link rel='stylesheet' id='uploadify-css-css'  href='wp-content/themes/atom/uploadify/uploadify.css' type='text/css' media='all' />
+<script type="text/javascript">var THEME_DIR = "wp-content/themes/atom/index.html";</script><script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+<script type='text/javascript' src='http://html5shim.googlecode.com/svn/trunk/html5.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/js/jquery.isotope.min.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/js/init.js'></script>
+<script type='text/javascript' src='https://apis.google.com/js/plusone.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tweet68b3.js?ver=1'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tipTip.minified4e44.js?ver=1.3'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/js/jquery.prettyPhoto.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/init.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shCore.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shAutoloader.js'></script>
+<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=&amp;sensor=false'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.gmap-1.1.0-min.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/flexslider/jquery.flexslider-min.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/uploadify/swfobject.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/uploadify/jquery.uploadify.v2.1.4.min.js'></script>
+<script type='text/javascript' src='wp-content/themes/atom/js/ordernow.js'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="xmlrpc0db0.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://activate-framework.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Get Started' href='get-started/index.html' />
+<link rel='next' title='Blog' href='blog/index.html' />
+<link rel='canonical' href='index.html' />
+	<link type="text/css" rel="stylesheet" href="wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shCore.css"></link>
+	<link type="text/css" rel="stylesheet" href="wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shThemeDefault.css"></link>
+<script type="text/javascript">
 
-<h2>
-<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h2>
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34374169-1']);
+  _gaq.push(['_trackPageview']);
 
-<p>Activate is a framework to persist objects in Scala. It is a <a href="http://en.wikipedia.org/wiki/Software_transactional_memory">STM (Software Transactional Memory)</a> durable, with pluggable persistence. Its core is the RadonSTM, which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do <a href="http://en.wikipedia.org/wiki/Optimistic_concurrency_control">optimistic concurrency control</a>. The durability of transactions (persistence) is pluggable and can use persistence in different paradigms such as relational (<a href="http://en.wikipedia.org/wiki/Java_Database_Connectivity">JDBC</a>), prevalence (<a href="http://prevayler.org/">Prevayler</a>) and non-relational (<a href="https://www.mongodb.org/">MongoDB</a>).</p>
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
 
-<h2>
-<a id="benefits" class="anchor" href="#benefits" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Benefits</h2>
+</script>
+</head>
+<body class="home page page-id-162 page-template-default">
 
-<p>The main benefits of the framework are:</p>
+<div class="container" id="header-wrapper-top">
+	<div id="logo-top">
+		<a href="index.html"><img class="scale-with-grid" src="wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+	</div><!-- #logo -->
+	
+	<div id="navigation-toggle"><a href="#">SHOW NAVIGATION</a></div>
+				
+	<div id="top-menu">
+		<ul id="menu-main-menu" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home"><a href="index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul>	</div> <!-- #side-menu -->
+</div>
 
-<ul>
-<li>Atomic, consistent, isolated and durable transactions. You can use entities without worrying about concurrency issues.</li>
-<li>Entities are always consistent in memory and in the persistence layer. For example, if rollback occurs, entities in memory stay consistent.</li>
-<li>Transaction propagation control, including nested transactions.</li>
-<li>Entities are lazy loaded and initialized automatically when needed.</li>
-<li>Queries are type-safe and consistent, even with objects created in the current transaction. Therefore, an entity created in the same transaction may be returned in a query.</li>
-<li>The available memory is used efficiently, minimizing the conversation with the storage and maximizing performance.</li>
-</ul>
+	<div class="container" id="wrapper">
+		
+		<div class="columns twelve alpha omega" id="main-content">
+		
+											
+			<div class="post homepage">
+				<div class="post-content page-content">
+					
+		<div class="flex-container"  style="margin-bottom: 20px;">
+			<div class="flexslider" id="flex-888">
+				<ul class="slides">
 
-<h2>
-<a id="build" class="anchor" href="#build" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build</h2>
+ 
+		<li>
+			<img src="wp-content/uploads/2012/04/activateslider4.jpg" />
+			
+		</li>
 
-<p>Use sbt 0.11.2 to build Activate. Use the command "eclipse" to generate the eclipse project.
-To run tests, you have to provide the databases instances for the contexts defined on the net.fwbrasil.activate.ActivateTest.contexts method of the activate-tests project.</p>
+ 
+		<li>
+			<img src="wp-content/uploads/2012/04/activateslider3.jpg" />
+			
+		</li>
 
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+ 
+		<li>
+			<img src="wp-content/uploads/2012/04/activateslider1.jpg" />
+			
+		</li>
 
-<p>The code is licensed under <a href="http://pl.wikipedia.org/wiki/GNU_Lesser_General_Public_License">LGPL</a>.</p>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/fwbrasil/activate">Activate</a> is maintained by <a href="https://github.com/fwbrasil">fwbrasil</a>.</span>
+				</ul>
+			</div>
+		</div>
 
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+		
+		<div class="padding-div" style="padding-left: 20px; padding-right: 20px;  margin-bottom: 20px">
+<p style="text-align: justify;"><span id="more-162"></span>Activate is a framework to persist objects in <a href="http://www.scala-lang.org/" target="_blank">Scala</a>. It is a <a title="STM" href="http://en.wikipedia.org/wiki/Software_transactional_memory" target="_blank">STM</a> (Software Transactional Memory) distributed and durable with pluggable persistence. Its core is the <a title="RadonSTM" href="https://github.com/fwbrasil/radon-stm" target="_blank">RadonSTM</a>, which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do optimistic concurrency control. The durability of transactions is pluggable and can use persistence in different paradigms such as relational (<a href="http://en.wikipedia.org/wiki/JDBC" target="_blank">JDBC</a>), prevalence (<a href="http://prevayler.org/" target="_blank">Prevayler</a>) and non-relational (<a href="http://www.mongodb.org/" target="_blank">MongoDB</a>). The framework also has support for polyglot persistence using distributed transactions.</p>
+</div>
+<p style="text-align: center;"><a href="wp-content/uploads/2012/05/sample-code.png" rel="prettyPhoto" title="A very simple application using Activate"><img src="wp-content/uploads/2012/05/sample-code-button.png" alt=" " width="" height="" class="image-shortcode  no-shadow " style="padding: 0;" /></a></p>
 
-    </section>
 
-  
-  </body>
+<div class="padding-div padding-div-border" style="padding-left: 20px; padding-right: 20px; padding-top: 20px; margin-bottom: 20px">
+<div class="one_third" ><p style="text-align: center;"><img src="wp-content/uploads/2012/04/pencil2.png" alt=" " width="59" height="59" class="image-shortcode  no-shadow " style="padding: 0;" /></p>
+
+<h5 style="text-align: center;">Simplicity</h5>
+<p style="text-align: center;">A simple way to handle persistence. Transparent, type-safe and pluggable with relational and non-relational storages.</p></div>
+<div class="one_third" ><p style="text-align: center;"><img src="wp-content/uploads/2012/04/reaction2.png" alt=" " width="59" height="59" class="image-shortcode  no-shadow " style="padding: 0;" /></p>
+
+<h5 style="text-align: center;">Consistency</h5>
+<p style="text-align: center;">Just use your entities without worrying about concurrency issues. Enjoy the sophisticated STM in-memory transaction control.</p></div>
+<div class="one_third last " ><p style="text-align: center;"><img src="wp-content/uploads/2012/04/action2.png" alt=" " width="59" height="59" class="image-shortcode  no-shadow " style="padding: 0;" /></p>
+
+<h5 style="text-align: center;">Scalability</h5>
+<p style="text-align: center;">Explore the maximum of your hardware. From simple embedded systems to high performance environments. See the <a href="http://databen.ch/">benchmark</a>.</p></div><div class="clearboth"></div>
+
+</div>
+
+<p style="text-align: center;">Activate is licensed under <a title="License" href="https://github.com/fwbrasil/activate/blob/master/LICENSE-LGPL" target="_blank">LGPL</a>.</p>
+				</div>
+			</div> <!-- .post -->
+			
+			<!-- START of PAGINATION -->
+    		<div class="pagination"><div class='newer-posts'>&nbsp;</div><div class='older-posts'>&nbsp;</div><div class='clearfix'></div></div>
+    		<!-- END of PAGINATION -->
+						
+						
+		
+		</div> <!-- #main-content -->
+		
+		 
+<div class="columns four alpha" id="side-nav">
+	<div id="header-wrapper-side">
+<div id="logo">
+	<a href="index.html"><img class="scale-with-grid" src="wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+</div><!-- #logo -->
+
+<div id="side-menu">
+	<ul id="menu-main-menu-1" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home"><a href="index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul></div> <!-- #side-menu -->
+
+	</div> <!-- #header-wrapper -->
+	
+	<div id="widgets">
+<div id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" action="http://activate-framework.org/" >
+	<div><label class="screen-reader-text" for="s">Search for:</label>
+	<input type="text" value="" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+	</form></div>		<div id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widgettitle"><span class="title">Recent Posts</span></h3>		<ul>
+				<li><a href="activate-1-6/index.html" title="Activate 1.6">Activate 1.6</a></li>
+				<li><a href="activate-1-5-is-out/index.html" title="Activate 1.5 is out!">Activate 1.5 is out!</a></li>
+				<li><a href="activate-1-4-1/index.html" title="Activate 1.4.1">Activate 1.4.1</a></li>
+				<li><a href="activate-1-3-reactive-persistence/index.html" title="Activate 1.3 &#8211; Reactive Persistence">Activate 1.3 &#8211; Reactive Persistence</a></li>
+				<li><a href="activate-1-2/index.html" title="Activate 1.2 &#8211; Polyglot Persistence">Activate 1.2 &#8211; Polyglot Persistence</a></li>
+				</ul>
+		</div><div id="text-3" class="widget widget_text">			<div class="textwidget"></div>
+		</div>	</div> <!-- #widgets -->
+	
+</div> <!-- #side-nav --> 
+		
+	</div><!-- #wrapper -->
+
+	<!--div class="container" id="footer">
+		<div id="footer-line-1" class="footer-line">
+			<span class="line-content">
+				<font color=white>Activate is released under LGPL license.</font>			</span>
+		</div>
+	</div-->
+	
+	<script type="text/javascript">resizeSidenav();</script>
+
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tools.tabs.min54f4.js?ver=1.2.5'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/tabs-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/pin-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/tweet-api68b3.js?ver=1'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/js/tooltip-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shInit68b3.js?ver=1'></script>
+
+<!-- SyntaxHighlighter Stuff -->
+<script type="text/javascript" src="wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/src/shCore.js"></script>
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+</script>
+
+	</body>
+
+<!-- Mirrored from activate-framework.org/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:47:48 GMT -->
 </html>

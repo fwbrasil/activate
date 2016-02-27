@@ -1,0 +1,614 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if gt IE 8]><!--> <html dir="ltr" lang="pt-BR"> <!--<![endif]-->
+
+<!-- Mirrored from activate-framework.org/documentation/migration/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:49:49 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+
+	<!--=== META TAGS ===-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta charset="UTF-8" />
+	<meta name="description" content="Keywords">
+	<meta name="author" content="Name">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!--=== LINK TAGS ===-->
+	<link rel="shortcut icon" href="../../favicon.ico" />
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework RSS2 Feed" href="../../feed/index.html" />
+	<link rel="pingback" href="../../xmlrpc.php" />
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.html">
+	<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.html">
+	<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.html">
+
+	<!--=== TITLE ===-->
+	<title> &raquo; Migration - Activate Persistence Framework</title>
+	
+	<!--== GOOGLE FONTS ==-->
+	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+
+	<!--=== WP_HEAD() ===-->
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework &raquo; Migration Comments Feed" href="feed/index.html" />
+<link rel='stylesheet' id='base-style-css'  href='../../wp-content/themes/atom/css/base68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='skeleton-style-css'  href='../../wp-content/themes/atom/css/skeleton68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='layout-style-css'  href='../../wp-content/themes/atom/css/layout68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='main-style-css'  href='../../wp-content/themes/atom/style5152.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='shortcodes-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/css/shortcodes68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='pretty-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/css/prettyPhoto68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='shCore-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shCoredc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='shThemeDefault-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shThemeDefaultdc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='flex-slider-css-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/flexslider.css' type='text/css' media='all' />
+<link rel='stylesheet' id='uploadify-css-css'  href='../../wp-content/themes/atom/uploadify/uploadify.css' type='text/css' media='all' />
+<script type="text/javascript">var THEME_DIR = "../../wp-content/themes/atom/index.html";</script><script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+<script type='text/javascript' src='http://html5shim.googlecode.com/svn/trunk/html5.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/jquery.isotope.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/init.js'></script>
+<script type='text/javascript' src='https://apis.google.com/js/plusone.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tweet68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tipTip.minified4e44.js?ver=1.3'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/js/jquery.prettyPhoto.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/init.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shCore.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shAutoloader.js'></script>
+<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=&amp;sensor=false'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.gmap-1.1.0-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/jquery.flexslider-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/swfobject.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/jquery.uploadify.v2.1.4.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/ordernow.js'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../../xmlrpc0db0.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://activate-framework.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Mass statement' href='../mass-statement/index.html' />
+<link rel='next' title='Play Framework' href='../play-framework/index.html' />
+<link rel='canonical' href='index.html' />
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shCore.css"></link>
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shThemeDefault.css"></link>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34374169-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body class="page page-id-706 page-child parent-pageid-694 page-template-default">
+
+<div class="container" id="header-wrapper-top">
+	<div id="logo-top">
+		<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+	</div><!-- #logo -->
+	
+	<div id="navigation-toggle"><a href="#">SHOW NAVIGATION</a></div>
+				
+	<div id="top-menu">
+		<ul id="menu-main-menu" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul>	</div> <!-- #side-menu -->
+</div>
+
+	<div class="container" id="wrapper">
+		
+		<div class="columns twelve alpha omega" id="main-content">
+		
+						
+			<div class="mega-title mega-single">
+				<h1>Migration</h1>
+			</div>
+			
+			<div class="post">
+				<div class="post-content page-content">
+					<p>Migration is the storage schema evolution mechanism provided by Activate. Example:</p>
+<pre class="brush: scala">
+
+class ExampleMigration extends Migration {
+	def timestamp = 201208191834l
+	def up = {
+		table[MyEntity]
+			.createTable(
+				_.column[String]("attribute1"),
+				_.column[Int]("attribute2"))
+	}
+}
+</pre>
+<p>There is no need to register you migration. Just put it on the project classpath and it will be found by Activate.</p>
+<p><strong>Important</strong>: The context definition must be declared in a base package of the migrations packages. Example: com.app.myContext for com.app.model.MyMigration</p>
+<p>Class explanation:</p>
+<p style="padding-left: 30px;">
+<strong>def timestamp: Long</strong><br />
+Determines the execution order of the migration. If there is more than one migration with the same timestamp, an error will be thrown.<br />
+A good pattern to this number is YYYYMMDDHHSS.
+</p>
+<p style="padding-left: 30px;">
+<strong>def up: Unit</strong><br />
+Method to register the migration actions.
+</p>
+<p>There is also a &#8220;<strong>down</strong>&#8221; method. It has a default implementation that reverts the migration when it&#8217;s possible. To define a custom down method, just override it.</p>
+<pre class="brush: scala">
+
+override def down = {
+	table[MyEntity]
+		.removeTable
+}
+</pre>
+<p>When the default &#8220;down&#8221; method implementation can&#8217;t revert a migration, it throws a <strong>CannotRevertMigration</strong>. Migrations actions that can&#8217;t be automatically reverted:</p>
+<p style="padding-left: 30px;">
+<strong>Remove column<br />
+Remove table<br />
+Remove nested list table<br />
+Custom script</strong>
+</p>
+<p><a name="schema_update_revert"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#schema_update_revert">schema update/revert</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>On context startup, Activate automatically verifies if the storage schema must be updated and run pending migrations.</p>
+<p>To override this default behavior add this code to your context:</p>
+<pre class="brush: scala">
+
+override protected lazy val runMigrationAtStartup = false
+</pre>
+<p><br/><br />
+Methods to update/revert storage migrations available at the <strong>net.fwbrasil.activate.migration.Migration</strong> object:</p>
+<p style="padding-left: 30px;">
+<strong>def update(context: ActivateContext): Unit</strong><br />
+Updates the storage to the last available migration.
+</p>
+<p style="padding-left: 30px;">
+<strong>def updateTo(context: ActivateContext, timestamp: Long): Unit</strong><br />
+Updates the storage to the specified timestamp.
+</p>
+<p style="padding-left: 30px;">
+<strong>def revertTo(context: ActivateContext, timestamp: Long): Unit</strong><br />
+Reverts the storage to de specified timestamp.
+</p>
+<p><a name="manual_migration"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#manual_migration">manual migration</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Manual migration is an especial type wich indicates that the migration runs only manually and doesn&#8217;t have an automatic timestamp execution control logic. Example:</p>
+<pre class="brush: scala">
+
+class ExampleMigration extends ManualMigration {
+	def up = {
+		table[MyEntity]
+			.removeTable
+	}
+}
+</pre>
+<p>Methods to run manual migrations available at the <strong>net.fwbrasil.activate.migration.Migration</strong> object:</p>
+<p style="padding-left: 30px;">
+<strong>def execute(context: ActivateContext, manualMigration: ManualMigration): Unit</strong><br />
+Executes migration up actions.
+</p>
+<p style="padding-left: 30px;">
+<strong>def revert(context: ActivateContext, manualMigration: ManualMigration): Unit</strong><br />
+Executes migration down actions.
+</p>
+<p><a name="table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#table">table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>The Table class has methods to manipulate the schema. There are two methods to obtain a table object:</p>
+<pre class="brush: scala">
+
+table("MyEntity")
+table[MyEntity]
+</pre>
+<p>The first uses the entity name and the second the entity class. It&#8217;s recommended using the second one. The first one is designed to be used when an entity class is deleted or renamed.</p>
+<p><a name="create_table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#create_table">create table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def createTable(definitions: ((ColumnDef) => Unit)*): CreateTable</strong></p>
+<p>Example including the &#8220;ifNotExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.createTable(
+		_.column[String]("myString"),
+		_.customColumn[Int]("myBigString", "CLOB"))
+	.ifNotExists
+</pre>
+<p><a name="remove_table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#remove_table">remove table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def removeTable: RemoveTable</strong></p>
+<p>Example including the &#8220;ifExists&#8221; and &#8220;cascade&#8221; options:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.removeTable
+	.ifExists
+	.cascade
+</pre>
+<p><a name="rename_table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#rename_table">rename table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def renameTable(newName: String): RenameTable</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table("MyOldEntity")
+	.renameTable("MyNewEntity")
+	.ifExists
+</pre>
+<p><a name="add_column"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#add_column">add column</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def addColumn(definition: (ColumnDef) => Unit): AddColumn</strong></p>
+<p>Example including the &#8220;ifNotExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.addColumn(_.column[String]("myNewColumn"))
+	.ifNotExists
+</pre>
+<p><a name="rename_column"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#rename_column">rename column</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.renameColumn("oldName", _.column[String]("newName"))
+	.ifExists
+</pre>
+<p><a name="rename_column"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#rename_column">rename column</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def renameColumn(oldName: String, newColumn: (ColumnDef) => Unit): RenameColumn</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.renameColumn("oldName", _.column[String]("newName"))
+	.ifExists
+</pre>
+<p><a name="modify_column_type"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#modify_column_type">modify column type</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def modifyColumnType(column: (ColumnDef) => Unit): ModifyColumnType</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.modifyColumnType(_.column[String]("someColumn"))
+	.ifExists
+</pre>
+<p>It is also possible to use a custom column type:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.modifyColumnType(_.customColumn[String]("someColumn", "TEXT"))
+	.ifExists
+</pre>
+<p><a name="add_index"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#add_index">add index</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def addIndex(columnName: String, indexName: String): AddIndex</strong></p>
+<p>Example including the &#8220;ifNotExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.addIndex("columnName", "indexName")
+	.ifNotExists
+</pre>
+<p><a name="remove_index"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#remove_index">remove index</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def removeIndex(columnName: String, indexName: String): RemoveIndex</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.removeIndex("columnName", "indexName")
+	.ifExists
+</pre>
+<p><a name="add_reference"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#add_reference">add reference (FK)</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def addReference(columnName: String, referencedTable: Table, constraintName: String): AddReference</strong></p>
+<p>Example including the &#8220;ifNotExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.addReference("columnName", table[ReferencedEntity], "constraintName")
+	.ifNotExists
+</pre>
+<p><a name="remove_reference"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#remove_reference">remove reference (FK)</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def removeReference(columnName: String, referencedTable: Table, constraintName: String): RemoveReference</strong></p>
+<p>Example including the &#8220;ifExists&#8221; option:</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.removeReference("columnName", table[ReferencedEntity], "constraintName")
+	.ifNotExists
+</pre>
+<p><a name="add_nested_list_table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#add_nested_list_table">add nested list table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def createNestedListTableOf[T](listName: String, listTableName : String): IfNotExistsBag</strong></p>
+<p>Creates a nested table to persist entity list properties. The &#8220;T&#8221; generic is the list content type.</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.createNestedListTableOf[Int]("intList", "listTableName")
+	.ifNotExists
+</pre>
+<p>Mongo and memory storages persists simple &#8220;native&#8221; nested lists, ignoring this action. On jdbc this method perform this actions:</p>
+<p>- Creates a column with the list name in the entity table. This column is used to indicate if the property is null (0) or not null (1).<br />
+- Creates a table with the listTableName. It contains two columns: &#8220;owner&#8221;, referencing the entity table, and &#8220;value&#8221;, containing the list item value.<br />
+- Creates an index on the owner column</p>
+<p>Activate automatically manages the list content using this jdbc storage structures when the entity is created, modified or deleted.</p>
+<p><a name="remove_nested_list_table"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#remove_nested_list_table">remove nested list table</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Table instance method:<br />
+<strong>def removeNestedListTable(listName: String): IfExistsBag</strong></p>
+<p>Removes a nested list table.</p>
+<pre class="brush: scala">
+
+table[MyEntity]
+	.removeNestedListTable("intList")
+	.ifExists
+</pre>
+<p><a name="custom_script"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#custom_script">custom script</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>A custom script is an arbitrary code block that runs as a migration action inside a transaction. Example:</p>
+<pre class="brush: scala">
+
+customScript {
+	all[MyEntity].foreach(_.doSomething)
+}
+</pre>
+<p>Using mass update/delete:</p>
+<pre class="brush: scala">
+
+customScript {
+	update {
+		(entity: MyEntity) => where(entity.name :== "someName") set(entity.name := "someName2")
+	}
+	delete {
+		(entity: MyEntity) => where(entity.name :== "someName2")
+	}
+}
+</pre>
+<p>It&#8217;s possible to use the direct access to the storage. Be aware that the direct access turns your software storage dependent. Example with a jdbc storage:</p>
+<pre class="brush: scala">
+
+customScript {
+	val connection = storage.directAccess
+	try {
+		connection
+			.prepareStatement("update MyEntity set attribute1 = 'a'")
+			.executeUpdate
+		connection.commit
+	} catch {
+		case e =>
+			connection.rollback
+			throw e
+	} finally
+		connection.close
+}
+</pre>
+<p><a name="custom_column_type"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#custom_column_type">custom column type</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Activate determines the column type based on the attribute class. It&#8217;s possible to determine a custom column type. In the places that you use:</p>
+<pre class="brush: scala">
+
+_.column[String]("attribute1")
+</pre>
+<p>Just modify to:</p>
+<pre class="brush: scala">
+
+_.customColumn[String]("attribute1", "CLOB")
+</pre>
+<p>The second parameter is the database type name. Be aware that this makes your code storage dependent.</p>
+<p><a name="auxiliary_methods"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#auxiliary_methods">auxiliary methods</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>There are some auxiliary methods that can be used to modify the schema based on your entities classes automatically. Use these methods carefully. Otherwise, your migrations can be incompatible if you have to migrate a new database from zero.</p>
+<p>They are self explanatory:</p>
+<pre class="brush: scala">
+
+createTableForAllEntities
+	.ifNotExists
+createTableForEntity[MyEntity]
+	.ifNotExists
+
+removeAllEntitiesTables
+	.ifExists
+	.cascade
+
+createInexistentColumnsForAllEntities
+createInexistentColumnsForEntity[MyEntity]
+
+createReferencesForAllEntities
+	.ifNotExists
+createReferencesForEntity[MyEntity]
+	.ifNotExists
+
+removeReferencesForAllEntities
+	.ifExists
+</pre>
+
+<div class="one_half" ><a href="../query/index.html" title="Query">< Query (previous)</a></div>
+<div class="one_half last " ><p style="text-align: right;"><a href="../multiple-vms/index.html" title="Multiple VMs">(next) Multiple VMs ></a></p></div><div class="clearboth"></div>
+				</div>
+			</div> <!-- .post -->
+						
+						
+			<!-- START of PAGINATION -->
+    		<div class="pagination"><div class='newer-posts'>&nbsp;</div><div class='older-posts'>&nbsp;</div><div class='clearfix'></div></div>
+    		<!-- END of PAGINATION -->
+
+		</div> <!-- #main-content -->
+		
+		 
+<div class="columns four alpha" id="side-nav">
+	<div id="header-wrapper-side">
+<div id="logo">
+	<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+</div><!-- #logo -->
+
+<div id="side-menu">
+	<ul id="menu-main-menu-1" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul></div> <!-- #side-menu -->
+
+	</div> <!-- #header-wrapper -->
+	
+	<div id="widgets">
+<div id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" action="http://activate-framework.org/" >
+	<div><label class="screen-reader-text" for="s">Search for:</label>
+	<input type="text" value="" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+	</form></div>		<div id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widgettitle"><span class="title">Recent Posts</span></h3>		<ul>
+				<li><a href="../../activate-1-6/index.html" title="Activate 1.6">Activate 1.6</a></li>
+				<li><a href="../../activate-1-5-is-out/index.html" title="Activate 1.5 is out!">Activate 1.5 is out!</a></li>
+				<li><a href="../../activate-1-4-1/index.html" title="Activate 1.4.1">Activate 1.4.1</a></li>
+				<li><a href="../../activate-1-3-reactive-persistence/index.html" title="Activate 1.3 &#8211; Reactive Persistence">Activate 1.3 &#8211; Reactive Persistence</a></li>
+				<li><a href="../../activate-1-2/index.html" title="Activate 1.2 &#8211; Polyglot Persistence">Activate 1.2 &#8211; Polyglot Persistence</a></li>
+				</ul>
+		</div><div id="text-3" class="widget widget_text">			<div class="textwidget"></div>
+		</div>	</div> <!-- #widgets -->
+	
+</div> <!-- #side-nav --> 
+		
+	</div><!-- #wrapper -->
+
+	<!--div class="container" id="footer">
+		<div id="footer-line-1" class="footer-line">
+			<span class="line-content">
+				<font color=white>Activate is released under LGPL license.</font>			</span>
+		</div>
+	</div-->
+	
+	<script type="text/javascript">resizeSidenav();</script>
+
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tools.tabs.min54f4.js?ver=1.2.5'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tabs-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/pin-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tweet-api68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tooltip-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shInit68b3.js?ver=1'></script>
+
+<!-- SyntaxHighlighter Stuff -->
+<script type="text/javascript" src="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/src/shCore.js"></script>
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+</script>
+
+	</body>
+
+<!-- Mirrored from activate-framework.org/documentation/migration/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:49:51 GMT -->
+</html>

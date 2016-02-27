@@ -1,0 +1,324 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" dir="ltr" lang="pt-BR"> <![endif]-->
+<!--[if gt IE 8]><!--> <html dir="ltr" lang="pt-BR"> <!--<![endif]-->
+
+<!-- Mirrored from activate-framework.org/documentation/play-framework/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:49:47 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+
+	<!--=== META TAGS ===-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta charset="UTF-8" />
+	<meta name="description" content="Keywords">
+	<meta name="author" content="Name">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!--=== LINK TAGS ===-->
+	<link rel="shortcut icon" href="../../favicon.ico" />
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework RSS2 Feed" href="../../feed/index.html" />
+	<link rel="pingback" href="../../xmlrpc.php" />
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.html">
+	<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.html">
+	<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.html">
+
+	<!--=== TITLE ===-->
+	<title> &raquo; Play Framework - Activate Persistence Framework</title>
+	
+	<!--== GOOGLE FONTS ==-->
+	<link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+
+	<!--=== WP_HEAD() ===-->
+	<link rel="alternate" type="application/rss+xml" title="Activate Persistence Framework &raquo; Play Framework Comments Feed" href="feed/index.html" />
+<link rel='stylesheet' id='base-style-css'  href='../../wp-content/themes/atom/css/base68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='skeleton-style-css'  href='../../wp-content/themes/atom/css/skeleton68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='layout-style-css'  href='../../wp-content/themes/atom/css/layout68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='main-style-css'  href='../../wp-content/themes/atom/style5152.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='shortcodes-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/css/shortcodes68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='pretty-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/css/prettyPhoto68b3.css?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='shCore-style-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shCoredc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='shThemeDefault-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/styles/shThemeDefaultdc98.css?ver=all' type='text/css' media='all' />
+<link rel='stylesheet' id='flex-slider-css-css'  href='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/flexslider.css' type='text/css' media='all' />
+<link rel='stylesheet' id='uploadify-css-css'  href='../../wp-content/themes/atom/uploadify/uploadify.css' type='text/css' media='all' />
+<script type="text/javascript">var THEME_DIR = "../../wp-content/themes/atom/index.html";</script><script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+<script type='text/javascript' src='http://html5shim.googlecode.com/svn/trunk/html5.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/jquery.isotope.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/init.js'></script>
+<script type='text/javascript' src='https://apis.google.com/js/plusone.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tweet68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tipTip.minified4e44.js?ver=1.3'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/js/jquery.prettyPhoto.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/prettyphoto/init.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shCore.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shAutoloader.js'></script>
+<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=&amp;sensor=false'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.gmap-1.1.0-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/flexslider/jquery.flexslider-min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/swfobject.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/uploadify/jquery.uploadify.v2.1.4.min.js'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/js/ordernow.js'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="../../xmlrpc0db0.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://activate-framework.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Migration' href='../migration/index.html' />
+<link rel='next' title='Query' href='../query/index.html' />
+<link rel='canonical' href='index.html' />
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shCore.css"></link>
+	<link type="text/css" rel="stylesheet" href="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/styles/shThemeDefault.css"></link>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34374169-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body class="page page-id-708 page-child parent-pageid-694 page-template-default">
+
+<div class="container" id="header-wrapper-top">
+	<div id="logo-top">
+		<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+	</div><!-- #logo -->
+	
+	<div id="navigation-toggle"><a href="#">SHOW NAVIGATION</a></div>
+				
+	<div id="top-menu">
+		<ul id="menu-main-menu" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul>	</div> <!-- #side-menu -->
+</div>
+
+	<div class="container" id="wrapper">
+		
+		<div class="columns twelve alpha omega" id="main-content">
+		
+						
+			<div class="mega-title mega-single">
+				<h1>Play Framework</h1>
+			</div>
+			
+			<div class="post">
+				<div class="post-content page-content">
+					<p>The &#8220;<strong>activate-play</strong>&#8221; component has some classes to facilitate the Activate usage with the <a href="http://playframework.org/">Play Framework</a> 2.2.</p>
+<p>Take a look at the activate-example-play project. It is based on the computer-database example.</p>
+<p><a href="https://github.com/fwbrasil/activate-example-play" target="_blank">https://github.com/fwbrasil/activate-example-play</a></p>
+<p>There also a non-blocking version:</p>
+<p><a href="https://github.com/fwbrasil/activate-example-play-async" target="_blank">https://github.com/fwbrasil/activate-example-play-async</a></p>
+<p><a name="play_plugin"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#play_plugin">play plugin</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>To support play application reload, add this line to the <strong>conf/play.plugins</strong> file (create it if necessary):</p>
+<pre class="brush: scala">
+
+100:net.fwbrasil.activate.play.ActivatePlayPlugin
+</pre>
+<p>The plugin has full entity class loading/reloading support. It also supports migration loading/reloading, but not running already executed migrations.</p>
+<p><a name="entity_form"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#entity_form">entity form</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Entity form is a Play Form specialized in Activate entities. Constructor example:</p>
+<pre class="brush: scala">
+
+val computerForm =
+	EntityForm[Computer](
+		_.name -> nonEmptyText,
+		_.introduced -> optional(date("yyyy-MM-dd")),
+		_.discontinued -> optional(date("yyyy-MM-dd")),
+		_.company -> optional(entity[Company]))
+</pre>
+<p>Each attribute is referenced by his accessor in a type-safe way in the left. The right side determines the play form properties.</p>
+<p>The entity form just hold attributes values. It doesn&#8217;t holds entity instances.</p>
+<p><a name="fill_with"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#fill_with">fillWith</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>To fill a form with an entity instance attributes, use the &#8220;<strong>fillWith</strong>&#8221; method:</p>
+<pre class="brush: scala">
+
+computerForm.fillWith(aComputerInstance)
+</pre>
+<p><a name="bind_from_request"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#bind_from_request">bindFromRequest</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>To fill a form with the request values, use the &#8220;<strong>bindFromRequest</strong>&#8221;  method:</p>
+<pre class="brush: scala">
+
+computerForm.bindFromRequest
+</pre>
+<p><a name="update_entity"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#update_entity">updateEntity</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>To update an entity instance with the form values use the &#8220;<strong>updateEntity</strong>&#8221; method:</p>
+<pre class="brush: scala">
+
+computerForm.bindFromRequest.fold(
+	formWithErrors => BadRequest(html.editForm(id, formWithErrors)),
+	computerData => {
+		val computer = computerData.updateEntity(id)
+		Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
+	})
+</pre>
+<p><a name="async_update_entity"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#async_update_entity">asyncUpdateEntity</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Async variation example:</p>
+<pre class="brush: scala">
+
+computerForm.bindFromRequest.fold(
+    formWithErrors =>
+        Future.successful(BadRequest(html.editForm(id, formWithErrors, companyOptions))),
+    computerData => {
+        computerData.asyncUpdateEntity(id).map { computer =>
+            Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
+        }
+    })
+</pre>
+<p><a name="create_entity"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#create_entity">createEntity</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>To create an entity instance with the form values use the &#8220;<strong>createEntity</strong>&#8221; method:</p>
+<pre class="brush: scala">
+
+computerForm.bindFromRequest.fold(
+	formWithErrors => BadRequest(html.createForm(formWithErrors)),
+	computerData => {
+		val computer = computerData.createEntity
+		Home.flashing("success" -> "Computer %s has been created".format(computer.name))
+	})
+</pre>
+<p><a name="async_create_entity"/></p>
+<div class="section-wrapper">
+<div class="section-title section-title-default">
+<h3><a href="#async_create_entity">asyncCreateEntity</a></h3>
+</div>
+<div class="clearfix"></div>
+</p></div>
+<p>Async variation example:</p>
+<pre class="brush: scala">
+
+computerForm.bindFromRequest.fold(
+    formWithErrors =>
+        Future.successful(BadRequest(html.createForm(formWithErrors, companyOptions))),
+    computerData => {
+        computerData.asyncCreateEntity.map { computer =>
+            Home.flashing("success" -> "Computer %s has been created".format(computer.name))
+        }
+    })
+</pre>
+
+<div class="one_half" ><a href="../mass-statement/index.html" title="Mass Statement">< Mass Statement (previous)</a></div>
+<div class="one_half last " ><p style="text-align: right;"><a href="../spray-json/index.html" title="Spray Json">(next) Spray Json ></a></p></div><div class="clearboth"></div>
+				</div>
+			</div> <!-- .post -->
+						
+						
+			<!-- START of PAGINATION -->
+    		<div class="pagination"><div class='newer-posts'>&nbsp;</div><div class='older-posts'>&nbsp;</div><div class='clearfix'></div></div>
+    		<!-- END of PAGINATION -->
+
+		</div> <!-- #main-content -->
+		
+		 
+<div class="columns four alpha" id="side-nav">
+	<div id="header-wrapper-side">
+<div id="logo">
+	<a href="../../index.html"><img class="scale-with-grid" src="../../wp-content/uploads/2012/05/activate_logo_site3.png" alt=" " /></a>
+</div><!-- #logo -->
+
+<div id="side-menu">
+	<ul id="menu-main-menu-1" class="nav"><li id="menu-item-186" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home"><a href="../../index.html">HOME</a></li>
+<li id="menu-item-1407" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/master/activate-docs/get-started.md">GET STARTED</a></li>
+<li id="menu-item-1394" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate/blob/v1.5/activate-docs/_index.md">DOCUMENTATION</a></li>
+<li id="menu-item-578" class="menu-item menu-item-type-custom menu-item-object-custom"><a href="https://github.com/fwbrasil/activate">SOURCE CODE</a></li>
+<li id="menu-item-443" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="https://github.com/fwbrasil/activate/issues">ISSUES</a></li>
+<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page"><a href="../../blog/index.html">BLOG</a></li>
+<li id="menu-item-939" class="menu-item menu-item-type-custom menu-item-object-custom"><a target="_blank" href="http://groups.google.com/group/activate-persistence">GOOGLE GROUP</a></li>
+</ul></div> <!-- #side-menu -->
+
+	</div> <!-- #header-wrapper -->
+	
+	<div id="widgets">
+<div id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" action="http://activate-framework.org/" >
+	<div><label class="screen-reader-text" for="s">Search for:</label>
+	<input type="text" value="" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+	</form></div>		<div id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widgettitle"><span class="title">Recent Posts</span></h3>		<ul>
+				<li><a href="../../activate-1-6/index.html" title="Activate 1.6">Activate 1.6</a></li>
+				<li><a href="../../activate-1-5-is-out/index.html" title="Activate 1.5 is out!">Activate 1.5 is out!</a></li>
+				<li><a href="../../activate-1-4-1/index.html" title="Activate 1.4.1">Activate 1.4.1</a></li>
+				<li><a href="../../activate-1-3-reactive-persistence/index.html" title="Activate 1.3 &#8211; Reactive Persistence">Activate 1.3 &#8211; Reactive Persistence</a></li>
+				<li><a href="../../activate-1-2/index.html" title="Activate 1.2 &#8211; Polyglot Persistence">Activate 1.2 &#8211; Polyglot Persistence</a></li>
+				</ul>
+		</div><div id="text-3" class="widget widget_text">			<div class="textwidget"></div>
+		</div>	</div> <!-- #widgets -->
+	
+</div> <!-- #side-nav --> 
+		
+	</div><!-- #wrapper -->
+
+	<!--div class="container" id="footer">
+		<div id="footer-line-1" class="footer-line">
+			<span class="line-content">
+				<font color=white>Activate is released under LGPL license.</font>			</span>
+		</div>
+	</div-->
+	
+	<script type="text/javascript">resizeSidenav();</script>
+
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/jquery.tools.tabs.min54f4.js?ver=1.2.5'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tabs-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/pin-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tweet-api68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/js/tooltip-init68b3.js?ver=1'></script>
+<script type='text/javascript' src='../../wp-content/themes/atom/wpts/shortcodes/assets/syntaxhigh/scripts/shInit68b3.js?ver=1'></script>
+
+<!-- SyntaxHighlighter Stuff -->
+<script type="text/javascript" src="../../wp-content/plugins/syntaxhighlighter-plus/syntaxhighlighter/src/shCore.js"></script>
+<script type="text/javascript">
+	SyntaxHighlighter.all();
+</script>
+
+	</body>
+
+<!-- Mirrored from activate-framework.org/documentation/play-framework/ by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 27 Feb 2016 17:49:49 GMT -->
+</html>

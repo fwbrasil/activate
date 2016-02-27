@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Activate Persistence Framework &#187; NEWS</title>
+	<atom:link href="http://activate-framework.org/category/news/feed/" rel="self" type="application/rss+xml" />
+	<link>http://activate-framework.org</link>
+	<description>Activate - Persistence as it should be</description>
+	<lastBuildDate>Fri, 13 Jun 2014 18:15:55 +0000</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=3.3.2</generator>
+		<item>
+		<title>Activate 1.0 is out!</title>
+		<link>http://activate-framework.org/activate-1-0-is-out/</link>
+		<comments>http://activate-framework.org/activate-1-0-is-out/#comments</comments>
+		<pubDate>Sun, 26 Aug 2012 14:24:42 +0000</pubDate>
+		<dc:creator>admin</dc:creator>
+				<category><![CDATA[NEWS]]></category>
+
+		<guid isPermaLink="false">http://activate-framework.org/?p=596</guid>
+		<description><![CDATA[After 2 years of development, Activate Persistence Framework 1.0 is out! The project idea began from the frustration of using Java persistence frameworks. I was tired of accidental complexity, type-unsafe queries, patterns like DAO and methods such as store, merge, detach, etc. Why can’t it be simpler? One day, a friend of mine presented Scala [...]]]></description>
+			<content:encoded><![CDATA[<p style="text-align: justify;">After 2 years of development, Activate Persistence Framework 1.0 is out!</p>
+<p style="text-align: justify;">The project idea began from the frustration of using Java persistence frameworks. I was tired of accidental complexity, type-unsafe queries, patterns like DAO and methods such as store, merge, detach, etc. Why can’t it be simpler? One day, a friend of mine presented Scala to me. That moment was the definitive kick-off to start Activate. The power and simplicity of Scala was the final ingredient.</p>
+<p style="text-align: justify;">My reference of persistence was <a href="http://prevayler.org" target="_blank">Prevayler</a>. How to do something like Prevayler without store all data in memory? A persistence framework based on <a href="http://en.wikipedia.org/wiki/Software_transactional_memory" target="_blank">STM</a> that implements the behavior of database in memory was the solution I have found. Using soft references, it can use all the available memory and rely on sophisticated Java GC to choose what entities stays in memory.</p>
+<p style="text-align: justify;">The project idea also was born while the NoSQL resurged. Inspired by this movement, the architecture was designed to provide pluggable persistence, allowing to write software that persists data in relational or non-relational storages in a homogeneous way.</p>
+<p style="text-align: justify;">I would like to thank people who contributed to the project directly or indirectly, especially Lau Borges for the website and tests.</p>
+<p style="text-align: justify;">I hope that Activate will be useful to the Scala community.</p>
+<p style="text-align: justify;">The official site and documentation:</p>
+<p><a href="http://activate-framework.org">http://activate-framework.org</a></p>
+<p>1.0 Release notes:</p>
+<p>- <a href="http://activate-framework.org/documentation/migration/">Migrations</a><br />
+- <a href="http://activate-framework.org/documentation/play-framework/">Play Framework support</a><br />
+- <a href="http://activate-framework.org/documentation/mass-statement/">Mass update/delete statements</a><br />
+- <a href="http://activate-framework.org/documentation/validation/">Validation using Design By Contract</a><br />
+- <a href="http://activate-framework.org/documentation/query/">Queries with &#8220;order by&#8221;</a><br />
+- <a href="http://activate-framework.org/documentation/query/">Paginated queries</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/">Storage direct access</a><br />
+- <a href="http://activate-framework.org/documentation/persistence-context/">System properties defined storage<br />
+</a>- Better error messages<br />
+- It&#8217;s not necessary to use &#8220;-noverify&#8221; anymore<br />
+- Performance enhancements<br />
+- Bugfixes</p>
+]]></content:encoded>
+			<wfw:commentRss>http://activate-framework.org/activate-1-0-is-out/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+	</channel>
+</rss>
