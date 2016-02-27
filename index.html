@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Activate by fwbrasil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Activate</h1>
+      <h2 class="project-tagline">Pluggable persistence in Scala</h2>
+      <a href="https://github.com/fwbrasil/activate" class="btn">View on GitHub</a>
+      <a href="https://github.com/fwbrasil/activate/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/fwbrasil/activate/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="activate-persistence-framework" class="anchor" href="#activate-persistence-framework" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Activate Persistence Framework</h1>
+
+<p><a href="https://gitter.im/fwbrasil/activate?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></p>
+
+<p><img src="http://activate-framework.org/wp-content/uploads/2012/04/activateslider4.jpg" alt="Activate splash"></p>
+
+<p>Documentation (<a href="/activate-docs/_index.md">index</a>):</p>
+
+<ul>
+<li><a href="/activate-docs/get-started.md">Get started</a></li>
+<li><a href="/activate-docs/persistence-context.md">Persistence Context</a></li>
+<li>
+<a href="/activate-docs/entity.md">Entity</a> </li>
+<li><a href="/activate-docs/transaction.md">Transaction</a></li>
+<li><a href="/activate-docs/validation.md">Validation</a></li>
+<li><a href="/activate-docs/query.md">Query</a></li>
+<li><a href="/activate-docs/test-support.md">Test support</a></li>
+<li><a href="/activate-docs/migration.md">Migration</a></li>
+<li><a href="/activate-docs/multiple-vms.md">Multiple VMs</a></li>
+<li><a href="/activate-docs/mass-statement.md">Mass statement</a></li>
+<li><a href="/activate-docs/play-framework.md">Play framework</a></li>
+<li><a href="/activate-docs/lift-framework.md">Lift framework</a></li>
+<li><a href="/activate-docs/spray-json.md">Spray Json</a></li>
+<li><a href="/activate-docs/architecture.md">Architecture</a></li>
+</ul>
+
+<h2>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h2>
+
+<p>Activate is a framework to persist objects in Scala. It is a <a href="http://en.wikipedia.org/wiki/Software_transactional_memory">STM (Software Transactional Memory)</a> durable, with pluggable persistence. Its core is the RadonSTM, which provides a powerful mechanism for controlling transactions in memory, analogous to the transactions of databases, to do <a href="http://en.wikipedia.org/wiki/Optimistic_concurrency_control">optimistic concurrency control</a>. The durability of transactions (persistence) is pluggable and can use persistence in different paradigms such as relational (<a href="http://en.wikipedia.org/wiki/Java_Database_Connectivity">JDBC</a>), prevalence (<a href="http://prevayler.org/">Prevayler</a>) and non-relational (<a href="https://www.mongodb.org/">MongoDB</a>).</p>
+
+<h2>
+<a id="benefits" class="anchor" href="#benefits" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Benefits</h2>
+
+<p>The main benefits of the framework are:</p>
+
+<ul>
+<li>Atomic, consistent, isolated and durable transactions. You can use entities without worrying about concurrency issues.</li>
+<li>Entities are always consistent in memory and in the persistence layer. For example, if rollback occurs, entities in memory stay consistent.</li>
+<li>Transaction propagation control, including nested transactions.</li>
+<li>Entities are lazy loaded and initialized automatically when needed.</li>
+<li>Queries are type-safe and consistent, even with objects created in the current transaction. Therefore, an entity created in the same transaction may be returned in a query.</li>
+<li>The available memory is used efficiently, minimizing the conversation with the storage and maximizing performance.</li>
+</ul>
+
+<h2>
+<a id="build" class="anchor" href="#build" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build</h2>
+
+<p>Use sbt 0.11.2 to build Activate. Use the command "eclipse" to generate the eclipse project.
+To run tests, you have to provide the databases instances for the contexts defined on the net.fwbrasil.activate.ActivateTest.contexts method of the activate-tests project.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>The code is licensed under <a href="http://pl.wikipedia.org/wiki/GNU_Lesser_General_Public_License">LGPL</a>.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/fwbrasil/activate">Activate</a> is maintained by <a href="https://github.com/fwbrasil">fwbrasil</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
