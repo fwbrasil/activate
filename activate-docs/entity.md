@@ -345,8 +345,8 @@ class MyEntity extends Entity {
 It is possible to define custom names for entities and its properties. The custom names define how Activate persist the information. Example:
 
 ``` scala
-@Alias("PersonTable")
-class Person(@Alias("personName") var name: String) extends Entity
+@InternalAlias("PersonTable")
+class Person(@InternalAlias("personName") var name: String) extends Entity
 ```
 ## ENTITY SERIALIZATION ##
 An entity can be serialized/deserialized and stays consistent. Activate serialize entities inside an envelope containing the entity id. When the entity is deserialized, it is recovered from the LiveCache or from the storage. If the entity is serialized during a transaction that holds a modification on it, if the transaction don’t commit, the deserialized entity will not have the modification.
